@@ -1,0 +1,30 @@
+[
+  {
+    "id": "MAT_VITRIMER_01",
+    "title": "可循环热固性树脂 (Vitrimer)",
+    "formulas": ["C21H24O4", "C6H10O4"],
+    "aliases": [
+      "双酚A二缩水甘油醚",
+      "己二酸",
+      "DGEBA",
+      "DGEBA-Adipic Acid System",
+      "Epoxy-acid Vitrimer",
+      "Vitrimer"
+    ],
+    "keywords": ["PCB", "可循环", "环保", "热固性", "化学回收"]
+  },
+  {
+    "id": "MAT_CERAMIC_04",
+    "title": "高性能陶瓷基板 (AlN)",
+    "formulas": ["AlN"],
+    "aliases": ["氮化铝", "Aluminum Nitride", "AlN陶瓷板", "AlN"],
+    "keywords": ["PCB", "高性能", "高导热", "散热", "陶瓷基板"]
+  },
+  {
+    "id": "MAT_BIO_05",
+    "title": "生物基 PCB 基材 (Cellulose)",
+    "formulas": ["C6H10O5"],
+    "aliases": ["纤维素", "Cellulose", "生物基PCB"],
+    "keywords": ["PCB", "生物基", "可降解", "环保", "绿色电子"]
+  }
+]

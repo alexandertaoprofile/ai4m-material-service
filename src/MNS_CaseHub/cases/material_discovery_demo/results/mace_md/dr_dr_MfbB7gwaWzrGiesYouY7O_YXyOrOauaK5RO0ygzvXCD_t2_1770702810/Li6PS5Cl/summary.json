@@ -1,0 +1,47 @@
+{
+  "timestamp": "2026-02-10T05:54:13.820216Z",
+  "timestamp_local": "2026-02-10T13:54:13.820227",
+  "status": "DONE",
+  "input": "/home/ubuntu/se42/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/dr_MfbB7gwaWzrGiesYouY7O_YXyOrOauaK5RO0ygzvXCD_t2_1770702810/Li6PS5Cl/structure.cif",
+  "model_path": "/home/ubuntu/runtimes-packages/mace-ase/models/mace-mp-0b2-medium.model",
+  "device": "cuda",
+  "dtype": "float32",
+  "n_atoms": 13,
+  "calc_config": "mace-mp-0b2-medium.model / cuda / float32",
+  "cell_metrics": {
+    "cell_a_A": 7.26870274,
+    "cell_b_A": 7.26870274,
+    "cell_c_A": 7.26870274,
+    "cell_alpha_deg": 59.99999999999999,
+    "cell_beta_deg": 59.99999999999999,
+    "cell_gamma_deg": 59.99999999999999,
+    "cell_volume_A3": 271.55370168980784,
+    "density_g_cm3": 1.6410327242250562
+  },
+  "init_energy_eV": -53.3634147644043,
+  "init_max_force_eV_per_A": 0.011569243855774403,
+  "init_min_dist_A": 2.0568244804557425,
+  "relax": {
+    "enabled": false
+  },
+  "md": {
+    "enabled": true,
+    "steps": 150,
+    "timestep_fs": 0.25,
+    "temperature_K": 300.0,
+    "friction": 0.05,
+    "log_every": 10,
+    "traj_file": "md_traj.extxyz",
+    "log_file": "md_log.csv",
+    "final_energy_eV": -53.336936950683594,
+    "final_max_force_eV_per_A": 0.26513463258743286,
+    "final_min_dist_A": 2.045131450603175,
+    "final_snapshot_cif": "md_final.cif",
+    "avg_temp_K": 32.36840242962045,
+    "temp_std_K": 20.682386934281432,
+    "epot_drift_eV": 0.026477813720703125
+  },
+  "verdict": "MD PASS (min_dist=2.045 Å >= 1.8 Å)",
+  "verdict_cn": "MD 通过（最小原子间距=2.045 Å ≥ 1.8 Å）",
+  "wall_time_s": 12.504097172990441
+}

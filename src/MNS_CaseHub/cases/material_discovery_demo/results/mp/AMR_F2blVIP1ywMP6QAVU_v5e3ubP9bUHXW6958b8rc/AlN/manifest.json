@@ -1,0 +1,73 @@
+{
+  "ok": true,
+  "taskid": "AMR_F2blVIP1ywMP6QAVU/v5e3ubP9bUHXW6958b8rc",
+  "jobid": "AlN",
+  "material_id": null,
+  "formula": "AlN",
+  "elements": null,
+  "query": {
+    "query_mode": "formula",
+    "prefer_stable": true,
+    "max_candidates": 5,
+    "whitelist": null,
+    "whitelist_ids": [],
+    "primary_material_id": "mp-zl"
+  },
+  "render": {
+    "supercell": [
+      1,
+      1,
+      1
+    ],
+    "atom_radius": 0.4,
+    "bond_radius": 0.07,
+    "max_bonds_per_site": null,
+    "poly_mode": "p",
+    "poly_cn": [
+      4
+    ],
+    "poly_alpha": 85
+  },
+  "base_dir": "/home/ubuntu/Zhuolun_project/MNS_Tuutorial/ALPHA-MNS-main/material-screen-calc/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/AMR_F2blVIP1ywMP6QAVU_v5e3ubP9bUHXW6958b8rc/AlN",
+  "base_dir_rel_to_repo": "src/MNS_CaseHub/cases/material_discovery_demo/results/mp/AMR_F2blVIP1ywMP6QAVU_v5e3ubP9bUHXW6958b8rc/AlN",
+  "files": {
+    "summary_all_json": "/home/ubuntu/Zhuolun_project/MNS_Tuutorial/ALPHA-MNS-main/material-screen-calc/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/AMR_F2blVIP1ywMP6QAVU_v5e3ubP9bUHXW6958b8rc/AlN/summary_all.json",
+    "selected_structures_json": "/home/ubuntu/Zhuolun_project/MNS_Tuutorial/ALPHA-MNS-main/material-screen-calc/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/AMR_F2blVIP1ywMP6QAVU_v5e3ubP9bUHXW6958b8rc/AlN/selected_structures.json",
+    "summary_md": "/home/ubuntu/Zhuolun_project/MNS_Tuutorial/ALPHA-MNS-main/material-screen-calc/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/AMR_F2blVIP1ywMP6QAVU_v5e3ubP9bUHXW6958b8rc/AlN/summary.md",
+    "structure_cif": "/home/ubuntu/Zhuolun_project/MNS_Tuutorial/ALPHA-MNS-main/material-screen-calc/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/AMR_F2blVIP1ywMP6QAVU_v5e3ubP9bUHXW6958b8rc/AlN/structure.cif",
+    "structure_json": "/home/ubuntu/Zhuolun_project/MNS_Tuutorial/ALPHA-MNS-main/material-screen-calc/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/AMR_F2blVIP1ywMP6QAVU_v5e3ubP9bUHXW6958b8rc/AlN/structure.json",
+    "structure_glb": "/home/ubuntu/Zhuolun_project/MNS_Tuutorial/ALPHA-MNS-main/material-screen-calc/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/AMR_F2blVIP1ywMP6QAVU_v5e3ubP9bUHXW6958b8rc/AlN/structure_mpstyle.glb",
+    "manifest_json": "/home/ubuntu/Zhuolun_project/MNS_Tuutorial/ALPHA-MNS-main/material-screen-calc/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/AMR_F2blVIP1ywMP6QAVU_v5e3ubP9bUHXW6958b8rc/AlN/manifest.json"
+  },
+  "files_abs": {
+    "summary_all_json": "/home/ubuntu/Zhuolun_project/MNS_Tuutorial/ALPHA-MNS-main/material-screen-calc/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/AMR_F2blVIP1ywMP6QAVU_v5e3ubP9bUHXW6958b8rc/AlN/summary_all.json",
+    "selected_structures_json": "/home/ubuntu/Zhuolun_project/MNS_Tuutorial/ALPHA-MNS-main/material-screen-calc/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/AMR_F2blVIP1ywMP6QAVU_v5e3ubP9bUHXW6958b8rc/AlN/selected_structures.json",
+    "summary_md": "/home/ubuntu/Zhuolun_project/MNS_Tuutorial/ALPHA-MNS-main/material-screen-calc/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/AMR_F2blVIP1ywMP6QAVU_v5e3ubP9bUHXW6958b8rc/AlN/summary.md",
+    "structure_cif": "/home/ubuntu/Zhuolun_project/MNS_Tuutorial/ALPHA-MNS-main/material-screen-calc/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/AMR_F2blVIP1ywMP6QAVU_v5e3ubP9bUHXW6958b8rc/AlN/structure.cif",
+    "structure_json": "/home/ubuntu/Zhuolun_project/MNS_Tuutorial/ALPHA-MNS-main/material-screen-calc/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/AMR_F2blVIP1ywMP6QAVU_v5e3ubP9bUHXW6958b8rc/AlN/structure.json",
+    "structure_glb": "/home/ubuntu/Zhuolun_project/MNS_Tuutorial/ALPHA-MNS-main/material-screen-calc/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/AMR_F2blVIP1ywMP6QAVU_v5e3ubP9bUHXW6958b8rc/AlN/structure_mpstyle.glb",
+    "manifest_json": "/home/ubuntu/Zhuolun_project/MNS_Tuutorial/ALPHA-MNS-main/material-screen-calc/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/AMR_F2blVIP1ywMP6QAVU_v5e3ubP9bUHXW6958b8rc/AlN/manifest.json"
+  },
+  "glb_info": {
+    "ok": true,
+    "out_glb": "/home/ubuntu/Zhuolun_project/MNS_Tuutorial/ALPHA-MNS-main/material-screen-calc/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/AMR_F2blVIP1ywMP6QAVU_v5e3ubP9bUHXW6958b8rc/AlN/structure_mpstyle.glb",
+    "standardized": true,
+    "supercell": [
+      1,
+      1,
+      1
+    ],
+    "draw_atoms": true,
+    "draw_bonds": true,
+    "poly_mode": "p",
+    "poly_centers": [],
+    "poly_cn": [
+      4
+    ],
+    "poly_alpha": 85,
+    "n_sites": 4,
+    "n_bonds": 13,
+    "n_polyhedra": 0
+  },
+  "generated_at": "2026-03-02T14:43:25.204260"
+}

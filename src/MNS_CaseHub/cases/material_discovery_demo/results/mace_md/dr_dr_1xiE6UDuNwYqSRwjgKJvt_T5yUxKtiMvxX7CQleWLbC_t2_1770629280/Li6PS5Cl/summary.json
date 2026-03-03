@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-02-09T09:29:35.227665Z",
+  "status": "DONE",
+  "input": "/home/ubuntu/se42/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/dr_1xiE6UDuNwYqSRwjgKJvt_T5yUxKtiMvxX7CQleWLbC_t2_1770629280/Li6PS5Cl/structure.cif",
+  "model_path": "/home/ubuntu/runtimes-packages/mace-ase/models/mace-mp-0b2-medium.model",
+  "device": "cuda",
+  "dtype": "float32",
+  "n_atoms": 13,
+  "init_energy_eV": -53.3634147644043,
+  "init_max_force_eV_per_A": 0.011569119058549404,
+  "init_min_dist_A": 2.0568244804557425,
+  "relax": {
+    "skipped": true
+  },
+  "md": {
+    "steps": 150,
+    "timestep_fs": 0.25,
+    "temperature_K": 300.0,
+    "friction": 0.05,
+    "log_every": 10,
+    "traj_file": "md_traj.extxyz",
+    "log_file": "md_log.csv",
+    "final_energy_eV": -53.3140754699707,
+    "final_max_force_eV_per_A": 0.447981595993042,
+    "final_min_dist_A": 2.048557447928076,
+    "final_snapshot_cif": "md_final.cif"
+  },
+  "verdict": "MD PASS (min_dist=2.049 Å >= 1.8 Å)"
+}

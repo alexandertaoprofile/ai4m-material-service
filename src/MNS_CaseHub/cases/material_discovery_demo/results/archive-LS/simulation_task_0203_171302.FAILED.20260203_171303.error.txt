@@ -1,0 +1,1 @@
+CalledProcessError: Command '['/home/ubuntu/.local/share/mamba/envs/mp-api-py311/bin/python', 'src/MNS_CaseHub/cases/material_discovery_demo/run_mp.py', '--taskid', 'LS_simulation_task_0203_171302', '--formula', 'Li3PS4']' returned non-zero exit status 2.

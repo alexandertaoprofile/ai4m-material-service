@@ -1,0 +1,45 @@
+{
+  "ok": true,
+  "taskid": "dr_1xiE6UDuNwYqSRwjgKJvt/7dButYg77qwu4z6IuHGmV_t2_1770624330",
+  "jobid": "Li6PS5Cl",
+  "material_id": null,
+  "formula": "Li6PS5Cl",
+  "elements": null,
+  "max_candidates": 5,
+  "prefer_stable": true,
+  "whitelist_ids": [],
+  "primary_material_id": "mp-cebzk",
+  "count_selected": 1,
+  "items": [
+    {
+      "material_id": "mp-cebzk",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cebzk"
+      ],
+      "formula_pretty": "Li6PS5Cl",
+      "elements": [
+        "Cl",
+        "Li",
+        "P",
+        "S"
+      ],
+      "chemsys": "Cl-Li-P-S",
+      "nsites": 13,
+      "density": 1.641240630729659,
+      "volume": 271.55370202531924,
+      "energy_above_hull": 0.08294630153846101,
+      "is_stable": false,
+      "energy_per_atom": -4.351717759230769,
+      "formation_energy_per_atom": -1.320599137087911,
+      "band_gap": 2.2955,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "F-43m",
+        "number": 216
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk"
+    }
+  ]
+}

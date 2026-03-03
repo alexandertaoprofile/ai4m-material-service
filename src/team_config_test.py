@@ -1,0 +1,2978 @@
+# -*- coding: utf-8 -*-
+import os
+import re
+import sys
+import asyncio
+import subprocess
+import tempfile
+import io
+import base64
+import json
+import logging
+import traceback
+import mimetypes
+import uuid
+import datetime
+from typing import List, Dict, Tuple, Optional, Union, Any
+
+import requests
+import numpy as np
+from fastapi.concurrency import run_in_threadpool
+from dotenv import load_dotenv
+from pydantic import PrivateAttr
+
+from alpha.team import Team
+from alpha.roles import Role
+from alpha.logs import logger
+from alpha.schema import Message
+from alpha.actions import Action, UserRequirement
+
+from src.llm_utils import SeLLM, load_config
+from src.storage_utils import oss_upload, download_to_file, get_image_url
+
+# Optional: reranker (heavy dependency)
+try:
+    from sentence_transformers import CrossEncoder  # noqa: F401
+except Exception:
+    CrossEncoder = None  # type: ignore
+
+
+def _repo_root() -> str:
+    # 当前文件: .../ai4m_tqm/src/team_config.py
+    # 仓库根:   .../ai4m_tqm
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+
+def _resolve_case_readme_path(case: dict) -> str:
+    repo = _repo_root()
+
+    # 兼容 root_path / paths.project_root
+    root_path = case.get("root_path")
+    if not root_path:
+        paths = case.get("paths") or {}
+        root_path = paths.get("project_root")
+
+    if not root_path:
+        return ""  # 让上层打印 “root_path缺失”
+
+    readme_name = case.get("readme") or "README.md"
+
+    # 1) 先按 “repo/root_path/readme” 试
+    p1 = os.path.join(repo, root_path, readme_name)
+
+    # 2) 再按 “repo/src/root_path/readme” 试（兼容 root_path 没写 src/ 的情况）
+    p2 = os.path.join(repo, "src", root_path, readme_name)
+
+    if os.path.exists(p1):
+        return p1
+    if os.path.exists(p2):
+        return p2
+
+    # 两种都不存在
+    return p2  # 返回一个“最可能”的路径给日志打印
+
+
+load_dotenv()
+today = datetime.datetime.now().strftime("%Y%m%d")
+
+os.makedirs("logs", exist_ok=True)
+logger.configure(handlers=[
+    {"sink": sys.stdout, "level": "INFO"},
+    {"sink": f"logs/{today}.txt", "level": "INFO", "enqueue": True}
+])
+
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:10240"
+
+# 读取环境变量
+server_base = os.getenv('server_base')
+config = load_config("config/config.yaml")
+backend_url = config["BACKEND_URL"]
+source_path = config['SOURCE_CODE_PATH']
+
+minio_addr = "http://36.103.203.113:2300"
+https_vip_addr = "http://36.103.203.113:2300"
+
+base_dir = '/data/XIMUAlpha_MNS/src'
+########################################
+# 工具函数
+########################################
+
+# 修改正则，提取所有 python 代码块
+CODE_BLOCK_PATTERN = re.compile(
+    r"```python(.*?)```",
+    re.DOTALL | re.IGNORECASE
+)
+
+
+### json 格式化 ###
+def build_payload(data, type_: str = "chat", request_id: str = None, meta: dict = None) -> dict:
+    """
+    将任意输出打包成统一 JSON 格式，供前端解析。
+
+    - 支持 meta.ui.hidden: True  -> 前端可忽略（你服务端仍可记录日志）
+    - 支持 meta.ui.level: "debug"/"info" -> 前端可按级别过滤（需要前端配合）
+    - progress 的 icon 允许在后续统一清空（你也可在这里直接清空）
+    """
+    import uuid
+    import datetime
+
+    if request_id is None:
+        request_id = str(uuid.uuid4())
+
+    payload = {
+        "version": "1.0.0",
+        "agent": "XIMUAlpha_MNS",
+        "request_id": request_id,
+        "time": datetime.datetime.now().isoformat(),
+        "type": type_,
+        "data": data
+    }
+
+    if meta:
+        # 兜底：避免 meta 不是 dict
+        payload["meta"] = meta if isinstance(meta, dict) else {"raw_meta": str(meta)}
+
+    # ✅ 可选：默认把 progress 的 icon 清空（你说“卡通图标不需要这么频繁”）
+    # 如果你仍想保留少数关键步骤的 icon，可以在 meta 里显式写 ui.keep_icon=True
+    try:
+        keep_icon = bool(payload.get("meta", {}).get("ui", {}).get("keep_icon", False))
+        if type_ == "progress" and isinstance(payload.get("data"), dict) and not keep_icon:
+            payload["data"]["icon"] = ""
+    except Exception:
+        pass
+
+    # ✅ 可选：截断过长文本（避免 summary/md 或 LLM 输出把前端刷爆）
+    # 这里不改 image / parameters
+    try:
+        max_chars = int(payload.get("meta", {}).get("ui", {}).get("max_text_chars", 6000))
+        if type_ in ("chat", "error", "progress") and isinstance(payload.get("data"), str):
+            if len(payload["data"]) > max_chars:
+                payload["data"] = payload["data"][:max_chars] + "…"
+    except Exception:
+        pass
+
+    return payload
+
+
+#########################################辅助函数分类prompt#########################################
+def _safe_str(x) -> str:
+    if x is None:
+        return ""
+    if isinstance(x, str):
+        return x
+    try:
+        return str(x)
+    except Exception:
+        return ""
+
+
+def _get_case_root(case: dict) -> str:
+    """
+    兼容两种字段：
+      - 旧：case["root_path"]
+      - 新：case["paths"]["project_root"]
+    返回相对 repo_root 的路径（不带前导 /）
+    """
+    root_path = case.get("root_path")
+    if not root_path:
+        paths = case.get("paths") or {}
+        root_path = paths.get("project_root")
+    return root_path or ""
+
+
+def _as_text(x) -> str:
+    if x is None:
+        return ""
+    if isinstance(x, (dict, list)):
+        try:
+            import json
+            return json.dumps(x, ensure_ascii=False)
+        except Exception:
+            return str(x)
+    return str(x)
+
+
+def _infer_prompt_mode(best_proj: dict) -> str:
+    if not isinstance(best_proj, dict):
+        return "engineering"
+
+    tags = best_proj.get("tags", [])
+    if isinstance(tags, str):
+        tags = [tags]
+    if not isinstance(tags, list):
+        tags = []
+    tags_text = " ".join([t for t in tags if isinstance(t, str)]).lower()
+
+    blob = " ".join([
+        _safe_str(best_proj.get("name")).lower(),
+        _safe_str(best_proj.get("summary")).lower(),
+        _safe_str(best_proj.get("description")).lower(),
+        _as_text(best_proj.get("parameters")).lower(),
+        tags_text
+    ])
+
+    # ---------- 1) 先判 materials：用“强信号”抢占 ----------
+    material_keys_strong = [
+        "dft", "deepmd", "mlip", "lammps",
+        "nvt", "npt",
+        "弹性常数", "c11", "c12", "c44",
+        "热容", "cv", "热膨胀",
+        "晶体", "bcc", "fcc", "hcp",
+        "钨", "tungsten", "w ",
+        "镁", "mg", "合金", "材料"
+    ]
+    if any(k in blob for k in material_keys_strong):
+        return "materials"
+
+    # ---------- 2) 再判 engineering：用更严格的关键词 ----------
+    engineering_keys_strict = [
+        "smartphone", "phone", "手机",
+        "跌落", "drop", "impact",
+        "散热", "thermal",
+        "参数反演",  # 注意：不要用单独“反演”
+        "pinn", "工程参数"
+    ]
+    if any(k in blob for k in engineering_keys_strict):
+        return "engineering"
+
+    return "engineering"
+
+
+########################################
+# CodeRetriever
+
+class CodeRetriever:
+    """
+    负责加载项目结构信息，并支持项目级检索
+    """
+
+    def __init__(
+            self,
+            json_file_path: str = None,
+            reranker_model_path: str = "/home/ubuntu/services/models/bge-reranker-large",
+            score_threshold: float = 0.3,
+            json_files: list = None,
+            source_root: str = None,
+            enable_reranker: bool = True,
+
+    ):
+        # repo 根目录：/home/ubuntu/se42/ai4m_tqm
+        if not source_root:
+            source_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        self.source_root = os.path.abspath(source_root)
+
+        # registry 目录：repo_root/src/MNS_CaseHub/registry
+        self.registry_dir = os.path.join(self.source_root, "src", "MNS_CaseHub", "registry")
+
+        # 兼容旧参数：json_file_path 仍可用
+        if json_file_path is None:
+            json_file_path = os.path.join(self.registry_dir, "dataset.json")
+        self.json_file_path = json_file_path
+
+        # 支持多个 registry 合并（你现在拆成 materials/phone）
+        if json_files is None:
+            json_files = [
+                os.path.join(self.registry_dir, "dataset_materials.json"),
+                os.path.join(self.registry_dir, "dataset_phone.json"),
+                os.path.join(self.registry_dir, "dataset.json"),
+            ]
+        self.json_files = [os.path.abspath(p) for p in json_files]
+
+        self.reranker_model_path = reranker_model_path
+        self.score_threshold = float(score_threshold)
+
+        self.projects = []
+        self.reranker = None
+
+        self._load_projects()
+        self._init_reranker()
+
+    def _load_projects(self):
+        """
+        从 registry json 加载 projects
+        兼容以下顶层结构：
+        - {"version": "...", "cases": [...]}
+        - {"version": "...", "projects": [...]}
+        - {"data": [...]}
+        - list[...]
+        """
+        self.projects = []
+
+        def _ensure_list(data):
+            if isinstance(data, list):
+                return data
+            if isinstance(data, dict):
+                for k in ("cases", "projects", "data", "items"):
+                    v = data.get(k, None)
+                    if isinstance(v, list):
+                        return v
+            return []
+
+        def _normalize_case(x: dict) -> dict:
+            """
+            把 case/cases item 统一成 project 结构，保证后续匹配字段存在
+            """
+            if not isinstance(x, dict):
+                return {}
+
+            # 你们 registry 里可能叫 case_id / id
+            cid = x.get("id") or x.get("case_id") or x.get("name") or ""
+            name = x.get("name") or x.get("title") or cid
+            domain = x.get("domain") or x.get("team_type") or x.get("category") or ""
+
+            tags = x.get("tags") or x.get("keywords") or []
+            if isinstance(tags, str):
+                tags = [tags]
+            if tags is None:
+                tags = []
+
+            description = x.get("description") or ""
+            summary = x.get("summary") or ""
+
+            # paths 兼容：你截图里是 x["paths"]["project_root"]/["main_entry"]
+            paths = x.get("paths") or {}
+            if not isinstance(paths, dict):
+                paths = {}
+
+            project_root = paths.get("project_root") or x.get("project_root") or ""
+            main_entry = paths.get("main_entry") or x.get("main_entry") or ""
+
+            # 给一些常用字段兜底
+            proj = {
+                "id": cid,
+                "name": name,
+                "domain": domain,
+                "tags": tags,
+                "description": description,
+                "summary": summary,
+                "paths": {
+                    "project_root": project_root,
+                    "main_entry": main_entry,
+                },
+                # 原始字段保留，方便 debug
+                "_raw": x,
+            }
+            return proj
+
+        # 依次加载多个 json 合并
+        for fp in self.json_files:
+            try:
+                if not os.path.exists(fp):
+                    logger.warning(f"[CodeRetriever] registry file not found: {fp}")
+                    continue
+
+                with open(fp, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+
+                cases = _ensure_list(data)
+                if not cases:
+                    logger.warning(f"[CodeRetriever] no cases/projects found in: {fp}")
+                    continue
+
+                for item in cases:
+                    proj = _normalize_case(item)
+                    if proj:
+                        self.projects.append(proj)
+
+                logger.info(f"[CodeRetriever] loaded {len(cases)} items from {fp}")
+
+            except Exception as e:
+                logger.exception(f"[CodeRetriever] failed to load {fp}: {e}")
+
+        logger.info(f"[CodeRetriever] total projects loaded: {len(self.projects)}")
+
+    def _init_reranker(self):
+        """
+        初始化 CrossEncoder reranker（可选依赖）。
+        - sentence_transformers 缺失 / CrossEncoder 不可用：自动禁用
+        - 模型路径不存在：自动禁用
+        - 任何加载异常：自动禁用
+        """
+        self.reranker = None
+
+        # 1) CrossEncoder 可能被 try/except 降级成 None
+        if CrossEncoder is None:
+            logger.warning("[CodeRetriever] reranker 未启用：sentence-transformers / CrossEncoder 不可用，走 fallback")
+            return
+
+        # 2) 模型路径检查（你日志里是 /homel '/home/ubuntu/services/models/bge-reranker-large'）
+        model_path = getattr(self, "reranker_model_path", None)
+        if not model_path or not os.path.exists(model_path):
+            logger.warning(f"[CodeRetriever] reranker 未启用：model_path 不存在或为空: {model_path}")
+            return
+
+        # 3) 尝试加载
+        try:
+            self.reranker = CrossEncoder(model_path)
+            logger.info(f"[CodeRetriever] ✅ reranker loaded: {model_path}")
+        except Exception as e:
+            logger.exception(f"[CodeRetriever] ❌ reranker 加载失败，自动降级 fallback: {e}")
+            self.reranker = None
+            return
+
+    def _fallback_match_project(self, query: str):
+        """
+        无 reranker 时的兜底匹配：
+        1) 关键词规则（强约束，命中就直接返回）
+        2) 轻量字符串打分（domain/name/tags/description/summary）
+        返回: (best_proj or None, score, best_idx)
+        """
+        if not query:
+            return None, 0.0, None
+
+        q = str(query).lower()
+
+        RULES = [
+            # 手机跌落
+            (r"(drop|impact|fall|跌落|冲击)", ["drop", "impact", "跌落", "冲击"]),
+            # 手机散热
+            (r"(thermal|heat|cool|散热|热)", ["thermal", "heat", "散热", "温度"]),
+            # 钨高温蠕变 / 高温变形（新增）
+            (
+                r"(tungsten|wolfram|钨|蠕变|creep|高温蠕变|高温变形|高温强度|stress\s*rupture|应力松弛|蠕变断裂)",
+                ["tungsten", "wolfram", "钨", "蠕变", "creep", "高温", "断裂", "应力", "强度"]
+            ),
+            # 钨喷管/高温结构（可选增强）
+            (
+                r"(nozzle|喷管|rocket|aerospace|高温喷管|发动机|火箭)",
+                ["nozzle", "喷管", "rocket", "aerospace", "高温"]
+            ),
+            # 材料线泛化（建议保留，方便材料 demo 触发）
+            (
+                r"(dft|mlip|deepmd|lammps|mace|ase|materials? project|material|晶体|结构|势函数|分子动力学|扩散|弹性)",
+                ["dft", "mlip", "deepmd", "lammps", "mace", "ase", "材料", "晶体", "结构", "势"]
+            ),
+        ]
+
+        def proj_text(p):
+            parts = [
+                p.get("domain", ""),
+                p.get("name", ""),
+                p.get("id", ""),
+                " ".join(p.get("tags", []) or []),
+                p.get("description", ""),
+                p.get("summary", ""),
+                # 额外字段兼容（有些dataset.json可能还有）
+                p.get("title", ""),
+                p.get("keywords", ""),
+            ]
+            return " | ".join([str(x) for x in parts if x])
+
+        # 1) 强规则命中：命中就直接返回最像的
+        for pattern, must_tokens in RULES:
+            if re.search(pattern, q, flags=re.IGNORECASE):
+                best_idx = None
+                best_hit = -1
+                for i, p in enumerate(self.projects):
+                    text = proj_text(p).lower()
+
+                    # hit：命中 tokens 的数量（越多越像）
+                    hit = sum(1 for t in must_tokens if t and t.lower() in text)
+
+                    # 额外加权：如果 query 里出现 “钨/creep/tungsten”，且项目文本也包含，则强加权
+                    if ("钨" in q or "tungsten" in q or "creep" in q) and (
+                            "钨" in text or "tungsten" in text or "creep" in text):
+                        hit += 3
+
+                    if hit > best_hit:
+                        best_hit = hit
+                        best_idx = i
+
+                if best_idx is not None and best_hit > 0:
+                    # 规则命中给高置信度
+                    return self.projects[best_idx], 0.95, best_idx
+
+        # 2) 轻量 Jaccard token 相似度（通用兜底）
+        q_tokens = set(re.findall(r"[a-z0-9_]+|[\u4e00-\u9fff]+", q))
+        if not q_tokens:
+            return None, 0.0, None
+
+        best_idx = None
+        best_score = -1.0
+
+        for i, p in enumerate(self.projects):
+            text = proj_text(p).lower()
+            t_tokens = set(re.findall(r"[a-z0-9_]+|[\u4e00-\u9fff]+", text))
+            if not t_tokens:
+                continue
+
+            inter = len(q_tokens & t_tokens)
+            union = len(q_tokens | t_tokens)
+            score = inter / union if union else 0.0
+
+            # 额外加权：材料线关键词
+            if ("钨" in q_tokens or "tungsten" in q_tokens or "creep" in q_tokens) and (
+                    "钨" in t_tokens or "tungsten" in t_tokens or "creep" in t_tokens):
+                score += 0.15
+
+            if score > best_score:
+                best_score = score
+                best_idx = i
+
+        if best_idx is None:
+            return None, 0.0, None
+
+        # 这个阈值你可以按项目数量调；项目少时建议更低一点，否则永远匹配不到
+        if best_score >= 0.08:
+            return self.projects[best_idx], float(best_score), best_idx
+
+        return None, float(best_score), None
+
+    def _proj_text_for_rerank(self, p: Dict[str, Any]) -> str:
+        """
+        给 reranker 的候选文本：比 domain|name 更强，能显著提升命中。
+        """
+        tags = " ".join(p.get("tags", []) or [])
+        text = (
+            f"domain: {p.get('domain', '')} | "
+            f"name: {p.get('name', '')} | "
+            f"id: {p.get('id', '')} | "
+            f"tags: {tags} | "
+            f"description: {p.get('description', '')} | "
+            f"summary: {p.get('summary', '')}"
+        )
+
+        # 截断，避免极端长文本导致慢
+        max_chars = int(os.getenv("RERANKER_MAX_DOC_CHARS", "1200"))
+        if len(text) > max_chars:
+            text = text[:max_chars]
+        return text
+
+    def find_matching_project(self, query: str):
+        """
+        使用 CrossEncoder 在已加载的 self.projects 上打分，返回最匹配的项目。
+        返回: (project_dict or None, score: float, best_idx: int or None)
+        """
+        if not self.projects:
+            logger.warning("[find_matching_project] 项目列表为空")
+            return None, 0.0, None
+
+        if not isinstance(query, str):
+            query = str(query)
+
+        # reranker 不可用 -> fallback
+        if self.reranker is None or (not getattr(self, "enable_reranker", True)):
+            logger.warning("[find_matching_project] reranker 不可用/未启用，走 fallback 匹配")
+            return self._fallback_match_project(query)
+
+        # 候选文本（增强版）
+        texts = [self._proj_text_for_rerank(p) for p in self.projects]
+        print("[DEBUG] rerank doc preview:", texts[0][:200])
+        pairs = [[query, t] for t in texts]
+
+        try:
+            scores = self.reranker.predict(pairs)
+            scores = np.asarray(scores, dtype=float)
+            if scores.size == 0:
+                logger.warning("[find_matching_project] reranker 返回空分数，走 fallback")
+                return self._fallback_match_project(query)
+
+            best_idx = int(np.nanargmax(scores))
+            best_score = float(scores[best_idx])
+            best_proj = self.projects[best_idx]
+
+            logger.info(
+                f"[find_matching_project] Top1: {best_proj.get('domain', '')}/{best_proj.get('name', '')} "
+                f"| score={best_score:.4f} | idx={best_idx}"
+            )
+
+            # 低于阈值，认为不稳 -> fallback 再兜一下
+            if best_score < float(self.score_threshold):
+                logger.warning(
+                    f"[find_matching_project] score<{self.score_threshold}, fallback 再匹配一次 | "
+                    f"score={best_score:.4f}"
+                )
+                fb_proj, fb_score, fb_idx = self._fallback_match_project(query)
+                # fallback 命中就用 fallback，否则仍返回 reranker top1（但上层可提示“不确定”）
+                if fb_proj is not None:
+                    return fb_proj, fb_score, fb_idx
+
+            return best_proj, best_score, best_idx
+        except Exception as e:
+            logger.exception(f"[find_matching_project] reranker 评分异常，走 fallback: {e}")
+            return self._fallback_match_project(query)
+
+    def get_parameters(self, idx: int) -> Optional[dict]:
+        if 0 <= idx < len(self.projects):
+            return self.projects[idx].get("parameters", {})
+        logger.warning(f"[get_parameters_by_index] 无效项目索引: {idx}")
+        return None
+
+    def get_root_path(self, idx: int) -> Optional[str]:
+        if 0 <= idx < len(self.projects):
+            project = self.projects[idx] or {}
+
+            root_path = project.get("root_path")
+            if isinstance(root_path, str) and root_path.strip():
+                return root_path.strip()
+
+            paths = project.get("paths") or {}
+            if isinstance(paths, dict):
+                root_path_2 = paths.get("project_root")
+                if isinstance(root_path_2, str) and root_path_2.strip():
+                    return root_path_2.strip()
+
+            return ""
+
+        logger.warning(f"[get_root_path] 无效项目索引: {idx}")
+        return None
+
+    def get_main_entry(self, idx: int) -> Optional[str]:
+        if 0 <= idx < len(self.projects):
+            project = self.projects[idx] or {}
+
+            main_entry = project.get("main_entry")
+            if isinstance(main_entry, str) and main_entry.strip():
+                return main_entry.strip()
+
+            paths = project.get("paths") or {}
+            if isinstance(paths, dict):
+                main_entry_2 = paths.get("main_entry")
+                if isinstance(main_entry_2, str) and main_entry_2.strip():
+                    return main_entry_2.strip()
+
+            return ""
+
+        logger.warning(f"[get_main_entry] 无效项目索引: {idx}")
+        return None
+
+    def get_summary(self, idx: int) -> Optional[str]:
+        if 0 <= idx < len(self.projects):
+            return self.projects[idx].get("summary", "")
+        logger.warning(f"[get_summary] 无效项目索引: {idx}")
+        return None
+
+
+########################################
+# Coding Action 模块
+# - 功能：根据用户输入生成可运行的代码、选择模型脚本、执行与反馈运行结果
+# - 支持 reranker 和 fallback 模式选择主程序入口
+# - 执行模式支持 quick/train，数据支持 simul/load
+########################################
+
+class Coding(Action):
+    # 智能体名称
+    name: str = "XIMUAlpha_MaterialsCore"
+    # 智能体简要描述
+    desc: str = (
+        "XIMUAlpha工业平台·材料发现与跨尺度计算Agent："
+        "基于上游的材料获得结构，面向材料体系与化学式输入，执行材料初筛、结构与热力学稳定性评估，"
+        "以结构化 JSON 为唯一输出载体，负责计算任务调度、产物组织与结果解释，"
+        "输出可供前端展示与下游计算使用的 JSON 与可视化资产路径，不进行闲聊式解释。"
+    )
+
+    _code_retriever: CodeRetriever = PrivateAttr(default=None)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    XIMU_MNS_ENGINEERING_PROMPT: str = """
+        你是 XIMUAlpha_MNS 平台中的工程物理建模与参数反演定义模块。
+        你的任务是：将用户需求转化为“工程参数反演问题”的正式物理定义文档。
+
+        ---
+        用户问题：
+        {query}
+
+        ---
+        工程背景资料（仅用于理解，不可复述）：
+        {file_info}
+
+        ---
+        工程目标说明：
+        {summary}
+
+        ---
+        已知结构化参数：
+        {parameters}
+
+        ---
+        输出格式与内容必须严格遵守以下规则（任何违反均视为错误）：
+
+        【整体结构顺序不可改变】
+        控制变量与目标参数
+        频域或时间域响应表达式
+        动力学或力学物理模型参数
+        物理控制方程
+        物理常数与固定参数
+        环境与边界条件
+        设计目标约束
+
+        【表格规则】
+        - 每个章节必须优先使用 Markdown 表格表达；
+        - 表格列名必须统一为：
+          | 符号 | 物理量 | 单位 | 取值或范围 | 功能说明 |
+        - 表格中禁止出现任何 LaTeX 语法（包括 $ \\ ^ _ 等）；
+        - 表格内容必须是工程设计或反演相关参数，不得给出泛化教材符号。
+
+        【公式规则】
+        - 所有公式必须使用独立的 $$ ... $$ 数学块；
+        - 每个 $$ 块中只能包含一个公式；
+        - 严禁使用以下 LaTeX 环境：
+          begin{{cases}}, begin{{array}}, begin{{align}}, begin{{tabular}}；
+        - 严禁使用 \\text{{}}, \\left, \\right；
+        - 禁止在公式中解释文字。
+
+        【语言与风格】
+        - 只允许使用中文；
+        - 禁止使用“本案例 / 本系统 / 本项目 / 我们”等指代；
+        - 禁止总结性语句、建议性语句或结尾说明；
+        - 禁止编号（如 1.、（一）等）；
+        - 每一个表格、公式或章节块结束后必须空一行。
+
+        【工程约束】
+        - 输出内容必须体现“可反演的工程参数”，而不是纯理论 PDE；
+        - 若涉及连续介质模型，必须服务于工程参数识别目的；
+        - 若涉及接触、冲击或热源，仅保留工程等效形式。
+
+        按上述规则直接输出结果，不要解释、不要求确认。
+        """
+
+    XIMU_MNS_MATERIAL_PROMPT: str = """
+        你是 XIMUAlpha_MNS 平台中的材料计算与多尺度仿真报告组织模块。
+        你的任务是：将用户需求转化为“DFT → MLIP → LAMMPS → 材料性质验证”的正式工程计算说明文档。
+
+        ---
+        用户问题：
+        {query}
+
+        ---
+        材料案例背景资料（仅用于理解，不可复述）：
+        {file_info}
+
+        ---
+        材料体系与研究目标说明：
+        {summary}
+
+        ---
+        已知结构化参数与计算元数据：
+        {parameters}
+
+        ---
+        输出格式与内容必须严格遵守以下规则（任何违反均视为错误）：
+
+        【整体结构顺序不可改变】
+        材料体系与目标性质定义
+        DFT 数据来源与覆盖范围
+        机器学习势（MLIP）训练与可用性判定
+        LAMMPS 验证流程与物性计算路径
+        工程相关性质与应用解释
+        已生成产物清单
+        下一步计算行动项
+
+        【内容表达规则】
+        - 每一章节必须以工程计算视角描述，不得出现教学性、科普性表述；
+        - 禁止出现推测性语言（如“可能”“大概”“预计”）；
+        - 禁止编造未在 {summary}/{parameters}/{file_info} 中出现的事实；
+        - 若信息缺失，不得简单重复“未提供”，而应改写为：
+          “当前输入未包含该信息，将在后续计算产物或日志中自动补全”；
+        - 允许使用“待计算”“待从产物中提取”等工程占位语。
+
+        【表格优先规则】
+        - 每一章节至少包含一张 Markdown 表格；
+        - 已知信息必须优先落入表格，不得仅用段落描述；
+        - 若数值尚未计算，表格取值列填写“待计算”，不得写“未提供”。
+
+        【表格规则】
+        - 表格列名必须统一为：
+          | 名称 | 物理含义 | 单位 | 取值或范围 | 说明 |
+        - 表格中禁止出现任何 LaTeX 语法（包括 $ \\ ^ _ 等）；
+        - 表格内容必须直接服务于材料计算或验证流程。
+
+        【公式规则】
+        - 公式仅用于关键派生关系或定义，不得大量堆叠；
+        - 所有公式必须使用独立的 $$ ... $$ 数学块；
+        - 每个 $$ 块中只能包含一个公式；
+        - 严禁使用 begin{{cases}}, begin{{array}}, begin{{align}}, begin{{tabular}}；
+        - 严禁使用 \\text{{}}, \\left, \\right；
+        - 禁止在公式中解释文字。
+
+        【语言与风格】
+        - 只允许使用中文；
+        - 禁止使用“本案例 / 本体系 / 本项目 / 我们”等指代；
+        - 禁止总结性语句、营销性语句或结尾说明；
+        - 禁止编号（如 1.、（一）等）；
+        - 每一个章节、表格或公式块结束后必须空一行。
+
+        【工程计算约束】
+        - 输出内容必须围绕 DFT → MLIP → LAMMPS 的实际计算与验证链路；
+        - 若涉及材料性质，必须说明其来源于哪一计算阶段或后处理步骤；
+        - 禁止仅给出最终结论而不说明计算路径；
+        - “已生成产物清单”必须仅从 {file_info} 或 {parameters} 中出现过的文件名或路径提取；
+        - 若当前输入尚未包含文件或路径，允许说明“将在计算完成后生成”。
+
+        按上述规则直接输出结果，不要解释、不要求确认。
+        """
+
+    XIMU_MNS_MATERIAL_MP_EXPLAIN_PROMPT: str = """
+        你是 XIMUAlpha_MNS 平台中的材料数据库初筛解释模块。
+        你的任务是：对 Materials Project（MP）阶段返回的候选结构列表进行逐条解读，
+        只基于 MP 可直接获得的字段，给出“字段层面”的判读（不做工程结论）。
+
+        ---
+        用户问题：
+        {query}
+
+        ---
+        材料数据库返回结果（仅用于解释，不可复述原始 JSON）：
+        {parameters}
+
+        ---
+        输出内容必须严格遵守以下规则（任何违反均视为错误）：
+
+        【解释范围限定】
+        - 仅允许解释 Materials Project 阶段可直接获得的信息（例如：material_id、对称性/空间群、E_above_hull、E_form、band_gap、nsites 等）；
+        - 禁止推断缺陷形成能、动力学稳定性、离子迁移或电导率；
+        - 禁止输出任何文件路径、URL、目录名、manifest 字段、生成时间戳等工程信息；
+        - 禁止输出“下一步需要什么数据/建议做什么计算”的展望性内容；
+        - 仅输出 Step4：材料初筛（MP）解释，禁止出现 Step5/Step6 字样。
+
+        【强制取数规则（最重要）】
+        - 必须从 {parameters} 中提取并使用数值；
+        - 只要 {parameters} 中存在某字段的数值（哪怕为 0），就严禁写“待计算/未提供/unknown，如果0的话就直接写0”；
+        - 仅当 {parameters} 中完全找不到该字段时，才允许写“待计算”。
+
+        【必须说明的要点】
+        - 必须对“候选结构列表”的每一行（每个 material_id）逐条解读；
+        - 必须对 E_above_hull、E_form、band_gap、对称性/空间群等字段分别解释“含义 + 在筛选中代表什么”；
+        - 必须基于以下口径做“字段层面判读”（只做口径判读，不做性能优劣结论）：
+          1) E_above_hull：
+             - = 0：记为“稳定（MP 热力学口径）”
+             - (0, 0.02] eV/atom：记为“接近稳定”
+             - > 0.02 eV/atom：记为“偏离稳定”
+          2) E_form：数值越负仅表示“形成倾向更强”（只可描述趋势，不可写优劣结论）
+          3) band_gap：> 0 表示“非金属性倾向”，≈0 表示“金属性倾向”（只做电子结构类型提示）
+          4) symmetry / space_group：只做结构分类与对称性提示，不做性质推断
+
+        【语言与风格】
+        - 只允许使用中文；
+        - 禁止使用“本案例 / 本系统 / 我们”等指代；
+        - 禁止总结性结论或展望性描述；
+        - 语气必须保持工程记录式、克制、客观；
+        - 禁止复述原始 JSON（必须转为表格与短句解读）。
+
+        【表格优先规则】
+        - 至少包含两张 Markdown 表格：
+          表1｜候选结构逐行对比与判读表：每个 material_id 一行，必须包含：
+               material_id | symmetry/space_group | nsites | E_above_hull(eV/atom) | E_form(eV/atom) | band_gap(eV) | 字段判读(稳定/接近稳定/偏离稳定)
+          表2｜字段口径与判读规则表：字段名 | 物理含义 | 本次判读口径
+        - 表格之外最多允许 6 行补充说明（用于解释“为什么这样判读”），禁止写长段落；
+        - 这些表格哪怕是英语结果，也要按照他们的中文意思来解释和写。
+        - 若某字段缺失或未计算，表格取值写“待计算”，不得写“未提供”。
+
+        按上述规则直接输出解释内容，不要解释规则本身。
+        """
+
+    XIMU_MNS_MATERIAL_ADIT_EXPLAIN_PROMPT: str = """
+        你是 XIMUAlpha_MNS 平台中的稳定性评估解释模块。
+        你的任务是：对 ADiT + Pymatgen 阶段的结构体检结果进行逐条解读，
+        只基于该阶段输出的指标，给出“门槛/风险项”的解释（不做性质预测与工程结论）。
+
+        ---
+        用户问题：
+        {query}
+
+        ---
+        稳定性评估返回结果（仅用于解释，不可复述原始 JSON）：
+        {parameters}
+
+        ---
+        输出内容必须严格遵守以下规则（任何违反均视为错误）：
+
+        【解释范围限定】
+        - 仅允许解释 ADiT + Pymatgen 阶段可直接获得的信息（例如：结构合法性、占位/无序、最小原子间距、密度、体积/原子、空间群、pass_gate、gate_reason、warnings/errors 等）；
+        - 禁止推断离子迁移、电导率、缺陷形成能、扩散能垒、力学/热学性质；
+        - 禁止输出任何文件路径、URL、目录名、manifest 字段、生成时间戳等工程信息；
+        - 禁止展望“下一步做什么计算”；
+        - 禁止输出 Step6 / 下一步 / 仿真队列 / 性质计算 / MACE / LAMMPS / MLIP 相关内容；
+        - 只允许输出 Step5：稳定性评估（ADiT + Pymatgen）解释。
+
+        【强制取数规则（最重要）】
+        - 必须从 {parameters} 中提取并使用数值；
+        - 只要 {parameters} 中存在某字段的数值（哪怕为 0 / true / false），就严禁写“待计算/未提供/unknown，如果0的话就直接写0”；
+        - 仅当 {parameters} 中完全找不到该字段时，才允许写“待计算”。
+
+        【必须说明的要点】
+        - 必须分别解释 Pymatgen 与 ADiT 两部分输出：
+          1) Pymatgen：属于“结构几何与晶体学一致性快速体检”
+          2) ADiT：属于“模型支持范围与基础合法性门槛检查”
+        - 必须明确解释 Gate：
+          - pass_gate 的含义（是否通过门槛）
+          - gate_reason 的含义（未通过时的主要原因）
+        - 若存在 warnings/errors，必须逐条列出“是什么 + 代表什么风险”（只解释风险项含义，不给解决方案）
+
+        【语言与风格】
+        - 只允许使用中文；
+        - 禁止使用“本案例 / 本系统 / 我们”等指代；
+        - 禁止总结性结论或展望性描述；
+        - 语气必须保持工程记录式、克制、客观；
+        - 禁止复述原始 JSON（必须转为表格与短句解读）。
+
+        【表格优先规则（必须严格执行）】
+        - 至少包含三张 Markdown 表格，且表1/表2必须为“横向 2×N 形式”：
+          表1｜Pymatgen 横向体检表（2×N）：
+              第一行：指标 | <metric1> | <metric2> | ...（最多 12 个最关键指标）
+              第二行：数值 | <value1>  | <value2>  | ...
+          表2｜ADiT 横向门槛表（2×N）：
+              第一行：指标 | <metric1> | <metric2> | ...
+              第二行：数值 | <value1>  | <value2>  | ...
+          表3｜Gate 判定表（常规 3 列即可）：pass_gate | gate_reason | 解释
+        - 表格之外最多允许 6 行补充说明；
+        - 若某字段缺失或未计算，表格取值写“待计算”，不得写“未提供”。
+
+        按上述规则直接输出解释内容，不要解释规则本身。
+        """
+
+    XIMU_MNS_MATERIAL_MACE_FAST_EXPLAIN_PROMPT: str = """
+        你是 XIMUAlpha_MNS 平台中的 MACE 快速体检解释模块。
+        你的任务是：对 MACE-fast（仅 Relax）阶段的结构体检结果进行逐条解读，
+        只基于该阶段输出的指标，给出“门槛/风险项”的解释（不做真实物性预测与工程结论）。
+
+        ---
+        用户问题：
+        {query}
+
+        ---
+        MACE-fast 返回结果（仅用于解释，不可复述原始 JSON）：
+        {parameters}
+
+        ---
+        输出内容必须严格遵守以下规则（任何违反均视为错误）：
+
+        【解释范围限定】
+        - 仅允许解释 MACE-fast 阶段可直接获得的信息（例如：原子数、初始/弛豫后能量、最大力 fmax、最小原子间距 min_dist、弛豫是否通过门槛、verdict 等）；
+        - 禁止推断离子迁移、电导率、缺陷形成能、扩散能垒、真实热力学稳定性、力学/热学性质；
+        - 禁止输出任何文件路径、URL、目录名、manifest 字段、生成时间戳等工程信息；
+        - 禁止输出“下一步需要什么数据/建议做什么计算”的展望性内容；
+        - 只允许输出 Step5.3a：性质计算（MACE-fast Relax）解释，禁止出现 Step4/Step5.3b/Step6 字样。
+
+        【强制取数规则（最重要）】
+        - 必须从 {parameters} 中提取并使用数值；
+        - 只要 {parameters} 中存在某字段的数值（哪怕为 0 / true / false），就严禁写“待计算/未提供/unknown，如果0的话就直接写0”；
+        - 仅当 {parameters} 中完全找不到该字段时，才允许写“待计算”。
+
+        【必须说明的要点】
+        - 必须解释 Relax 的目的：属于“几何合理性/原子重叠风险/应力或不合理键长的快速体检”，不是最终物性；
+        - 必须分别解释下列字段的含义与口径：
+          1) fmax（eV/Å）：力的最大值，反映结构是否仍明显不平衡；只解释门槛意义，不给优劣结论
+          2) min_dist（Å）：最小原子间距，用于识别是否存在不合理重叠/过近接触风险
+          3) 能量（eV）：只可说明“弛豫前后能量变化用于判断是否找到更平衡的局部构型”，禁止上升为热力学稳定结论
+        - 若存在 verdict/gate 类字段，必须解释其含义（通过/未通过的门槛口径），但不得给“材料好/坏”的工程结论。
+
+        【语言与风格】
+        - 只允许使用中文；
+        - 禁止使用“本案例 / 本系统 / 我们”等指代；
+        - 禁止总结性结论或展望性描述；
+        - 语气必须保持工程记录式、克制、客观；
+        - 禁止复述原始 JSON（必须转为表格与短句解读）。
+
+        【表格优先规则（必须严格执行）】
+        - 至少包含两张 Markdown 表格：
+          表1｜MACE-fast 关键指标对比表（常规 3 列即可）：
+              指标 | 初始 | 弛豫后
+              必须包含：能量(eV)、fmax(eV/Å)、min_dist(Å)
+          表2｜字段口径与判读规则表：字段名 | 物理含义 | 本次判读口径
+        - 表格之外最多允许 6 行补充说明；
+        - 若某字段缺失或未计算，表格取值写“待计算”，不得写“未提供”。
+
+        按上述规则直接输出解释内容，不要解释规则本身。
+        """
+
+    XIMU_MNS_MATERIAL_MACE_MD_EXPLAIN_PROMPT: str = """
+        你是 XIMUAlpha_MNS 平台中的 MACE 短程 MD 解释模块。
+        你的任务是：对 MACE-md（短程 NVT Langevin）阶段的体检结果进行逐条解读，
+        只基于该阶段输出的指标，给出“门槛/风险项”的解释（不做真实物性预测与工程结论）。
+
+        ---
+        用户问题：
+        {query}
+
+        ---
+        MACE-md 返回结果（仅用于解释，不可复述原始 JSON）：
+        {parameters}
+
+        ---
+        输出内容必须严格遵守以下规则（任何违反均视为错误）：
+
+        【解释范围限定】
+        - 仅允许解释 MACE-md 阶段可直接获得的信息（例如：MD 参数 steps/dt/T/friction、末态能量、末态 fmax、末态 min_dist、温度统计、势能漂移等）；
+        - 禁止推断离子迁移、电导率、扩散系数、真实热力学性质、力学/热学性质；
+        - 禁止输出任何文件路径、URL、目录名、manifest 字段、生成时间戳等工程信息；
+        - 禁止输出“下一步需要什么数据/建议做什么计算”的展望性内容；
+        - 只允许输出 Step5.3b：性质计算（MACE-md 短程 MD）解释，禁止出现 Step4/Step5.3a/Step6 字样。
+
+        【强制取数规则（最重要）】
+        - 必须从 {parameters} 中提取并使用数值；
+        - 只要 {parameters} 中存在某字段的数值（哪怕为 0 / true / false），就严禁写“待计算/未提供/unknown，如果0的话就直接写0”；
+        - 仅当 {parameters} 中完全找不到该字段时，才允许写“待计算”。
+
+        【必须说明的要点】
+        - 必须解释短程 MD 的目的：属于“动力学 sanity check（是否出现明显崩坏/不合理接触/温控是否失真）”，不是材料真实动力学/扩散/输运结论；
+        - 必须分别解释：
+          1) steps/dt/T/friction：参数含义与其对“体检强度”的影响口径（只解释，不下结论）
+          2) 末态 fmax/min_dist：是否出现明显不稳定迹象的快速判据口径
+          3) 温度统计（均值/波动）：仅解释是否“温控工作正常”的口径，不推断物性
+          4) 势能漂移 ΔEpot：仅解释作为数值稳定性/漂移提示，不推断热力学
+        - 若存在 verdict/gate 类字段，必须解释其含义（通过/未通过的门槛口径），但不得给“材料好/坏”的工程结论。
+
+        【语言与风格】
+        - 只允许使用中文；
+        - 禁止使用“本案例 / 本系统 / 我们”等指代；
+        - 禁止总结性结论或展望性描述；
+        - 语气必须保持工程记录式、克制、客观；
+        - 禁止复述原始 JSON（必须转为表格与短句解读）。
+
+        【表格优先规则（必须严格执行）】
+        - 至少包含两张 Markdown 表格：
+          表1｜MACE-md 参数表：参数 | 数值（必须包含 steps/dt/T/friction）
+          表2｜MACE-md 关键结果表：指标 | 数值（必须包含：末态能量(eV)、末态 fmax(eV/Å)、末态 min_dist(Å)、温度均值(K)、温度波动std(K)、ΔEpot(eV)）
+        - 表格之外最多允许 6 行补充说明；
+        - 若某字段缺失或未计算，表格取值写“待计算”，不得写“未提供”。
+
+        按上述规则直接输出解释内容，不要解释规则本身。
+        """
+
+    XIMU_MNS_FLOW2_RANKING_BRIEF_PROMPT: str = """
+                你是 XIMUAlpha_MNS 平台中的流程2候选排序播报模块。
+        你的任务是：基于初筛数据 {parameters}，结合上一阶段上下文 {previous_flow_context}，生成逻辑严密的候选排序报告。
+
+        ---
+        【逻辑判断与输出规则】
+        请根据 {previous_flow_context} 的内容状态，自动选择以下路径之一进行输出：
+
+        ### 路径 A：存在上阶段精华总结（深度关联模式）
+        1. **生成过渡段**：明确提到“基于前序阶段关于 [精华总结中的核心点] 的分析”，告知用户当前已锁定的 [材料种类/体系]。
+        2. **打分逻辑描述**：说明本轮排序是根据精华总结中的关键词（如：高频低损耗、热膨胀匹配、物理性能、使用寿命、成本控制、加工工艺、环境保护等）进行的针对性权衡。
+        3. **首选宣布**：指出排名第一的材料因最契合前文的核心诉求，将优先进入下一步深度计算。
+
+        ### 路径 B：无上阶段精华总结（标准权重模式）
+        1. **现状告知**：直接列出当前待评估的材料列表。
+        2. **权重公示**：明确告知用户，本次评分采用多维度加权模型：
+           - 物理性能：50% | 使用寿命：20% | 成本控制：15% | 加工工艺：10% | 环境保护：5%
+        3. **下一步说明**：宣布评分最高的材料将作为核心对象进入后续模拟阶段。
+
+        ---
+        【固定展示：排序表格】
+        无论走哪条路径，中间必须紧跟 Markdown 表格（严禁 LaTeX 符号）：
+        | 排名 | 候选化学式 | 来源条目 | 匹配标签 | 综合评分 | 状态说明 |
+        (评分保留两位小数，状态仅限“进入计算”或“候选保留”)
+
+        ---
+        【语言要求】
+        - 只允许中文；
+        - 语气保持工程记录式、克制、客观；
+        - 不要解释规则本身；
+        - 不要输出代码块标记。
+
+         """
+
+    # XIMU_MNS_FLOW2_TRANSITION_PROMPT: str = """
+    #             你是 XIMUAlpha_MNS 平台中的流程衔接播报模块。
+    #             你的任务是：根据上一流程返回内容与当前流程参数，在排序表格输出前先生成过渡段。
+
+    #             ---
+    #             上一流程返回内容（如有）：
+    #             {previous_flow_context}
+
+    #             ---
+    #             当前流程结构化输入（仅用于衔接，不可复述 JSON）：
+    #             {parameters}
+
+    #             ---
+    #             输出必须严格遵守以下规则：
+    #             - 仅输出两行，且顺序固定：
+    #                 1) 【流程衔接】...
+    #                 2) 【本流程承接】...
+    #             - 两行都必须基于“上一流程返回内容”；若为空，明确写“上一流程未返回可用摘要，按当前需求直接进入排序”。
+    #             - 仅做衔接说明，不输出表格，不输出结论，不输出建议。
+    #             - 只允许中文，不要代码块，不要额外前后缀。
+
+    #             按上述规则直接输出结果。
+    #             """
+
+    # 懒加载，初始化Code_retriever
+    def _get_code_retriever(self) -> CodeRetriever:
+        """懒初始化 CodeRetriever"""
+        if self._code_retriever is None:
+            import time
+            t0 = time.time()
+            print("[DEBUG] 初始化 CodeRetriever 中...")
+            self._code_retriever = CodeRetriever()  # 使用默认参数
+            print(f"[DEBUG] CodeRetriever 初始化完成，用时 {time.time() - t0:.2f} 秒")
+        return self._code_retriever
+
+    async def _safe_send_text(self, websocket, content):
+        """
+        统一兜底：避免 websocket.send_text(None) 导致 pydantic 校验失败
+        """
+        if content is None:
+            content = ""
+        if not isinstance(content, str):
+            content = str(content)
+        await websocket.send_text(content)
+
+    # 流式发送 LLM 响应
+    async def _stream_llm_response(self, llm, messages, websocket=None) -> str:
+        import sys
+        import asyncio
+        import openai
+        import httpcore
+        import httpx
+
+        collected_chunks = []
+        retries = 0
+        max_retries = 3
+        stream_res = None
+
+        # ===== 1) 先获取流（带重试）=====
+        while retries < max_retries:
+            try:
+                # 如果 llm 支持显式 stream 参数，可加上 stream=True
+                stream_res = await llm.acompletion_text(messages, timeout=30)
+                break
+            except (openai.APITimeoutError, httpcore.ReadTimeout, httpx.ReadTimeout) as e:
+                retries += 1
+                logger.warning(f"[LLM_Stream-LOG] 请求超时，重试 {retries}/{max_retries}: {type(e).__name__}")
+                await asyncio.sleep(1.0 * retries)
+            except Exception as e:
+                logger.exception(f"[LLM_Stream-LOG] LLM 请求异常: {e!s}")
+                if retries < max_retries - 1:
+                    retries += 1
+                    await asyncio.sleep(0.5)
+                    continue
+                raise
+
+        if stream_res is None:
+            logger.error("[LLM_Stream-LOG] 达到最大重试次数，未获得 LLM 响应")
+            raise TimeoutError("LLM 请求超时，已放弃重试")
+
+        # ===== 2) 逐 chunk 读取（兼容 3.10-，使用 wait_for 包装 __anext__）=====
+        chunk_timeout = 30.0  # 每个 chunk 的超时时间（秒）
+        max_total_chars = 2_000_000  # 安全阈值，防止意外的无限流
+        total_chars = 0
+
+        ait = stream_res.__aiter__()  # 显式拿到异步迭代器
+        logger.info("[LLM_Stream-LOG] 开始流式读取...")
+
+        try:
+            while True:
+                try:
+                    # Python 3.10 及以下用 wait_for + __anext__ 实现“按 chunk 超时”
+                    chunk = await asyncio.wait_for(ait.__anext__(), timeout=chunk_timeout)
+                except asyncio.TimeoutError:
+                    logger.error("[LLM_Stream-LOG] 流式读取超时（等待下一个 chunk 超过限制）")
+                    if websocket and websocket.client_state.name == "CONNECTED":
+                        await websocket.send_text("\n❗ 大模型响应超时，已收集部分结果。\n")
+                    return "".join(collected_chunks)
+                except StopAsyncIteration:
+                    # 正常结束
+                    break
+
+                # 解析内容（按 OpenAI Chat Completions 风格）
+                chunk_msg = ""
+                try:
+                    if getattr(chunk, "choices", None):
+                        choice0 = chunk.choices[0]
+                        delta = getattr(choice0, "delta", None)
+                        if delta:
+                            chunk_msg = getattr(delta, "content", "") or ""
+                except Exception as parse_e:
+                    logger.exception(f"[LLM_Stream-LOG] 解析 chunk 异常: {parse_e!s}")
+
+                if chunk_msg:
+                    collected_chunks.append(chunk_msg)
+                    total_chars += len(chunk_msg)
+
+                    if websocket and websocket.client_state.name == "CONNECTED":
+                        await websocket.send_text(chunk_msg)
+                    elif websocket:
+                        logger.warning("[LLM_Stream-LOG] WebSocket 已关闭，终止发送")
+                        break
+
+                    # 防御性上限
+                    if total_chars >= max_total_chars:
+                        logger.warning("[LLM_Stream-LOG] 达到最大输出字符上限，终止流式读取")
+                        break
+
+        except (httpcore.ReadTimeout, httpx.ReadTimeout) as e:
+            logger.exception(f"[LLM_Stream-LOG] 网络读取超时: {e!s}")
+            if websocket and websocket.client_state.name == "CONNECTED":
+                await websocket.send_text("\n❗ 网络连接超时，已收集部分结果。\n")
+            return "".join(collected_chunks)
+        except Exception as e:
+            logger.exception(f"[LLM_Stream-LOG] LLM Stream 异常: {e!s}")
+            if websocket and websocket.client_state.name == "CONNECTED":
+                await websocket.send_text("\n❗ 大模型响应异常，已终止流式传输。\n")
+            raise
+        finally:
+            # 尽可能优雅关闭流
+            try:
+                aclose = getattr(stream_res, "aclose", None)
+                if callable(aclose):
+                    await aclose()
+            except Exception as e:
+                logger.debug(f"[LLM_Stream-LOG] 关闭流时发生异常: {e!s}")
+
+        logger.info(
+            f"[LLM_Stream-LOG] 收集到 {len(collected_chunks)} 段输出，总长 {sum(len(c) for c in collected_chunks)} 字符")
+        return "".join(collected_chunks)
+
+    async def _material_mp_explain_stage(self, llm, websocket, query: str, parameters: dict, taskid: str):
+        import json
+
+        # parameters 建议是你 _build_material_parameters 的输出
+        # 或者你已拿到的 MP manifest 结构化摘要（越结构化越好）
+        prompt = self.XIMU_MNS_MATERIAL_MP_EXPLAIN_PROMPT.format(
+            query=str(query or ""),
+            parameters=json.dumps(parameters, ensure_ascii=False, indent=2),
+        )
+
+        # 直接走你现成的流式输出
+        await self._stream_llm_response(
+            llm,
+            [llm._default_system_msg(), llm._user_msg(prompt)],
+            websocket
+        )
+
+    async def _material_adit_explain_stage(self, llm, websocket, query: str, parameters: dict, taskid: str):
+        import json
+
+        prompt = self.XIMU_MNS_MATERIAL_ADIT_EXPLAIN_PROMPT.format(
+            query=str(query or ""),
+            parameters=json.dumps(parameters, ensure_ascii=False, indent=2),
+        )
+
+        await self._stream_llm_response(
+            llm,
+            [llm._default_system_msg(), llm._user_msg(prompt)],
+            websocket
+        )
+
+    def _sanitize_for_llm(self, obj):
+        """
+        ✅ 最小化清洗：只去掉明显工程字段（路径/URL/目录/时间戳等）。
+        不做结构重排，不做推断，不做额外优化。
+        """
+        import copy
+
+        def _drop_keys(d: dict):
+            bad_keys = {
+                "files", "files_abs", "base_dir", "manifest",
+                "path", "paths", "url", "urls", "directory", "dir",
+                "generated_at", "timestamp", "time", "datetime",
+                "model_path", "log_file", "traj_file", "structure_glb",
+            }
+            for k in list(d.keys()):
+                if k in bad_keys:
+                    d.pop(k, None)
+
+        def _walk(x):
+            if isinstance(x, dict):
+                _drop_keys(x)
+                for k, v in list(x.items()):
+                    x[k] = _walk(v)
+                return x
+            if isinstance(x, list):
+                return [_walk(v) for v in x]
+            return x
+
+        return _walk(copy.deepcopy(obj))
+
+    async def _material_mace_fast_explain_stage(
+            self,
+            llm,
+            websocket,
+            query: str,
+            parameters: dict,
+            taskid: str,
+    ):
+        prompt = self.XIMU_MNS_MATERIAL_MACE_FAST_EXPLAIN_PROMPT.format(
+            query=str(query or "").strip(),
+            parameters=json.dumps(self._sanitize_for_llm(parameters or {}), ensure_ascii=False, indent=2),
+        )
+        await self._stream_llm_response(
+            llm,
+            [llm._default_system_msg(), llm._user_msg(prompt)],
+            websocket
+        )
+
+    async def _material_mace_md_explain_stage(
+            self,
+            llm,
+            websocket,
+            query: str,
+            parameters: dict,
+            taskid: str,
+    ):
+        prompt = self.XIMU_MNS_MATERIAL_MACE_MD_EXPLAIN_PROMPT.format(
+            query=str(query or "").strip(),
+            parameters=json.dumps(self._sanitize_for_llm(parameters or {}), ensure_ascii=False, indent=2),
+        )
+        await self._stream_llm_response(
+            llm,
+            [llm._default_system_msg(), llm._user_msg(prompt)],
+            websocket
+        )
+
+    # format_instruction 方法
+    async def format_instruction(self, instruction: str, llm) -> str:
+        """
+        从用户指令中识别最可能匹配的【领域 | 项目名称】，用于 projects 层级检索。
+        目标输出：<领域> | <项目名称>
+        - 领域与项目名称之间以一个空格+竖线+空格分隔（" | "）
+        - 不包含 description、不追加任何解释或多余字符
+        """
+        prompt = f"""
+            你是一个熟悉 AI4PDE 与物理建模语义的助手。你的任务是：从给定的自然语言指令中，识别并“提炼”出**最可能匹配的 领域 与 项目名称**，并**仅输出一行**结果，格式严格为：
+
+            <领域> | <项目名称>
+
+            【输入形态与取数规则】
+            1) 输入可能是一段普通文本，也可能是一个多轮消息列表（例如 JSON 数组，包含多条 role="user/assistant" 的消息）。
+            2) 如果是多轮消息列表，**只使用最后一条 role 为 "user" 的消息的 "content"** 作为语义依据，其余内容全部忽略。
+            3) 如果是普通文本，直接基于该文本进行理解与提炼。
+
+            【提炼与命名规范】
+            A. “项目名称”从用户语句中抽取与“任务/方程/场景/对象/方法”最相关且**语义最具体**的短语：
+            - 优先保留维度（2D/3D）、对象限定（如 卫星结构）、具体方程名（波动方程/Poisson/Maxwell/Navier-Stokes/KdV/热传导/弹性力学 等）、或方法前缀（PINN/gPINN/XPINN 等）。
+            B. 允许合理变体（顺序变换、方法前缀、下划线连接），但要与用户语义高度一致。
+            C. 统一将空格、顿号等分隔符**替换为下划线 `_`**，避免冗余功能词（如“我想”“请问”“求解一下”）。
+            D. 若出现多个候选短语，选择**信息量最大且不矛盾**的一个作为“项目名称”。
+
+            【“领域”选择原则】
+            - 领域用于匹配 projects 的 domain 字段，尽量从下列常见集合中择一（若语义明确但未在集合中，也可给出更贴切的领域词，但要保持简洁）：
+            - MNS
+            【输出格式（必须严格一致）】
+            <领域> | <项目名称>
+
+            - 仅一行、仅此内容；不要附加任何说明、前后缀或代码块标记。
+            - 不要包含路径、文件名、描述、引号或其他符号。
+            - “项目名称”按上述命名规范规整（使用下划线 `_`）。
+
+
+            【禁止事项】
+            - 禁止输出除结果本体以外的任何文字（如“下面是结果：”等）。
+            - 禁止多行输出或多个候选；只能输出**一行唯一结果**。
+            - 禁止输出文件名（如 *_main.py）或描述串。
+            - 禁止添加无关标签、路径或环境信息。
+
+            请基于以下指令生成格式化结果（仅返回结果本体，一行）：
+            "{instruction}"
+            """
+        # 构造消息并请求 LLM
+        messages = [llm._default_system_msg(), llm._user_msg(prompt)]
+        response = await llm.acompletion_text(messages, timeout=10)
+
+        # 流式拼接
+        summary = []
+        async for chunk in response:
+            chunk_msg = chunk.choices[0].delta.content or ""
+            if chunk_msg:
+                summary.append(chunk_msg)
+
+        # 返回一行、去首尾空白
+        return "".join(summary).strip()
+
+    async def send_results_to_frontend(
+            self,
+            websocket,
+            source_path: str,
+            root_path: str,
+            taskid: str,
+            jobid: str = "",
+            pipeline: str = "mp",
+            allow_latest_job: bool = True,
+            step_id: str = "MATERIAL_SCREEN_AGENT",
+    ):
+        """
+        统一产物下发（前端协议版）：
+        - 定位 results/<pipeline>/*<taskid_sanitized>*/<jobid>/manifest.json（或该 taskid 下最新 job）
+        - summary.md：右侧内容块（<<<CONTENT_START:step_id>>>）
+        - 图片/GLB：下发 build_payload(type_="asset")：
+            {"step_id": "...", "name": "...", "docs": "...", "url": "...", "type": "MaterialsPNG/MaterialsGLB"}
+        - 若 manifest 不存在：fallback 扫描 results 根目录图片
+        """
+        import os
+        import json
+        import glob
+
+        async def _ws_asset(name: str, docs: str, url: str, asset_type: str):
+            await websocket.send_json({
+                "step_id": step_id,  # ✅ 不写死
+                "name": name,
+                "docs": docs,
+                "url": url,
+                "type": asset_type  # MaterialsPNG / MaterialsGLB
+            })
+
+        async def _ws_right(step_id_local: str, text: str):
+            await websocket.send_text(f"<<<CONTENT_START:{step_id_local}>>>")
+            if text:
+                await websocket.send_text(text.rstrip() + "\n")
+            await websocket.send_text(f"<<<CONTENT_END:{step_id_local}>>>")
+
+        logger.info(
+            f"[send_results_to_frontend] ENTER step_id={step_id} pipeline={pipeline} source_path={source_path}, root_path={root_path}, taskid={taskid}, jobid={jobid}"
+        )
+
+        abs_root_path = os.path.abspath(os.path.join(source_path, root_path))
+        results_dir = os.path.join(abs_root_path, "results")
+
+        logger.info(f"[send_results_to_frontend] abs_root_path={abs_root_path}")
+        logger.info(f"[send_results_to_frontend] results_dir={results_dir} exists={os.path.exists(results_dir)}")
+
+        if not os.path.exists(results_dir):
+            logger.warning(f"[send_results_to_frontend] ❌ results 目录不存在: {results_dir}")
+            return
+
+        exts = {".png", ".jpg", ".jpeg", ".gif"}
+        taskid_sanitized = str(taskid).replace("/", "_")
+
+        # ---------- 1) 定位 manifest ----------
+        manifest_path = None
+        try:
+            if jobid:
+                pattern = os.path.join(results_dir, pipeline, f"*{taskid_sanitized}*", str(jobid), "manifest.json")
+                cands = sorted(glob.glob(pattern))
+                if cands:
+                    manifest_path = cands[-1]
+
+            if manifest_path is None and allow_latest_job:
+                pattern = os.path.join(results_dir, pipeline, f"*{taskid_sanitized}*", "*", "manifest.json")
+                cands = sorted(glob.glob(pattern))
+                if cands:
+                    manifest_path = cands[-1]
+
+        except Exception as e:
+            logger.warning(f"[send_results_to_frontend] 查找 manifest 失败: {e}")
+
+        async def _upload_and_get_url(abs_path: str, oss_key: str):
+            try:
+                with open(abs_path, "rb") as f:
+                    b = f.read()
+                result = await oss_upload("alpha", oss_key, b)
+                if result.get("status") != 200:
+                    logger.error(f"[send_results_to_frontend] ❗ 上传失败: {abs_path}, resp={result}")
+                    return None
+                url = get_image_url("alpha", oss_key)
+                if url.startswith(minio_addr):
+                    url = url.replace(minio_addr, https_vip_addr, 1)
+                return url
+            except Exception as e:
+                logger.exception(f"[send_results_to_frontend] 上传失败: {abs_path} | {e}")
+                return None
+
+        # ---------- 2) fallback：没有 manifest 就扫 results 根目录图片 ----------
+        if not manifest_path or not os.path.exists(manifest_path):
+            logger.warning(
+                f"[send_results_to_frontend] ⚠️ 未找到 manifest.json pipeline={pipeline} taskid={taskid}, jobid={jobid}，fallback 扫描 results 根目录"
+            )
+            try:
+                image_files = sorted(
+                    f for f in os.listdir(results_dir)
+                    if os.path.isfile(os.path.join(results_dir, f))
+                    and os.path.splitext(f)[1].lower() in exts
+                )
+            except Exception as e:
+                logger.exception(f"[send_results_to_frontend] 遍历 results 失败: {e}")
+                return
+
+            for fname in image_files:
+                abs_img = os.path.join(results_dir, fname)
+                oss_key = f"XIMUAlpha_MNS/{taskid_sanitized}/{pipeline}/{jobid or 'job'}/{fname}"
+                url = await _upload_and_get_url(abs_img, oss_key)
+                if not url:
+                    continue
+                await _ws_asset(
+                    name=fname,
+                    docs=os.path.splitext(fname)[0],
+                    url=url,
+                    asset_type="MaterialsPNG"
+                )
+
+            return
+
+        logger.info(f"[send_results_to_frontend] ✅ found manifest: {manifest_path}")
+
+        # ---------- 3) 读取 manifest ----------
+        try:
+            with open(manifest_path, "r", encoding="utf-8") as f:
+                manifest = json.load(f)
+        except Exception as e:
+            logger.exception(f"[send_results_to_frontend] 读取 manifest 失败: {e}")
+            return
+
+        if not isinstance(manifest, dict) or not manifest.get("ok"):
+            logger.warning("[send_results_to_frontend] ⚠️ manifest 内容异常或 ok!=true")
+            return
+
+        files = (manifest.get("files_abs") or manifest.get("files") or {})
+        base_dir = manifest.get("base_dir") or os.path.dirname(manifest_path)
+
+        def _abspath(p: str) -> str:
+            if not p:
+                return ""
+            p = str(p)
+            if os.path.isabs(p):
+                return p
+            return os.path.abspath(os.path.join(base_dir, p))
+
+        # ---------- 4) summary.md（右侧内容块） ----------
+        md_path = _abspath(files.get("summary_md", ""))
+        if md_path and os.path.exists(md_path):
+            try:
+                with open(md_path, "r", encoding="utf-8") as f:
+                    md_text = f.read()
+                await _ws_right(step_id, md_text[:120000])  # ✅ 不写死
+                logger.info(f"[send_results_to_frontend] ✅ sent summary.md as right-block: {md_path}")
+            except Exception as e:
+                logger.warning(f"[send_results_to_frontend] 发送 summary.md 失败: {e}")
+
+        # ---------- 5) 图片（MaterialsPNG） ----------
+        image_items = []
+        if isinstance(manifest.get("images"), list) and manifest["images"]:
+            for it in manifest["images"]:
+                if isinstance(it, dict):
+                    image_items.append(it.get("path", ""))
+                else:
+                    image_items.append(str(it))
+        else:
+            try:
+                for fn in sorted(os.listdir(base_dir)):
+                    p = os.path.join(base_dir, fn)
+                    if os.path.isfile(p) and os.path.splitext(fn)[1].lower() in exts:
+                        image_items.append(p)
+            except Exception:
+                pass
+
+        for p in image_items:
+            abs_img = _abspath(p) if not os.path.isabs(str(p)) else str(p)
+            if not abs_img or not os.path.exists(abs_img):
+                continue
+            if os.path.splitext(abs_img)[1].lower() not in exts:
+                continue
+
+            fname = os.path.basename(abs_img)
+            oss_key = f"XIMUAlpha_MNS/{taskid_sanitized}/{pipeline}/{jobid or 'job'}/{fname}"
+            url = await _upload_and_get_url(abs_img, oss_key)
+            if not url:
+                continue
+
+            await _ws_asset(
+                name=fname,
+                docs=os.path.splitext(fname)[0],
+                url=url,
+                asset_type="MaterialsPNG"
+            )
+
+        # ---------- 6) GLB（MaterialsGLB） ----------
+        glb_path = _abspath(files.get("structure_glb", ""))
+        if glb_path and os.path.exists(glb_path):
+            fname = os.path.basename(glb_path)
+            oss_key = f"XIMUAlpha_MNS/{taskid_sanitized}/{pipeline}/{jobid or 'job'}/{fname}"
+            url = await _upload_and_get_url(glb_path, oss_key)
+
+            if url:
+                await _ws_asset(
+                    name=fname,
+                    docs="结构三维可视化模型（GLB）",
+                    url=url,
+                    asset_type="MaterialsGLB"
+                )
+                logger.info(f"[send_results_to_frontend] ✅ sent MaterialsGLB: {fname}")
+        else:
+            logger.warning(f"[send_results_to_frontend] ⚠️ manifest 中未提供 structure_glb 或文件不存在: {glb_path}")
+
+    def _collect_material_outputs(self, repo_root: str, taskid: str, jobid: str = "") -> dict:
+        import os, glob
+
+        base = os.path.join(
+            repo_root,
+            "src", "MNS_CaseHub", "cases", "material_discovery_demo", "results"
+        )
+        taskid_s = str(taskid).replace("/", "_")
+
+        # MP manifest
+        if jobid:
+            mp_cands = sorted(glob.glob(os.path.join(base, "mp", f"*{taskid_s}*", jobid, "manifest.json")))
+        else:
+            mp_cands = sorted(glob.glob(os.path.join(base, "mp", f"*{taskid_s}*", "*", "manifest.json")))
+
+        return {
+            "taskid": taskid,
+            "jobid": jobid,
+            "paths": {
+                "mp_manifest": mp_cands[-1] if mp_cands else None,
+                # 先占位：后续你接 ADiT 时再补
+                "adit_report": None,
+                "adit_manifest": None,
+            }
+        }
+
+    def _build_material_parameters(self, collected: dict) -> dict:
+        import os, json
+
+        def _safe_load_json(p: str):
+            if not p or not os.path.exists(p):
+                return None
+            try:
+                with open(p, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception:
+                return None
+
+        mp_manifest = _safe_load_json(collected["paths"].get("mp_manifest"))
+
+        parameters = {
+            "taskid": collected.get("taskid", ""),
+            "jobid": collected.get("jobid") or "",
+            # ✅ 给 LLM 的“业务数据”（候选结构列表）
+            "mp_selected": {
+                "count_selected": 0,
+                "items": []
+            },
+            # ✅ 保留非常轻的上下文（不含路径）
+            "mp_context": {
+                "formula": "",
+                "primary_material_id": "",
+                "query": {}
+            }
+        }
+
+        if isinstance(mp_manifest, dict):
+            parameters["mp_context"]["formula"] = mp_manifest.get("formula") or (collected.get("jobid") or "")
+            parameters["mp_context"]["query"] = mp_manifest.get("query") or {}
+            parameters["mp_context"]["primary_material_id"] = (mp_manifest.get("query") or {}).get(
+                "primary_material_id") or ""
+
+            files = mp_manifest.get("files") or mp_manifest.get("files_abs") or {}
+            sel_path = files.get("selected_structures_json") or ""
+            sel_json = _safe_load_json(sel_path)
+
+            # 兼容两种形态：
+            # A) 你贴的那种：{"items":[...], "count_selected":3, ...}
+            # B) 直接是 list
+            if isinstance(sel_json, dict):
+                items = sel_json.get("items") or []
+                parameters["mp_selected"]["items"] = items if isinstance(items, list) else []
+                cs = sel_json.get("count_selected")
+                parameters["mp_selected"]["count_selected"] = int(cs) if isinstance(cs, int) else len(
+                    parameters["mp_selected"]["items"])
+            elif isinstance(sel_json, list):
+                parameters["mp_selected"]["items"] = sel_json
+                parameters["mp_selected"]["count_selected"] = len(sel_json)
+
+        return parameters
+
+    # 读取案例的readme文件
+    def read_case_readme(self, path: str) -> str:
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            return content
+        except UnicodeDecodeError:
+            with open(path, 'r', encoding='utf-8-sig') as f:
+                content = f.read()
+            return content
+        except Exception as e:
+            logger.warning(f"[read_case_readme] 无法读取 README 文件: {e}")
+            return "（README 文件读取失败）"
+
+    async def _ws_right(self, websocket, step_id: str, text: str):
+        await websocket.send_text(f"<<<CONTENT_START:{step_id}>>>")
+        if text:
+            await websocket.send_text(text.rstrip() + "\n")
+        await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
+
+    async def run(self, instruction: str, *args):
+        import os, re, json, asyncio, subprocess, glob
+
+        websocket = args[0]
+        user_name, taskid, file_metadata = args[1], args[2], args[3]
+
+        config = load_config("config/config.yaml")
+        llm = SeLLM(base_url=config["base_url_1"], api_key=config["api_key"])
+
+        CASE_MP = "material_discovery_demo"
+        CASE_LLM = "case_router_llm"
+
+        # =========================
+        # 0) WS helpers：右侧内容块（去掉前置多余空行）
+        # =========================
+        async def _ws_right(step_id: str, text: str):
+            # ✅ 不要在 <<<CONTENT_START 前面加额外 '\n'
+            await websocket.send_text(f"<<<CONTENT_START:{step_id}>>>\n")
+            if text:
+                await websocket.send_text(text.rstrip() + "\n")
+            await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>\n")
+
+        # =========================
+        # 0.5) progress helper：只发 completed，且每次都带全字段
+        # =========================
+        async def _mark_completed(step_id: str, icon: str, title: str, description: str, status: str = "completed"):
+            await websocket.send_json(build_payload(
+                data={
+                    "id": "MATERIAL_SCREEN_AGENT",
+                    "icon": icon,
+                    "title": title,
+                    "status": status,
+                    "description": description
+                },
+                type_="progress",
+                request_id=taskid
+            ))
+
+        # =========================
+        # 1) 调试：入口日志
+        # =========================
+        try:
+            logger.info(f"[ROUTER] user_name={user_name!r} taskid={taskid!r}")
+
+            if isinstance(instruction, list):
+                head = ""
+                try:
+                    if instruction:
+                        last = instruction[-1]
+                        head = str(last)[:300]
+                except Exception:
+                    head = str(instruction)[:300]
+                logger.info(f"[ROUTER] instruction_type=list len={len(instruction)} head={head!r}")
+            else:
+                _inst = instruction if isinstance(instruction, str) else str(instruction)
+                logger.info(
+                    f"[ROUTER] instruction_type={type(instruction).__name__} len={len(_inst)} head={_inst[:300]!r}")
+
+            logger.info(f"[ROUTER] file_metadata_type={type(file_metadata).__name__}")
+            if isinstance(file_metadata, dict):
+                logger.info(f"[ROUTER] file_metadata_keys={list(file_metadata.keys())[:50]}")
+        except Exception as _e:
+            logger.exception(f"[ROUTER] entry_debug_failed: {_e!s}")
+
+        # =========================
+        # 2) 化学式辅助：Unicode 下标 -> ASCII 数字
+        # =========================
+        def _to_ascii_formula(s: str) -> str:
+            if s is None:
+                return ""
+            s = str(s)
+
+            sub_map = str.maketrans({
+                "₀": "0", "₁": "1", "₂": "2", "₃": "3", "₄": "4",
+                "₅": "5", "₆": "6", "₇": "7", "₈": "8", "₉": "9",
+            })
+            s = s.translate(sub_map)
+
+            # 保留点号 '.'：让带小数的 token 保持原样，后面 _looks_like_formula 会直接拒绝
+            s = s.replace("·", "").replace("•", "")
+            s = s.replace("−", "-").replace("–", "-").replace("—", "-")
+            return s.strip()
+
+        _ELEMENTS = {
+            "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar",
+            "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr",
+            "Rb", "Sr", "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "I", "Xe",
+            "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu",
+            "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn",
+            "Fr", "Ra", "Ac", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr",
+            "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Cn", "Nh", "Fl", "Mc", "Lv", "Ts", "Og",
+        }
+
+        # 工程缩写误判黑名单：这些 token 在上游大段文本中高频出现，不应当作化学式进入 MP
+        _FORMULA_BLOCKLIST = {
+            "PINN", "USB", "PCB", "PSO", "IC", "CPU", "GPU", "SOC", "AI", "ML", "LLM"
+        }
+
+        import re
+
+        _FORMULA_TOKEN = re.compile(r"([A-Z][a-z]?)(\d*)")
+
+        def _looks_like_formula(s: str) -> bool:
+            s = _to_ascii_formula(s)
+            if not s:
+                return False
+
+            # 过滤工程缩写误判（例如 PINN/USB/PCB/PSO/IC）
+            if s.upper() in _FORMULA_BLOCKLIST:
+                return False
+
+            # ✅ 最小改动：只要包含小数点，直接拒绝（避免 0.8、XX5.4、LiNi0.8... 被拆开误判）
+            if "." in s:
+                return False
+
+            # 基本长度约束
+            if len(s) < 2 or len(s) > 40:
+                return False
+
+            # 只允许字母和数字（任何其他字符直接否）
+            if re.search(r"[^A-Za-z0-9]", s):
+                return False
+
+            i = 0
+            tokens = []
+
+            # 从头到尾严格消费字符串
+            while i < len(s):
+                m = _FORMULA_TOKEN.match(s, i)
+                if not m:
+                    return False
+
+                sym = m.group(1)
+                num = m.group(2)
+
+                if sym not in _ELEMENTS:
+                    return False
+
+                if num:
+                    if num.startswith("0"):
+                        return False
+                    try:
+                        n = int(num)
+                    except Exception:
+                        return False
+                    if n <= 0:
+                        return False
+
+                tokens.append((sym, num))
+                i = m.end()
+
+            if len(tokens) < 2 and not any(num for _, num in tokens):
+                return False
+
+            return True
+
+        # =========================
+        # 3) instruction 归一 + route
+        # =========================
+        def _normalize_user_text(s) -> str:
+            if isinstance(s, dict):
+                s = (s.get("idea") or s.get("content") or s.get("text") or s.get("query") or "")
+
+            if isinstance(s, list):
+                for item in reversed(s):
+                    if isinstance(item, dict):
+                        content = item.get("idea") or item.get("content") or item.get("text") or item.get("query")
+                        if isinstance(content, str) and content.strip():
+                            s = content
+                            break
+                    if hasattr(item, "content"):
+                        content = getattr(item, "content", None)
+                        if isinstance(content, str) and content.strip():
+                            s = content
+                            break
+                    if isinstance(item, str) and item.strip():
+                        s = item
+                        break
+                else:
+                    s = ""
+
+            s = str(s or "").strip()
+            m = re.search(r"\[Human:\s*(.*?)\s*\]$", s)
+            if m:
+                s = m.group(1).strip()
+
+            # 上游透传大段结果时，优先仅保留“当前任务”段，避免从前置日志中误提取 token
+            marker = "=== 当前任务 ==="
+            if marker in s:
+                s = s.split(marker)[-1].strip()
+
+            # 清理内容块标记与明显 JSON 结构噪声
+            s = re.sub(r"<<<CONTENT_START:[^>]+>>>", " ", s)
+            s = re.sub(r"<<<CONTENT_END:[^>]+>>>", " ", s)
+            s = s.replace("%Line Break%", " ")
+
+            return s.strip("[](){} \n\t")
+
+        def _is_explicit_formula_input(text: str) -> bool:
+            """
+            仅当输入是“显式化学式输入”时，才允许直接做全文化学式抽取。
+            其他自然语言/大段透传文本，一律走需求关键词映射。
+            """
+            t = str(text or "").strip()
+            if not t:
+                return False
+
+            # 长文本默认不是显式化学式输入（上游透传场景兜底）
+            if len(t) > 120:
+                return False
+
+            # JSON 列表：例如 ["Li3PS4","Li6PS5Cl"]
+            if t.startswith("[") and t.endswith("]"):
+                try:
+                    arr = json.loads(t)
+                    if isinstance(arr, list) and arr:
+                        return all(_looks_like_formula(str(x)) for x in arr)
+                except Exception:
+                    return False
+
+            # 单 token：例如 Li3PS4
+            if re.fullmatch(r"[A-Za-z0-9₀₁₂₃₄₅₆₇₈₉]{2,40}", t):
+                return _looks_like_formula(t)
+
+            return False
+
+        def _parse_route(s: str):
+            s = (s or "").strip()
+            m = re.match(r"^/(mp|llm)\s+(.+)$", s, flags=re.IGNORECASE)
+            if not m:
+                return None, s
+            return m.group(1).lower(), m.group(2).strip()
+
+        def _extract_previous_flow_context(raw_instruction, raw_file_metadata) -> str:
+            def _take_text(x):
+                if x is None:
+                    return ""
+                if isinstance(x, str):
+                    return x.strip()
+                if isinstance(x, dict):
+                    for k in ["content", "text", "idea", "query", "message", "output", "summary", "result"]:
+                        v = x.get(k)
+                        if isinstance(v, str) and v.strip():
+                            return v.strip()
+                    return ""
+                return ""
+
+            # 1) instruction 中提取“当前任务”之前的内容
+            prev_chunks = []
+            if isinstance(raw_instruction, str):
+                marker = "=== 当前任务 ==="
+                s = raw_instruction
+                if marker in s:
+                    head = s.split(marker, 1)[0].strip()
+                    if head:
+                        prev_chunks.append(head)
+            elif isinstance(raw_instruction, list):
+                # 取最后一条前的若干条消息，作为上游上下文
+                msgs = raw_instruction[:-1] if len(raw_instruction) > 1 else raw_instruction
+                for it in reversed(msgs):
+                    t = _take_text(it)
+                    if t:
+                        prev_chunks.append(t)
+                    if len(prev_chunks) >= 2:
+                        break
+
+            # 2) file_metadata 中提取常见上游字段
+            if isinstance(raw_file_metadata, dict):
+                for k in [
+                    "previous_step_output", "previous_output", "upstream_output", "upstream_context",
+                    "history", "messages", "content", "summary", "result"
+                ]:
+                    v = raw_file_metadata.get(k)
+                    if isinstance(v, str) and v.strip():
+                        prev_chunks.append(v.strip())
+                        break
+                    if isinstance(v, list) and v:
+                        picked = []
+                        for it in reversed(v):
+                            t = _take_text(it)
+                            if t:
+                                picked.append(t)
+                            if len(picked) >= 2:
+                                break
+                        if picked:
+                            prev_chunks.extend(picked)
+                            break
+                    if isinstance(v, dict):
+                        t = _take_text(v)
+                        if t:
+                            prev_chunks.append(t)
+                            break
+
+            # 去重 + 截断
+            uniq = []
+            seen = set()
+            for x in prev_chunks:
+                x2 = str(x).strip()
+                if not x2:
+                    continue
+                key = x2[:200]
+                if key in seen:
+                    continue
+                seen.add(key)
+                uniq.append(x2)
+
+            merged = "\n\n".join(uniq).strip()
+            if len(merged) > 2200:
+                merged = merged[-2200:]
+            return merged
+
+        def _is_smalltalk(s: str) -> bool:
+            s = (s or "").strip().lower()
+            s = re.sub(r"[\s\.,!！。?？~]+", "", s)
+            return s in {"你好", "您好", "hi", "hello", "在吗", "在不在", "test", "测试"}
+
+        def _load_pcb_kb_items() -> list:
+            # kb_path = os.path.join(os.path.dirname(__file__), "material_pipeline", "pcb_material_kb.json")
+            kb_path = "/home/ubuntu/Zhuolun_project/MNS_Tuutorial/ALPHA-MNS-main/material-screen-calc/ai4m_tqm/src/material_pipeline/pcb_material_kb.json"
+            try:
+                with open(kb_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                if isinstance(data, list):
+                    return [x for x in data if isinstance(x, dict)]
+            except Exception as e:
+                logger.warning(f"[ROUTER] load pcb kb failed: {e}")
+            return []
+
+        def _extract_requirement_focus(text: str) -> list:
+            t = str(text or "")
+            focus = []
+            rules = [
+                ("导热能力", ["导热", "散热", "热管理", "高导热"]),
+                ("绝缘可靠性", ["绝缘", "介电", "击穿", "漏电"]),
+                ("环保可回收", ["环保", "可回收", "可循环", "生物基", "可降解", "绿色"]),
+                ("PCB应用适配", ["pcb", "基板", "封装", "树脂", "基材"]),
+                ("制造与成本约束", ["成本", "工艺", "量产", "可制造"]),
+            ]
+            low = t.lower()
+            for label, kws in rules:
+                for k in kws:
+                    if k in low:
+                        focus.append(label)
+                        break
+            return focus or ["导热能力", "绝缘可靠性", "环保可回收", "PCB应用适配"]
+
+        def _score_formula_by_kb(formula: str, req_text: str, kb_items: list) -> dict:
+            req = str(req_text or "")
+            req_low = req.lower()
+            formula_norm = _to_ascii_formula(formula)
+            best_item = None
+
+            for item in kb_items:
+                fs = [_to_ascii_formula(str(x)) for x in (item.get("formulas") or []) if str(x).strip()]
+                if formula_norm in fs:
+                    best_item = item
+                    break
+
+            if not best_item:
+                return {
+                    "formula": formula_norm,
+                    "title": "离线候选",
+                    "matched_tags": [],
+                    "score": 0.15,
+                    "score_detail": ["基础候选分:0.15"],
+                }
+
+            keywords = [str(x) for x in (best_item.get("keywords") or []) if str(x).strip()]
+            aliases = [str(x) for x in (best_item.get("aliases") or []) if str(x).strip()]
+            tags_low = [x.lower() for x in (keywords + aliases)]
+
+            score = 0.15
+            score_detail = ["基础候选分:0.15"]
+            matched_tags = []
+
+            def _hit_any(words: list) -> bool:
+                for w in words:
+                    if w.lower() in req_low:
+                        return True
+                return False
+
+            if any(k in tags_low for k in ["高性能", "高导热", "散热", "陶瓷基板"]):
+                add = 0.35 if _hit_any(["高性能", "导热", "散热", "热管理", "高导热"]) else 0.20
+                score += add
+                matched_tags.append("导热/高性能")
+                score_detail.append(f"导热/高性能匹配:+{add:.2f}")
+
+            if any(k in tags_low for k in ["环保", "可回收", "可循环", "生物基", "可降解"]):
+                add = 0.30 if _hit_any(["环保", "可回收", "可循环", "生物基", "可降解", "绿色"]) else 0.15
+                score += add
+                matched_tags.append("环保/可回收")
+                score_detail.append(f"环保匹配:+{add:.2f}")
+
+            if any(k in tags_low for k in ["pcb", "基材", "基板", "树脂", "绝缘"]):
+                add = 0.25 if _hit_any(["pcb", "基材", "基板", "树脂", "绝缘", "介电", "封装"]) else 0.12
+                score += add
+                matched_tags.append("PCB应用相关")
+                score_detail.append(f"PCB应用匹配:+{add:.2f}")
+
+            if any(k in tags_low for k in ["导电", "互连"]):
+                add = 0.08
+                score += add
+                matched_tags.append("互连可用")
+                score_detail.append(f"互连适配:+{add:.2f}")
+
+            return {
+                "formula": formula_norm,
+                "title": str(best_item.get("title") or "离线候选"),
+                "matched_tags": matched_tags,
+                "score": round(float(score), 4),
+                "score_detail": score_detail,
+            }
+
+        def _rank_and_select_formulas(formulas_in: list, req_text: str) -> dict:
+            uniq = []
+            seen = set()
+            for x in formulas_in or []:
+                f = _to_ascii_formula(x)
+                if not f or f in seen:
+                    continue
+                seen.add(f)
+                uniq.append(f)
+
+            kb_items = _load_pcb_kb_items()
+            ranked = [_score_formula_by_kb(f, req_text, kb_items) for f in uniq]
+            ranked.sort(key=lambda d: (float(d.get("score", 0.0)), d.get("formula", "")), reverse=True)
+
+            selected_n = 0
+            reason = "候选为空"
+            # if len(ranked) == 1:
+            #     selected_n = 1
+            #     reason = "仅有1个可用候选，进入后续计算"
+            # elif len(ranked) >= 2:
+            #     top1 = float(ranked[0].get("score", 0.0))
+            #     top2 = float(ranked[1].get("score", 0.0))
+            #     if (top1 - top2) >= 0.28 or (top2 > 0 and (top1 / top2) >= 1.35):
+            #         selected_n = 1
+            #         reason = f"排名第1与第2分差较大（{top1:.2f} vs {top2:.2f}），仅保留第1名"
+            #     else:
+            #         selected_n = 2
+            #         reason = f"排名前两名分值接近（{top1:.2f} vs {top2:.2f}），前2名均进入后续计算"
+
+            # selected = ranked[:selected_n] if selected_n > 0 else []
+            # return {
+            #     "ranked": ranked,
+            #     "selected": selected,
+            #     "selected_formulas": [x.get("formula") for x in selected],
+            #     "decision_reason": reason,
+            # }
+            if len(ranked) >= 1:
+                selected_n = 1  # 强制只取 1 个
+                top1_score = float(ranked[0].get("score", 0.0))
+                reason = f"仅保留排名第 1 的候选（得分: {top1_score:.2f}），不考虑其他接近项"
+
+            selected = ranked[:selected_n] if selected_n > 0 else []
+            return {
+                "ranked": ranked,
+                "selected": selected,
+                "selected_formulas": [x.get("formula") for x in selected],
+                "decision_reason": reason,
+            }
+        
+   
+    
+
+    
+
+        async def _emit_flow2_ranking_brief(req_text: str, rank_pack: dict):
+            ranked = rank_pack.get("ranked") or []
+            selected_formulas = rank_pack.get("selected_formulas") or []
+            decision_reason = rank_pack.get("decision_reason") or ""
+            focus_attrs = _extract_requirement_focus(req_text)
+
+            payload = {
+                "req_text": str(req_text or ""),
+                "focus_attrs": focus_attrs,
+                "decision_reason": decision_reason,
+                "selected_formulas": selected_formulas,
+                "ranked": ranked,
+            }
+
+            # transition_prompt = self.XIMU_MNS_FLOW2_TRANSITION_PROMPT.format(
+            #     previous_flow_context=previous_flow_context or "（空）",
+            #     parameters=json.dumps(payload, ensure_ascii=False, indent=2)
+            # )
+
+            # await self._stream_llm_response(
+            #     llm,
+            #     [llm._default_system_msg(), llm._user_msg(transition_prompt)],
+            #     websocket
+            # )
+
+            await websocket.send_text("\n")
+
+            prompt = self.XIMU_MNS_FLOW2_RANKING_BRIEF_PROMPT.format(
+                previous_flow_context=previous_flow_context or "（空）",
+                parameters=json.dumps(payload, ensure_ascii=False, indent=2)
+            )
+
+            await self._stream_llm_response(
+                llm,
+                [llm._default_system_msg(), llm._user_msg(prompt)],
+                websocket
+            )
+
+        # =========================
+        # 4) ✅只从“计算对象”行抽取（避免把别的材料带进来）
+        # =========================
+        def _extract_formulas_from_targets(text: str) -> list:
+            text = _to_ascii_formula(text or "")
+            lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
+
+            targets = []
+            for ln in lines:
+                m = re.search(r"计算对象\s*\d+\s*\(.*?\)\s*[:：]\s*([A-Za-z0-9₀₁₂₃₄₅₆₇₈₉]{2,40})", ln)
+                if m:
+                    tok = _to_ascii_formula(m.group(1))
+                    if _looks_like_formula(tok):
+                        targets.append(tok)
+
+            seen = set()
+            out = []
+            for x in targets:
+                if x not in seen:
+                    out.append(x)
+                    seen.add(x)
+            if out:
+                return out
+
+            # fallback：少量兜底（但仍然严格 looks_like_formula）
+            tokens = re.finditer(r"\b[A-Z][A-Za-z0-9₀₁₂₃₄₅₆₇₈₉]{1,39}\b", text)
+            seen = set()
+            out = []
+            for m in tokens:
+                tok = m.group(0)
+
+                # ✅ 最小改动：如果 token 左右紧贴 '.'，说明来自小数配方（如 Ni₀.₈ / XX5.4），直接跳过
+                left = text[m.start() - 1] if m.start() - 1 >= 0 else ""
+                right = text[m.end()] if m.end() < len(text) else ""
+                if left == "." or right == ".":
+                    continue
+
+                tok2 = _to_ascii_formula(tok)
+                if _looks_like_formula(tok2) and tok2 not in seen:
+                    out.append(tok2)
+                    seen.add(tok2)
+            return out
+
+        # =========================
+        # 5) MP 运行：mp_export_assets.py
+        # =========================
+        async def _run_mp_export_assets(formula: str) -> bool:
+            repo_root = _repo_root()
+            script = os.path.join(repo_root, "tools", "mp_export_assets.py")
+            formula = _to_ascii_formula(formula)
+
+            # 使用 --key=value 形式，避免当 taskid 以 "--" 开头时被 argparse 误解析为新参数
+            taskid_arg = str(taskid)
+
+            cmd = [
+                "micromamba", "run", "-n", "mp-api-py311",
+                "python", script,
+                f"--taskid={taskid_arg}",
+                f"--jobid={str(formula)}",
+                f"--formula={str(formula)}",
+                "--prefer-stable",
+            ]
+            logger.info(f"[mp_export_assets] CMD={' '.join(cmd)}")
+
+            def _run_blocking():
+                return subprocess.run(
+                    cmd,
+                    cwd=repo_root,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    check=False
+                )
+
+            proc = await asyncio.to_thread(_run_blocking)
+            if proc.stdout:
+                logger.info(f"[mp_export_assets] STDOUT:\n{proc.stdout[-6000:]}")
+
+            ok = (proc.returncode == 0)
+            if not ok:
+                logger.error(f"[mp_export_assets] FAILED rc={proc.returncode}")
+            return ok
+
+        # =========================
+        # 6) ADiT 运行：adit_pymatgen_eval.py
+        # =========================
+        def _find_mp_manifest_abs(repo_root: str, root_path: str, taskid_: str, formula: str) -> str:
+            abs_root_path = os.path.abspath(os.path.join(repo_root, root_path))
+            results_dir = os.path.join(abs_root_path, "results")
+            taskid_s = str(taskid_).replace("/", "_")
+            pattern = os.path.join(results_dir, "mp", f"*{taskid_s}*", str(formula), "manifest.json")
+            cands = sorted(glob.glob(pattern))
+            return cands[-1] if cands else ""
+
+        async def _run_adit_eval(formula: str) -> bool:
+            repo_root = _repo_root()
+            root_path = f"src/MNS_CaseHub/cases/{CASE_MP}"
+            mp_manifest = _find_mp_manifest_abs(repo_root, root_path, taskid, formula)
+
+            if not mp_manifest or not os.path.exists(mp_manifest):
+                logger.error(f"[adit_eval] mp_manifest not found for formula={formula}, taskid={taskid}")
+                return False
+
+            script = os.path.join(repo_root, "tools", "adit_pymatgen_eval.py")
+            cmd = [
+                "micromamba", "run", "-n", "adit-py310",
+                "python", script,
+                "--mp_manifest", mp_manifest
+            ]
+            logger.info(f"[adit_eval] CMD={' '.join(cmd)}")
+
+            def _run_blocking():
+                return subprocess.run(
+                    cmd,
+                    cwd=repo_root,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    check=False
+                )
+
+            proc = await asyncio.to_thread(_run_blocking)
+            if proc.stdout:
+                logger.info(f"[adit_eval] STDOUT:\n{proc.stdout[-6000:]}")
+
+            ok = (proc.returncode == 0)
+            if not ok:
+                logger.error(f"[adit_eval] FAILED rc={proc.returncode}")
+            return ok
+
+        # =========================
+        # 6.5) MACE 运行：run_mace_stage.py
+        # =========================
+        def _find_adit_report_abs(repo_root: str, root_path: str, taskid_: str, formula: str) -> str:
+            abs_root_path = os.path.abspath(os.path.join(repo_root, root_path))
+            results_dir = os.path.join(abs_root_path, "results")
+            taskid_s = str(taskid_).replace("/", "_")
+            pattern = os.path.join(results_dir, "adit_pymatgen", f"*{taskid_s}*", str(formula), "report.json")
+            cands = sorted(glob.glob(pattern))
+            return cands[-1] if cands else ""
+
+        async def _run_mace_stage(formula: str, fast: bool = True) -> bool:
+            """
+            fast=True: 只做 relax（目标 <10s 体验）
+            fast=False: 做 md（短 MD，尽量在 LLM 渲染期间补上）
+            """
+            repo_root = _repo_root()
+            root_path = f"src/MNS_CaseHub/cases/{CASE_MP}"
+
+            # 1) 输入结构：优先用 Step2 输出；否则 fallback 用 MP 的 structure.cif
+            adit_report = _find_adit_report_abs(repo_root, root_path, taskid, formula)
+
+            inp_cif = ""
+            if adit_report and os.path.exists(adit_report):
+                try:
+                    with open(adit_report, "r", encoding="utf-8") as f:
+                        rep = json.load(f)
+                    files = rep.get("files", {}) if isinstance(rep.get("files", {}), dict) else {}
+                    inp_cif = files.get("structure_cif", "") or ""
+                    if inp_cif and not os.path.isabs(inp_cif):
+                        inp_cif = os.path.abspath(os.path.join(os.path.dirname(adit_report), inp_cif))
+                except Exception:
+                    inp_cif = ""
+
+            if not inp_cif or not os.path.exists(inp_cif):
+                mp_manifest = _find_mp_manifest_abs(repo_root, root_path, taskid, formula)
+                if not mp_manifest or not os.path.exists(mp_manifest):
+                    logger.error(f"[mace_stage] mp_manifest not found for formula={formula}, taskid={taskid}")
+                    return False
+                try:
+                    with open(mp_manifest, "r", encoding="utf-8") as f:
+                        mpman = json.load(f)
+                    base_dir = mpman.get("base_dir") or os.path.dirname(mp_manifest)
+                    files = mpman.get("files_abs") or mpman.get("files") or {}
+                    p = files.get("structure_cif", "") or files.get("structure", "") or "structure.cif"
+                    inp_cif = p if os.path.isabs(p) else os.path.abspath(os.path.join(base_dir, p))
+                except Exception as e:
+                    logger.exception(f"[mace_stage] read mp_manifest failed: {e!s}")
+                    return False
+
+            if not inp_cif or not os.path.exists(inp_cif):
+                logger.error(f"[mace_stage] input cif not found for formula={formula}: {inp_cif}")
+                return False
+
+            # 2) 输出目录：拆两个 pipeline：mace（fast）与 mace_md（md）
+            abs_case_root = os.path.abspath(os.path.join(repo_root, root_path))
+            results_dir = os.path.join(abs_case_root, "results")
+            taskid_s = str(taskid).replace("/", "_")
+
+            if fast:
+                base_out = os.path.join(results_dir, "mace", f"dr_{taskid_s}", str(formula))
+                outdir = base_out
+            else:
+                base_out = os.path.join(results_dir, "mace_md", f"dr_{taskid_s}", str(formula))
+                outdir = base_out
+
+            script = "/home/ubuntu/runtimes-packages/mace-ase/scripts/run_mace_stage.py"
+            model_path = "/home/ubuntu/runtimes-packages/mace-ase/models/mace-mp-0b2-medium.model"
+
+            cmd = [
+                "micromamba", "run", "-n", "mace_ase",
+                "python", script,
+                "--in", inp_cif,
+                "--out", outdir,
+                "--model-path", model_path,
+                "--device", "cuda",
+                "--dtype", "float32",
+            ]
+
+            if fast:
+                cmd += ["--do-relax", "--relax-fmax", "0.1", "--relax-steps", "200"]
+            else:
+                # ✅ friction：按体系规模自适应（小体系更抖，需要更强阻尼）
+                # 规则：<=16 atoms -> 0.30；否则 0.20
+                md_friction = "0.20"
+                try:
+                    # 轻量读取 cif 的原子数（失败就用默认 0.20）
+                    from pymatgen.core import Structure
+                    nsites = len(Structure.from_file(inp_cif))
+                    if int(nsites) <= 16:
+                        md_friction = "0.30"
+                except Exception:
+                    md_friction = "0.20"
+
+                cmd += [
+                    "--do-md",
+                    "--md-steps", "1000",
+                    "--md-timestep-fs", "0.25",
+                    "--md-temp-K", "300",
+                    "--md-friction", md_friction,
+
+                    # ✅ 初速度从 300K 采样（减少热化段，让均温更贴近目标）
+                    "--md-init-temp-K", "300",
+
+                    # ✅ log 更密（不显著增加耗时，但你能更清楚看到温度轨迹）
+                    "--md-log-every", "50",
+
+                    # ✅ 统计窗口：取最后 40% 的样本（口径统一，不是“挑温度点”）
+                    "--md-tail-fraction", "0.40",
+                ]
+
+            logger.info(f"[mace_stage] CMD={' '.join(cmd)}")
+
+            def _run_blocking():
+                return subprocess.run(
+                    cmd,
+                    cwd=repo_root,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    check=False
+                )
+
+            proc = await asyncio.to_thread(_run_blocking)
+            if proc.stdout:
+                logger.info(f"[mace_stage] STDOUT:\n{proc.stdout[-6000:]}")
+
+            ok = (proc.returncode == 0)
+            if not ok:
+                logger.error(f"[mace_stage] FAILED rc={proc.returncode}")
+            return ok
+
+        # =========================
+        # 7) MP：导出 + 右侧下发 + 左侧解释
+        # =========================
+        async def _mp_one(formula: str) -> bool:
+            formula = _to_ascii_formula(formula)
+
+            ok = await _run_mp_export_assets(formula)
+            if not ok:
+                await websocket.send_text(
+                    f"【异常】材料 {formula} 在 MP 初筛阶段执行失败，系统已记录后台日志。\n"
+                )
+                return False
+
+            repo_root = _repo_root()
+            root_path = f"src/MNS_CaseHub/cases/{CASE_MP}"
+
+            await self.send_results_to_frontend(
+                websocket,
+                repo_root,
+                root_path,
+                taskid,
+                jobid=formula,
+                pipeline="mp",
+                step_id="MATERIAL_SCREEN_AGENT"
+            )
+
+            # ✅ 左侧解释：你已有
+            try:
+                collected = self._collect_material_outputs(repo_root, taskid, jobid=formula)
+                parameters = self._build_material_parameters(collected)
+
+                await self._material_mp_explain_stage(
+                    llm,
+                    websocket,
+                    query=f"解释 {formula} 的 MP 初筛结果：逐条说明每个候选结构的关键字段含义，并给出字段层面的好/坏判读（仅限 MP 字段）。",
+                    parameters=parameters,
+                    taskid=taskid
+                )
+            except Exception as e:
+                logger.exception(f"[MP_EXPLAIN] failed formula={formula}: {e!s}")
+
+            return True
+
+        # =========================
+        # 8) ADiT：评估 + 右侧下发 + 左侧解释（如果你实现了就自动走）
+        # =========================
+        async def _adit_one(formula: str) -> bool:
+            formula = _to_ascii_formula(formula)
+
+            ok = await _run_adit_eval(formula)
+            if not ok:
+                await websocket.send_text(
+                    f"\n【异常】材料 {formula} 在稳定性评估阶段执行失败，系统已记录后台日志。\n"
+                )
+                return False
+
+            repo_root = _repo_root()
+            root_path = f"src/MNS_CaseHub/cases/{CASE_MP}"
+
+            # 右侧：下发 Step2 资产（md/json/glb）
+            await self.send_results_to_frontend(
+                websocket,
+                repo_root,
+                root_path,
+                taskid,
+                jobid=formula,
+                pipeline="adit_pymatgen",
+                step_id="MATERIAL_SCREEN_AGENT"
+            )
+
+            # ✅左侧：调用你写好的 ADiT explain（关键就是这里要真正 await）
+            try:
+                # 推荐：直接读 step2 report.json（结构化，LLM 更稳）
+                import os, glob, json
+                abs_case_root = os.path.join(repo_root, root_path)
+                results_dir = os.path.join(abs_case_root, "results")
+                taskid_s = str(taskid).replace("/", "_")
+
+                report_pattern = os.path.join(
+                    results_dir, "adit_pymatgen", f"*{taskid_s}*", str(formula), "report.json"
+                )
+                cands = sorted(glob.glob(report_pattern))
+                parameters = {}
+                if cands:
+                    parameters = json.loads(open(cands[-1], "r", encoding="utf-8").read())
+
+                await self._material_adit_explain_stage(
+                    llm,
+                    websocket,
+                    query=f"解释材料 {formula} 的 ADiT + Pymatgen 结构评估：逐项指标含义、Gate 判定含义、风险项说明。",
+                    parameters=parameters,
+                    taskid=taskid
+                )
+            except Exception as e:
+                logger.exception(f"[ADIT_EXPLAIN] failed formula={formula}: {e!s}")
+
+            return True
+
+        # =========================
+        # 9) 统一入口：route / content
+        # =========================
+        norm = _normalize_user_text(instruction)
+        previous_flow_context = _extract_previous_flow_context(instruction, file_metadata)
+        route, content = _parse_route(norm)
+        content = _to_ascii_formula(content)
+
+        logger.info(f"[Coding-LOG] user={user_name} taskid={taskid} route={route} content={content}")
+
+        # =========================
+        # 10) /mp：强制单个（只跑 MP）
+        # 约定：开始这一步就发 completed（不管实际含义）
+        # =========================
+        if route == "mp":
+            formula = content
+            if not _looks_like_formula(formula):
+                await websocket.send_text("【提示】/mp 指令后需提供化学式，例如：/mp Li6PS5Cl\n")
+                return
+
+            await _mark_completed(
+                "MATERIAL_SCREEN_AGENT",
+                "",
+                "材料初筛与性能计算",
+                "流程已启动，正在进行材料初筛与后续计算",
+                status="in-progress"
+            )
+
+            # Step4 开始
+            await _mark_completed(
+                "MATERIAL_SCREENING",
+                "",
+                "材料初筛",
+                "基于 Materials Project 结构与基础性质进行快速筛选"
+            )
+            await websocket.send_text(
+                f"# Step4：材料初筛（MP）\n\n【信息】材料初筛阶段已启动，目标材料：`{formula}`\n"
+            )
+
+            await _mp_one(formula)
+            return
+
+        # =========================
+        # 11) 非 /llm：按“计算对象”批量跑 MP -> ADiT（分两段，顺序稳定）
+        # =========================
+        if route != "llm":
+            explicit_formula_mode = _is_explicit_formula_input(norm)
+            formulas = []
+            req_text_for_rank = norm
+
+            # 仅在“显式化学式输入”模式下做直接抽取；自然语言/大段透传文本不走全文抽取
+            if explicit_formula_mode:
+                formulas = _extract_formulas_from_targets(norm)
+                formulas = [f for f in formulas if _looks_like_formula(f)]
+
+            logger.info(
+                f"[ROUTER] explicit_formula_mode={explicit_formula_mode} "
+                f"extracted_formulas(targets-first)={formulas}"
+            )
+
+            # 若未显式给化学式：走“需求 -> 检索+LLM候选化学式”
+            if not formulas:
+                try:
+                    from src.material_pipeline.extractor import FormulaExtractor
+
+                    ext = FormulaExtractor(llm)
+                    ext_result = await ext.extract(norm, requirement_mode_only=(not explicit_formula_mode))
+                    formulas = [f for f in (ext_result.final_formulas or []) if _looks_like_formula(f)]
+                    req_text_for_rank = (ext_result.source_trace or {}).get("norm_prompt") or norm
+
+                    source_trace = ext_result.source_trace or {}
+                    kb_formulas = source_trace.get("kb_formulas", []) or []
+                    llm_suggested = source_trace.get("llm_suggested_formulas", []) or []
+                    llm_extract = source_trace.get("llm_extract_formulas", []) or []
+                    regex_formulas = source_trace.get("regex_formulas", []) or []
+                    fallback_pool = source_trace.get("fallback_pool_formulas", []) or []
+
+                    logger.info(
+                        f"[ROUTER] requirement_mode web_snippets={len(ext_result.web_snippets)} "
+                        f"kb={kb_formulas} llm_suggested={llm_suggested} "
+                        f"llm_extract={llm_extract} regex={regex_formulas} "
+                        f"fallback_pool={fallback_pool} final={formulas}"
+                    )
+
+                    if formulas:
+                        pass
+                except Exception as e:
+                    logger.exception(f"[ROUTER] requirement_mode extract failed: {e!s}")
+
+            if not formulas:
+                if _is_smalltalk(norm):
+                    await websocket.send_text(
+                        "【提示】当前输入为寒暄或测试语句，未识别到可计算材料需求。\n"
+                        "请直接输入化学式，或描述目标场景与性能诉求。\n"
+                        "示例1：评估 Li6PS5Cl 的稳定性与性质\n"
+                        "示例2：用于高性能PCB且兼顾环保的候选材料\n"
+                    )
+                else:
+                    await websocket.send_text(
+                        "【提示】未识别到可用化学式，且未能从需求中生成候选材料。\n"
+                        "请补充应用场景/性能目标（如导热、绝缘、环保、成本）或直接提供化学式。\n"
+                    )
+                return
+
+            if formulas:
+                rank_pack = _rank_and_select_formulas(formulas, req_text_for_rank)
+                formulas = [f for f in (rank_pack.get("selected_formulas") or []) if _looks_like_formula(f)]
+
+                if not formulas:
+                    await websocket.send_text(
+                        "【提示】候选材料已生成，但未通过当前筛选口径；请补充更明确的性能目标后重试。\n"
+                    )
+                    return
+
+                await _emit_flow2_ranking_brief(req_text_for_rank, rank_pack)
+
+                await _mark_completed(
+                    "MATERIAL_SCREEN_AGENT",
+                    "",
+                    "材料初筛与性能计算",
+                    "流程已启动，正在进行材料初筛与后续计算",
+                    status="in-progress"
+                )
+
+                # ---- Step4：开始就 completed
+                await _mark_completed(
+                    "MATERIAL_SCREENING",
+                    "",
+                    "材料初筛",
+                    "基于 Materials Project 结构与基础性质进行快速筛选"
+                )
+                await websocket.send_text("## 材料初筛（MP）\n")
+
+                # Phase A：先跑完所有 MP
+                for f in formulas:
+                    await websocket.send_text(f"\n## {f}\n")
+                    await websocket.send_text(f"【信息】材料初筛阶段已启动，目标材料：`{f}`\n")
+                    ok = await _mp_one(f)
+                    if not ok:
+                        await websocket.send_text(
+                            f"【提示】材料 {f} 未获得有效 MP 结果，系统已自动切换至下一候选。\n"
+                        )
+
+                # ---- Step5：开始就 completed
+                await _mark_completed(
+                    "STABILITY_EVALUATION",
+                    "",
+                    "稳定性评估",
+                    "ADiT + Pymatgen 结构合法性与稳定性快速评估"
+                )
+                await websocket.send_text("\n## 稳定性评估（ADiT + Pymatgen）\n")
+
+                # Phase B：再跑完所有 ADiT
+                for f in formulas:
+                    await websocket.send_text(f"\n## {f}\n")
+                    await websocket.send_text(f"【信息】稳定性评估阶段已启动，目标材料：`{f}`\n")
+                    ok = await _adit_one(f)
+                    if not ok:
+                        await websocket.send_text(
+                            f"【提示】材料 {f} 未获得有效稳定性评估结果，系统已自动切换至下一候选。\n"
+                        )
+
+                # =========================
+                # Phase C：MACE（先 fast relax，再 md）
+                # 目标：md 在 fast explain 期间后台跑，确保“真正并行”
+                # step_id：统一 MATERIAL_SCREEN_AGENT
+                # =========================
+
+                await _mark_completed(
+                    "PROPERTY_CALCULATION",
+                    "",
+                    "性质计算",
+                    "MACE 通用势：快速 relax + 短 MD sanity（用于工程级快速对比）"
+                )
+                await websocket.send_text("\n## 性质计算（MACE）\n")
+
+                # -------- helper：读取 mace 结果（给 LLM 用）--------
+                def _read_mace_summary(repo_root: str, root_path: str, taskid_: str, formula_: str,
+                                       pipeline_: str) -> dict:
+                    import os, glob, json
+                    abs_case_root = os.path.abspath(os.path.join(repo_root, root_path))
+                    results_dir = os.path.join(abs_case_root, "results")
+                    taskid_s = str(taskid_).replace("/", "_")
+                    pattern = os.path.join(results_dir, pipeline_, f"dr_*{taskid_s}*", str(formula_), "summary.json")
+                    cands = sorted(glob.glob(pattern))
+                    if not cands:
+                        return {}
+                    try:
+                        with open(cands[-1], "r", encoding="utf-8") as f:
+                            return json.load(f)
+                    except Exception:
+                        return {}
+
+                # -------- helper：给 summary.md 补一行头（只为 debug：结构+step）--------
+                def _patch_summary_md_header(repo_root: str, root_path: str, taskid_: str, formula_: str,
+                                             pipeline_: str, header_line: str):
+                    import os, glob
+                    abs_case_root = os.path.abspath(os.path.join(repo_root, root_path))
+                    results_dir = os.path.join(abs_case_root, "results")
+                    taskid_s = str(taskid_).replace("/", "_")
+                    pattern = os.path.join(results_dir, pipeline_, f"dr_*{taskid_s}*", str(formula_), "summary.md")
+                    cands = sorted(glob.glob(pattern))
+                    if not cands:
+                        return
+                    md_path = cands[-1]
+                    try:
+                        with open(md_path, "r", encoding="utf-8") as f:
+                            old = f.read()
+                        if old.startswith(header_line.strip()):
+                            return
+                        with open(md_path, "w", encoding="utf-8") as f:
+                            f.write(header_line.rstrip() + "\n\n" + old.lstrip())
+                    except Exception:
+                        return
+
+                # ✅ md 后台任务池（formula -> asyncio.Task[bool]）
+                md_tasks = {}
+
+                # ✅ 控制 md 并发：默认 1（同一张 GPU 更稳更快）
+                #    如要尝试“真双并发”可改成 asyncio.Semaphore(2)
+                import asyncio
+                md_sem = asyncio.Semaphore(1)
+
+                async def _run_md_with_sem(formula_: str) -> bool:
+                    async with md_sem:
+                        logger.info(f"[MACE_PARALLEL] md start (sema-acquired) formula={formula_}")
+                        ok_ = await _run_mace_stage(formula_, fast=False)
+                        logger.info(f"[MACE_PARALLEL] md end (sema-release) formula={formula_} ok={ok_}")
+                        return ok_
+
+                async def _mace_fast_explain_rich(formula_: str, mace_params_: dict):
+                    """
+                    fast explain 拆 3 段：拖时间 + 但每段都有信息密度
+                    """
+                    # 段 1：口径/字段含义
+                    await self._material_mace_fast_explain_stage(
+                        llm,
+                        websocket,
+                        query=(
+                            f"【段1/3｜字段口径】解释材料 {formula_} 的 MACE-fast（Relax）体检结果。"
+                            f"只基于本阶段 summary 字段：能量(eV)、fmax(eV/Å)、min_dist(Å) 以及阈值判读。"
+                            f"要求：逐项给出“物理含义 + 工程风险含义 + 本次值的解读”。"
+                        ),
+                        parameters=mace_params_,
+                        taskid=taskid
+                    )
+
+                    # 段 2：前后对比/收敛性与可靠性提示
+                    await self._material_mace_fast_explain_stage(
+                        llm,
+                        websocket,
+                        query=(
+                            f"【段2/3｜收敛与对比】基于材料 {formula_} 的 MACE-fast（Relax）结果，"
+                            f"重点解释：能量是否下降、fmax 是否达到阈值、min_dist 是否变坏/变好。"
+                            f"给出一句“fast 结论”（通过/存疑/失败）并给出原因（只用本阶段字段）。"
+                        ),
+                        parameters=mace_params_,
+                        taskid=taskid
+                    )
+
+                    # 段 3：为 md 铺垫（但不解释 md 结果）
+                    await self._material_mace_fast_explain_stage(
+                        llm,
+                        websocket,
+                        query=(
+                            f"【段3/3｜MD 预期检查清单】基于材料 {formula_} 的 fast 结果，"
+                            f"给出下一步短程 NVT Langevin MD 我们会看的 4~6 个 sanity 指标清单（例如：温控是否贴近目标、温度波动、ΔEpot 漂移、min_dist 是否逼近门槛、fmax 是否爆炸等）。"
+                            f"要求：每条写“看什么→异常意味着什么”。不要引用本阶段之外的数据。"
+                        ),
+                        parameters=mace_params_,
+                        taskid=taskid
+                    )
+
+                async def _mace_md_explain_rich(formula_: str, mace_md_params_: dict):
+                    """
+                    md explain 拆 2 段：md 结果一到就输出更多，给后续 md 争取时间
+                    并且强调：温度以“末段窗口（最后 3~5 个 log 点）”为准，而不是全程均值
+                    """
+                    await self._material_mace_md_explain_stage(
+                        llm,
+                        websocket,
+                        query=(
+                            f"【段1/2｜MD 结果口径】解释材料 {formula_} 的 MACE-md（短程 NVT Langevin）体检结果。"
+                            f"要求：逐项解释 MD 参数（steps/dt/T/friction/log-every）与末态指标（末态能量/末态 fmax/min_dist/ΔEpot）。"
+                            f"温度解读口径：优先基于“末段窗口（最后 3~5 个记录点）”是否贴近目标 300K，而不是全程平均（避免前期升温阶段拉低均值）。"
+                        ),
+                        parameters=mace_md_params_,
+                        taskid=taskid
+                    )
+
+                    await self._material_mace_md_explain_stage(
+                        llm,
+                        websocket,
+                        query=(
+                            f"【段2/2｜工程判读与下一步】基于材料 {formula_} 的 md 结果，"
+                            f"给出工程判读：是否出现潜在不稳定（例如 fmax 高、min_dist 接近门槛、ΔEpot 漂移偏大、温度控制异常）。"
+                            f"最后给 3 条下一步建议（例如：加长步数/调整 friction/先再 relax/降低 dt/提高 log-every 等），但每条必须对应到本次 md 字段。"
+                        ),
+                        parameters=mace_md_params_,
+                        taskid=taskid
+                    )
+
+                # C1) fast relax：跑完后立刻启动 md（后台排队），然后马上做 fast explain（拖时间）
+                for f in formulas:
+                    await websocket.send_text(f"\n### {f}\n")
+                    await websocket.send_text(f"【信息】性质计算（MACE-fast）阶段已启动，目标材料：`{f}`\n")
+
+                    ok_fast = await _run_mace_stage(f, fast=True)
+                    if not ok_fast:
+                        await websocket.send_text(
+                            f"【提示】材料 {f} 的 MACE-fast 结果不可用，已跳过该材料的 MD 与解释流程。\n"
+                        )
+                        continue
+
+                    repo_root = _repo_root()
+                    root_path = f"src/MNS_CaseHub/cases/{CASE_MP}"
+
+                    _patch_summary_md_header(
+                        repo_root, root_path, taskid, f, "mace",
+                        header_line=f"## 性质计算（MACE-fast Relax）｜材料：{f}｜Task：{str(taskid)[:8]}\n"
+                    )
+
+                    # ✅ 右侧：fast 结果先下发
+                    await self.send_results_to_frontend(
+                        websocket,
+                        repo_root,
+                        root_path,
+                        taskid,
+                        jobid=f,
+                        pipeline="mace",
+                        step_id="MATERIAL_SCREEN_AGENT"
+                    )
+
+                    # ✅ 关键：立刻启动 md 后台任务（不 await）
+                    # 注意：用 semaphore 控制 md 实际并发，避免同 GPU 抢资源
+                    try:
+                        md_tasks[f] = asyncio.create_task(_run_md_with_sem(f))
+                        logger.info(f"[MACE_PARALLEL] md task created formula={f}")
+                    except Exception as e:
+                        logger.exception(f"[MACE_MD_TASK_CREATE] failed formula={f}: {e!s}")
+
+                    # ✅ 左侧：fast explain（拆 3 段，拖时间 + 信息密度）
+                    try:
+                        mace_params = _read_mace_summary(repo_root, root_path, taskid, f, "mace")
+                        await _mace_fast_explain_rich(f, mace_params)
+                    except Exception as e:
+                        logger.exception(f"[MACE_FAST_EXPLAIN] failed formula={f}: {e!s}")
+
+                # C2) md：按 formulas 顺序等待后台任务完成 -> 下发右侧 -> md explain（拆 2 段）
+                for f in formulas:
+                    if f not in md_tasks:
+                        continue
+
+                    await websocket.send_text(f"\n## {f}\n")
+                    await websocket.send_text(f"【信息】性质计算（MACE-md）阶段处理中，目标材料：`{f}`\n")
+
+                    ok_md = False
+                    try:
+                        ok_md = await md_tasks[f]
+                        logger.info(f"[MACE_PARALLEL] md task done formula={f} ok={ok_md}")
+                    except Exception as e:
+                        logger.exception(f"[MACE_MD_TASK_AWAIT] failed formula={f}: {e!s}")
+                        ok_md = False
+
+                    if not ok_md:
+                        await websocket.send_text(
+                            f"【提示】材料 {f} 的 MACE-md 未完成或结果不可用，已跳过结果下发与解释。\n"
+                        )
+                        continue
+
+                    repo_root = _repo_root()
+                    root_path = f"src/MNS_CaseHub/cases/{CASE_MP}"
+
+                    _patch_summary_md_header(
+                        repo_root, root_path, taskid, f, "mace_md",
+                        header_line=f"## 性质计算（MACE-md 短程MD）｜材料：{f}｜Task：{str(taskid)[:8]}\n"
+                    )
+
+                    # ✅ 右侧：md 结果下发
+                    await self.send_results_to_frontend(
+                        websocket,
+                        repo_root,
+                        root_path,
+                        taskid,
+                        jobid=f,
+                        pipeline="mace_md",
+                        step_id="MATERIAL_SCREEN_AGENT"
+                    )
+
+                    # ✅ 左侧：md explain（拆 2 段，进一步拖时间）
+                    try:
+                        mace_md_params = _read_mace_summary(repo_root, root_path, taskid, f, "mace_md")
+                        await _mace_md_explain_rich(f, mace_md_params)
+                    except Exception as e:
+                        logger.exception(f"[MACE_MD_EXPLAIN] failed formula={f}: {e!s}")
+
+                await websocket.send_text("\n【信息】MACE 性质计算阶段已完成。\n")
+                return
+
+
+########################################
+# 定义角色：XIMUAlpha_MNS
+########################################
+
+class XIMUAlpha_MNS(Role):
+    """
+    工业平台 · XIMUAlpha工业平台·材料发现与跨尺度计算Agent。
+    定位：面向微纳米器件的设计 / 仿真 / 加工 / 质控与产线优化等工业场景，
+    以“结构化 JSON”为唯一对接载体，侧重“检索模型/算子 → 调度运行 → 拼装可渲染数据”。
+    """
+    # 对外展示名（前端/日志可见）
+    name: str = "XIMUAlpha_MaterialsCore"
+    # 简要画像（供框架/上游作为 system profile 使用）
+    profile: str = (
+        "材料发现与跨尺度仿真专用智能体。"
+        "能力覆盖材料初筛、结构与稳定性评估、"
+        "以及基于上游筛选的 DFT、机器学习势（MLIP）和 LAMMPS 的材料性质计算与验证。"
+        "擅长从已有计算产物（manifest / report / JSON）中组织工程化材料计算说明，"
+        "并以结构化 JSON 形式输出结果与可视化资源索引，"
+        "适用于固态电解质、功能材料与工程材料的计算评估场景。"
+    )
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # 保持不变
+        self._watch([UserRequirement])
+        self.set_actions([Coding])

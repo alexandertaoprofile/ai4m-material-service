@@ -1,0 +1,1 @@
+CalledProcessError: Command '['bash', '-lc', '\n    set -e\n    micromamba run -n ai4m-service-py310       python src/MNS_CaseHub/cases/material_discovery_demo/run_mp.py         --taskid "LS_simulation_task"         --formula "Li3PS4"\n    ']' returned non-zero exit status 1.

@@ -1,0 +1,39 @@
+{
+  "timestamp": "2026-02-10T05:53:04.040562Z",
+  "timestamp_local": "2026-02-10T13:53:04.040574",
+  "status": "DONE_NO_MD",
+  "input": "/home/ubuntu/se42/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/dr_MfbB7gwaWzrGiesYouY7O_YXyOrOauaK5RO0ygzvXCD_t1_1770702746/Li6PS5Cl/structure.cif",
+  "model_path": "/home/ubuntu/runtimes-packages/mace-ase/models/mace-mp-0b2-medium.model",
+  "device": "cuda",
+  "dtype": "float32",
+  "n_atoms": 13,
+  "calc_config": "mace-mp-0b2-medium.model / cuda / float32",
+  "cell_metrics": {
+    "cell_a_A": 7.26870274,
+    "cell_b_A": 7.26870274,
+    "cell_c_A": 7.26870274,
+    "cell_alpha_deg": 59.99999999999999,
+    "cell_beta_deg": 59.99999999999999,
+    "cell_gamma_deg": 59.99999999999999,
+    "cell_volume_A3": 271.55370168980784,
+    "density_g_cm3": 1.6410327242250562
+  },
+  "init_energy_eV": -53.3634147644043,
+  "init_max_force_eV_per_A": 0.011570059694349766,
+  "init_min_dist_A": 2.0568244804557425,
+  "relax": {
+    "enabled": true,
+    "fmax_target_eV_per_A": 0.1,
+    "max_steps": 200,
+    "final_energy_eV": -53.3634147644043,
+    "final_max_force_eV_per_A": 0.011570059694349766,
+    "final_min_dist_A": 2.0568244804557425,
+    "log_file": "relax.log"
+  },
+  "verdict": "RELAX PASS (fmax=0.012 <= 0.1)",
+  "verdict_cn": "弛豫通过（fmax=0.012 ≤ 0.1）",
+  "md": {
+    "enabled": false
+  },
+  "wall_time_s": 4.091080481186509
+}

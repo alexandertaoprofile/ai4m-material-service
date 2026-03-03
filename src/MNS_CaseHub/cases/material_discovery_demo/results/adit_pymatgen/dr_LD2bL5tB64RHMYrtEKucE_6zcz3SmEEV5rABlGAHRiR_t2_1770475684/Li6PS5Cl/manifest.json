@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "pipeline": "adit_pymatgen",
+  "taskid": "dr_LD2bL5tB64RHMYrtEKucE/6zcz3SmEEV5rABlGAHRiR_t2_1770475684",
+  "jobid": "Li6PS5Cl",
+  "base_dir": "/home/ubuntu/se42/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/adit_pymatgen/dr_LD2bL5tB64RHMYrtEKucE_6zcz3SmEEV5rABlGAHRiR_t2_1770475684/Li6PS5Cl",
+  "files": {
+    "summary_md": "summary.md",
+    "report_json": "report.json",
+    "manifest_json": "manifest.json"
+  },
+  "files_abs": {
+    "summary_md": "/home/ubuntu/se42/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/adit_pymatgen/dr_LD2bL5tB64RHMYrtEKucE_6zcz3SmEEV5rABlGAHRiR_t2_1770475684/Li6PS5Cl/summary.md",
+    "report_json": "/home/ubuntu/se42/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/adit_pymatgen/dr_LD2bL5tB64RHMYrtEKucE_6zcz3SmEEV5rABlGAHRiR_t2_1770475684/Li6PS5Cl/report.json",
+    "manifest_json": "/home/ubuntu/se42/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/adit_pymatgen/dr_LD2bL5tB64RHMYrtEKucE_6zcz3SmEEV5rABlGAHRiR_t2_1770475684/Li6PS5Cl/manifest.json"
+  },
+  "generated_at": "2026-02-07T14:49:00.256164Z"
+}

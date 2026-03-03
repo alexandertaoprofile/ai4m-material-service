@@ -1,0 +1,47 @@
+{
+  "ok": true,
+  "taskid": "dr_Uc6jytMeN6qKCAQq77hFw/bB2i2aQMGLTxOWrkN9Abu_t4_1772099554",
+  "jobid": "IC",
+  "material_id": null,
+  "formula": "IC",
+  "elements": null,
+  "max_candidates": 5,
+  "prefer_stable": true,
+  "whitelist_ids": [],
+  "primary_material_id": "mp-cqdyk",
+  "count_selected": 1,
+  "items": [
+    {
+      "material_id": "mp-cqdyk",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cqdyk"
+      ],
+      "formula_pretty": "CI",
+      "elements": [
+        "C",
+        "I"
+      ],
+      "chemsys": "C-I",
+      "nsites": 32,
+      "density": 2.584572467696466,
+      "volume": 1428.0060295401752,
+      "energy_above_hull": 0.760551141249999,
+      "is_stable": false,
+      "energy_per_atom": -4.61694648875,
+      "formation_energy_per_atom": 0.760551141249999,
+      "band_gap": 3.4211,
+      "symmetry": {
+        "crystal_system": "Tetragonal",
+        "symbol": "P4_2/n",
+        "number": 86
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-246785"
+        ]
+      },
+      "selected_reason": "ranked_topk"
+    }
+  ]
+}

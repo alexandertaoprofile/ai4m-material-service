@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "pipeline": "adit_pymatgen",
+  "taskid": "h6YSRRvBwcYts3ct-Pznl/VdissdF2FgV2RSBjtTT1C",
+  "jobid": "Li3PS4",
+  "base_dir": "/home/ubuntu/material-screen-calc/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/adit_pymatgen/h6YSRRvBwcYts3ct-Pznl_VdissdF2FgV2RSBjtTT1C/Li3PS4",
+  "files": {
+    "summary_md": "summary.md",
+    "report_json": "report.json",
+    "manifest_json": "manifest.json"
+  },
+  "files_abs": {
+    "summary_md": "/home/ubuntu/material-screen-calc/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/adit_pymatgen/h6YSRRvBwcYts3ct-Pznl_VdissdF2FgV2RSBjtTT1C/Li3PS4/summary.md",
+    "report_json": "/home/ubuntu/material-screen-calc/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/adit_pymatgen/h6YSRRvBwcYts3ct-Pznl_VdissdF2FgV2RSBjtTT1C/Li3PS4/report.json",
+    "manifest_json": "/home/ubuntu/material-screen-calc/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/adit_pymatgen/h6YSRRvBwcYts3ct-Pznl_VdissdF2FgV2RSBjtTT1C/Li3PS4/manifest.json"
+  },
+  "generated_at": "2026-02-26T08:15:26.643827Z"
+}

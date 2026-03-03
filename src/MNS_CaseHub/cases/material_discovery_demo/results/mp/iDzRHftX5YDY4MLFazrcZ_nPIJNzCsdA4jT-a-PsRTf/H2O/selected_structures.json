@@ -1,0 +1,173 @@
+{
+  "ok": true,
+  "taskid": "iDzRHftX5YDY4MLFazrcZ/nPIJNzCsdA4jT-a-PsRTf",
+  "jobid": "H2O",
+  "material_id": null,
+  "formula": "H2O",
+  "elements": null,
+  "max_candidates": 5,
+  "prefer_stable": true,
+  "whitelist_ids": [],
+  "primary_material_id": "mp-bnrfz",
+  "count_selected": 5,
+  "items": [
+    {
+      "material_id": "mp-bnrfz",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bnrfz"
+      ],
+      "formula_pretty": "H2O",
+      "elements": [
+        "H",
+        "O"
+      ],
+      "chemsys": "H-O",
+      "nsites": 12,
+      "density": 1.039895189271257,
+      "volume": 115.06958218241854,
+      "energy_above_hull": 0.0,
+      "is_stable": true,
+      "energy_per_atom": -5.192767620833333,
+      "formation_energy_per_atom": -1.280002993333333,
+      "band_gap": 5.520200000000001,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Cmc2_1",
+        "number": 36
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-47199"
+        ]
+      },
+      "selected_reason": "ranked_topk"
+    },
+    {
+      "material_id": "mp-eijhz",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-eijhz"
+      ],
+      "formula_pretty": "H2O",
+      "elements": [
+        "H",
+        "O"
+      ],
+      "chemsys": "H-O",
+      "nsites": 12,
+      "density": 1.039986353034602,
+      "volume": 115.05949534221361,
+      "energy_above_hull": 0.00038038583333300006,
+      "is_stable": false,
+      "energy_per_atom": -5.192387234999999,
+      "formation_energy_per_atom": -1.279622607499999,
+      "band_gap": 5.5882000000000005,
+      "symmetry": {
+        "crystal_system": "Monoclinic",
+        "symbol": "Cc",
+        "number": 9
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk"
+    },
+    {
+      "material_id": "mp-boaqd",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-boaqd"
+      ],
+      "formula_pretty": "H2O",
+      "elements": [
+        "H",
+        "O"
+      ],
+      "chemsys": "H-O",
+      "nsites": 36,
+      "density": 1.042226915466507,
+      "volume": 344.43642694467326,
+      "energy_above_hull": 0.001083213055555,
+      "is_stable": false,
+      "energy_per_atom": -5.191684407777777,
+      "formation_energy_per_atom": -1.278919780277777,
+      "band_gap": 5.5287,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3cm",
+        "number": 185
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-27837"
+        ]
+      },
+      "selected_reason": "ranked_topk"
+    },
+    {
+      "material_id": "mp-bjot",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bjot"
+      ],
+      "formula_pretty": "H2O",
+      "elements": [
+        "H",
+        "O"
+      ],
+      "chemsys": "H-O",
+      "nsites": 36,
+      "density": 1.321090483136175,
+      "volume": 271.7307553201476,
+      "energy_above_hull": 0.005572493055555,
+      "is_stable": false,
+      "energy_per_atom": -5.187195127777778,
+      "formation_energy_per_atom": -1.2744305002777772,
+      "band_gap": 5.4391,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "R-3",
+        "number": 148
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-23703",
+          "icsd-15907"
+        ]
+      },
+      "selected_reason": "ranked_topk"
+    },
+    {
+      "material_id": "mp-bnqrn",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bnqrn"
+      ],
+      "formula_pretty": "H2O",
+      "elements": [
+        "H",
+        "O"
+      ],
+      "chemsys": "H-O",
+      "nsites": 36,
+      "density": 1.279813561801226,
+      "volume": 280.49469512076223,
+      "energy_above_hull": 0.006665027499999,
+      "is_stable": false,
+      "energy_per_atom": -5.1861025933333345,
+      "formation_energy_per_atom": -1.273337965833333,
+      "band_gap": 5.4898,
+      "symmetry": {
+        "crystal_system": "Tetragonal",
+        "symbol": "P4_12_12",
+        "number": 92
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-28415",
+          "icsd-64771"
+        ]
+      },
+      "selected_reason": "ranked_topk"
+    }
+  ]
+}

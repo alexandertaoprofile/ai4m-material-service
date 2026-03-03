@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "pipeline": "mace",
+  "base_dir": "/home/ubuntu/material-screen-calc/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/mace/dr_dr_0OYCRq_WQq0FP7Kd0905f_9fcOHc4N-ehtxGCEWGkTG_t5_1772243405/C2H4O",
+  "files": {
+    "summary_md": "summary.md",
+    "summary_json": "summary.json",
+    "relax_log": "relax.log",
+    "relaxed_cif": "relaxed.cif",
+    "relaxed_extxyz": "relaxed.extxyz"
+  },
+  "images": []
+}

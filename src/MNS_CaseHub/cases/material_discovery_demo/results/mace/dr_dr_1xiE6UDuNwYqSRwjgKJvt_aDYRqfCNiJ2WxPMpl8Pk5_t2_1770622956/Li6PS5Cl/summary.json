@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-02-09T07:44:00.449757Z",
+  "status": "DONE_NO_MD",
+  "input": "/home/ubuntu/se42/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/dr_1xiE6UDuNwYqSRwjgKJvt_aDYRqfCNiJ2WxPMpl8Pk5_t2_1770622956/Li6PS5Cl/structure.cif",
+  "model_path": "/home/ubuntu/runtimes-packages/mace-ase/models/mace-mp-0b2-medium.model",
+  "device": "cuda",
+  "dtype": "float32",
+  "n_atoms": 13,
+  "init_energy_eV": -53.3634147644043,
+  "init_max_force_eV_per_A": 0.011570027098059654,
+  "init_min_dist_A": 2.0568244804557425,
+  "relax": {
+    "fmax_target_eV_per_A": 0.1,
+    "max_steps": 200,
+    "final_energy_eV": -53.3634147644043,
+    "final_max_force_eV_per_A": 0.011570027098059654,
+    "final_min_dist_A": 2.0568244804557425,
+    "log_file": "relax.log"
+  },
+  "verdict": "RELAX PASS (fmax=0.012 <= 0.1)",
+  "md": {
+    "skipped": true
+  }
+}

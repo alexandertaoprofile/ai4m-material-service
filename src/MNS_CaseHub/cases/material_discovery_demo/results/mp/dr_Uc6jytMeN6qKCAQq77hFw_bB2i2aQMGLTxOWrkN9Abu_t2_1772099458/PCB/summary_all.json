@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "query_mode": "formula",
+  "input": {
+    "material_id": null,
+    "formula": "PCB",
+    "elements": null,
+    "reduced_formula": "BPC"
+  },
+  "count_all": 0,
+  "items": []
+}

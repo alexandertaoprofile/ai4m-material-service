@@ -1,0 +1,31 @@
+{
+  "pymatgen": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "metrics": {
+      "num_sites": 4,
+      "charge": 0.0,
+      "volume": 42.52728305356918,
+      "density": 3.200889719466926,
+      "min_interatomic_dist": 1.9017283002967689,
+      "spacegroup": "P6_3mc (186)"
+    }
+  },
+  "adit": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "metrics": {
+      "atomic_numbers": [
+        7,
+        13
+      ],
+      "has_partial_occupancy": false,
+      "supported_elements": true,
+      "min_interatomic_dist": 1.9017283002967689,
+      "pass_gate": true,
+      "gate_reason": "basic_checks_passed"
+    }
+  }
+}

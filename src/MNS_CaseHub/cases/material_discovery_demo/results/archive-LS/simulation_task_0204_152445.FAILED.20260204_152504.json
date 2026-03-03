@@ -1,0 +1,10 @@
+{
+    "simulation_task": {
+        "baseline_material": "Li8Zr4O12",
+        "advanced_material": "Li10.14Mg0.8Ti13.07O32",
+        "simulation_parameters": {
+            "temp_range": "223K-353K",
+            "stability": "一般"
+        }
+    }
+}

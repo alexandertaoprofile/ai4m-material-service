@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "pipeline": "mace",
+  "base_dir": "/home/ubuntu/se42/ai4m_tqm/src/MNS_CaseHub/cases/material_discovery_demo/results/mace/dr_dr_MfbB7gwaWzrGiesYouY7O_YNOGB7d35WwR7w31V677o_t2_1770791941/Li6PS5Cl",
+  "files": {
+    "summary_md": "summary.md",
+    "summary_json": "summary.json",
+    "relax_log": "relax.log",
+    "relaxed_cif": "relaxed.cif",
+    "relaxed_extxyz": "relaxed.extxyz"
+  },
+  "images": []
+}

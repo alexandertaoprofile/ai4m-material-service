@@ -1,0 +1,29 @@
+data_image0
+_chemical_formula_structural       Al2N2
+_chemical_formula_sum              "Al2 N2"
+_cell_length_a       3.128588
+_cell_length_b       3.12858827
+_cell_length_c       5.016955
+_cell_angle_alpha    90.0
+_cell_angle_beta     90.0
+_cell_angle_gamma    119.99999711999999
+
+_space_group_name_H-M_alt    "P 1"
+_space_group_IT_number       1
+
+loop_
+  _space_group_symop_operation_xyz
+  'x, y, z'
+
+loop_
+  _atom_site_type_symbol
+  _atom_site_label
+  _atom_site_symmetry_multiplicity
+  _atom_site_fract_x
+  _atom_site_fract_y
+  _atom_site_fract_z
+  _atom_site_occupancy
+  Al  Al1       1.0  0.6582028238316355  0.32988263332196055  0.5055775444199819  1.0000
+  Al  Al2       1.0  0.3434223657002487  0.663953256373271  0.9945431215939958  1.0000
+  N   N1        1.0  0.677474039098508  0.33455323961121386  0.8772489530119045  1.0000
+  N   N2        1.0  0.3196708471149877  0.6771303787001235  0.38114605286022285  1.0000

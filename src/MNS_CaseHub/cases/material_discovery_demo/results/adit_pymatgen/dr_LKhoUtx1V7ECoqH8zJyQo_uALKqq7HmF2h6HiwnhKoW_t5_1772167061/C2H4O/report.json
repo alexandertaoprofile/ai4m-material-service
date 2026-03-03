@@ -1,0 +1,34 @@
+{
+  "pymatgen": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "metrics": {
+      "num_sites": 56,
+      "charge": 0.0,
+      "volume": 534.0189079772994,
+      "density": 1.095856283336724,
+      "min_interatomic_dist": 1.0965444225535042,
+      "spacegroup": "I4_1/a (88)"
+    }
+  },
+  "adit": {
+    "ok": true,
+    "errors": [],
+    "warnings": [
+      "最小原子间距过小（1.097 Å）：结构可能不合理。"
+    ],
+    "metrics": {
+      "atomic_numbers": [
+        1,
+        6,
+        8
+      ],
+      "has_partial_occupancy": false,
+      "supported_elements": true,
+      "min_interatomic_dist": 1.0965444225535042,
+      "pass_gate": false,
+      "gate_reason": "min_dist_too_small"
+    }
+  }
+}

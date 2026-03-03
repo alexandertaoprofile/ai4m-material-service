@@ -1,0 +1,40 @@
+{
+  "pymatgen": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "metrics": {
+      "num_sites": 3,
+      "formula": "Li",
+      "is_ordered": true,
+      "charge": 0.0,
+      "volume": 61.20566011076459,
+      "density": 0.564938029743426,
+      "min_interatomic_dist": 3.04204092263402,
+      "spacegroup_symbol": "R-3m",
+      "spacegroup_number": 166,
+      "volume_per_atom": 20.401886703588197
+    }
+  },
+  "adit": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "metrics": {
+      "elements": [
+        "Li"
+      ],
+      "atomic_numbers": [
+        3
+      ],
+      "num_elements": 1,
+      "num_sites": 3,
+      "is_ordered": true,
+      "has_partial_occupancy": false,
+      "supported_elements": true,
+      "min_interatomic_dist": 3.04204092263402,
+      "pass_gate": true,
+      "gate_reason": "basic_checks_passed"
+    }
+  }
+}

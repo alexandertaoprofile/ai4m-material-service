@@ -1,0 +1,46 @@
+{
+  "pymatgen": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "metrics": {
+      "num_sites": 13,
+      "formula": "Li6PS5Cl",
+      "is_ordered": true,
+      "charge": 0.0,
+      "volume": 271.55370168980795,
+      "density": 1.6412406350504896,
+      "min_interatomic_dist": 2.056824480455743,
+      "spacegroup_symbol": "F-43m",
+      "spacegroup_number": 216,
+      "volume_per_atom": 20.88874628383138
+    }
+  },
+  "adit": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "metrics": {
+      "elements": [
+        "Cl",
+        "Li",
+        "P",
+        "S"
+      ],
+      "atomic_numbers": [
+        3,
+        15,
+        16,
+        17
+      ],
+      "num_elements": 4,
+      "num_sites": 13,
+      "is_ordered": true,
+      "has_partial_occupancy": false,
+      "supported_elements": true,
+      "min_interatomic_dist": 2.056824480455743,
+      "pass_gate": true,
+      "gate_reason": "basic_checks_passed"
+    }
+  }
+}

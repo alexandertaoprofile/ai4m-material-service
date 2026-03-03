@@ -1,0 +1,299 @@
+{
+  "ok": true,
+  "query_mode": "formula",
+  "input": {
+    "material_id": null,
+    "formula": "Li5",
+    "elements": null,
+    "reduced_formula": "Li"
+  },
+  "count_all": 9,
+  "items": [
+    {
+      "material_id": "mp-pbh",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-pbh"
+      ],
+      "formula_pretty": "Li",
+      "elements": [
+        "Li"
+      ],
+      "chemsys": "Li",
+      "nsites": 2,
+      "density": 0.573292417154018,
+      "volume": 40.20915440845307,
+      "energy_above_hull": 0.005987748333333,
+      "is_stable": false,
+      "energy_per_atom": -2.380718665,
+      "formation_energy_per_atom": 0.005987748333333,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3/mmc",
+        "number": 194
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-20928",
+          "icsd-76947",
+          "icsd-44760"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-cfyda",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cfyda"
+      ],
+      "formula_pretty": "Li",
+      "elements": [
+        "Li"
+      ],
+      "chemsys": "Li",
+      "nsites": 3,
+      "density": 0.5649380290750841,
+      "volume": 61.205660097660434,
+      "energy_above_hull": 0.0,
+      "is_stable": true,
+      "energy_per_atom": -2.386706413333333,
+      "formation_energy_per_atom": 0.0,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "R-3m",
+        "number": 166
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-642106",
+          "icsd-426951",
+          "icsd-642105"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-cimmv",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cimmv"
+      ],
+      "formula_pretty": "Li",
+      "elements": [
+        "Li"
+      ],
+      "chemsys": "Li",
+      "nsites": 3,
+      "density": 0.5643236945722541,
+      "volume": 61.27228985134278,
+      "energy_above_hull": 0.015670883333333,
+      "is_stable": false,
+      "energy_per_atom": -2.37103553,
+      "formation_energy_per_atom": 0.015670883333333,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6/mmm",
+        "number": 191
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-1035"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-cktvf",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cktvf"
+      ],
+      "formula_pretty": "Li",
+      "elements": [
+        "Li"
+      ],
+      "chemsys": "Li",
+      "nsites": 12,
+      "density": 0.570192381038717,
+      "volume": 242.5665872337491,
+      "energy_above_hull": 0.055379472500000006,
+      "is_stable": false,
+      "energy_per_atom": -2.331326940833333,
+      "formation_energy_per_atom": 0.055379472500000006,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Cmce",
+        "number": 64
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-182499"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-ff",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-ff"
+      ],
+      "formula_pretty": "Li",
+      "elements": [
+        "Li"
+      ],
+      "chemsys": "Li",
+      "nsites": 1,
+      "density": 0.5666126169854631,
+      "volume": 20.34159020777027,
+      "energy_above_hull": 0.009650863333333001,
+      "is_stable": false,
+      "energy_per_atom": -2.37705555,
+      "formation_energy_per_atom": 0.009650863333333001,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "Im-3m",
+        "number": 229
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-57409",
+          "icsd-53752",
+          "icsd-642102",
+          "icsd-76946",
+          "icsd-151210",
+          "icsd-104737",
+          "icsd-44613",
+          "icsd-181253",
+          "icsd-109135",
+          "icsd-44759",
+          "icsd-642104",
+          "icsd-44367",
+          "icsd-77370"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bz",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bz"
+      ],
+      "formula_pretty": "Li",
+      "elements": [
+        "Li"
+      ],
+      "chemsys": "Li",
+      "nsites": 1,
+      "density": 0.5664547498885351,
+      "volume": 20.347259270998425,
+      "energy_above_hull": 0.001672373333333,
+      "is_stable": false,
+      "energy_per_atom": -2.38503404,
+      "formation_energy_per_atom": 0.001672373333333,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "Fm-3m",
+        "number": 225
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-44763",
+          "icsd-642110",
+          "icsd-57408",
+          "icsd-109011",
+          "icsd-76948"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bghgr",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bghgr"
+      ],
+      "formula_pretty": "Li",
+      "elements": [
+        "Li"
+      ],
+      "chemsys": "Li",
+      "nsites": 8,
+      "density": 0.570042740991187,
+      "volume": 161.75350839454015,
+      "energy_above_hull": 0.008819463333333001,
+      "is_stable": false,
+      "energy_per_atom": -2.37788695,
+      "formation_energy_per_atom": 0.008819463333333001,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "I-43d",
+        "number": 220
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-109012"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bijyv",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bijyv"
+      ],
+      "formula_pretty": "Li",
+      "elements": [
+        "Li"
+      ],
+      "chemsys": "Li",
+      "nsites": 4,
+      "density": 0.521616949788403,
+      "volume": 88.38517740611074,
+      "energy_above_hull": 0.26179874416666604,
+      "is_stable": false,
+      "energy_per_atom": -2.124907669166667,
+      "formation_energy_per_atom": 0.26179874416666604,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "P4_132",
+        "number": 213
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-161377"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-cdokh",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cdokh"
+      ],
+      "formula_pretty": "Li",
+      "elements": [
+        "Li"
+      ],
+      "chemsys": "Li",
+      "nsites": 4,
+      "density": 0.5659385321116011,
+      "volume": 81.46327565480371,
+      "energy_above_hull": 0.005889090833333,
+      "is_stable": false,
+      "energy_per_atom": -2.3808173225,
+      "formation_energy_per_atom": 0.005889090833333,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3/mmc",
+        "number": 194
+      },
+      "database_IDs": {}
+    }
+  ]
+}

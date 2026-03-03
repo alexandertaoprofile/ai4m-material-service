@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "cases": [
+    {
+      "id": "mns.cantilever.resonator.inverse.wtlt.v1",
+      "name": "微悬臂梁谐振器_几何参数wtlt反演",
+      "domain": "MNS",
+      "tags": ["cantilever", "resonator", "inverse", "wt", "lt"],
+      "paths": {
+        "project_root": "MNS_CaseHub/cases/微悬臂梁谐振器_几何参数wtlt反演",
+        "main_entry": "MNS_CaseHub/cases/微悬臂梁谐振器_几何参数wtlt反演/微悬臂梁谐振器_几何参数wtlt反演_main.py"
+      },
+      "summary": "本案例聚焦于MEMS微梁谐振器的尺寸参数（梁宽w_t和梁长l_t）反演问题，基于频谱响应数据利用PINN进行物理一致性建模与精度反演，适用于高精度尺寸估计、MEMS传感器性能建模等场景。",
+      "parameters": {}
+    },
+    {
+      "id": "mns.smartphone.dropimpact.pinn.v1",
+      "name": "Smartphone_DropImpact_PINN",
+      "domain": "MNS",
+      "tags": ["drop", "impact", "smartphone", "pinn", "跌落", "冲击"],
+      "paths": {
+        "project_root": "MNS_CaseHub/cases/smartphone_drop_test/Smartphone_DropImpact_PINN",
+        "main_entry": "MNS_CaseHub/cases/smartphone_drop_test/Smartphone_DropImpact_PINN/Smartphone_DropImpact_PINN_main.py"
+      },
+      "summary": "手机跌落/冲击场景的PINN建模与反演：用于位移/应力响应预测、材料参数/边界条件反演与落摔风险评估。",
+      "parameters": {}
+    },
+    {
+      "id": "mns.phone2d.heatpinn.v1",
+      "name": "Phone2D_HeatPINN",
+      "domain": "MNS",
+      "tags": ["thermal", "heat", "cooling", "phone", "pinn", "散热", "热"],
+      "paths": {
+        "project_root": "MNS_CaseHub/cases/smartphone_thermal_analysis/Phone2D_HeatPINN",
+        "main_entry": "MNS_CaseHub/cases/smartphone_thermal_analysis/Phone2D_HeatPINN/Smartphone_Thermal_PINN_main.py"
+      },
+      "summary": "手机二维散热/热传导PINN建模与反演：用于热源功率/导热系数/对流边界等参数识别与温度场预测。",
+      "parameters": {}
+    }
+  ]
+}
