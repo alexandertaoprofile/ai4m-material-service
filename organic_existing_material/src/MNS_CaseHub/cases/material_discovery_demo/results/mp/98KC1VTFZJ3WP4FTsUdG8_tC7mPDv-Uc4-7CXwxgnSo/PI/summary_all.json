@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "query_mode": "formula",
+  "input": {
+    "material_id": null,
+    "formula": "PI",
+    "elements": null,
+    "reduced_formula": "PI"
+  },
+  "count_all": 0,
+  "items": []
+}

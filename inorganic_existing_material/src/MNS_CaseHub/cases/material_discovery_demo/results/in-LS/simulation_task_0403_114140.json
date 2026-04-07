@@ -1,0 +1,6 @@
+{
+    "baseline_material": "氮化铝陶瓷基板（AlN Ceramic）",
+    "advanced_material": "氮化硼/环氧树脂梯度复合基板（BN/EP Gradient Composite）",
+    "baseline_reason": "AlN陶瓷导热性能优异（>200 W/m·K）、绝缘性达标（>10¹³ Ω·cm）、工艺成熟且成本可控，已广泛用于量产AI芯片封装，是当前最平衡可靠的工业级选择。",
+    "advanced_reason": "BN/EP复合材料通过梯度结构实现更优的CTE匹配（接近硅芯片）、更低的界面应力累积和更高的热循环耐受性（1200次），虽成本高、工艺复杂，但为高端AI芯片提供下一代可靠性保障，适合前沿定制化场景。"
+}

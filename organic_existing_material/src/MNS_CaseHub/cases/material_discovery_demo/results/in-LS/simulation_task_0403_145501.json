@@ -1,0 +1,6 @@
+{
+    "baseline_material": "AlN + ALD Al₂O₃（50 nm） + TiN过渡层",
+    "advanced_material": "AlN-SiC梯度复合体 + ALD Al₂O₃（30 nm） + Ag纳米膏界面",
+    "baseline_reason": "完全兼容现有陶瓷封装产线，导热与绝缘指标达标，工艺成熟稳定，成本可控，适合2025年量产需求。",
+    "advanced_reason": "通过梯度结构与柔性界面实现导热与CTE匹配双优，绝缘层更薄更可靠，热循环性能卓越，面向2027年后高端AI芯片的下一代封装需求。"
+}

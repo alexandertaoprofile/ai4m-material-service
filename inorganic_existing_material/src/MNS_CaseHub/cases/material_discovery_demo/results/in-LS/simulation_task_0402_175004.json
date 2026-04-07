@@ -1,0 +1,6 @@
+{
+    "baseline_material": "Al₂O₃（氧化铝陶瓷基板）",
+    "advanced_material": "AlN（氮化铝陶瓷基板）+低介电常数玻璃陶瓷复合层",
+    "baseline_reason": "成本低、工艺成熟、散热和可靠性满足中低速AI芯片需求，是工业级量产的可靠选择。",
+    "advanced_reason": "热导率高达180W/m·K，介电常数与损耗极低，CTE可优化接近硅，专为100Gbps+高速AI芯片设计，性能远超基准款。"
+}

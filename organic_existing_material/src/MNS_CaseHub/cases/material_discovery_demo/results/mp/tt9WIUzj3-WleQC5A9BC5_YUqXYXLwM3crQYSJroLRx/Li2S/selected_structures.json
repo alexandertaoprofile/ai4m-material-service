@@ -1,0 +1,180 @@
+{
+  "ok": true,
+  "taskid": "tt9WIUzj3-WleQC5A9BC5/YUqXYXLwM3crQYSJroLRx",
+  "jobid": "Li2S",
+  "material_id": null,
+  "formula": "Li2S",
+  "elements": null,
+  "max_candidates": 5,
+  "prefer_stable": true,
+  "whitelist_ids": [],
+  "primary_material_id": "mp-bsj",
+  "count_selected": 5,
+  "items": [
+    {
+      "material_id": "mp-bsj",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bsj"
+      ],
+      "formula_pretty": "Li2S",
+      "elements": [
+        "Li",
+        "S"
+      ],
+      "chemsys": "Li-S",
+      "nsites": 3,
+      "density": 1.673940199901922,
+      "volume": 45.579160174025624,
+      "energy_above_hull": 0.0,
+      "is_stable": true,
+      "energy_per_atom": -4.155201103333334,
+      "formation_energy_per_atom": -1.503453288055556,
+      "band_gap": 3.3862,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "Fm-3m",
+        "number": 225
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-54396",
+          "icsd-642291",
+          "icsd-60432",
+          "icsd-56023",
+          "icsd-657596",
+          "icsd-657597",
+          "icsd-642297"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/tt9WIUzj3-WleQC5A9BC5_YUqXYXLwM3crQYSJroLRx/Li2S/structures/mp-bsj.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/tt9WIUzj3-WleQC5A9BC5_YUqXYXLwM3crQYSJroLRx/Li2S/structures/mp-bsj.cif"
+    },
+    {
+      "material_id": "mp-brh",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-brh"
+      ],
+      "formula_pretty": "Li2S",
+      "elements": [
+        "Li",
+        "S"
+      ],
+      "chemsys": "Li-S",
+      "nsites": 12,
+      "density": 1.7858446366174041,
+      "volume": 170.8923316814056,
+      "energy_above_hull": 0.061509288333333,
+      "is_stable": false,
+      "energy_per_atom": -4.0936918150000015,
+      "formation_energy_per_atom": -1.441943999722222,
+      "band_gap": 3.895399999999999,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Pnma",
+        "number": 62
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-91282",
+          "icsd-91284"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/tt9WIUzj3-WleQC5A9BC5_YUqXYXLwM3crQYSJroLRx/Li2S/structures/mp-brh.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/tt9WIUzj3-WleQC5A9BC5_YUqXYXLwM3crQYSJroLRx/Li2S/structures/mp-brh.cif"
+    },
+    {
+      "material_id": "mp-bwrj",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bwrj"
+      ],
+      "formula_pretty": "Li2S",
+      "elements": [
+        "Li",
+        "S"
+      ],
+      "chemsys": "Li-S",
+      "nsites": 33,
+      "density": 1.651171226497652,
+      "volume": 508.28445890736646,
+      "energy_above_hull": 0.075129093939395,
+      "is_stable": false,
+      "energy_per_atom": -4.080072009393938,
+      "formation_energy_per_atom": -1.42832419411616,
+      "band_gap": 1.875399999999999,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "R3m",
+        "number": 160
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/tt9WIUzj3-WleQC5A9BC5_YUqXYXLwM3crQYSJroLRx/Li2S/structures/mp-bwrj.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/tt9WIUzj3-WleQC5A9BC5_YUqXYXLwM3crQYSJroLRx/Li2S/structures/mp-bwrj.cif"
+    },
+    {
+      "material_id": "mp-bpebg",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bpebg"
+      ],
+      "formula_pretty": "Li2S",
+      "elements": [
+        "Li",
+        "S"
+      ],
+      "chemsys": "Li-S",
+      "nsites": 33,
+      "density": 1.6511715701994891,
+      "volume": 508.2843531047319,
+      "energy_above_hull": 0.08199014303030401,
+      "is_stable": false,
+      "energy_per_atom": -4.073210960303029,
+      "formation_energy_per_atom": -1.421463145025251,
+      "band_gap": 1.9206999999999992,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/tt9WIUzj3-WleQC5A9BC5_YUqXYXLwM3crQYSJroLRx/Li2S/structures/mp-bpebg.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/tt9WIUzj3-WleQC5A9BC5_YUqXYXLwM3crQYSJroLRx/Li2S/structures/mp-bpebg.cif"
+    },
+    {
+      "material_id": "mp-bfseo",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bfseo"
+      ],
+      "formula_pretty": "Li2S",
+      "elements": [
+        "Li",
+        "S"
+      ],
+      "chemsys": "Li-S",
+      "nsites": 6,
+      "density": 1.6057503644312612,
+      "volume": 95.0294518788338,
+      "energy_above_hull": 0.17496333,
+      "is_stable": false,
+      "energy_per_atom": -3.980237773333333,
+      "formation_energy_per_atom": -1.3284899580555551,
+      "band_gap": 3.2657,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3/mmc",
+        "number": 194
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/tt9WIUzj3-WleQC5A9BC5_YUqXYXLwM3crQYSJroLRx/Li2S/structures/mp-bfseo.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/tt9WIUzj3-WleQC5A9BC5_YUqXYXLwM3crQYSJroLRx/Li2S/structures/mp-bfseo.cif"
+    }
+  ]
+}

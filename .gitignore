@@ -1,40 +1,9 @@
-# python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.egg-info/
-.build/
-dist/
-.eggs/
-
-# env / secrets
-.env
-*.key
-*.pem
-
-# runtime dirs
-logs/
-upload/
-
-# large artifacts
-*.pt
-*.pth
-*.ckpt
-*.onnx
-*.h5
-*.npz
-
-# images/videos (optional: keep only selected)
-*.gif
-*.mp4
-*.mov
-
-# logs & backups
-*.log
-*.bak
-.git_DISABLED_DO_NOT_USE/
-*.pt
-*.bin
-*.ckpt
-__pycache__/
+**/__pycache__/
+**/*.pyc
+**/.env
+**/logs/
+**/dist/
+**/upload/
+**/tmp_mace_md_debug/
+**/*.log
+.DS_Store

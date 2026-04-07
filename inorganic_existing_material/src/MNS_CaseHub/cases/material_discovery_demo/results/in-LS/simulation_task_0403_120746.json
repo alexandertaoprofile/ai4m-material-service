@@ -1,0 +1,6 @@
+{
+    "baseline_material": "AlN/h-BN纳米复合陶瓷基板",
+    "advanced_material": "Cu-Diamond（Ni界面层）复合材料",
+    "baseline_reason": "AlN/h-BN在导热、CTE匹配、绝缘性与热循环可靠性四大核心指标上全面达标，材料天然绝缘、加工兼容现有产线、成本可控，是兼顾性能与量产可行性的最优选择。",
+    "advanced_reason": "Cu-Dia导热性能更优，但为导体需额外绝缘层，CTE略超标，热循环可靠性未达1000次标准，且成本高、工艺复杂、良率低，仅适用于对散热极限有极致要求的非量产场景。"
+}

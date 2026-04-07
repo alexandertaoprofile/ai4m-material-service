@@ -1,0 +1,6 @@
+{
+    "baseline_material": "AlN/Al₂O₃梯度复合陶瓷基板",
+    "advanced_material": "AlN–h-BN–SiC纳米层状复合陶瓷",
+    "baseline_reason": "在导热性（170–190 W/m·K）、CTE匹配（4.8 ppm/K）、绝缘性（>5×10¹³ Ω·cm）三方面实现最佳平衡，工艺成熟、成本可控、量产可靠，适合绝大多数AI芯片封装需求。",
+    "advanced_reason": "通过h-BN与SiC协同增强，导热率提升至210–230 W/m·K，热阻漂移低于2%，绝缘性更高，适合对散热极限和长期稳定性要求严苛的高端AI芯片，虽成本高、工艺复杂，但性能优势显著。"
+}

@@ -1,0 +1,6 @@
+{
+    "baseline_material": "氮化铝（AlN）陶瓷基板",
+    "advanced_material": "化学气相沉积金刚石（CVD Diamond）-AlN复合基板",
+    "baseline_reason": "热导率达标（≥200 W/m·K）、CTE可优化匹配、绝缘性优异、工艺成熟、成本适中，是当前AI封装工业界最可靠且广泛应用的基准材料。",
+    "advanced_reason": "热导率突破350 W/m·K，CTE匹配精度达±0.8 ppm/K，绝缘性更强，长期可靠性超20年，专为高端AI芯片的极端散热与3D集成需求设计，虽成本高但性能天花板更高。"
+}

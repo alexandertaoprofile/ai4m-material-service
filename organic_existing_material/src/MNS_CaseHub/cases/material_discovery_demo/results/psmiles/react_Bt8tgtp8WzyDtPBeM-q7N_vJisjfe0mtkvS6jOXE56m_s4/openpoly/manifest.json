@@ -1,0 +1,8 @@
+{
+  "ok": true,
+  "formula": "openpoly_first_hit",
+  "base_dir": "/data/se42/alpha_project/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/psmiles/react_Bt8tgtp8WzyDtPBeM-q7N_vJisjfe0mtkvS6jOXE56m_s4/openpoly",
+  "files": {
+    "structure_glb": "organic_first_hit.glb"
+  }
+}

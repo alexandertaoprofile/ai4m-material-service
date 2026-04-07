@@ -1,0 +1,6 @@
+{
+    "baseline_material": "铝硅碳化物（AlSiC）",
+    "advanced_material": "六方氮化硼（h-BN）复合陶瓷基板",
+    "baseline_reason": "AlSiC具备优异的热膨胀匹配性、成熟的量产工艺和经过NVIDIA/AMD验证的热循环可靠性，是当前AI芯片封装的工业标准选择，风险低、成本可控，适合2025年量产需求。",
+    "advanced_reason": "h-BN复合陶瓷在导热系数、介电性能和CTE控制上全面超越AlSiC，可支持100+ Gbps高速信号与下一代AI芯片的极致散热需求，虽制造难度高、成本高，但代表2026+技术演进方向，是面向未来的进阶选择。"
+}

@@ -1,0 +1,51 @@
+{
+  "ok": true,
+  "taskid": "tt9WIUzj3-WleQC5A9BC5/v11uYjv5OSJTl9LCGAgJa",
+  "jobid": "P2S5",
+  "material_id": null,
+  "formula": "P2S5",
+  "elements": null,
+  "max_candidates": 5,
+  "prefer_stable": true,
+  "whitelist_ids": [],
+  "primary_material_id": "mp-bevma",
+  "count_selected": 1,
+  "items": [
+    {
+      "material_id": "mp-bevma",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bevma"
+      ],
+      "formula_pretty": "P2S5",
+      "elements": [
+        "P",
+        "S"
+      ],
+      "chemsys": "P-S",
+      "nsites": 28,
+      "density": 1.921438561880109,
+      "volume": 768.3664039148517,
+      "energy_above_hull": 0.0,
+      "is_stable": true,
+      "energy_per_atom": -8.526280050357142,
+      "formation_energy_per_atom": -0.21566022750212602,
+      "band_gap": 2.5540000000000003,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P-1",
+        "number": 2
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-409061",
+          "icsd-23843",
+          "icsd-174009"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/tt9WIUzj3-WleQC5A9BC5_v11uYjv5OSJTl9LCGAgJa/P2S5/structures/mp-bevma.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/tt9WIUzj3-WleQC5A9BC5_v11uYjv5OSJTl9LCGAgJa/P2S5/structures/mp-bevma.cif"
+    }
+  ]
+}

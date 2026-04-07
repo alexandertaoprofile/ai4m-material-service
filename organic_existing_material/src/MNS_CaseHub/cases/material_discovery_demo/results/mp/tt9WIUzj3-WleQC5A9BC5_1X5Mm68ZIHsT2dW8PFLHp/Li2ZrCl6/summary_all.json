@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "query_mode": "formula",
+  "input": {
+    "material_id": null,
+    "formula": "Li2ZrCl6",
+    "elements": null,
+    "reduced_formula": "Li2ZrCl6"
+  },
+  "count_all": 0,
+  "items": []
+}

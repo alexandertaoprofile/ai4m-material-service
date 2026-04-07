@@ -1,0 +1,547 @@
+{
+  "ok": true,
+  "query_mode": "formula",
+  "input": {
+    "material_id": null,
+    "formula": "H2O",
+    "elements": null,
+    "reduced_formula": "H2O"
+  },
+  "count_all": 18,
+  "items": [
+    {
+      "material_id": "mp-cpfel",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cpfel"
+      ],
+      "formula_pretty": "H2O",
+      "elements": [
+        "H",
+        "O"
+      ],
+      "chemsys": "H-O",
+      "nsites": 36,
+      "density": 1.065218837129355,
+      "volume": 337.0020340574006,
+      "energy_above_hull": 0.31017733361111005,
+      "is_stable": false,
+      "energy_per_atom": -4.882590287222222,
+      "formation_energy_per_atom": -0.9698256597222221,
+      "band_gap": 4.3309,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P-1",
+        "number": 2
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-cpgoh",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cpgoh"
+      ],
+      "formula_pretty": "H2O",
+      "elements": [
+        "H",
+        "O"
+      ],
+      "chemsys": "H-O",
+      "nsites": 36,
+      "density": 0.6956474677751491,
+      "volume": 516.0385561050923,
+      "energy_above_hull": 0.08490050611111101,
+      "is_stable": false,
+      "energy_per_atom": -5.107867114722222,
+      "formation_energy_per_atom": -1.195102487222222,
+      "band_gap": 4.549499999999999,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P-1",
+        "number": 2
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-eijhz",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-eijhz"
+      ],
+      "formula_pretty": "H2O",
+      "elements": [
+        "H",
+        "O"
+      ],
+      "chemsys": "H-O",
+      "nsites": 12,
+      "density": 1.039986353034602,
+      "volume": 115.05949534221361,
+      "energy_above_hull": 0.00038038583333300006,
+      "is_stable": false,
+      "energy_per_atom": -5.192387234999999,
+      "formation_energy_per_atom": -1.279622607499999,
+      "band_gap": 5.5882000000000005,
+      "symmetry": {
+        "crystal_system": "Monoclinic",
+        "symbol": "Cc",
+        "number": 9
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-bjot",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bjot"
+      ],
+      "formula_pretty": "H2O",
+      "elements": [
+        "H",
+        "O"
+      ],
+      "chemsys": "H-O",
+      "nsites": 36,
+      "density": 1.321090483136175,
+      "volume": 271.7307553201476,
+      "energy_above_hull": 0.005572493055555,
+      "is_stable": false,
+      "energy_per_atom": -5.187195127777778,
+      "formation_energy_per_atom": -1.2744305002777772,
+      "band_gap": 5.4391,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "R-3",
+        "number": 148
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-23703",
+          "icsd-15907"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-fzwbn",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-fzwbn"
+      ],
+      "formula_pretty": "H2O",
+      "elements": [
+        "H",
+        "O"
+      ],
+      "chemsys": "H-O",
+      "nsites": 12,
+      "density": 1.180648862858258,
+      "volume": 101.35130664782275,
+      "energy_above_hull": 0.04944799916666601,
+      "is_stable": false,
+      "energy_per_atom": -5.143319621666667,
+      "formation_energy_per_atom": -1.230554994166667,
+      "band_gap": 5.3583,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "C222_1",
+        "number": 20
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-31683"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bwtr",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bwtr"
+      ],
+      "formula_pretty": "H2O",
+      "elements": [
+        "H",
+        "O"
+      ],
+      "chemsys": "H-O",
+      "nsites": 6,
+      "density": 1.647356170145688,
+      "volume": 36.318892997003836,
+      "energy_above_hull": 0.025225045,
+      "is_stable": false,
+      "energy_per_atom": -5.167542575833333,
+      "formation_energy_per_atom": -1.254777948333333,
+      "band_gap": 5.275399999999999,
+      "symmetry": {
+        "crystal_system": "Tetragonal",
+        "symbol": "P4_2nm",
+        "number": 102
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-bfscg",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bfscg"
+      ],
+      "formula_pretty": "H2O",
+      "elements": [
+        "H",
+        "O"
+      ],
+      "chemsys": "H-O",
+      "nsites": 36,
+      "density": 1.43126813536753,
+      "volume": 250.81318165213693,
+      "energy_above_hull": 0.012027649444444,
+      "is_stable": false,
+      "energy_per_atom": -5.180739971388888,
+      "formation_energy_per_atom": -1.267975343888887,
+      "band_gap": 5.458,
+      "symmetry": {
+        "crystal_system": "Monoclinic",
+        "symbol": "P2_1",
+        "number": 4
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-249227",
+          "icsd-249226"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bftug",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bftug"
+      ],
+      "formula_pretty": "H2O",
+      "elements": [
+        "H",
+        "O"
+      ],
+      "chemsys": "H-O",
+      "nsites": 36,
+      "density": 1.4344078860055731,
+      "volume": 250.26418101235748,
+      "energy_above_hull": 0.011058480555554001,
+      "is_stable": false,
+      "energy_per_atom": -5.181709140277778,
+      "formation_energy_per_atom": -1.268944512777777,
+      "band_gap": 5.776,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "P2_12_12_1",
+        "number": 19
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-249225"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bfuwk",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bfuwk"
+      ],
+      "formula_pretty": "H2O",
+      "elements": [
+        "H",
+        "O"
+      ],
+      "chemsys": "H-O",
+      "nsites": 36,
+      "density": 1.429982494057176,
+      "volume": 251.0386779703461,
+      "energy_above_hull": 0.012356223611111002,
+      "is_stable": false,
+      "energy_per_atom": -5.180411397222222,
+      "formation_energy_per_atom": -1.2676467697222211,
+      "band_gap": 5.668,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "P2_12_12_1",
+        "number": 19
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-249224"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bkdbw",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bkdbw"
+      ],
+      "formula_pretty": "H2O",
+      "elements": [
+        "H",
+        "O"
+      ],
+      "chemsys": "H-O",
+      "nsites": 12,
+      "density": 1.21916116248666,
+      "volume": 98.1497021270638,
+      "energy_above_hull": 0.067960829166666,
+      "is_stable": false,
+      "energy_per_atom": -5.124806791666667,
+      "formation_energy_per_atom": -1.212042164166667,
+      "band_gap": 5.3276,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "C222_1",
+        "number": 20
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-31683"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bminy",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bminy"
+      ],
+      "formula_pretty": "H2O",
+      "elements": [
+        "H",
+        "O"
+      ],
+      "chemsys": "H-O",
+      "nsites": 12,
+      "density": 1.1650126675580221,
+      "volume": 102.71159127717468,
+      "energy_above_hull": 0.10245169333333301,
+      "is_stable": false,
+      "energy_per_atom": -5.0903159275,
+      "formation_energy_per_atom": -1.1775513,
+      "band_gap": 5.0695,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Cmc2_1",
+        "number": 36
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-bmyvu",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bmyvu"
+      ],
+      "formula_pretty": "H2O",
+      "elements": [
+        "H",
+        "O"
+      ],
+      "chemsys": "H-O",
+      "nsites": 42,
+      "density": 1.123379349852431,
+      "volume": 372.813571261874,
+      "energy_above_hull": 0.447501782261904,
+      "is_stable": false,
+      "energy_per_atom": -4.745265838571429,
+      "formation_energy_per_atom": -0.832501211071428,
+      "band_gap": 0.0539,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-bmywu",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bmywu"
+      ],
+      "formula_pretty": "H2O",
+      "elements": [
+        "H",
+        "O"
+      ],
+      "chemsys": "H-O",
+      "nsites": 12,
+      "density": 0.8618402075718451,
+      "volume": 138.8427969496601,
+      "energy_above_hull": 0.08364084000000001,
+      "is_stable": false,
+      "energy_per_atom": -5.109126780833333,
+      "formation_energy_per_atom": -1.196362153333333,
+      "band_gap": 4.7589,
+      "symmetry": {
+        "crystal_system": "Monoclinic",
+        "symbol": "Cc",
+        "number": 9
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-bnqrn",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bnqrn"
+      ],
+      "formula_pretty": "H2O",
+      "elements": [
+        "H",
+        "O"
+      ],
+      "chemsys": "H-O",
+      "nsites": 36,
+      "density": 1.279813561801226,
+      "volume": 280.49469512076223,
+      "energy_above_hull": 0.006665027499999,
+      "is_stable": false,
+      "energy_per_atom": -5.1861025933333345,
+      "formation_energy_per_atom": -1.273337965833333,
+      "band_gap": 5.4898,
+      "symmetry": {
+        "crystal_system": "Tetragonal",
+        "symbol": "P4_12_12",
+        "number": 92
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-28415",
+          "icsd-64771"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bnrez",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bnrez"
+      ],
+      "formula_pretty": "H2O",
+      "elements": [
+        "H",
+        "O"
+      ],
+      "chemsys": "H-O",
+      "nsites": 12,
+      "density": 1.639998997223998,
+      "volume": 72.96364518850183,
+      "energy_above_hull": 0.020459285,
+      "is_stable": false,
+      "energy_per_atom": -5.172308335833333,
+      "formation_energy_per_atom": -1.259543708333333,
+      "band_gap": 5.2923,
+      "symmetry": {
+        "crystal_system": "Tetragonal",
+        "symbol": "I4_1/amd",
+        "number": 141
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-44104",
+          "icsd-49809",
+          "icsd-44102",
+          "icsd-201700",
+          "icsd-201703",
+          "icsd-44103"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bnrfz",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bnrfz"
+      ],
+      "formula_pretty": "H2O",
+      "elements": [
+        "H",
+        "O"
+      ],
+      "chemsys": "H-O",
+      "nsites": 12,
+      "density": 1.039895189271257,
+      "volume": 115.06958218241854,
+      "energy_above_hull": 0.0,
+      "is_stable": true,
+      "energy_per_atom": -5.192767620833333,
+      "formation_energy_per_atom": -1.280002993333333,
+      "band_gap": 5.520200000000001,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Cmc2_1",
+        "number": 36
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-47199"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-boaqd",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-boaqd"
+      ],
+      "formula_pretty": "H2O",
+      "elements": [
+        "H",
+        "O"
+      ],
+      "chemsys": "H-O",
+      "nsites": 36,
+      "density": 1.042226915466507,
+      "volume": 344.43642694467326,
+      "energy_above_hull": 0.001083213055555,
+      "is_stable": false,
+      "energy_per_atom": -5.191684407777777,
+      "formation_energy_per_atom": -1.278919780277777,
+      "band_gap": 5.5287,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3cm",
+        "number": 185
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-27837"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-cejdx",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cejdx"
+      ],
+      "formula_pretty": "H2O",
+      "elements": [
+        "H",
+        "O"
+      ],
+      "chemsys": "H-O",
+      "nsites": 24,
+      "density": 1.203499666558039,
+      "volume": 198.85390626683642,
+      "energy_above_hull": 0.947859477916666,
+      "is_stable": false,
+      "energy_per_atom": -4.244908142916667,
+      "formation_energy_per_atom": -0.33214351541666604,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Ibam",
+        "number": 72
+      },
+      "database_IDs": {}
+    }
+  ]
+}

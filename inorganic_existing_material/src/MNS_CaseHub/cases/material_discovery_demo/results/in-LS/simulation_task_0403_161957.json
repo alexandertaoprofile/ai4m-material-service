@@ -1,0 +1,6 @@
+{
+    "baseline_material": "氮化铝（AlN）陶瓷基板",
+    "advanced_material": "六方氮化硼/环氧杂化复合基板（h-BN/Epoxy）",
+    "baseline_reason": "AlN陶瓷热导率达标（170–220 W/m·K）、CTE与硅高度匹配（4.5–5.5 ppm/°C）、绝缘性优异、工艺成熟且可量产，是当前AI芯片封装最可靠的工业基准材料。",
+    "advanced_reason": "h-BN/环氧杂化体系热导率更高（可达320 W/m·K）、密度更低、支持低温固化与超薄（10–50μm）无空洞成型，完美契合3D Chiplet和高功率密度封装的前沿需求，代表下一代材料趋势。"
+}

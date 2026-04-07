@@ -1,0 +1,164 @@
+{
+  "ok": true,
+  "taskid": "dr_enqbNlT4Kvuz_FeqZa7Du/Jk4-yJbs8YFpYV8lB63uQ_t2_1773731197",
+  "jobid": "H20",
+  "material_id": null,
+  "formula": "H20",
+  "elements": null,
+  "max_candidates": 5,
+  "prefer_stable": true,
+  "whitelist_ids": [],
+  "primary_material_id": "mp-bpoav",
+  "count_selected": 5,
+  "items": [
+    {
+      "material_id": "mp-bpoav",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bpoav"
+      ],
+      "formula_pretty": "H2",
+      "elements": [
+        "H"
+      ],
+      "chemsys": "H",
+      "nsites": 8,
+      "density": 0.03601222016714,
+      "volume": 371.81239953751634,
+      "energy_above_hull": 0.0,
+      "is_stable": true,
+      "energy_per_atom": -3.45511240125,
+      "formation_energy_per_atom": 0.0,
+      "band_gap": 9.7197,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "P2_12_12_1",
+        "number": 19
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-31449"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/dr_enqbNlT4Kvuz_FeqZa7Du_Jk4-yJbs8YFpYV8lB63uQ_t2_1773731197/H20/structures/mp-bpoav.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/dr_enqbNlT4Kvuz_FeqZa7Du_Jk4-yJbs8YFpYV8lB63uQ_t2_1773731197/H20/structures/mp-bpoav.cif"
+    },
+    {
+      "material_id": "mp-bjzei",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bjzei"
+      ],
+      "formula_pretty": "H2",
+      "elements": [
+        "H"
+      ],
+      "chemsys": "H",
+      "nsites": 2,
+      "density": 0.10707314166998401,
+      "volume": 31.263185576190356,
+      "energy_above_hull": 0.0006432450000000001,
+      "is_stable": false,
+      "energy_per_atom": -3.45446915625,
+      "formation_energy_per_atom": 0.0006432450000000001,
+      "band_gap": 9.328899999999999,
+      "symmetry": {
+        "crystal_system": "Tetragonal",
+        "symbol": "I4/mmm",
+        "number": 139
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/dr_enqbNlT4Kvuz_FeqZa7Du_Jk4-yJbs8YFpYV8lB63uQ_t2_1773731197/H20/structures/mp-bjzei.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/dr_enqbNlT4Kvuz_FeqZa7Du_Jk4-yJbs8YFpYV8lB63uQ_t2_1773731197/H20/structures/mp-bjzei.cif"
+    },
+    {
+      "material_id": "mp-cdknf",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cdknf"
+      ],
+      "formula_pretty": "H2",
+      "elements": [
+        "H"
+      ],
+      "chemsys": "H",
+      "nsites": 4,
+      "density": 0.120014934842306,
+      "volume": 55.783848946013705,
+      "energy_above_hull": 0.001528826249999,
+      "is_stable": false,
+      "energy_per_atom": -3.453583575,
+      "formation_energy_per_atom": 0.001528826249999,
+      "band_gap": 8.802200000000001,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Cmce",
+        "number": 64
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/dr_enqbNlT4Kvuz_FeqZa7Du_Jk4-yJbs8YFpYV8lB63uQ_t2_1773731197/H20/structures/mp-cdknf.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/dr_enqbNlT4Kvuz_FeqZa7Du_Jk4-yJbs8YFpYV8lB63uQ_t2_1773731197/H20/structures/mp-cdknf.cif"
+    },
+    {
+      "material_id": "mp-bwjuw",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bwjuw"
+      ],
+      "formula_pretty": "H2",
+      "elements": [
+        "H"
+      ],
+      "chemsys": "H",
+      "nsites": 2,
+      "density": 0.09686760211786001,
+      "volume": 34.55693570469039,
+      "energy_above_hull": 0.0017543562500000002,
+      "is_stable": false,
+      "energy_per_atom": -3.453358045,
+      "formation_energy_per_atom": 0.0017543562500000002,
+      "band_gap": 8.5338,
+      "symmetry": {
+        "crystal_system": "Tetragonal",
+        "symbol": "I4/mmm",
+        "number": 139
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/dr_enqbNlT4Kvuz_FeqZa7Du_Jk4-yJbs8YFpYV8lB63uQ_t2_1773731197/H20/structures/mp-bwjuw.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/dr_enqbNlT4Kvuz_FeqZa7Du_Jk4-yJbs8YFpYV8lB63uQ_t2_1773731197/H20/structures/mp-bwjuw.cif"
+    },
+    {
+      "material_id": "mp-fzvzk",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-fzvzk"
+      ],
+      "formula_pretty": "H2",
+      "elements": [
+        "H"
+      ],
+      "chemsys": "H",
+      "nsites": 2,
+      "density": 0.095328932397423,
+      "volume": 35.11470666952428,
+      "energy_above_hull": 0.0018788512499990002,
+      "is_stable": false,
+      "energy_per_atom": -3.45323355,
+      "formation_energy_per_atom": 0.0018788512499990002,
+      "band_gap": 10.5108,
+      "symmetry": {
+        "crystal_system": "Tetragonal",
+        "symbol": "I4/mmm",
+        "number": 139
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/dr_enqbNlT4Kvuz_FeqZa7Du_Jk4-yJbs8YFpYV8lB63uQ_t2_1773731197/H20/structures/mp-fzvzk.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/dr_enqbNlT4Kvuz_FeqZa7Du_Jk4-yJbs8YFpYV8lB63uQ_t2_1773731197/H20/structures/mp-fzvzk.cif"
+    }
+  ]
+}

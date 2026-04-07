@@ -1,0 +1,79 @@
+{
+  "ok": true,
+  "taskid": "dr_P7FfoB1K4sw-9xP7iN7Cl/FS3jH_3sYIlqQVAOGTHIE_t2_1773729284",
+  "jobid": "Li10GeP2S12",
+  "material_id": null,
+  "formula": "Li10GeP2S12",
+  "elements": null,
+  "max_candidates": 5,
+  "prefer_stable": true,
+  "whitelist_ids": [],
+  "primary_material_id": "mp-bnpuo",
+  "count_selected": 2,
+  "items": [
+    {
+      "material_id": "mp-bnpuo",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bnpuo"
+      ],
+      "formula_pretty": "Li10Ge(PS6)2",
+      "elements": [
+        "Ge",
+        "Li",
+        "P",
+        "S"
+      ],
+      "chemsys": "Ge-Li-P-S",
+      "nsites": 50,
+      "density": 1.977132075098642,
+      "volume": 988.9962258482308,
+      "energy_above_hull": 0.0187605339,
+      "is_stable": false,
+      "energy_per_atom": -4.5674780162,
+      "formation_energy_per_atom": -1.199798971304761,
+      "band_gap": 2.5395,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/dr_P7FfoB1K4sw-9xP7iN7Cl_FS3jH_3sYIlqQVAOGTHIE_t2_1773729284/Li10GeP2S12/structures/mp-bnpuo.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/dr_P7FfoB1K4sw-9xP7iN7Cl_FS3jH_3sYIlqQVAOGTHIE_t2_1773729284/Li10GeP2S12/structures/mp-bnpuo.cif"
+    },
+    {
+      "material_id": "mp-bnpue",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bnpue"
+      ],
+      "formula_pretty": "Li10Ge(PS6)2",
+      "elements": [
+        "Ge",
+        "Li",
+        "P",
+        "S"
+      ],
+      "chemsys": "Ge-Li-P-S",
+      "nsites": 50,
+      "density": 2.000486820477457,
+      "volume": 977.4501587615295,
+      "energy_above_hull": 0.029867129900001003,
+      "is_stable": false,
+      "energy_per_atom": -4.5563714202,
+      "formation_energy_per_atom": -1.1886923753047611,
+      "band_gap": 2.3276,
+      "symmetry": {
+        "crystal_system": "Tetragonal",
+        "symbol": "P4_2mc",
+        "number": 105
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/dr_P7FfoB1K4sw-9xP7iN7Cl_FS3jH_3sYIlqQVAOGTHIE_t2_1773729284/Li10GeP2S12/structures/mp-bnpue.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/dr_P7FfoB1K4sw-9xP7iN7Cl_FS3jH_3sYIlqQVAOGTHIE_t2_1773729284/Li10GeP2S12/structures/mp-bnpue.cif"
+    }
+  ]
+}

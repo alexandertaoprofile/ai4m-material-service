@@ -1,0 +1,75 @@
+{
+  "ok": true,
+  "taskid": "98KC1VTFZJ3WP4FTsUdG8/pFCudL-woT6ItM5SsVpIx",
+  "jobid": "BaTiO3",
+  "material_id": null,
+  "formula": "BaTiO3",
+  "elements": null,
+  "query": {
+    "query_mode": "formula",
+    "prefer_stable": true,
+    "max_candidates": 5,
+    "whitelist": null,
+    "whitelist_ids": [],
+    "primary_material_id": "mp-iof"
+  },
+  "render": {
+    "supercell": [
+      1,
+      1,
+      1
+    ],
+    "atom_radius": 0.4,
+    "bond_radius": 0.07,
+    "max_bonds_per_site": null,
+    "poly_mode": "p",
+    "poly_cn": [
+      4
+    ],
+    "poly_alpha": 85
+  },
+  "base_dir": "/data/se42/alpha_project/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/98KC1VTFZJ3WP4FTsUdG8_pFCudL-woT6ItM5SsVpIx/BaTiO3",
+  "base_dir_rel_to_repo": "src/MNS_CaseHub/cases/material_discovery_demo/results/mp/98KC1VTFZJ3WP4FTsUdG8_pFCudL-woT6ItM5SsVpIx/BaTiO3",
+  "files": {
+    "summary_all_json": "/data/se42/alpha_project/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/98KC1VTFZJ3WP4FTsUdG8_pFCudL-woT6ItM5SsVpIx/BaTiO3/summary_all.json",
+    "selected_structures_json": "/data/se42/alpha_project/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/98KC1VTFZJ3WP4FTsUdG8_pFCudL-woT6ItM5SsVpIx/BaTiO3/selected_structures.json",
+    "summary_md": "/data/se42/alpha_project/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/98KC1VTFZJ3WP4FTsUdG8_pFCudL-woT6ItM5SsVpIx/BaTiO3/summary.md",
+    "structures_dir": "/data/se42/alpha_project/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/98KC1VTFZJ3WP4FTsUdG8_pFCudL-woT6ItM5SsVpIx/BaTiO3/structures",
+    "structure_cif": "/data/se42/alpha_project/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/98KC1VTFZJ3WP4FTsUdG8_pFCudL-woT6ItM5SsVpIx/BaTiO3/structure.cif",
+    "structure_json": "/data/se42/alpha_project/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/98KC1VTFZJ3WP4FTsUdG8_pFCudL-woT6ItM5SsVpIx/BaTiO3/structure.json",
+    "structure_glb": "/data/se42/alpha_project/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/98KC1VTFZJ3WP4FTsUdG8_pFCudL-woT6ItM5SsVpIx/BaTiO3/structure_mpstyle.glb",
+    "manifest_json": "/data/se42/alpha_project/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/98KC1VTFZJ3WP4FTsUdG8_pFCudL-woT6ItM5SsVpIx/BaTiO3/manifest.json"
+  },
+  "files_abs": {
+    "summary_all_json": "/data/se42/alpha_project/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/98KC1VTFZJ3WP4FTsUdG8_pFCudL-woT6ItM5SsVpIx/BaTiO3/summary_all.json",
+    "selected_structures_json": "/data/se42/alpha_project/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/98KC1VTFZJ3WP4FTsUdG8_pFCudL-woT6ItM5SsVpIx/BaTiO3/selected_structures.json",
+    "summary_md": "/data/se42/alpha_project/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/98KC1VTFZJ3WP4FTsUdG8_pFCudL-woT6ItM5SsVpIx/BaTiO3/summary.md",
+    "structures_dir": "/data/se42/alpha_project/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/98KC1VTFZJ3WP4FTsUdG8_pFCudL-woT6ItM5SsVpIx/BaTiO3/structures",
+    "structure_cif": "/data/se42/alpha_project/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/98KC1VTFZJ3WP4FTsUdG8_pFCudL-woT6ItM5SsVpIx/BaTiO3/structure.cif",
+    "structure_json": "/data/se42/alpha_project/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/98KC1VTFZJ3WP4FTsUdG8_pFCudL-woT6ItM5SsVpIx/BaTiO3/structure.json",
+    "structure_glb": "/data/se42/alpha_project/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/98KC1VTFZJ3WP4FTsUdG8_pFCudL-woT6ItM5SsVpIx/BaTiO3/structure_mpstyle.glb",
+    "manifest_json": "/data/se42/alpha_project/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/98KC1VTFZJ3WP4FTsUdG8_pFCudL-woT6ItM5SsVpIx/BaTiO3/manifest.json"
+  },
+  "glb_info": {
+    "ok": true,
+    "out_glb": "/data/se42/alpha_project/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/98KC1VTFZJ3WP4FTsUdG8_pFCudL-woT6ItM5SsVpIx/BaTiO3/structure_mpstyle.glb",
+    "standardized": true,
+    "supercell": [
+      1,
+      1,
+      1
+    ],
+    "draw_atoms": true,
+    "draw_bonds": true,
+    "poly_mode": "p",
+    "poly_centers": [],
+    "poly_cn": [
+      4
+    ],
+    "poly_alpha": 85,
+    "n_sites": 10,
+    "n_bonds": 54,
+    "n_polyhedra": 0
+  },
+  "generated_at": "2026-03-19T16:37:31.800018"
+}

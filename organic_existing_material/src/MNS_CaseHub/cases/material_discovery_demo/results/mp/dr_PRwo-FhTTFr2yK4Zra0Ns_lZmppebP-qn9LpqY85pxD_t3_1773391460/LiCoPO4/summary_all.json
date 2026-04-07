@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "query_mode": "formula",
+  "input": {
+    "material_id": null,
+    "formula": "LiCoPO4",
+    "elements": null,
+    "reduced_formula": "LiCoPO4"
+  },
+  "count_all": 0,
+  "items": []
+}

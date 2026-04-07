@@ -1,0 +1,6 @@
+{
+    "baseline_material": "氮化铝陶瓷基板（AlN Ceramic）",
+    "advanced_material": "化学气相沉积金刚石薄膜/AlN复合基板（CVD Diamond/AlN Hybrid）",
+    "baseline_reason": "热导率达标、CTE可工程补偿、成本低、工艺成熟，已在主流封装中大规模验证，是兼顾性能与量产经济性的最优基准方案。",
+    "advanced_reason": "热导率超600 W/m·K、CTE完美匹配硅、介电性能优异、热阻最低，且已通过台积电CoWoS量产验证，是满足AI芯片极限散热与可靠性的进阶标杆。"
+}

@@ -1,0 +1,6 @@
+{
+    "baseline_material": "氮化铝（AlN）",
+    "advanced_material": "六方氮化硼（h-BN）",
+    "baseline_reason": "AlN热导率达标、绝缘性优异、机械强度高、工艺成熟且成本可控，已广泛用于CoWoS等主流封装，是当前量产最可靠的陶瓷基板材料。",
+    "advanced_reason": "h-BN在热导率、热膨胀匹配、电绝缘性和轻量化方面全面超越AlN，可实现与硅芯片近乎零热应力的协同，是未来3D Chiplet和高功率AI芯片的理想材料，虽成本高但代表技术前沿。"
+}

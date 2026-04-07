@@ -1,0 +1,80 @@
+{
+  "normalized_psmiles": "[*]C(=O)c1cc(C(c2ccc(OC)c(C(=O)c3ccc(-c4ccc([*])cc4)cc3)c2)(C(F)(F)F)C(F)(F)F)ccc1OC",
+  "formula": "C31H20R2F6O4",
+  "atom_count": 63,
+  "molecular_weight": 570.1265784400006,
+  "element_counts": {
+    "R": 2,
+    "C": 31,
+    "O": 4,
+    "F": 6,
+    "H": 20
+  },
+  "legend": [
+    {
+      "symbol": "C",
+      "raw_symbol": "C",
+      "label": "Carbon",
+      "count": 31,
+      "color_rgba": [
+        0.72,
+        0.72,
+        0.72,
+        1.0
+      ],
+      "color_hex": "#B8B8B8"
+    },
+    {
+      "symbol": "F",
+      "raw_symbol": "F",
+      "label": "Fluorine",
+      "count": 6,
+      "color_rgba": [
+        0.55,
+        0.9,
+        0.2,
+        1.0
+      ],
+      "color_hex": "#8CE633"
+    },
+    {
+      "symbol": "H",
+      "raw_symbol": "H",
+      "label": "Hydrogen",
+      "count": 20,
+      "color_rgba": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "color_hex": "#FFFFFF"
+    },
+    {
+      "symbol": "O",
+      "raw_symbol": "O",
+      "label": "Oxygen",
+      "count": 4,
+      "color_rgba": [
+        1.0,
+        0.1,
+        0.1,
+        1.0
+      ],
+      "color_hex": "#FF1A1A"
+    },
+    {
+      "symbol": "R",
+      "raw_symbol": "*",
+      "label": "Polymer Link Site",
+      "count": 2,
+      "color_rgba": [
+        0.96,
+        0.77,
+        0.26,
+        1.0
+      ],
+      "color_hex": "#F5C442"
+    }
+  ]
+}

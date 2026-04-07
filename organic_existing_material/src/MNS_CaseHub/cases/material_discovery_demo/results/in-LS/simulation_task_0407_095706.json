@@ -1,0 +1,6 @@
+{
+    "baseline_material": "AlSiC（铝碳化硅）陶瓷基板",
+    "advanced_material": "h-BN/AlN复合陶瓷基板",
+    "baseline_reason": "工艺成熟、成本低廉、机械强度高，完全兼容CMOS BEOL工艺，是当前量产AI封装的稳健选择，虽热导率和CTE未达理想值，但可通过结构设计补偿。",
+    "advanced_reason": "热导率显著提升、CTE精准匹配硅芯片（3.0–3.8 ppm/K），电绝缘性极佳，热循环可靠性优异，虽成本较高，但满足高功率密度AI芯片对热-电-结构协同的严苛需求，代表下一代先进封装材料方向。"
+}
