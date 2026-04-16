@@ -1,0 +1,32 @@
+#base_url_1: "http://192.168.6.204:40200/v1"
+base_url_1: "http://www.science42.vip:40200/v1"
+BACKEND_URL: "http://36.103.203.113:1000"
+#SOURCE_CODE_PATH: "/mnt/sdb/anaconda3/envs/AI4PDE/lib/python3.10/site-packages/"
+SOURCE_CODE_PATH: "/data/XIMUAlpha_MNS/src"
+
+api_key: "ximu-llm-api-key"
+
+minio_addr: "http://36.103.203.113:2300"
+https_vip_addr: "http://36.103.203.113:2300"
+
+# =========================
+# UI / Frontend Noise Control
+# =========================
+ui:
+  # 是否把“路由到哪个case/命令行/调试信息”等发到前端；建议 false（只写日志）
+  verbose: false
+
+  # 是否发送 progress payload（前端要流程条就 true，不要就 false）
+  progress: true
+
+  # progress 里是否显示 icon（你嫌卡通图标太多就 false）
+  show_icons: false
+
+  # 是否把 summary.md 原文发到前端（工业平台一般不直接刷一大段 md）
+  send_summary_md: false
+
+  # 前端提示语风格：minimal/normal（你后面想做多档文案可以用）
+  tone: "minimal"
+
+  # 文本输出上限（防止 summary.md / LLM 一次性喷太多）
+  max_text_chars: 6000
