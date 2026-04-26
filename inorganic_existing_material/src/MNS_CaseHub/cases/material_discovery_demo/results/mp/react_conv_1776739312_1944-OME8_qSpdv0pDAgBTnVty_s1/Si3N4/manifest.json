@@ -1,0 +1,75 @@
+{
+  "ok": true,
+  "taskid": "react_conv_1776739312_1944-OME8_qSpdv0pDAgBTnVty_s1",
+  "jobid": "Si3N4",
+  "material_id": null,
+  "formula": "Si3N4",
+  "elements": null,
+  "query": {
+    "query_mode": "formula",
+    "prefer_stable": true,
+    "max_candidates": 5,
+    "whitelist": null,
+    "whitelist_ids": [],
+    "primary_material_id": "mp-bma"
+  },
+  "render": {
+    "supercell": [
+      1,
+      1,
+      1
+    ],
+    "atom_radius": 0.4,
+    "bond_radius": 0.07,
+    "max_bonds_per_site": null,
+    "poly_mode": "p",
+    "poly_cn": [
+      4
+    ],
+    "poly_alpha": 85
+  },
+  "base_dir": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776739312_1944-OME8_qSpdv0pDAgBTnVty_s1/Si3N4",
+  "base_dir_rel_to_repo": "src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776739312_1944-OME8_qSpdv0pDAgBTnVty_s1/Si3N4",
+  "files": {
+    "summary_all_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776739312_1944-OME8_qSpdv0pDAgBTnVty_s1/Si3N4/summary_all.json",
+    "selected_structures_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776739312_1944-OME8_qSpdv0pDAgBTnVty_s1/Si3N4/selected_structures.json",
+    "summary_md": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776739312_1944-OME8_qSpdv0pDAgBTnVty_s1/Si3N4/summary.md",
+    "structures_dir": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776739312_1944-OME8_qSpdv0pDAgBTnVty_s1/Si3N4/structures",
+    "structure_cif": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776739312_1944-OME8_qSpdv0pDAgBTnVty_s1/Si3N4/structure.cif",
+    "structure_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776739312_1944-OME8_qSpdv0pDAgBTnVty_s1/Si3N4/structure.json",
+    "structure_glb": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776739312_1944-OME8_qSpdv0pDAgBTnVty_s1/Si3N4/structure_mpstyle.glb",
+    "manifest_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776739312_1944-OME8_qSpdv0pDAgBTnVty_s1/Si3N4/manifest.json"
+  },
+  "files_abs": {
+    "summary_all_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776739312_1944-OME8_qSpdv0pDAgBTnVty_s1/Si3N4/summary_all.json",
+    "selected_structures_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776739312_1944-OME8_qSpdv0pDAgBTnVty_s1/Si3N4/selected_structures.json",
+    "summary_md": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776739312_1944-OME8_qSpdv0pDAgBTnVty_s1/Si3N4/summary.md",
+    "structures_dir": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776739312_1944-OME8_qSpdv0pDAgBTnVty_s1/Si3N4/structures",
+    "structure_cif": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776739312_1944-OME8_qSpdv0pDAgBTnVty_s1/Si3N4/structure.cif",
+    "structure_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776739312_1944-OME8_qSpdv0pDAgBTnVty_s1/Si3N4/structure.json",
+    "structure_glb": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776739312_1944-OME8_qSpdv0pDAgBTnVty_s1/Si3N4/structure_mpstyle.glb",
+    "manifest_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776739312_1944-OME8_qSpdv0pDAgBTnVty_s1/Si3N4/manifest.json"
+  },
+  "glb_info": {
+    "ok": true,
+    "out_glb": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776739312_1944-OME8_qSpdv0pDAgBTnVty_s1/Si3N4/structure_mpstyle.glb",
+    "standardized": true,
+    "supercell": [
+      1,
+      1,
+      1
+    ],
+    "draw_atoms": true,
+    "draw_bonds": true,
+    "poly_mode": "p",
+    "poly_centers": [],
+    "poly_cn": [
+      4
+    ],
+    "poly_alpha": 85,
+    "n_sites": 14,
+    "n_bonds": 34,
+    "n_polyhedra": 0
+  },
+  "generated_at": "2026-04-21T10:53:55.301146"
+}

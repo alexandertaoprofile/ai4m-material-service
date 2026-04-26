@@ -1,0 +1,6 @@
+{
+    "baseline_material": "(FAPbI₃)₀.₉₅(Cs₀.₀₅MA₀.₀₅PbI₃) / (C₆H₅(CH₂)₂NH₃)₂PbI₄",
+    "advanced_material": "(FAPbI₃)₀.₉₄(Cs₀.₁FA₀.₈₅MA₀.₀₅PbI₃) / (C₆H₅CH₂NH₃)₂(MA)₀.₁PbI₄",
+    "baseline_reason": "该材料在2D/3D异质结体系中已实现量产验证，PCE达25.3%，湿热稳定性优异，工艺兼容性好，成本低，是当前商业化落地的最优平衡选择。",
+    "advanced_reason": "通过三元阳离子优化与MA⁺掺杂2D层，显著提升载流子传输、带隙适配性与环境耐受性，PCE突破26%，铅泄漏更低，更适合高端叠层电池与长期高收益场景。"
+}

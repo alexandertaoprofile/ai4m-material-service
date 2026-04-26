@@ -1,0 +1,6 @@
+{
+    "baseline_material": "Cu/AlN复合基板（传统层压结构）",
+    "advanced_material": "梯度功能Cu/AlN纳米复合基板（AI优化梯度结构）",
+    "baseline_reason": "热导率≥310 W/m·K、CTE接近硅芯片、兼容5μm工艺、通过可靠性测试，且已具备量产能力，成本可控，是当前最稳妥的工程化解决方案。",
+    "advanced_reason": "热导率突破400 W/m·K、CTE完美匹配硅芯片、支持3μm线宽、杂质更低、可靠性更强，采用前沿激光直写与ALD技术，虽成本高但代表未来高性能AI封装技术方向。"
+}

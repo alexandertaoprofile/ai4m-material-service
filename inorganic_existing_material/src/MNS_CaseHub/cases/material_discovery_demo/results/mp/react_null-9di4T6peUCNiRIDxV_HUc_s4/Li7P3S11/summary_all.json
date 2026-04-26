@@ -1,0 +1,45 @@
+{
+  "ok": true,
+  "query_mode": "formula",
+  "input": {
+    "material_id": null,
+    "formula": "Li7P3S11",
+    "elements": null,
+    "reduced_formula": "Li7P3S11"
+  },
+  "count_all": 1,
+  "items": [
+    {
+      "material_id": "mp-bkngx",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bkngx"
+      ],
+      "formula_pretty": "Li7P3S11",
+      "elements": [
+        "Li",
+        "P",
+        "S"
+      ],
+      "chemsys": "Li-P-S",
+      "nsites": 42,
+      "density": 1.872052270206949,
+      "volume": 876.7672645547459,
+      "energy_above_hull": 0.019883183531745,
+      "is_stable": false,
+      "energy_per_atom": -4.665292341666666,
+      "formation_energy_per_atom": -1.088137318798185,
+      "band_gap": 2.4883,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P-1",
+        "number": 2
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-157654"
+        ]
+      }
+    }
+  ]
+}

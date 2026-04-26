@@ -1,0 +1,10 @@
+{
+    "simulation_task": {
+        "baseline_material": "Li₁₀GeP₂O₁₂",
+        "advanced_material": "Li₇La₃Zr₂O₁₂-PEO",
+        "simulation_parameters": {
+            "temp_range": "223K-353K",
+            "stability": "良好"
+        }
+    }
+}

@@ -1,0 +1,6 @@
+{
+    "baseline_material": "氮化铝（AlN）陶瓷基板",
+    "advanced_material": "氮化硼-氮化铝复合陶瓷（BN-AlN）",
+    "baseline_reason": "热导率达标、CTE匹配硅铜、绝缘性优异、工艺成熟且成本可控，是当前AI封装最可靠的工业级选择。",
+    "advanced_reason": "热导率突破500 W/mK，接触热阻更低，密度更轻，专为超高热流密度（>300 W/cm²）设计，虽成本高但代表未来技术方向。"
+}

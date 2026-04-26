@@ -1,0 +1,6 @@
+{
+    "baseline_material": "BT树脂基板",
+    "advanced_material": "氮化铝陶瓷基板",
+    "baseline_reason": "工艺成熟、成本低、CTE与Si芯片匹配良好，满足主流Chiplet封装的热-力稳定性需求，是工业界公认的基准材料。",
+    "advanced_reason": "具备超高热导率（>170 W/m·K）、与GaN完美匹配的CTE（~5 ppm/°C）及高温下稳定的高弹性模量，专为高功率密度、瞬态热应力极端场景设计，支持跨尺度建模与数字孪生平台构建。"
+}

@@ -1,0 +1,6 @@
+{
+    "baseline_material": "Li₂O–Al₂O₃–SiO₂（LAS）玻璃陶瓷",
+    "advanced_material": "Al₂O₃–SiO₂–B₂O₃玻璃 + 15vol% AlN纳米填料复合体系",
+    "baseline_reason": "工艺成熟、良率高、CTE匹配硅芯片优异、成本低35%，满足2025年量产所有核心指标，是当前最稳妥的工程化选择。",
+    "advanced_reason": "热导率突破4.1 W/m·K，TGV密度更高，厚度更薄，成本更低42%，虽工艺挑战较大，但代表未来高算力封装主流方向，适合前瞻性布局。"
+}

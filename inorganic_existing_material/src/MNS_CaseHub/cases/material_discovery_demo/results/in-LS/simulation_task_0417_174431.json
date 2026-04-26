@@ -1,0 +1,6 @@
+{
+    "baseline_material": "T300/EP",
+    "advanced_material": "IM7/PEEK",
+    "baseline_reason": "T300/EP是工业成熟、成本可控的CFRP标准方案，满足基础热-力耦合需求，适合常规轻量化结构应用。",
+    "advanced_reason": "IM7/PEEK凭借热塑性基体的高温稳定性、卓越界面粘结和抗热疲劳能力，显著提升结构在极端热循环下的可靠性与寿命，适用于高要求航空航天场景。"
+}

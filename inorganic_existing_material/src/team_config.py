@@ -5,31 +5,21 @@ import sys
 import asyncio
 import subprocess
 import glob
-import tempfile
-import io
-import base64
 import json
-import logging
-import traceback
-import mimetypes
 import uuid
 import datetime
-from typing import List, Dict, Tuple, Optional, Union, Any
+from typing import Dict, Optional, Any
 
-import requests
 import numpy as np
-from fastapi.concurrency import run_in_threadpool
 from dotenv import load_dotenv
 from pydantic import PrivateAttr
 
-from alpha.team import Team
 from alpha.roles import Role
 from alpha.logs import logger
-from alpha.schema import Message
 from alpha.actions import Action, UserRequirement
 
 from src.llm_utils import SeLLM, load_config
-from src.storage_utils import oss_upload, download_to_file, get_image_url
+from src.storage_utils import oss_upload, get_image_url
 
 # Optional: reranker (heavy dependency)
 try:
@@ -95,6 +85,22 @@ source_path = config['SOURCE_CODE_PATH']
 
 minio_addr = "https://www.science42.tech/"
 https_vip_addr = "https://www.science42.tech/"
+
+# 前端访问 GLB 的固定公开前缀（仅用于下发给前端的 URL，不影响 PutObject 上传入口）
+glb_public_base_url = os.getenv(
+    "GLB_PUBLIC_BASE_URL",
+    "https://www.science42.tech/alpha/glb/materials/modelfiles"
+).rstrip("/")
+
+image_public_base_url = os.getenv(
+    "IMAGE_PUBLIC_BASE_URL",
+    "https://www.science42.tech/alpha/image"
+).rstrip("/")
+
+picture_public_base_url = os.getenv(
+    "PICTURE_PUBLIC_BASE_URL",
+    "https://www.science42.tech/alpha/materials/modelfiles/image"
+).rstrip("/")
 
 base_dir = '/data/XIMUAlpha_MNS/src'
 ########################################
@@ -842,24 +848,12 @@ class Coding(Action):
 
     #懒加载，初始化Code_retriever
     def _get_code_retriever(self) -> CodeRetriever:
-        """懒初始化 CodeRetriever"""
-        if self._code_retriever is None:
-            import time
-            t0 = time.time()
-            print("[DEBUG] 初始化 CodeRetriever 中...")
-            self._code_retriever = CodeRetriever()  # 使用默认参数
-            print(f"[DEBUG] CodeRetriever 初始化完成，用时 {time.time() - t0:.2f} 秒")
-        return self._code_retriever
+        # 瘦身阶段：当前主链（化学式→MP→ALIGNN）未使用，先停用
+        return None
 
     async def _safe_send_text(self, websocket, content):
-        """
-        统一兜底：避免 websocket.send_text(None) 导致 pydantic 校验失败
-        """
-        if content is None:
-            content = ""
-        if not isinstance(content, str):
-            content = str(content)
-        await websocket.send_text(content)
+        # 瘦身阶段：当前主链未使用，先停用
+        return
 
     # 流式发送 LLM 响应
     async def _stream_llm_response(
@@ -998,12 +992,16 @@ class Coding(Action):
             parameters=json.dumps(parameters, ensure_ascii=False, indent=2),
         )
 
-        # 直接走你现成的流式输出
+        # MP 字段判读统一放右侧新页
+        await websocket.send_text("<<<CONTENT_START:MATERIAL_SCREENING>>>")
+        await websocket.send_text("### 数据库获取信息总览\n\n")
         await self._stream_llm_response(
             llm,
             [llm._default_system_msg(), llm._user_msg(prompt)],
             websocket
         )
+        await websocket.send_text("\n以上表格汇总了从 Materials Project 数据库中检索到的相关化学式候选结构与关键字段，用于说明当前候选为什么会进入后续筛选与性质分析流程。\n")
+        await websocket.send_text("<<<CONTENT_END:MATERIAL_SCREENING>>>")
 
     def _formula_profile(self, formula_: str) -> dict:
         f = str(formula_ or "").strip()
@@ -1564,94 +1562,14 @@ class Coding(Action):
         return top if isinstance(top, dict) else {}
 
     def _sanitize_for_llm(self, obj):
-        """
-        ✅ 最小化清洗：只去掉明显工程字段（路径/URL/目录/时间戳等）。
-        不做结构重排，不做推断，不做额外优化。
-        """
-        import copy
-
-        def _drop_keys(d: dict):
-            bad_keys = {
-                "files", "files_abs", "base_dir", "manifest",
-                "path", "paths", "url", "urls", "directory", "dir",
-                "generated_at", "timestamp", "time", "datetime",
-                "model_path", "log_file", "traj_file", "structure_glb",
-            }
-            for k in list(d.keys()):
-                if k in bad_keys:
-                    d.pop(k, None)
-
-        def _walk(x):
-            if isinstance(x, dict):
-                _drop_keys(x)
-                for k, v in list(x.items()):
-                    x[k] = _walk(v)
-                return x
-            if isinstance(x, list):
-                return [_walk(v) for v in x]
-            return x
-
-        return _walk(copy.deepcopy(obj))
+        # 瘦身阶段：当前主链未使用，先停用
+        return obj
 
 
     # format_instruction 方法   
     async def format_instruction(self, instruction: str, llm) -> str:
-        """
-        从用户指令中识别最可能匹配的【领域 | 项目名称】，用于 projects 层级检索。
-        目标输出：<领域> | <项目名称>
-        - 领域与项目名称之间以一个空格+竖线+空格分隔（" | "）
-        - 不包含 description、不追加任何解释或多余字符
-        """
-        prompt = f"""
-            你是一个熟悉 AI4PDE 与物理建模语义的助手。你的任务是：从给定的自然语言指令中，识别并“提炼”出**最可能匹配的 领域 与 项目名称**，并**仅输出一行**结果，格式严格为：
-
-            <领域> | <项目名称>
-
-            【输入形态与取数规则】
-            1) 输入可能是一段普通文本，也可能是一个多轮消息列表（例如 JSON 数组，包含多条 role="user/assistant" 的消息）。
-            2) 如果是多轮消息列表，**只使用最后一条 role 为 "user" 的消息的 "content"** 作为语义依据，其余内容全部忽略。
-            3) 如果是普通文本，直接基于该文本进行理解与提炼。
-
-            【提炼与命名规范】
-            A. “项目名称”从用户语句中抽取与“任务/方程/场景/对象/方法”最相关且**语义最具体**的短语：
-            - 优先保留维度（2D/3D）、对象限定（如 卫星结构）、具体方程名（波动方程/Poisson/Maxwell/Navier-Stokes/KdV/热传导/弹性力学 等）、或方法前缀（PINN/gPINN/XPINN 等）。
-            B. 允许合理变体（顺序变换、方法前缀、下划线连接），但要与用户语义高度一致。
-            C. 统一将空格、顿号等分隔符**替换为下划线 `_`**，避免冗余功能词（如“我想”“请问”“求解一下”）。
-            D. 若出现多个候选短语，选择**信息量最大且不矛盾**的一个作为“项目名称”。
-
-            【“领域”选择原则】
-            - 领域用于匹配 projects 的 domain 字段，尽量从下列常见集合中择一（若语义明确但未在集合中，也可给出更贴切的领域词，但要保持简洁）：
-            - MNS
-            【输出格式（必须严格一致）】
-            <领域> | <项目名称>
-
-            - 仅一行、仅此内容；不要附加任何说明、前后缀或代码块标记。
-            - 不要包含路径、文件名、描述、引号或其他符号。
-            - “项目名称”按上述命名规范规整（使用下划线 `_`）。
-
-
-            【禁止事项】
-            - 禁止输出除结果本体以外的任何文字（如“下面是结果：”等）。
-            - 禁止多行输出或多个候选；只能输出**一行唯一结果**。
-            - 禁止输出文件名（如 *_main.py）或描述串。
-            - 禁止添加无关标签、路径或环境信息。
-
-            请基于以下指令生成格式化结果（仅返回结果本体，一行）：
-            "{instruction}"
-            """
-                # 构造消息并请求 LLM
-        messages = [llm._default_system_msg(), llm._user_msg(prompt)]
-        response = await llm.acompletion_text(messages, timeout=10)
-
-        # 流式拼接
-        summary = []
-        async for chunk in response:
-            chunk_msg = chunk.choices[0].delta.content or ""
-            if chunk_msg:
-                summary.append(chunk_msg)
-
-        # 返回一行、去首尾空白
-        return "".join(summary).strip()
+        # 瘦身阶段：当前主链未使用，先停用
+        return str(instruction or "").strip()
 
     async def send_results_to_frontend(
         self,
@@ -1664,6 +1582,7 @@ class Coding(Action):
         allow_latest_job: bool = True,
         step_id: str = "MATERIAL_SCREENING",
         emit_summary_block: bool = True,
+        keep_block_open_after_asset: bool = False,
     ):
         """
         统一产物下发（前端协议版）：
@@ -1684,20 +1603,36 @@ class Coding(Action):
             "glb_url": "",
         }
 
-        async def _ws_asset(name: str, docs: str, url: str, asset_type: str):
-            await websocket.send_json({
+        async def _ws_asset(name: str, docs: str, url: str, asset_type: str, description: str = ""):
+            payload = {
                 "step_id": step_id,          # ✅ 不写死
                 "name": name,
                 "docs": docs,
                 "url": url,
                 "type": asset_type           # MaterialsPNG / MaterialsGLB
-            })
+            }
+            if isinstance(description, str) and description.strip():
+                payload["description"] = description.strip()
+            await websocket.send_json(payload)
 
         async def _ws_right(step_id_local: str, text: str):
             await websocket.send_text(f"<<<CONTENT_START:{step_id_local}>>>")
             if text:
                 await websocket.send_text(text.rstrip() + "\n")
             await websocket.send_text(f"<<<CONTENT_END:{step_id_local}>>>")
+
+        async def _ws_png_markdown(formula_label: str, image_url: str, heading: str = "", fig_label: str = ""):
+            safe_formula = str(formula_label or "Material").strip() or "Material"
+            safe_heading = str(heading or "").strip() or f"{safe_formula}_无机化合物可能候选结构"
+            safe_fig_label = str(fig_label or "").strip() or f"{safe_formula} 候选结构图"
+            md = (
+                f"### {safe_heading}\n\n"
+                f"![{safe_fig_label}]({str(image_url or '').strip()})\n\n"
+                f"*图示为 {safe_formula} 的可能晶体结构候选。a、b、c 为晶胞三轴长度（单位 Å）；"
+                f"α、β、γ 为晶轴夹角（单位 °）；Atoms 为晶胞内原子位点数；"
+                f"这些参数会从微观层面上影响材料的性质，系统将从中筛选出最优候选。*"
+            )
+            await _ws_right(step_id, md)
 
         logger.info(
             f"[send_results_to_frontend] ENTER step_id={step_id} pipeline={pipeline} source_path={source_path}, root_path={root_path}, taskid={taskid}, jobid={jobid}"
@@ -1738,17 +1673,35 @@ class Coding(Action):
         except Exception as e:
             logger.warning(f"[send_results_to_frontend] 查找 manifest 失败: {e}")
 
-        async def _upload_and_get_url(abs_path: str, oss_key: str):
+        async def _upload_and_get_url(
+            abs_path: str,
+            oss_key: str,
+            asset_kind: str = "asset",
+            public_url_override: str = ""
+        ):
             try:
                 with open(abs_path, "rb") as f:
                     b = f.read()
+
+                upload_endpoint = os.getenv("MINIO_ENDPOINT", "")
+                logger.info(
+                    f"[send_results_to_frontend] [{asset_kind}] PutObject target => "
+                    f"endpoint={upload_endpoint} bucket=alpha key={oss_key}"
+                )
+
                 result = await oss_upload("alpha", oss_key, b)
                 if result.get("status") != 200:
                     logger.error(f"[send_results_to_frontend] ❗ 上传失败: {abs_path}, resp={result}")
                     return None
-                url = get_image_url("alpha", oss_key)
-                if url.startswith(minio_addr):
-                    url = url.replace(minio_addr, https_vip_addr, 1)
+
+                if public_url_override:
+                    url = public_url_override
+                else:
+                    url = get_image_url("alpha", oss_key)
+                    if url.startswith(minio_addr):
+                        url = url.replace(minio_addr, https_vip_addr, 1)
+
+                logger.info(f"[send_results_to_frontend] [{asset_kind}] Frontend URL => {url}")
                 return url
             except Exception as e:
                 logger.exception(f"[send_results_to_frontend] 上传失败: {abs_path} | {e}")
@@ -1771,8 +1724,9 @@ class Coding(Action):
 
             for fname in image_files:
                 abs_img = os.path.join(results_dir, fname)
-                oss_key = f"XIMUAlpha_MNS/{taskid_sanitized}/{pipeline}/{jobid or 'job'}/{fname}"
-                url = await _upload_and_get_url(abs_img, oss_key)
+                oss_key = f"materials/modelfiles/image/{taskid_sanitized}/{pipeline}/{jobid or 'job'}/{fname}"
+                image_public_url = f"{picture_public_base_url}/{taskid_sanitized}/{pipeline}/{jobid or 'job'}/{fname}"
+                url = await _upload_and_get_url(abs_img, oss_key, asset_kind="png", public_url_override=image_public_url)
                 if not url:
                     continue
                 await _ws_asset(
@@ -1780,6 +1734,12 @@ class Coding(Action):
                     docs=os.path.splitext(fname)[0],
                     url=url,
                     asset_type="MaterialsPNG"
+                )
+                await _ws_png_markdown(
+                    formula_label=(str(jobid or "").strip() or "Material"),
+                    image_url=url,
+                    heading=f"{str(jobid or '').strip() or 'Material'}_无机化合物可能候选结构",
+                    fig_label=fname,
                 )
 
             return result
@@ -1823,12 +1783,35 @@ class Coding(Action):
 
         # ---------- 5) 图片（MaterialsPNG） ----------
         image_items = []
+        card_items = manifest.get("candidate_cards") or []
+        if isinstance(card_items, list):
+            for c in card_items:
+                if not isinstance(c, dict):
+                    continue
+                p = c.get("image_path") or c.get("image_path_abs")
+                if p:
+                    image_items.append(p)
+
+        # 优先使用“拼接总图”，若存在则仅发送这一张
+        combined_path = manifest.get("candidate_cards_combined") or (manifest.get("files") or {}).get("candidate_cards_combined_png") or (manifest.get("files_abs") or {}).get("candidate_cards_combined_png")
+        if combined_path:
+            image_items = [combined_path]
+
+        image_meta_by_path = {}
         if isinstance(manifest.get("images"), list) and manifest["images"]:
             for it in manifest["images"]:
                 if isinstance(it, dict):
-                    image_items.append(it.get("path", ""))
+                    p2 = it.get("path", "")
+                    if p2:
+                        image_items.append(p2)
+                        image_meta_by_path[str(p2)] = {
+                            "name": str(it.get("name") or "").strip(),
+                            "docs": str(it.get("docs") or "").strip(),
+                        }
                 else:
-                    image_items.append(str(it))
+                    p2 = str(it)
+                    if p2:
+                        image_items.append(p2)
         else:
             try:
                 for fn in sorted(os.listdir(base_dir)):
@@ -1838,6 +1821,9 @@ class Coding(Action):
             except Exception:
                 pass
 
+        # 去重并保持顺序
+        image_items = list(dict.fromkeys([str(x) for x in image_items if str(x).strip()]))
+
         for p in image_items:
             abs_img = _abspath(p) if not os.path.isabs(str(p)) else str(p)
             if not abs_img or not os.path.exists(abs_img):
@@ -1846,16 +1832,20 @@ class Coding(Action):
                 continue
 
             fname = os.path.basename(abs_img)
-            oss_key = f"XIMUAlpha_MNS/{taskid_sanitized}/{pipeline}/{jobid or 'job'}/{fname}"
-            url = await _upload_and_get_url(abs_img, oss_key)
+            meta = image_meta_by_path.get(str(p), {}) if isinstance(p, str) else {}
+            display_name = (meta.get("name") or "").strip() or fname
+            display_docs = (meta.get("docs") or "").strip() or os.path.splitext(fname)[0]
+            oss_key = f"materials/modelfiles/image/{taskid_sanitized}/{pipeline}/{jobid or 'job'}/{fname}"
+            image_public_url = f"{picture_public_base_url}/{taskid_sanitized}/{pipeline}/{jobid or 'job'}/{fname}"
+            url = await _upload_and_get_url(abs_img, oss_key, asset_kind="png", public_url_override=image_public_url)
             if not url:
                 continue
 
-            await _ws_asset(
-                name=fname,
-                docs=os.path.splitext(fname)[0],
-                url=url,
-                asset_type="MaterialsPNG"
+            await _ws_png_markdown(
+                formula_label=(str(jobid or "").strip() or str(manifest.get("formula") or "").strip() or "Material"),
+                image_url=url,
+                heading=(display_name or f"{str(jobid or '').strip() or 'Material'}_无机化合物可能候选结构"),
+                fig_label=(display_docs or display_name or os.path.basename(abs_img)),
             )
 
         # ---------- 6) GLB（MaterialsGLB） ----------
@@ -1863,8 +1853,17 @@ class Coding(Action):
         if glb_path and os.path.exists(glb_path):
             result["glb_ready"] = True
             fname = os.path.basename(glb_path)
-            oss_key = f"XIMUAlpha_MNS/{taskid_sanitized}/{pipeline}/{jobid or 'job'}/{fname}"
-            url = await _upload_and_get_url(glb_path, oss_key)
+            glb_ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            glb_publish_name = f"{glb_ts}_{fname}"
+            # GLB 按前端约定统一落到 materials/modelfiles/glb 目录，并增加时间戳防重名
+            oss_key = f"materials/modelfiles/glb/{glb_publish_name}"
+            glb_public_url = f"{glb_public_base_url}/{glb_publish_name}"
+            url = await _upload_and_get_url(
+                glb_path,
+                oss_key,
+                asset_kind="glb",
+                public_url_override=glb_public_url,
+            )
 
             if url:
                 formula_for_asset = (str(jobid or "").strip() or str(manifest.get("formula") or "").strip())
@@ -1882,29 +1881,31 @@ class Coding(Action):
                     return result
                 self._emitted_glb_keys.add(dedup_key)
 
-                # 按你的协议把 MATERIAL_SCREENING 拆成三段：
-                # 前文段 END -> GLB段 START/END -> 后文段 START
-                await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
-                await websocket.send_text(f"<<<CONTENT_START:{step_id}>>>")
+                # 仅在需要“资产插入到右侧正文流中”时进行分段包裹切换
+                if keep_block_open_after_asset:
+                    await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
+                    await websocket.send_text(f"<<<CONTENT_START:{step_id}>>>")
 
-                profile_for_asset = self._formula_profile(formula_for_asset) if formula_for_asset else {}
-                cn_name = str(profile_for_asset.get("中文名称") or "").strip()
-                rich_name = f"{formula_for_asset}_{cn_name}_结构模型.glb" if (formula_for_asset and cn_name) else fname
-                rich_name = rich_name.replace("/", "_")
-                rich_docs = (
-                    f"{formula_for_asset}（{cn_name}）三维结构模型（GLB）"
-                    if (formula_for_asset and cn_name)
-                    else "结构三维可视化模型（GLB）"
+                base_name = (formula_for_asset or os.path.splitext(fname)[0] or "Material").replace("/", "_")
+                rich_name = f"{base_name}_无机化合物最优候选结构"
+                rich_docs = f"{base_name}_无机化合物最优候选结构"
+                glb_description = (
+                    f"该三维模型展示了 {base_name} 的最优候选晶体结构。"
+                    f"可通过旋转、缩放观察原子排布与晶胞形貌，"
+                    f"用于直观理解结构稳定性与后续性质分析的结构基础；"
+                    f"其中结果用于筛选与工程判断，不替代最终实验表征。"
                 )
                 await _ws_asset(
                     name=rich_name,
                     docs=rich_docs,
                     url=url,
-                    asset_type="MaterialsGLB"
+                    asset_type="MaterialsGLB",
+                    description=glb_description,
                 )
 
-                await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
-                await websocket.send_text(f"<<<CONTENT_START:{step_id}>>>")
+                if keep_block_open_after_asset:
+                    await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
+                    await websocket.send_text(f"<<<CONTENT_START:{step_id}>>>")
                 logger.info(f"[send_results_to_frontend] ✅ sent MaterialsGLB: {fname}")
                 result["glb_sent"] = True
                 result["glb_url"] = str(url or "")
@@ -1996,24 +1997,13 @@ class Coding(Action):
 
     #读取案例的readme文件
     def read_case_readme(self,path: str) -> str:
-        try:
-            with open(path, 'r', encoding='utf-8') as f:
-                content = f.read()
-            return content
-        except UnicodeDecodeError:
-            with open(path, 'r', encoding='utf-8-sig') as f:
-                content = f.read()
-            return content
-        except Exception as e:
-            logger.warning(f"[read_case_readme] 无法读取 README 文件: {e}")
-            return "（README 文件读取失败）"
+        # 瘦身阶段：当前主链未使用，先停用
+        return ""
 
 
     async def _ws_right(self, websocket, step_id: str, text: str):
-        await websocket.send_text(f"<<<CONTENT_START:{step_id}>>>")
-        if text:
-            await websocket.send_text(text.rstrip() + "\n")
-        await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
+        # 瘦身阶段：当前主链未使用，先停用
+        return
 
     async def run(self, instruction: str, *args):
         import os, re, json, asyncio, subprocess, glob
@@ -2081,6 +2071,75 @@ class Coding(Action):
                 return
             await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
             material_block_opened = False
+
+        async def _upload_database_pic_for_markdown(pic_abs_path: str, pic_name: str) -> str:
+            """上传固定数据库示意图，返回前端可访问 URL。失败返回空串。"""
+            try:
+                if not pic_abs_path or (not os.path.exists(pic_abs_path)):
+                    logger.warning(f"[DB_PIC] file not found: {pic_abs_path}")
+                    return ""
+                with open(pic_abs_path, "rb") as f:
+                    b = f.read()
+                taskid_s = str(taskid).replace("/", "_")
+                oss_key = f"materials/modelfiles/image/{taskid_s}/databasepic/{str(pic_name).strip()}"
+                resp = await oss_upload("alpha", oss_key, b)
+                if not isinstance(resp, dict) or resp.get("status") != 200:
+                    logger.warning(f"[DB_PIC] upload failed: {pic_abs_path} resp={resp}")
+                    return ""
+                return f"{picture_public_base_url}/{taskid_s}/databasepic/{str(pic_name).strip()}"
+            except Exception as e:
+                logger.exception(f"[DB_PIC] upload exception: {e!s}")
+                return ""
+
+        def _render_performance_bar_png(metric_rows: list, out_png_path: str):
+            """用 matplotlib 绘制满足度柱状图（英文标签，避免中文字体乱码）。"""
+            import matplotlib
+            matplotlib.use("Agg")
+            import matplotlib.pyplot as plt
+
+            labels = [str(r.get("label", "")).strip() for r in (metric_rows or [])]
+            scores = [int(r.get("score", 0) or 0) for r in (metric_rows or [])]
+            states = [str(r.get("state", "Pending")) for r in (metric_rows or [])]
+
+            n = len(labels)
+            if n <= 0:
+                return
+
+            fig_h = max(2.6, 0.8 * n + 1.6)
+            fig, ax = plt.subplots(figsize=(8.8, fig_h), dpi=160)
+            fig.patch.set_facecolor("#F8FAFD")
+            ax.set_facecolor("#F8FAFD")
+
+            y_pos = list(range(n))[::-1]
+            for i, y in enumerate(y_pos):
+                score = max(0, min(100, int(scores[i])))
+                st = states[i]
+
+                # 背景轨道
+                ax.barh(y, 100, color="#E9EEF6", edgecolor="#E0E6F1", height=0.46)
+
+                if st == "Met":
+                    ax.barh(y, score, color="#5B6CFF", edgecolor="#5B6CFF", height=0.46)
+                elif st == "Partially Met":
+                    ax.barh(y, score, color="#8A96FF", edgecolor="#5B6CFF", hatch="///", linewidth=0.8, height=0.46)
+                else:
+                    ax.barh(y, score, color="#C3CBD9", edgecolor="#AEB7C7", height=0.46)
+
+                ax.text(min(score + 1.5, 99.0), y, f"{st}  {score}%", va="center", ha="left", fontsize=9, color="#4B5568")
+
+            ax.set_yticks(y_pos)
+            ax.set_yticklabels(labels, fontsize=9, color="#3E4A5A")
+            ax.set_xlim(0, 100)
+            ax.set_xticks([0, 20, 40, 60, 80, 100])
+            ax.tick_params(axis="x", labelsize=8, colors="#6A7382")
+            ax.grid(axis="x", color="#DEE5F0", linestyle="--", linewidth=0.6, alpha=0.8)
+            for sp in ["top", "right", "left", "bottom"]:
+                ax.spines[sp].set_visible(False)
+
+            ax.set_title("Performance Satisfaction Bar Comparison", fontsize=11, color="#2F6FEF", pad=10, loc="left")
+            plt.tight_layout()
+            fig.savefig(out_png_path, dpi=160)
+            plt.close(fig)
 
         # =========================
         # 1) 调试：入口日志
@@ -2553,7 +2612,7 @@ class Coding(Action):
                 "src", "MNS_CaseHub", "cases", "material_discovery_demo", "results", "in-LS"
             )
             if not os.path.isdir(in_ls_dir):
-                return []
+                return [], {}
 
             def _extract_formula_candidates_from_material_label(label: str) -> list:
                 s = _to_ascii_formula(str(label or "")).strip()
@@ -2572,6 +2631,13 @@ class Coding(Action):
                         if t2 and t2 not in seen_local:
                             out.append(t2)
                             seen_local.add(t2)
+                        return
+
+                    # 混合有机-无机钙钛矿常见写法兼容（如 MAPbI3 / Cs0.05(MA0.17FA0.83)0.95Pb(I0.83Br0.17)3）
+                    if re.search(r"(?i)(?:\bMA\b|\bFA\b|MA\d|FA\d)", t) and re.search(r"Pb", t):
+                        if t not in seen_local:
+                            out.append(t)
+                            seen_local.add(t)
 
                 # 1) 括号内容优先（如 AlN Ceramic / AlN/BNns Composite）
                 for m in re.finditer(r"[\(（]([^\)）]{1,200})[\)）]", s):
@@ -2582,6 +2648,12 @@ class Coding(Action):
                 # 2) 全串 token 扫描（兜住无括号写法）
                 for part in re.split(r"[\s,/+;，、\-·]+", s):
                     _try_add(part)
+
+                # 3) 混合文本兜底：从“化学式+中文描述”里抽取化学式片段
+                # 例如：AlN（氮化铝）陶瓷基板 / Al2O3氧化铝基板 / SiC陶瓷
+                # 仅抓取由元素符号与可选计量组成的连续串，避免把中文后缀整体吞掉
+                for m in re.finditer(r"(?:[A-Z][a-z]?\d*(?:\.\d*)?){2,}", s):
+                    _try_add(m.group(0))
 
                 return out
 
@@ -2608,7 +2680,7 @@ class Coding(Action):
 
                 for src in (root_obj, st):
                     if isinstance(src, dict):
-                        for k in ("baseline_material", "advanced_material"):
+                        for k in ("baseline_material", "advanced_material", "baseline_reason", "advanced_reason"):
                             v = src.get(k)
                             if isinstance(v, str) and v.strip():
                                 tokens.extend(_extract_formula_candidates_from_material_label(v))
@@ -2766,6 +2838,89 @@ class Coding(Action):
                 chem_hits = sum(1 for p in parts if _is_chem_piece(p))
                 return chem_hits >= 2
 
+            def _looks_like_hybrid_formula_notation(t: str) -> bool:
+                """兼容混合有机-无机钙钛矿记法（MA/FA等有机片段）。"""
+                s = _to_ascii_formula(str(t or "").strip())
+                if not s:
+                    return False
+                if not re.search(r"Pb", s):
+                    return False
+                if not re.search(r"(?i)(MA|FA)", s):
+                    return False
+                if not re.search(r"[0-9]", s):
+                    return False
+                return True
+
+            def _hybrid_to_mp_surrogates(t: str) -> list:
+                """将混合有机-无机记法尽量转换为可检索的无机骨架近似式。"""
+                s = _to_ascii_formula(str(t or "").strip())
+                if not s:
+                    return []
+
+                out = []
+                seen_local = set()
+
+                # 常见缩写直接映射
+                if re.fullmatch(r"(?i)MAPbI3", s):
+                    for cand in ("CH6I3NPb", "PbI3"):
+                        if _looks_like_formula(cand) and cand not in seen_local:
+                            out.append(cand)
+                            seen_local.add(cand)
+                    return out
+
+                # 去掉 MA/FA 相关括号段，尽量保留无机框架
+                s2 = re.sub(r"\((?:[^\)]*?(?:MA|FA)[^\)]*?)\)\d*(?:\.\d+)?", "", s, flags=re.IGNORECASE)
+                s2 = re.sub(r"(?:MA|FA)\d*(?:\.\d+)?", "", s2, flags=re.IGNORECASE)
+                s2 = re.sub(r"\s+", "", s2)
+                if _looks_like_formula(s2):
+                    nf = _normalize_formula_for_mp(s2) or s2
+                    if nf not in seen_local:
+                        out.append(nf)
+                        seen_local.add(nf)
+
+                # 兜底：提取纯无机子串
+                for m in re.finditer(r"(?:[A-Z][a-z]?\d*(?:\.\d+)?|\([A-Za-z0-9\.]+\)\d*(?:\.\d+)?) {0,}", s.replace(" ", "")):
+                    seg = m.group(0).strip()
+                    if not seg:
+                        continue
+                    if re.search(r"(?i)(MA|FA)", seg):
+                        continue
+                    if _looks_like_formula(seg):
+                        nf = _normalize_formula_for_mp(seg) or seg
+                        if nf not in seen_local:
+                            out.append(nf)
+                            seen_local.add(nf)
+
+                return out
+
+            def _explode_system_to_mp_tokens(t: str) -> list:
+                """
+                将体系表达拆解为可用于 MP 检索的子化学式。
+                例：Li2O·Al2O3·nSiO2 -> [Li2O, Al2O3, SiO2]
+                """
+                s = _to_ascii_formula(str(t or "").strip())
+                if not s:
+                    return []
+                parts = [
+                    p.strip().strip("()").strip("（）").strip()
+                    for p in re.split(r"[\-\+·/]", s)
+                    if str(p).strip()
+                ]
+                out = []
+                seen_local = set()
+                for p in parts:
+                    # 去掉前缀占位系数：nSiO2 / xAl2O3 / yZrO2
+                    p2 = re.sub(r"^(?:[nNxXyYzZmMkK])+", "", p)
+                    p2 = p2.strip()
+                    if not p2:
+                        continue
+                    if _looks_like_formula(p2):
+                        nf = _normalize_formula_for_mp(p2) or p2
+                        if nf not in seen_local:
+                            out.append(nf)
+                            seen_local.add(nf)
+                return out
+
             def _is_noise_token(t: str) -> bool:
                 s = str(t or "").strip()
                 if not s:
@@ -2871,6 +3026,23 @@ class Coding(Action):
                 # 体系表达：仅展示，不直接跑 MP
                 if _is_system_token(t):
                     non_mp_notes.append(f"`{t}` 为体系/复合表达，仅用于展示，不直接参与 MP 检索。")
+                    # 同时尝试拆解出可检索子化学式，避免后续 mp_tokens 为空导致流程中断
+                    exploded = _explode_system_to_mp_tokens(t)
+                    for _mp in exploded:
+                        if _mp not in mp_seen:
+                            mp_tokens.append(_mp)
+                            mp_seen.add(_mp)
+                    if exploded:
+                        non_mp_notes.append(f"`{t}` 已拆解为 {exploded} 参与 MP 检索。")
+                    continue
+
+                # 混合有机-无机记法：保留展示，并尽量提取无机骨架用于 MP
+                if _looks_like_hybrid_formula_notation(t):
+                    non_mp_notes.append(f"`{t}` 识别为混合有机-无机化学式记法，已保留展示并尝试提取无机骨架参与 MP。")
+                    for _mp in _hybrid_to_mp_surrogates(t):
+                        if _mp not in mp_seen:
+                            mp_tokens.append(_mp)
+                            mp_seen.add(_mp)
                 else:
                     dropped_tokens.append((t, "not_formula_or_system"))
 
@@ -2881,11 +3053,43 @@ class Coding(Action):
             )
 
             if isinstance(llm_display, list):
-                rule_non_mp = set(non_mp_notes)
-                non_mp_notes = list(dict.fromkeys((llm_notes or []) + [x for x in non_mp_notes if x not in rule_non_mp or x]))
-                dropped_tokens = list(dict.fromkeys(dropped_tokens + (llm_dropped or [])))
-                display_tokens = llm_display
-                mp_tokens = [x for x in (llm_mp or []) if x in display_tokens or _looks_like_formula(x)]
+                # 保护：若规则已提取到候选，而 LLM 误返回空列表，则保留规则结果，避免 AlN/SiC 被清空
+                if len(llm_display) == 0 and len(display_tokens) > 0:
+                    dropped_tokens = list(dict.fromkeys(dropped_tokens + (llm_dropped or [])))
+                    non_mp_notes = list(dict.fromkeys((non_mp_notes or [])))
+                else:
+                    rule_mp_tokens = list(mp_tokens or [])
+                    rule_non_mp = set(non_mp_notes)
+                    non_mp_notes = list(dict.fromkeys((llm_notes or []) + [x for x in non_mp_notes if x not in rule_non_mp or x]))
+                    dropped_tokens = list(dict.fromkeys(dropped_tokens + (llm_dropped or [])))
+                    display_tokens = llm_display
+                    llm_mp_tokens = [x for x in (llm_mp or []) if x in display_tokens or _looks_like_formula(x)]
+                    # 保护：规则已得到可用于 MP 的化学式，而 LLM 返回空 mp_tokens 时，不应将其清空
+                    if len(llm_mp_tokens) == 0 and len(rule_mp_tokens) > 0:
+                        mp_tokens = rule_mp_tokens
+                        try:
+                            logger.info("[ROUTER] LLM mp_tokens empty, fallback to rule-based MP candidates")
+                        except Exception:
+                            pass
+                    else:
+                        mp_tokens = llm_mp_tokens
+
+            # 兜底：若 LLM/规则汇总后 mp_tokens 为空，但 display 中存在体系表达，则自动拆解补全
+            if len(mp_tokens or []) == 0 and len(display_tokens or []) > 0:
+                rebuilt_mp = []
+                rebuilt_seen = set()
+                for _d in (display_tokens or []):
+                    for _m in _explode_system_to_mp_tokens(_d):
+                        if _m not in rebuilt_seen:
+                            rebuilt_mp.append(_m)
+                            rebuilt_seen.add(_m)
+                if rebuilt_mp:
+                    mp_tokens = rebuilt_mp
+                    try:
+                        logger.info("[ROUTER] LLM/rule mp_tokens empty, rebuilt from system tokens")
+                        logger.info(f"[ROUTER] rebuilt_mp_tokens_from_system={rebuilt_mp}")
+                    except Exception:
+                        pass
 
             # 强约束：MP候选必须是可解析化学式（并归一化）
             mp_tokens_strict = []
@@ -2906,7 +3110,7 @@ class Coding(Action):
             """替换为：宏观目标性能窗口表（MP 前置）。"""
             fs = [str(x) for x in (formulas_ or []) if isinstance(x, str) and x.strip()]
 
-            await websocket.send_text("\n\n### 需求背景总结\n\n")
+            await websocket.send_text("\n\n### 材料性能需求总结\n\n")
 
             def _is_param_table_valid(md: str) -> bool:
                 txt = str(md or "")
@@ -2955,7 +3159,8 @@ class Coding(Action):
                 await websocket.send_text("3. 可制造性与服役可靠性通常对应密度、机械支撑能力及界面稳定相关代理量。\n\n")
                 await websocket.send_text("4. 本轮先形成“需求-性质/性能-验证口径”映射，再进入结构化性能窗口表进行统一判读。\n\n")
 
-            await websocket.send_text("\n\n#### 关键材料需求提炼\n\n")
+            await _open_material_block("MATERIAL_SCREENING")
+            await websocket.send_text("\n\n### 材料需求提炼\n\n")
             prompt = (
                 "请基于用户输入，输出一张 Markdown 表格，不要标题、不要编号、不要额外段落。"
                 "表头固定为：性能维度 | 目标区间/阈值 | 工程原因 | 与应用场景关系 | 后续验证口径。"
@@ -2984,11 +3189,12 @@ class Coding(Action):
             )
             if not _is_param_table_valid(out):
                 logger.warning("[PARAM_TABLE] non-strict markdown table from LLM (stream-only mode)")
+            await _close_material_block("MATERIAL_SCREENING")
 
         async def _stream_formula_readable_view(formulas_: list, user_context: str = ""):
             fs = [str(x) for x in (formulas_ or []) if isinstance(x, str) and x.strip()]
 
-            await websocket.send_text("\n\n### 候选材料方向分析\n\n")
+            await websocket.send_text("\n\n### 候选材料分析\n\n")
 
             bridge_prompt = (
                 "请输出4~7条中文分条内容，不要表格、不要标题。"
@@ -3022,14 +3228,22 @@ class Coding(Action):
                 await websocket.send_text("4. 本轮体系中文名：无机功能材料候选体系。\n\n")
                 await websocket.send_text(f"5. 本轮候选化学式：{('、'.join(fs) if fs else '待补充')}。\n\n")
 
-            await websocket.send_text("\n\n#### 候选材料概览\n\n")
+            await _open_material_block("MATERIAL_SCREENING")
+            await websocket.send_text("\n\n### 候选材料概览\n\n")
             await websocket.send_text("| 化学式 | 中文名称 | 材料类别 | 应用角色 | 入选原因（对应宏观目标） |\n")
             await websocket.send_text("|---|---|---|---|---|\n")
             for f in fs:
                 p = self._formula_profile(f)
                 await websocket.send_text(
-                    f"| {f} | {p['中文名称']} | {p['材料类别']} | {p['应用角色']} | 对应稳定性/传导/机械等宏观目标的候选映射 |\n"
+                    f"| {f} | {p['中文名称']} | {p['材料类别']} | {p['应用角色']} | 对应稳定性/传导/机械等宏观目标的优质候选材料 |\n"
                 )
+
+            # 候选材料概览下方补充数据库周期图（右侧）
+            period_abs = os.path.join(_repo_root(), "src", "MNS_CaseHub", "cases", "material_discovery_demo", "results", "databasepic", "period.png")
+            period_url = await _upload_database_pic_for_markdown(period_abs, "period.png")
+            if period_url:
+                await websocket.send_text(f"\n\n![候选材料周期分布示意]({period_url})\n")
+            await _close_material_block("MATERIAL_SCREENING")
 
         async def _stream_macro_micro_bridge(formulas_: list, user_context: str = ""):
             fs = [str(x) for x in (formulas_ or []) if isinstance(x, str) and x.strip()]
@@ -3079,6 +3293,12 @@ class Coding(Action):
             # 以四级标题挂在前一块内容下，避免形成独立高层分块
             await websocket.send_text("\n\n#### 材料数据库检索说明\n\n")
 
+            # 检索说明下先展示 MP 数据库示意图（左侧）
+            mp_abs = os.path.join(_repo_root(), "src", "MNS_CaseHub", "cases", "material_discovery_demo", "results", "databasepic", "mp.png")
+            mp_url = await _upload_database_pic_for_markdown(mp_abs, "mp.png")
+            if mp_url:
+                await websocket.send_text(f"![Materials Project 数据库示意图]({mp_url})\n\n")
+
             intro_prompt = (
                 "请输出3~5条中文分条内容，采用工程过程播报语气，不要表格、不要标题。"
                 "必须使用阿拉伯数字编号（1. 2. 3. ...）。"
@@ -3123,7 +3343,8 @@ class Coding(Action):
 
         async def _stream_final_requirement_summary(formulas_: list, mp_ready_: list, user_context: str = "", final_metrics: dict = None):
             """目标-结果对照收敛：基于真实计算值输出，不使用泛化项。"""
-            await websocket.send_text("\n\n### 目标与结果对比\n\n")
+            await _open_material_block("MATERIAL_SCREENING")
+            await websocket.send_text("\n\n### 材料性能目标结果对比\n\n")
             m = final_metrics if isinstance(final_metrics, dict) else {}
             eh = m.get("e_above_hull")
             fe = m.get("formation_energy")
@@ -3151,6 +3372,18 @@ class Coding(Action):
             )
             sat_trans = _sat(isinstance(cond, float) and cond >= 0.2, partial=isinstance(cond, float))
 
+            def _score_label(sat: str):
+                if sat == "满足":
+                    return 100, "Met"
+                if sat == "部分满足":
+                    return 65, "Partially Met"
+                return 30, "Pending"
+
+            s_stab, l_stab = _score_label(sat_stab)
+            s_bg, l_bg = _score_label(sat_bg)
+            s_mech, l_mech = _score_label(sat_mech)
+            s_trans, l_trans = _score_label(sat_trans)
+
             await websocket.send_text("| 宏观目标项 | 对应微观代理指标 | 本轮结果 | 满足度 | 不确定性与下一步 |\n")
             await websocket.send_text("|---|---|---|---|---|\n")
             await websocket.send_text(
@@ -3165,6 +3398,24 @@ class Coding(Action):
             await websocket.send_text(
                 f"| 传输潜力代理 | 导电/扩散相关量（粗略） | proxy={_sf(cond)}（无量纲） | {sat_trans} | 仅用于排序，需EIS/迁移测试给出实测值 |\n\n"
             )
+
+            # 画英文PNG柱状图，避免HTML直出与中文字体乱码
+            try:
+                perf_rows = [
+                    {"label": "Thermodynamic Stability", "score": s_stab, "state": l_stab},
+                    {"label": "Electronic Window", "score": s_bg, "state": l_bg},
+                    {"label": "Mechanical Reliability", "score": s_mech, "state": l_mech},
+                    {"label": "Transport Potential", "score": s_trans, "state": l_trans},
+                ]
+                perf_abs = f"/tmp/perf_satisfaction_{str(taskid).replace('/', '_')}.png"
+                _render_performance_bar_png(perf_rows, perf_abs)
+                perf_url = await _upload_database_pic_for_markdown(perf_abs, "performance_satisfaction.png")
+                if perf_url:
+                    await websocket.send_text("#### Performance Satisfaction Bar Comparison\n\n")
+                    await websocket.send_text(f"![Performance Satisfaction Bar Comparison]({perf_url})\n\n")
+            except Exception as e:
+                logger.exception(f"[PERF_BAR] render/upload failed: {e!s}")
+            await _close_material_block("MATERIAL_SCREENING")
 
         def _safe_float(x):
             try:
@@ -3551,17 +3802,16 @@ class Coding(Action):
                 await websocket.send_text("⚠️ /mp 后必须是化学式，例如：/mp Li6PS5Cl\n")
                 return
 
-            await _open_material_block("MATERIAL_SCREENING")
-            try:
-                # 进入材料流程即触发 progress
-                await _ensure_material_progress_started()
-                p = self._formula_profile(formula)
-                await websocket.send_text(f"### 材料对应化学结构信息\n\n正在处理材料：`{formula}（{p['中文名称']}）`\n")
-                await _stream_mp_stage_intro(formula)
+            # 进入材料流程即触发 progress（左侧）
+            await _ensure_material_progress_started()
 
-                await _mp_one(formula)
-            finally:
-                await _close_material_block("MATERIAL_SCREENING")
+            # 标题与说明放左侧过程流
+            p = self._formula_profile(formula)
+            await websocket.send_text(f"### 材料对应化学结构信息\n\n正在处理材料：`{formula}（{p['中文名称']}）`\n")
+            await _stream_mp_stage_intro(formula)
+
+            # 检索进度与执行播报放左侧
+            await _mp_one(formula)
             return
 
         # =========================
@@ -3586,68 +3836,76 @@ class Coding(Action):
             logger.info(f"[ROUTER] llm_selected_mp_tokens={mp_formulas}")
 
             if formulas:
-                await _open_material_block("MATERIAL_SCREENING")
+                # 进入材料流程即触发 progress（左侧）
+                await _ensure_material_progress_started()
+
+                if not mp_formulas:
+                    await websocket.send_text("未提取到可用于 MP 检索的标准化学式，已停止本轮材料检索。\n")
+                    return
+
+                # 左侧：流程说明；右侧：函数内部仅包表格/结论
                 try:
-                    # 进入材料流程即触发 progress
-                    await _ensure_material_progress_started()
+                    await _stream_route_intro_before_mp(mp_formulas, user_context=norm)
+                except Exception as e:
+                    logger.exception(f"[ROUTE_INTRO_STREAM] failed: {e!s}")
 
-                    if not mp_formulas:
-                        await websocket.send_text("未提取到可用于 MP 检索的标准化学式，已停止本轮材料检索。\n")
-                        return
+                await _stream_formula_readable_view(mp_formulas, user_context=norm)
 
-                    # ✅ 流程3起始前置说明（在 MP 之前）
-                    try:
-                        await _stream_route_intro_before_mp(mp_formulas, user_context=norm)
-                    except Exception as e:
-                        logger.exception(f"[ROUTE_INTRO_STREAM] failed: {e!s}")
+                # 对比维度提前到候选概览阶段，并在左侧对话流显示
+                await _stream_macro_micro_bridge(mp_formulas, user_context=norm)
 
-                    await _stream_formula_readable_view(mp_formulas, user_context=norm)
-                    await _stream_macro_micro_bridge(mp_formulas, user_context=norm)
-                    await websocket.send_text("\n\n#### 候选材料的化学结构信息\n\n")
+                if non_mp_notes:
+                    pass
 
-                    if non_mp_notes:
-                        await websocket.send_text("以下候选仅用于体系展示，不直接作为 MP 化学式检索：\n")
-                        for _n in non_mp_notes:
-                            await websocket.send_text(f"- {_n}\n")
-                        await websocket.send_text("\n")
+                # 左侧：过程播报与进度
+                mp_ready_formulas = []
+                selected_formula = ""
+                selected_metrics = {}
+                await websocket.send_text("\n将按候选顺序进行数据库检索。\n")
 
-                    # Phase A：仅计算一个候选，但按顺序逐个尝试，命中首个可用 MP 后停止
-                    mp_ready_formulas = []
-                    selected_formula = ""
-                    selected_metrics = {}
-                    await websocket.send_text("\n本轮按候选顺序搜索数据库中。\n")
+                total_mp = len(mp_formulas)
+                for idx, f in enumerate(mp_formulas, start=1):
+                    pf = self._formula_profile(f)
 
-                    total_mp = len(mp_formulas)
-                    for idx, f in enumerate(mp_formulas, start=1):
-                        pf = self._formula_profile(f)
-                        await websocket.send_text(f"\n#### {f}（{pf['中文名称']}）\n")
-                        await websocket.send_text(f"当前候选进度：{idx}/{total_mp}\n")
-                        logger.info(f"[MP_SCREENING] single_formula_first_hit_mode start formula={f}")
-                        await _stream_mp_stage_intro(f)
-                        ok = await _mp_one(f)
-                        if ok:
-                            selected_formula = f
-                            mp_ready_formulas = [f]
-                            await websocket.send_text(f"材料 `{f}` 命中可用 MP 结果，进入后续性质补充分析并停止后续候选尝试。\n")
-                            break
-                        else:
-                            await websocket.send_text(f"材料 `{f}` 未命中 MP 可用结果，继续尝试下一候选。\n")
+                    # 左侧：候选标题与数据库检索说明
+                    await websocket.send_text(f"\n当前检索材料：`{f}（{pf['中文名称']}）`\n")
+                    await _stream_mp_stage_intro(f)
 
-                    # 当前版本：执行 MP + ALIGNN；ADiT/MACE 流程下线
-                    if mp_ready_formulas:
-                        await websocket.send_text("\n\n#### 材料性质补充分析\n\n")
-                        await _stream_alignn_stage_intro(selected_formula)
-                        selected_metrics = await self._material_alignn_placeholder_stage(websocket, selected_formula, llm=llm)
+                    # 左侧：候选进度与命中播报
+                    await websocket.send_text(f"当前候选进度：{idx}/{total_mp}\n")
+                    logger.info(f"[MP_SCREENING] single_formula_first_hit_mode start formula={f}")
+                    ok = await _mp_one(f)
+                    if ok:
+                        selected_formula = f
+                        mp_ready_formulas = [f]
+                        break
                     else:
-                        await websocket.send_text("\n无可用于材料性质计算的候选结构，已结束本轮计算。\n")
+                        await websocket.send_text(f"材料 `{f}` 未命中 MP 可用结果，继续尝试下一候选。\n")
 
-                    # 最终需求对照总结（流式）
-                    await _stream_final_requirement_summary(formulas, mp_ready_formulas, user_context=norm, final_metrics=selected_metrics)
+                # 当前版本：执行 MP + ALIGNN；ADiT/MACE 流程下线
+                if mp_ready_formulas:
+                    await websocket.send_text("\n\n#### <span style=\"color:#2f6fef;\">材料性质补充分析</span>\n\n")
+                    # ALIGNN阶段说明保持在左侧
+                    await _stream_alignn_stage_intro(selected_formula)
+                    await websocket.send_text("<<<CONTENT_START:MATERIAL_SCREENING>>>")
+                    selected_metrics = await self._material_alignn_placeholder_stage(websocket, selected_formula, llm=llm)
+                    await websocket.send_text("<<<CONTENT_END:MATERIAL_SCREENING>>>")
+                else:
+                    await websocket.send_text("\n无可用于材料性质计算的候选结构，已结束本轮计算。\n")
 
-                    await websocket.send_text("\n材料模拟与计算模块完成，本服务已结束，正在接入下一模块材料制备模块。\n")
-                finally:
-                    await _close_material_block("MATERIAL_SCREENING")
+                # 最终需求对照总结（右侧）
+                await _stream_final_requirement_summary(formulas, mp_ready_formulas, user_context=norm, final_metrics=selected_metrics)
+
+                # 左侧：流程完成播报
+                await websocket.send_text("\n材料模拟与计算模块完成，本服务已结束，正在接入下一流程。\n")
                 return
+
+            await _ensure_material_progress_started()
+            await websocket.send_text(
+                "未在已有数据库中搜索到可用于检索的合适化学式/材料候选，"
+                "建议转向新材料开发模块。\n"
+            )
+            return
 
 
             

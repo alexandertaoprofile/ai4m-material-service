@@ -1,0 +1,6 @@
+{
+    "baseline_material": "反应烧结氮化硅（RS-Si₃N₄）",
+    "advanced_material": "烧结氮化硅（Sintered α/β-Si₃N₄）",
+    "baseline_reason": "工艺成熟、成本低、热导率与断裂韧性满足核心需求，适合初期验证与量产过渡，文献支持充分，风险可控。",
+    "advanced_reason": "热导率与断裂韧性显著提升，微观结构高度可控，电绝缘性更强，是当前高功率AI芯片多物理场建模与极端工况验证的黄金标准材料。"
+}

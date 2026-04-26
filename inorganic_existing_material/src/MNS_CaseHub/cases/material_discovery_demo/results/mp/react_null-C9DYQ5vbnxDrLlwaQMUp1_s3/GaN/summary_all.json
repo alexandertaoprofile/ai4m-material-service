@@ -1,0 +1,1246 @@
+{
+  "ok": true,
+  "query_mode": "formula",
+  "input": {
+    "material_id": null,
+    "formula": "GaN",
+    "elements": null,
+    "reduced_formula": "GaN"
+  },
+  "count_all": 44,
+  "items": [
+    {
+      "material_id": "mp-cfiwm",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cfiwm"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 4,
+      "density": 3.6898693122383213,
+      "volume": 75.36117196538689,
+      "energy_above_hull": 0.35355600749999905,
+      "is_stable": false,
+      "energy_per_atom": -10.60225671,
+      "formation_energy_per_atom": -0.31649339937500004,
+      "band_gap": 0.9819,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3/mmc",
+        "number": 194
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-cpgii",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cpgii"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 8,
+      "density": 6.011802048415888,
+      "volume": 92.50899265476257,
+      "energy_above_hull": 0.288500789999998,
+      "is_stable": false,
+      "energy_per_atom": -10.667311927500002,
+      "formation_energy_per_atom": -0.381548616875001,
+      "band_gap": 0.8257000000000001,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3mc",
+        "number": 186
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvnm",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvnm"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.502929429161724,
+      "volume": 1543.8442914991606,
+      "energy_above_hull": 0.658416288499999,
+      "is_stable": false,
+      "energy_per_atom": -10.297396429,
+      "formation_energy_per_atom": -0.011633118375000001,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvoe",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvoe"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.445846364785013,
+      "volume": 1563.666695569915,
+      "energy_above_hull": 0.6922918271,
+      "is_stable": false,
+      "energy_per_atom": -10.2635208904,
+      "formation_energy_per_atom": 0.022242420224999,
+      "band_gap": 0.16059999999999902,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvog",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvog"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.539397962306752,
+      "volume": 1531.441383187793,
+      "energy_above_hull": 0.705034533699999,
+      "is_stable": false,
+      "energy_per_atom": -10.250778183800001,
+      "formation_energy_per_atom": 0.034985126824999005,
+      "band_gap": 0.04870000000000001,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvoq",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvoq"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 3.021456985238695,
+      "volume": 2300.817760503616,
+      "energy_above_hull": 0.744233066999999,
+      "is_stable": false,
+      "energy_per_atom": -10.211579650500001,
+      "formation_energy_per_atom": 0.07418366012499901,
+      "band_gap": 0.0327,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvox",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvox"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 3.064031680453716,
+      "volume": 2268.8479164828636,
+      "energy_above_hull": 0.715251828899999,
+      "is_stable": false,
+      "energy_per_atom": -10.240560888600001,
+      "formation_energy_per_atom": 0.045202422024999,
+      "band_gap": 0.06910000000000001,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvpk",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvpk"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.434173095030691,
+      "volume": 1567.7831571405502,
+      "energy_above_hull": 0.6491310883000001,
+      "is_stable": false,
+      "energy_per_atom": -10.3066816292,
+      "formation_energy_per_atom": -0.020918318574999,
+      "band_gap": 0.034399999999999,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvpv",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvpv"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.716331234233764,
+      "volume": 1473.9893253838275,
+      "energy_above_hull": 0.7021790985,
+      "is_stable": false,
+      "energy_per_atom": -10.253633619,
+      "formation_energy_per_atom": 0.032129691625000005,
+      "band_gap": 0.13209999999999902,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvqc",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvqc"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.387677305495918,
+      "volume": 1584.396802729131,
+      "energy_above_hull": 0.6862479981,
+      "is_stable": false,
+      "energy_per_atom": -10.2695647194,
+      "formation_energy_per_atom": 0.016198591224999,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvrr",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvrr"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.622711023442806,
+      "volume": 1503.8408974691802,
+      "energy_above_hull": 0.6177373734,
+      "is_stable": false,
+      "energy_per_atom": -10.3380753441,
+      "formation_energy_per_atom": -0.052312033475000005,
+      "band_gap": 0.08749999999999901,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvsa",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvsa"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 3.086499099876794,
+      "volume": 2252.3323899600036,
+      "energy_above_hull": 0.7416738018000011,
+      "is_stable": false,
+      "energy_per_atom": -10.2141389157,
+      "formation_energy_per_atom": 0.071624394924999,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvsl",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvsl"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.691954142646173,
+      "volume": 1481.6474506961413,
+      "energy_above_hull": 0.631335718099999,
+      "is_stable": false,
+      "energy_per_atom": -10.324476999400002,
+      "formation_energy_per_atom": -0.038713688775001004,
+      "band_gap": 0.155699999999999,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvso",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvso"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.441805932897687,
+      "volume": 1565.0890649560106,
+      "energy_above_hull": 0.768195017,
+      "is_stable": false,
+      "energy_per_atom": -10.1876177005,
+      "formation_energy_per_atom": 0.098145610125,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvss",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvss"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.5488402243599335,
+      "volume": 1528.2624913942961,
+      "energy_above_hull": 0.6981295242000001,
+      "is_stable": false,
+      "energy_per_atom": -10.2576831933,
+      "formation_energy_per_atom": 0.028080117325,
+      "band_gap": 0.0001,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvtd",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvtd"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.482347166729931,
+      "volume": 1550.9333917360445,
+      "energy_above_hull": 0.7175379763999991,
+      "is_stable": false,
+      "energy_per_atom": -10.238274741100001,
+      "formation_energy_per_atom": 0.047488569524998005,
+      "band_gap": 0.0874,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvtu",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvtu"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.968815489834743,
+      "volume": 1399.0903684101402,
+      "energy_above_hull": 0.7067078000000001,
+      "is_stable": false,
+      "energy_per_atom": -10.2491049175,
+      "formation_energy_per_atom": 0.036658393124998,
+      "band_gap": 0.059199999999999,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvtx",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvtx"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.519558283186467,
+      "volume": 1538.1640104292653,
+      "energy_above_hull": 0.7024155227999991,
+      "is_stable": false,
+      "energy_per_atom": -10.253397194700002,
+      "formation_energy_per_atom": 0.032366115924999,
+      "band_gap": 0.002199999999999,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvuk",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvuk"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.388335853073488,
+      "volume": 1584.1590359056058,
+      "energy_above_hull": 0.7044640895000001,
+      "is_stable": false,
+      "energy_per_atom": -10.251348628,
+      "formation_energy_per_atom": 0.034414682624999006,
+      "band_gap": 0.036399999999999,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvvh",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvvh"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.143879606342291,
+      "volume": 1677.611937276121,
+      "energy_above_hull": 0.680459476500001,
+      "is_stable": false,
+      "energy_per_atom": -10.275353241,
+      "formation_energy_per_atom": 0.010410069624999001,
+      "band_gap": 0.075299999999999,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvvn",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvvn"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.841335976112652,
+      "volume": 1435.9304804573515,
+      "energy_above_hull": 0.7340944892000001,
+      "is_stable": false,
+      "energy_per_atom": -10.2217182283,
+      "formation_energy_per_atom": 0.064045082324998,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvwh",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvwh"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.183661620711854,
+      "volume": 1661.6596953775727,
+      "energy_above_hull": 0.6822655215999991,
+      "is_stable": false,
+      "energy_per_atom": -10.2735471959,
+      "formation_energy_per_atom": 0.012216114724999,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvws",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvws"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 2.825419233977375,
+      "volume": 2460.4567742142613,
+      "energy_above_hull": 0.7246973765000011,
+      "is_stable": false,
+      "energy_per_atom": -10.231115340999999,
+      "formation_energy_per_atom": 0.05464796962500001,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvxq",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvxq"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.211997711492009,
+      "volume": 1650.4809286262337,
+      "energy_above_hull": 0.6864534776999981,
+      "is_stable": false,
+      "energy_per_atom": -10.269359239800002,
+      "formation_energy_per_atom": 0.016404070824999003,
+      "band_gap": 0.09680000000000001,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvxs",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvxs"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.613256498712227,
+      "volume": 1506.922907099459,
+      "energy_above_hull": 0.6782511019,
+      "is_stable": false,
+      "energy_per_atom": -10.2775616156,
+      "formation_energy_per_atom": 0.008201695024999001,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvxy",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvxy"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.510914234137706,
+      "volume": 1541.1115205039566,
+      "energy_above_hull": 0.7056302410999991,
+      "is_stable": false,
+      "energy_per_atom": -10.250182476400001,
+      "formation_energy_per_atom": 0.035580834224999004,
+      "band_gap": 0.0099,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvyi",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvyi"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.725095453547163,
+      "volume": 1471.255334961777,
+      "energy_above_hull": 0.6774361425999991,
+      "is_stable": false,
+      "energy_per_atom": -10.278376574900001,
+      "formation_energy_per_atom": 0.007386735724999,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvyk",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvyk"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.288399049640711,
+      "volume": 1621.0762603394699,
+      "energy_above_hull": 0.732484944699999,
+      "is_stable": false,
+      "energy_per_atom": -10.223327772800001,
+      "formation_energy_per_atom": 0.062435537824999006,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvyz",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvyz"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.715695349995898,
+      "volume": 1474.1880843173951,
+      "energy_above_hull": 0.7190388972,
+      "is_stable": false,
+      "energy_per_atom": -10.2367738203,
+      "formation_energy_per_atom": 0.048989490324999004,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvzg",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvzg"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.842583354479416,
+      "volume": 1435.5606058498565,
+      "energy_above_hull": 0.692297167500001,
+      "is_stable": false,
+      "energy_per_atom": -10.26351555,
+      "formation_energy_per_atom": 0.022247760624999002,
+      "band_gap": 0.0262,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvzp",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvzp"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.665709897042528,
+      "volume": 1489.9815992934923,
+      "energy_above_hull": 0.7032842138000001,
+      "is_stable": false,
+      "energy_per_atom": -10.2525285037,
+      "formation_energy_per_atom": 0.033234806924999,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvzw",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvzw"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.485100277380716,
+      "volume": 1549.9813748411311,
+      "energy_above_hull": 0.685712142799999,
+      "is_stable": false,
+      "energy_per_atom": -10.2701005747,
+      "formation_energy_per_atom": 0.015662735925,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-cswbp",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cswbp"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.225344491811226,
+      "volume": 1645.2674823810517,
+      "energy_above_hull": 0.6488537591999991,
+      "is_stable": false,
+      "energy_per_atom": -10.306958958300001,
+      "formation_energy_per_atom": -0.021195647675001,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-cswca",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cswca"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.430693257354139,
+      "volume": 1569.014483838652,
+      "energy_above_hull": 0.7028208625000011,
+      "is_stable": false,
+      "energy_per_atom": -10.252991855,
+      "formation_energy_per_atom": 0.032771455624999,
+      "band_gap": 0.0195,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-cswco",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cswco"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.64612094585954,
+      "volume": 1496.2636520321585,
+      "energy_above_hull": 0.7122079139,
+      "is_stable": false,
+      "energy_per_atom": -10.2436048036,
+      "formation_energy_per_atom": 0.042158507024998,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-cswdq",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cswdq"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.6339321772448745,
+      "volume": 1500.1993184907033,
+      "energy_above_hull": 0.6846381122,
+      "is_stable": false,
+      "energy_per_atom": -10.2711746053,
+      "formation_energy_per_atom": 0.014588705324999,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-cswds",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cswds"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.5807635348950715,
+      "volume": 1517.6120402805607,
+      "energy_above_hull": 0.682517757799999,
+      "is_stable": false,
+      "energy_per_atom": -10.273294959700001,
+      "formation_energy_per_atom": 0.012468350924998001,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-cswdz",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cswdz"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.637231548788652,
+      "volume": 1499.1319327262993,
+      "energy_above_hull": 0.7077972144000011,
+      "is_stable": false,
+      "energy_per_atom": -10.2480155031,
+      "formation_energy_per_atom": 0.037747807524999004,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csweg",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csweg"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.27551490229357,
+      "volume": 1625.9613293607383,
+      "energy_above_hull": 0.7277775392999991,
+      "is_stable": false,
+      "energy_per_atom": -10.2280351782,
+      "formation_energy_per_atom": 0.057728132424999,
+      "band_gap": 0.08309999999999901,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-cswfe",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cswfe"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 100,
+      "density": 4.677882949535823,
+      "volume": 1486.1042846154833,
+      "energy_above_hull": 0.704239551,
+      "is_stable": false,
+      "energy_per_atom": -10.2515731665,
+      "formation_energy_per_atom": 0.034190144125,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-fupqw",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-fupqw"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 8,
+      "density": 6.659412168780616,
+      "volume": 83.51273917929397,
+      "energy_above_hull": 0.42560438375000004,
+      "is_stable": false,
+      "energy_per_atom": -10.53020833375,
+      "formation_energy_per_atom": -0.24444502312499902,
+      "band_gap": 0.188699999999999,
+      "symmetry": {
+        "crystal_system": "Tetragonal",
+        "symbol": "I4mm",
+        "number": 107
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-eft",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-eft"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 2,
+      "density": 7.141042175319921,
+      "volume": 19.47004855470821,
+      "energy_above_hull": 0.47904660250000003,
+      "is_stable": false,
+      "energy_per_atom": -10.476766115,
+      "formation_energy_per_atom": -0.191002804374999,
+      "band_gap": 0.4207,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "Fm-3m",
+        "number": 225
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-156261",
+          "icsd-157513",
+          "icsd-155050",
+          "icsd-41500"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bey",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bey"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 4,
+      "density": 6.080976820120369,
+      "volume": 45.72832358928343,
+      "energy_above_hull": 0.0,
+      "is_stable": true,
+      "energy_per_atom": -10.9558127175,
+      "formation_energy_per_atom": -0.670049406875,
+      "band_gap": 1.726499999999999,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3mc",
+        "number": 186
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-42000",
+          "icsd-87830",
+          "icsd-67769",
+          "icsd-153891",
+          "icsd-184926",
+          "icsd-153888",
+          "icsd-157398",
+          "icsd-153887",
+          "icsd-181358",
+          "icsd-54698",
+          "icsd-190424",
+          "icsd-157512",
+          "icsd-153889",
+          "icsd-634715",
+          "icsd-153890",
+          "icsd-41483",
+          "icsd-156259",
+          "icsd-25676",
+          "icsd-34476",
+          "icsd-191773",
+          "icsd-41543",
+          "icsd-41481"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bfy",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bfy"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 2,
+      "density": 6.074710678064747,
+      "volume": 22.887746471078287,
+      "energy_above_hull": 0.006731237500000001,
+      "is_stable": false,
+      "energy_per_atom": -10.94908148,
+      "formation_energy_per_atom": -0.6633181693749991,
+      "band_gap": 1.5701,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "F-43m",
+        "number": 216
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-187047",
+          "icsd-185155",
+          "icsd-41546",
+          "icsd-248504",
+          "icsd-67781",
+          "icsd-156260",
+          "icsd-191770",
+          "icsd-157511",
+          "icsd-290614",
+          "icsd-190412"
+        ]
+      }
+    }
+  ]
+}

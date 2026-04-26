@@ -1,0 +1,6 @@
+{
+    "baseline_material": "D263T 玻璃",
+    "advanced_material": "Eagle XG 玻璃",
+    "baseline_reason": "D263T玻璃热膨胀系数接近硅、介电强度达标、吸湿率极低，且成本低廉、工业应用成熟，是高性能封装中性价比最高的可靠选择。",
+    "advanced_reason": "Eagle XG玻璃的热膨胀系数（2.8 ppm/°C）最接近硅芯片，热稳定性与介电强度全面领先，适合高可靠性、高密度、高功率芯片封装，是未来AI与车规级芯片的首选高端材料。"
+}

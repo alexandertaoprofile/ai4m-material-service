@@ -1,0 +1,50 @@
+{
+  "ok": true,
+  "taskid": "react_null-9di4T6peUCNiRIDxV_HUc_s4",
+  "jobid": "Li7P3S11",
+  "material_id": null,
+  "formula": "Li7P3S11",
+  "elements": null,
+  "max_candidates": 5,
+  "prefer_stable": true,
+  "whitelist_ids": [],
+  "primary_material_id": "mp-bkngx",
+  "count_selected": 1,
+  "items": [
+    {
+      "material_id": "mp-bkngx",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bkngx"
+      ],
+      "formula_pretty": "Li7P3S11",
+      "elements": [
+        "Li",
+        "P",
+        "S"
+      ],
+      "chemsys": "Li-P-S",
+      "nsites": 42,
+      "density": 1.872052270206949,
+      "volume": 876.7672645547459,
+      "energy_above_hull": 0.019883183531745,
+      "is_stable": false,
+      "energy_per_atom": -4.665292341666666,
+      "formation_energy_per_atom": -1.088137318798185,
+      "band_gap": 2.4883,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P-1",
+        "number": 2
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-157654"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-9di4T6peUCNiRIDxV_HUc_s4/Li7P3S11/structures/mp-bkngx.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-9di4T6peUCNiRIDxV_HUc_s4/Li7P3S11/structures/mp-bkngx.cif"
+    }
+  ]
+}

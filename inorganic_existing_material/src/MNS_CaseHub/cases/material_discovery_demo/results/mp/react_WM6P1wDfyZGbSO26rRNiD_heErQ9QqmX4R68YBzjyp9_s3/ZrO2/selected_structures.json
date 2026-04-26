@@ -1,0 +1,274 @@
+{
+  "ok": true,
+  "taskid": "react_WM6P1wDfyZGbSO26rRNiD/heErQ9QqmX4R68YBzjyp9_s3",
+  "jobid": "ZrO2",
+  "material_id": null,
+  "formula": "ZrO2",
+  "elements": null,
+  "max_candidates": 5,
+  "prefer_stable": true,
+  "whitelist_ids": [],
+  "primary_material_id": "mp-efy",
+  "count_selected": 5,
+  "items": [
+    {
+      "material_id": "mp-efy",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-efy"
+      ],
+      "formula_pretty": "ZrO2",
+      "elements": [
+        "O",
+        "Zr"
+      ],
+      "chemsys": "O-Zr",
+      "nsites": 12,
+      "density": 5.777331384412114,
+      "volume": 141.66836532722778,
+      "energy_above_hull": 0.0,
+      "is_stable": true,
+      "energy_per_atom": -9.961491968333332,
+      "formation_energy_per_atom": -3.813617754999999,
+      "band_gap": 3.5322,
+      "symmetry": {
+        "crystal_system": "Monoclinic",
+        "symbol": "P2_1/c",
+        "number": 14
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-80042",
+          "icsd-248445",
+          "icsd-80044",
+          "icsd-80047",
+          "icsd-82544",
+          "icsd-647691",
+          "icsd-80046",
+          "icsd-185125",
+          "icsd-60901",
+          "icsd-173959",
+          "icsd-18190",
+          "icsd-96537",
+          "icsd-26488",
+          "icsd-80049",
+          "icsd-86692",
+          "icsd-172161",
+          "icsd-15983",
+          "icsd-57158",
+          "icsd-89426",
+          "icsd-291451",
+          "icsd-659226",
+          "icsd-248446",
+          "icsd-157403",
+          "icsd-57451",
+          "icsd-41010",
+          "icsd-291120",
+          "icsd-80043",
+          "icsd-80045",
+          "icsd-417639",
+          "icsd-62993",
+          "icsd-658755",
+          "icsd-94886",
+          "icsd-80050",
+          "icsd-60900",
+          "icsd-187208",
+          "icsd-82545",
+          "icsd-187207",
+          "icsd-68782",
+          "icsd-237008",
+          "icsd-187209",
+          "icsd-94887",
+          "icsd-41572",
+          "icsd-82543",
+          "icsd-186674",
+          "icsd-57157",
+          "icsd-80048"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_WM6P1wDfyZGbSO26rRNiD_heErQ9QqmX4R68YBzjyp9_s3/ZrO2/structures/mp-efy.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_WM6P1wDfyZGbSO26rRNiD_heErQ9QqmX4R68YBzjyp9_s3/ZrO2/structures/mp-efy.cif"
+    },
+    {
+      "material_id": "mp-bsens",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bsens"
+      ],
+      "formula_pretty": "ZrO2",
+      "elements": [
+        "O",
+        "Zr"
+      ],
+      "chemsys": "O-Zr",
+      "nsites": 24,
+      "density": 5.781420117936309,
+      "volume": 283.1363493699907,
+      "energy_above_hull": 0.009497303333333,
+      "is_stable": false,
+      "energy_per_atom": -9.951994664999999,
+      "formation_energy_per_atom": -3.804120451666666,
+      "band_gap": 3.54,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Pbca",
+        "number": 61
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_WM6P1wDfyZGbSO26rRNiD_heErQ9QqmX4R68YBzjyp9_s3/ZrO2/structures/mp-bsens.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_WM6P1wDfyZGbSO26rRNiD_heErQ9QqmX4R68YBzjyp9_s3/ZrO2/structures/mp-bsens.cif"
+    },
+    {
+      "material_id": "mp-cpsqk",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cpsqk"
+      ],
+      "formula_pretty": "ZrO2",
+      "elements": [
+        "O",
+        "Zr"
+      ],
+      "chemsys": "O-Zr",
+      "nsites": 24,
+      "density": 6.03484036251742,
+      "volume": 271.2466425017191,
+      "energy_above_hull": 0.013256612916665002,
+      "is_stable": false,
+      "energy_per_atom": -9.948235355416667,
+      "formation_energy_per_atom": -3.800361142083333,
+      "band_gap": 3.579399999999999,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Pbca",
+        "number": 61
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-248449",
+          "icsd-173960"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_WM6P1wDfyZGbSO26rRNiD_heErQ9QqmX4R68YBzjyp9_s3/ZrO2/structures/mp-cpsqk.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_WM6P1wDfyZGbSO26rRNiD_heErQ9QqmX4R68YBzjyp9_s3/ZrO2/structures/mp-cpsqk.cif"
+    },
+    {
+      "material_id": "mp-bfrjx",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bfrjx"
+      ],
+      "formula_pretty": "ZrO2",
+      "elements": [
+        "O",
+        "Zr"
+      ],
+      "chemsys": "O-Zr",
+      "nsites": 12,
+      "density": 5.984314861505894,
+      "volume": 136.76838738017122,
+      "energy_above_hull": 0.016660947500000002,
+      "is_stable": false,
+      "energy_per_atom": -9.944831020833332,
+      "formation_energy_per_atom": -3.796956807499999,
+      "band_gap": 3.690699999999999,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Pca2_1",
+        "number": 29
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-67004"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_WM6P1wDfyZGbSO26rRNiD_heErQ9QqmX4R68YBzjyp9_s3/ZrO2/structures/mp-bfrjx.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_WM6P1wDfyZGbSO26rRNiD_heErQ9QqmX4R68YBzjyp9_s3/ZrO2/structures/mp-bfrjx.cif"
+    },
+    {
+      "material_id": "mp-dva",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-dva"
+      ],
+      "formula_pretty": "ZrO2",
+      "elements": [
+        "O",
+        "Zr"
+      ],
+      "chemsys": "O-Zr",
+      "nsites": 6,
+      "density": 6.042619614291532,
+      "volume": 67.72436008114629,
+      "energy_above_hull": 0.027125123333330003,
+      "is_stable": false,
+      "energy_per_atom": -9.934366845000001,
+      "formation_energy_per_atom": -3.786492631666667,
+      "band_gap": 3.8514,
+      "symmetry": {
+        "crystal_system": "Tetragonal",
+        "symbol": "P4_2/nmc",
+        "number": 137
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-647692",
+          "icsd-66784",
+          "icsd-66782",
+          "icsd-93125",
+          "icsd-655671",
+          "icsd-180936",
+          "icsd-66787",
+          "icsd-93033",
+          "icsd-92093",
+          "icsd-68589",
+          "icsd-66786",
+          "icsd-93032",
+          "icsd-51051",
+          "icsd-68781",
+          "icsd-164736",
+          "icsd-23928",
+          "icsd-248447",
+          "icsd-97004",
+          "icsd-93031",
+          "icsd-248448",
+          "icsd-93126",
+          "icsd-92091",
+          "icsd-88022",
+          "icsd-185124",
+          "icsd-66788",
+          "icsd-93030",
+          "icsd-157621",
+          "icsd-157618",
+          "icsd-237007",
+          "icsd-157619",
+          "icsd-93123",
+          "icsd-66785",
+          "icsd-173961",
+          "icsd-93124",
+          "icsd-186673",
+          "icsd-94931",
+          "icsd-66789",
+          "icsd-66781",
+          "icsd-92092",
+          "icsd-291452",
+          "icsd-93029",
+          "icsd-92090",
+          "icsd-93028",
+          "icsd-164862",
+          "icsd-85322",
+          "icsd-157620",
+          "icsd-9993",
+          "icsd-66783"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_WM6P1wDfyZGbSO26rRNiD_heErQ9QqmX4R68YBzjyp9_s3/ZrO2/structures/mp-dva.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_WM6P1wDfyZGbSO26rRNiD_heErQ9QqmX4R68YBzjyp9_s3/ZrO2/structures/mp-dva.cif"
+    }
+  ]
+}

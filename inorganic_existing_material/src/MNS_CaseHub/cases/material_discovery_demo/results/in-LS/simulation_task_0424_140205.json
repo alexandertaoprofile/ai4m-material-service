@@ -1,0 +1,6 @@
+{
+    "baseline_material": "Cu",
+    "advanced_material": "nano-Cu",
+    "baseline_reason": "采用成熟电镀工艺与Ti/Ni界面层，实现高致密填充与可靠冶金结合，成本低、兼容现有封装产线，适合大规模量产场景。",
+    "advanced_reason": "纳米晶铜提升声子输运效率，CrN/TiN梯度缓冲层显著抑制热应力与界面脱粘，实测热导率更高、温域稳定性更优，适用于高端电子与严苛环境应用。"
+}

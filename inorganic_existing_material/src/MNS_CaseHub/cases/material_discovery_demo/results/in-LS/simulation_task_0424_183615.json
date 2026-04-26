@@ -1,0 +1,6 @@
+{
+    "baseline_material": "C21H25ClO5",
+    "advanced_material": "C21H25ClO5",
+    "baseline_reason": "成熟量产、成本低、工艺兼容性极佳，满足基本绝缘与可加工性要求，适合中低功率AI芯片封装，是行业主流安全选择。",
+    "advanced_reason": "通过纳米AlN填料实现热导率翻倍、CTE逼近硅材料，同时保持高绝缘与精密加工能力，专为高功率密度（>200 W/cm²）AI芯片设计，支撑3D IC与CoWoS等先进封装架构。"
+}

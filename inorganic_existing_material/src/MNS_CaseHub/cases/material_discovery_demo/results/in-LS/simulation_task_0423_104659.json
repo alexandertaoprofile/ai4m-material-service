@@ -1,0 +1,6 @@
+{
+    "baseline_material": "Schott D263®",
+    "advanced_material": "SiO2",
+    "baseline_reason": "成本低、工艺成熟、良率高，通过金属复合结构满足热导率与信号完整性核心需求，适合大规模量产AI芯片。",
+    "advanced_reason": "具备超低CTE、更低Dk/Df、更高加工精度，支持3μm线宽与12:1通孔，是高端AI训练芯片与HBM堆叠的理想基板材料。"
+}

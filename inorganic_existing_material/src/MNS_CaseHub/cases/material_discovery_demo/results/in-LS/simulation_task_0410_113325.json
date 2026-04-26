@@ -1,0 +1,10 @@
+{
+    "simulation_task": {
+        "baseline_material": "Li3YCl6",
+        "advanced_material": "Li2ZrCl6",
+        "simulation_parameters": {
+            "temp_range": "193K-423K",
+            "stability": "良好"
+        }
+    }
+}

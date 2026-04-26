@@ -1,0 +1,6 @@
+{
+    "baseline_material": "Solvation Free Energy Database for Macrolides v3.2 (SFED-M3.2)",
+    "advanced_material": "Molecular Dynamics with Polarizable Force Field (MD-PFF) for Erythromycin Derivatives v2.1",
+    "baseline_reason": "提供20–60°C下四氢呋喃/水（1:2,v/v）体系中琥乙红霉素的实验测得溶解度、摇瓶法logP、氢键官能团统计及COSMO-RS计算的ΔG_solv，数据经多实验室验证，符合药典合规要求，是注册申报的黄金标准。",
+    "advanced_reason": "基于AMOEBA+极化力场的分子动力学模拟平台，可动态分析氢键网络演化、溶剂化壳层结构与温度依赖的ΔG_solv漂移，精度达±0.5 kcal/mol，能解释异常溶解行为并预测结晶倾向，适用于新剂型开发与工艺优化。"
+}

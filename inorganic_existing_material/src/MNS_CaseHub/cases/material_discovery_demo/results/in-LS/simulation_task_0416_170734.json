@@ -1,0 +1,6 @@
+{
+    "baseline_material": "EAGLE XG",
+    "advanced_material": "D263T",
+    "baseline_reason": "EAGLE XG是全球量产最成熟的低碱高硅氧玻璃，CTE、表面粗糙度、杂质水平均满足核心指标，工艺兼容性极佳，成本可控，适合大规模芯片封装应用。",
+    "advanced_reason": "D263T在CTE、介电性能、杂质控制和耐热性上全面优于EAGLE XG，尤其适合高频、高可靠性芯片（如车规、5G射频），是当前可量产材料中性能天花板的代表。"
+}

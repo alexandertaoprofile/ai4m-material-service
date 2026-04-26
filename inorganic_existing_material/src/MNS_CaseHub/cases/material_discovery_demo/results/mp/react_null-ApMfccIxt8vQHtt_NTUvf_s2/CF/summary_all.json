@@ -1,0 +1,76 @@
+{
+  "ok": true,
+  "query_mode": "formula",
+  "input": {
+    "material_id": null,
+    "formula": "CF",
+    "elements": null,
+    "reduced_formula": "CF"
+  },
+  "count_all": 2,
+  "items": [
+    {
+      "material_id": "mp-crcck",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-crcck"
+      ],
+      "formula_pretty": "CF",
+      "elements": [
+        "C",
+        "F"
+      ],
+      "chemsys": "C-F",
+      "nsites": 48,
+      "density": 2.086242522748225,
+      "volume": 592.3586741890442,
+      "energy_above_hull": 0.30745999968749904,
+      "is_stable": false,
+      "energy_per_atom": -7.419275074062501,
+      "formation_energy_per_atom": -0.882643504062501,
+      "band_gap": 4.467,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3/m",
+        "number": 176
+      },
+      "database_IDs": {
+        "pf": [
+          "pf-36431",
+          "pf-10632"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-crccy",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-crccy"
+      ],
+      "formula_pretty": "CF",
+      "elements": [
+        "C",
+        "F"
+      ],
+      "chemsys": "C-F",
+      "nsites": 64,
+      "density": 1.954114965229593,
+      "volume": 843.2147045601266,
+      "energy_above_hull": 0.38806399828125004,
+      "is_stable": false,
+      "energy_per_atom": -7.33867107546875,
+      "formation_energy_per_atom": -0.802039505468749,
+      "band_gap": 3.208599999999999,
+      "symmetry": {
+        "crystal_system": "Monoclinic",
+        "symbol": "P2_1/c",
+        "number": 14
+      },
+      "database_IDs": {
+        "pf": [
+          "pf-4736"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "query_mode": "formula",
+  "input": {
+    "material_id": null,
+    "formula": "C15H12F2O4",
+    "elements": null,
+    "reduced_formula": "H12C15(O2F)2"
+  },
+  "count_all": 0,
+  "items": []
+}

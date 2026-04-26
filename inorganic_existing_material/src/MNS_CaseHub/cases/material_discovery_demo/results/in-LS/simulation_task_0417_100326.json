@@ -1,0 +1,6 @@
+{
+    "baseline_material": "Li₂O–Al₂O₃–SiO₂（LAS）-ZrO₂改性玻璃（3.5Li₂O–5Al₂O₃–91.5SiO₂ + 1.5ZrO₂）",
+    "advanced_material": "Li₂O–Al₂O₃–SiO₂–TiO₂–ZrO₂复合玻璃（2.8Li₂O–6.2Al₂O₃–88.5SiO₂ + 1.2TiO₂ + 1.3ZrO₂）",
+    "baseline_reason": "CTE 2.3 ppm/°C、软化点625°C、激光加工性良好，已通过中芯国际中试验证，国产化程度高，成本可控，2026年可量产，是替代有机基板的最优平衡选择。",
+    "advanced_reason": "CTE低至2.0 ppm/°C，Dk/Df更优，支持飞秒激光直写RDL，机械韧性与杂质控制达行业顶尖，适用于5nm以下AI/HPC芯片，虽成本高但性能领先，是未来高端封装的必选项。"
+}

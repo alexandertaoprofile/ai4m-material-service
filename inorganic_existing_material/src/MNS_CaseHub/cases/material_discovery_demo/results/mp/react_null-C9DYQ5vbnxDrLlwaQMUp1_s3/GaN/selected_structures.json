@@ -1,0 +1,203 @@
+{
+  "ok": true,
+  "taskid": "react_null-C9DYQ5vbnxDrLlwaQMUp1_s3",
+  "jobid": "GaN",
+  "material_id": null,
+  "formula": "GaN",
+  "elements": null,
+  "max_candidates": 5,
+  "prefer_stable": true,
+  "whitelist_ids": [],
+  "primary_material_id": "mp-bey",
+  "count_selected": 5,
+  "items": [
+    {
+      "material_id": "mp-bey",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bey"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 4,
+      "density": 6.080976820120369,
+      "volume": 45.72832358928343,
+      "energy_above_hull": 0.0,
+      "is_stable": true,
+      "energy_per_atom": -10.9558127175,
+      "formation_energy_per_atom": -0.670049406875,
+      "band_gap": 1.726499999999999,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3mc",
+        "number": 186
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-42000",
+          "icsd-87830",
+          "icsd-67769",
+          "icsd-153891",
+          "icsd-184926",
+          "icsd-153888",
+          "icsd-157398",
+          "icsd-153887",
+          "icsd-181358",
+          "icsd-54698",
+          "icsd-190424",
+          "icsd-157512",
+          "icsd-153889",
+          "icsd-634715",
+          "icsd-153890",
+          "icsd-41483",
+          "icsd-156259",
+          "icsd-25676",
+          "icsd-34476",
+          "icsd-191773",
+          "icsd-41543",
+          "icsd-41481"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-C9DYQ5vbnxDrLlwaQMUp1_s3/GaN/structures/mp-bey.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-C9DYQ5vbnxDrLlwaQMUp1_s3/GaN/structures/mp-bey.cif"
+    },
+    {
+      "material_id": "mp-bfy",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bfy"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 2,
+      "density": 6.074710678064747,
+      "volume": 22.887746471078287,
+      "energy_above_hull": 0.006731237500000001,
+      "is_stable": false,
+      "energy_per_atom": -10.94908148,
+      "formation_energy_per_atom": -0.6633181693749991,
+      "band_gap": 1.5701,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "F-43m",
+        "number": 216
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-187047",
+          "icsd-185155",
+          "icsd-41546",
+          "icsd-248504",
+          "icsd-67781",
+          "icsd-156260",
+          "icsd-191770",
+          "icsd-157511",
+          "icsd-290614",
+          "icsd-190412"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-C9DYQ5vbnxDrLlwaQMUp1_s3/GaN/structures/mp-bfy.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-C9DYQ5vbnxDrLlwaQMUp1_s3/GaN/structures/mp-bfy.cif"
+    },
+    {
+      "material_id": "mp-cpgii",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cpgii"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 8,
+      "density": 6.011802048415888,
+      "volume": 92.50899265476257,
+      "energy_above_hull": 0.288500789999998,
+      "is_stable": false,
+      "energy_per_atom": -10.667311927500002,
+      "formation_energy_per_atom": -0.381548616875001,
+      "band_gap": 0.8257000000000001,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3mc",
+        "number": 186
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-C9DYQ5vbnxDrLlwaQMUp1_s3/GaN/structures/mp-cpgii.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-C9DYQ5vbnxDrLlwaQMUp1_s3/GaN/structures/mp-cpgii.cif"
+    },
+    {
+      "material_id": "mp-cfiwm",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cfiwm"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 4,
+      "density": 3.6898693122383213,
+      "volume": 75.36117196538689,
+      "energy_above_hull": 0.35355600749999905,
+      "is_stable": false,
+      "energy_per_atom": -10.60225671,
+      "formation_energy_per_atom": -0.31649339937500004,
+      "band_gap": 0.9819,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3/mmc",
+        "number": 194
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-C9DYQ5vbnxDrLlwaQMUp1_s3/GaN/structures/mp-cfiwm.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-C9DYQ5vbnxDrLlwaQMUp1_s3/GaN/structures/mp-cfiwm.cif"
+    },
+    {
+      "material_id": "mp-fupqw",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-fupqw"
+      ],
+      "formula_pretty": "GaN",
+      "elements": [
+        "Ga",
+        "N"
+      ],
+      "chemsys": "Ga-N",
+      "nsites": 8,
+      "density": 6.659412168780616,
+      "volume": 83.51273917929397,
+      "energy_above_hull": 0.42560438375000004,
+      "is_stable": false,
+      "energy_per_atom": -10.53020833375,
+      "formation_energy_per_atom": -0.24444502312499902,
+      "band_gap": 0.188699999999999,
+      "symmetry": {
+        "crystal_system": "Tetragonal",
+        "symbol": "I4mm",
+        "number": 107
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-C9DYQ5vbnxDrLlwaQMUp1_s3/GaN/structures/mp-fupqw.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-C9DYQ5vbnxDrLlwaQMUp1_s3/GaN/structures/mp-fupqw.cif"
+    }
+  ]
+}

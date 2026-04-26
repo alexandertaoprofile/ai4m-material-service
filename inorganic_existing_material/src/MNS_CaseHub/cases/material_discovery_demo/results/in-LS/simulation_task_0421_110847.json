@@ -1,0 +1,13 @@
+{
+    "screening_task": {
+        "baseline_material": "FR-4",
+        "advanced_material": "TU-872",
+        "verification_parameters": {
+            "freq_range": "DC-10GHz",
+            "dk_target": 4.3,
+            "df_target": 0.02,
+            "tg_requirement": 170
+        },
+        "material_type": "organic"
+    }
+}

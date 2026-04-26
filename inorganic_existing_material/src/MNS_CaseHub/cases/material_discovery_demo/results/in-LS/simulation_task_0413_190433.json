@@ -1,0 +1,6 @@
+{
+    "baseline_material": "氮化铝（AlN）陶瓷",
+    "advanced_material": "六方氮化硼/氮化铝纳米复合陶瓷（h-BN/AlN）",
+    "baseline_reason": "导热性达标（170–190 W/m·K）、CTE匹配良好、绝缘性优异、工艺成熟、成本可控，是当前台积电CoWoS等主流封装的工业标准选择，适合大规模量产。",
+    "advanced_reason": "导热性突破200 W/m·K、CTE更接近硅芯片（3–4 ppm/K）、绝缘性更强、纳米结构显著提升热循环韧性，虽成本高但代表2024年AMD 3D V-Cache等前沿封装的下一代技术方向。"
+}

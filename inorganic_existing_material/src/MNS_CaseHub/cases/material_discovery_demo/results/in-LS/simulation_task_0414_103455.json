@@ -1,0 +1,10 @@
+{
+    "simulation_task": {
+        "baseline_material": "Li6PS5Cl",
+        "advanced_material": "Li7P3S11",
+        "simulation_parameters": {
+            "temp_range": "223K-353K",
+            "stability": "一般"
+        }
+    }
+}

@@ -1,0 +1,6 @@
+{
+    "baseline_material": "Al2O3",
+    "advanced_material": "AlN",
+    "baseline_reason": "成本低、工艺成熟、绝缘性优异、密度达标，虽热导率不足，但可作为结构基板与复合散热方案协同使用，适合量产和成本敏感场景。",
+    "advanced_reason": "热导率远超100 W/m·K，CTE与芯片匹配极佳，绝缘性更强、密度更低，是应对100–500 W/cm²高功率密度AI芯片的理想主散热基板，适用于高端2.5D/3D封装。"
+}

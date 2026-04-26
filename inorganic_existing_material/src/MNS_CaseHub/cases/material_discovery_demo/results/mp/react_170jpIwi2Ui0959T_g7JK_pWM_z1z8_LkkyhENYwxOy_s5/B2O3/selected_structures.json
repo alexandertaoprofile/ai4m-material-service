@@ -1,0 +1,178 @@
+{
+  "ok": true,
+  "taskid": "react_170jpIwi2Ui0959T_g7JK/pWM_z1z8_LkkyhENYwxOy_s5",
+  "jobid": "B2O3",
+  "material_id": null,
+  "formula": "B2O3",
+  "elements": null,
+  "max_candidates": 5,
+  "prefer_stable": true,
+  "whitelist_ids": [],
+  "primary_material_id": "mp-lu",
+  "count_selected": 5,
+  "items": [
+    {
+      "material_id": "mp-lu",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-lu"
+      ],
+      "formula_pretty": "B2O3",
+      "elements": [
+        "B",
+        "O"
+      ],
+      "chemsys": "B-O",
+      "nsites": 15,
+      "density": 2.561902772718296,
+      "volume": 135.3764045815366,
+      "energy_above_hull": 0.0,
+      "is_stable": true,
+      "energy_per_atom": -8.438589621333334,
+      "formation_energy_per_atom": -2.798056310000001,
+      "band_gap": 6.3017,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "P3_121",
+        "number": 152
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-252682",
+          "icsd-16021",
+          "icsd-252683",
+          "icsd-51575",
+          "icsd-252681",
+          "icsd-252684"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_170jpIwi2Ui0959T_g7JK_pWM_z1z8_LkkyhENYwxOy_s5/B2O3/structures/mp-lu.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_170jpIwi2Ui0959T_g7JK_pWM_z1z8_LkkyhENYwxOy_s5/B2O3/structures/mp-lu.cif"
+    },
+    {
+      "material_id": "mp-bbp",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bbp"
+      ],
+      "formula_pretty": "B2O3",
+      "elements": [
+        "B",
+        "O"
+      ],
+      "chemsys": "B-O",
+      "nsites": 10,
+      "density": 3.098707675229485,
+      "volume": 74.61630731428222,
+      "energy_above_hull": 0.005631319333332,
+      "is_stable": false,
+      "energy_per_atom": -8.432958302000001,
+      "formation_energy_per_atom": -2.7924249906666683,
+      "band_gap": 8.3751,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Cmc2_1",
+        "number": 36
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-34685"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_170jpIwi2Ui0959T_g7JK_pWM_z1z8_LkkyhENYwxOy_s5/B2O3/structures/mp-bbp.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_170jpIwi2Ui0959T_g7JK_pWM_z1z8_LkkyhENYwxOy_s5/B2O3/structures/mp-bbp.cif"
+    },
+    {
+      "material_id": "mp-csvtp",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvtp"
+      ],
+      "formula_pretty": "B2O3",
+      "elements": [
+        "B",
+        "O"
+      ],
+      "chemsys": "B-O",
+      "nsites": 100,
+      "density": 1.806635430046207,
+      "volume": 1279.8051024945007,
+      "energy_above_hull": 0.06316981453333301,
+      "is_stable": false,
+      "energy_per_atom": -8.3754198068,
+      "formation_energy_per_atom": -2.7348864954666663,
+      "band_gap": 4.1254,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_170jpIwi2Ui0959T_g7JK_pWM_z1z8_LkkyhENYwxOy_s5/B2O3/structures/mp-csvtp.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_170jpIwi2Ui0959T_g7JK_pWM_z1z8_LkkyhENYwxOy_s5/B2O3/structures/mp-csvtp.cif"
+    },
+    {
+      "material_id": "mp-csvzt",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvzt"
+      ],
+      "formula_pretty": "B2O3",
+      "elements": [
+        "B",
+        "O"
+      ],
+      "chemsys": "B-O",
+      "nsites": 100,
+      "density": 1.745736772634502,
+      "volume": 1324.4500992158262,
+      "energy_above_hull": 0.10844175563333201,
+      "is_stable": false,
+      "energy_per_atom": -8.3301478657,
+      "formation_energy_per_atom": -2.689614554366667,
+      "band_gap": 4.1765,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_170jpIwi2Ui0959T_g7JK_pWM_z1z8_LkkyhENYwxOy_s5/B2O3/structures/mp-csvzt.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_170jpIwi2Ui0959T_g7JK_pWM_z1z8_LkkyhENYwxOy_s5/B2O3/structures/mp-csvzt.cif"
+    },
+    {
+      "material_id": "mp-cswau",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cswau"
+      ],
+      "formula_pretty": "B2O3",
+      "elements": [
+        "B",
+        "O"
+      ],
+      "chemsys": "B-O",
+      "nsites": 100,
+      "density": 1.5932146122464812,
+      "volume": 1451.2428042950805,
+      "energy_above_hull": 0.122094425133333,
+      "is_stable": false,
+      "energy_per_atom": -8.3164951962,
+      "formation_energy_per_atom": -2.675961884866666,
+      "band_gap": 4.4300999999999995,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_170jpIwi2Ui0959T_g7JK_pWM_z1z8_LkkyhENYwxOy_s5/B2O3/structures/mp-cswau.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_170jpIwi2Ui0959T_g7JK_pWM_z1z8_LkkyhENYwxOy_s5/B2O3/structures/mp-cswau.cif"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+    "baseline_material": "氮化铝（AlN）",
+    "advanced_material": "氮化硅（Si₃N₄）",
+    "baseline_reason": "热导率接近目标上限（220 W/m·K），CTE与硅匹配度最优（偏差<0.7 ppm/K），工艺成熟、成本可控，是当前先进封装的工业标准选择。",
+    "advanced_reason": "虽热导率略低、CTE偏差稍大，但具备超高断裂韧性（>5 MPa·m¹/²）、极佳绝缘性（>10¹⁶ Ω·cm）和耐热稳定性，适合高可靠性、高应力的Chiplet与航天级封装场景。"
+}

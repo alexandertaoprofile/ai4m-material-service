@@ -1,0 +1,6 @@
+{
+    "baseline_material": "Corning ULE®",
+    "advanced_material": "Hoya F-SiO₂",
+    "baseline_reason": "成熟量产、工艺兼容性好、成本可控，在亚微米厚度下稳定可靠，适合首次工程验证与2.5D封装场景。",
+    "advanced_reason": "超纯度、原子级平整、超低光损耗与离子迁移率，支持400°C高温工艺，专为3D堆叠与硅光子集成设计，代表当前材料性能边界。"
+}

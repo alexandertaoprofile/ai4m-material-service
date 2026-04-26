@@ -1,0 +1,75 @@
+{
+  "ok": true,
+  "taskid": "react_null-dlKbXDUV1wUPNP-pQUk0b_s2",
+  "jobid": "TaC",
+  "material_id": null,
+  "formula": "TaC",
+  "elements": null,
+  "query": {
+    "query_mode": "formula",
+    "prefer_stable": true,
+    "max_candidates": 5,
+    "whitelist": null,
+    "whitelist_ids": [],
+    "primary_material_id": "mp-bpu"
+  },
+  "render": {
+    "supercell": [
+      1,
+      1,
+      1
+    ],
+    "atom_radius": 0.4,
+    "bond_radius": 0.07,
+    "max_bonds_per_site": null,
+    "poly_mode": "p",
+    "poly_cn": [
+      4
+    ],
+    "poly_alpha": 85
+  },
+  "base_dir": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-dlKbXDUV1wUPNP-pQUk0b_s2/TaC",
+  "base_dir_rel_to_repo": "src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-dlKbXDUV1wUPNP-pQUk0b_s2/TaC",
+  "files": {
+    "summary_all_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-dlKbXDUV1wUPNP-pQUk0b_s2/TaC/summary_all.json",
+    "selected_structures_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-dlKbXDUV1wUPNP-pQUk0b_s2/TaC/selected_structures.json",
+    "summary_md": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-dlKbXDUV1wUPNP-pQUk0b_s2/TaC/summary.md",
+    "structures_dir": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-dlKbXDUV1wUPNP-pQUk0b_s2/TaC/structures",
+    "structure_cif": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-dlKbXDUV1wUPNP-pQUk0b_s2/TaC/structure.cif",
+    "structure_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-dlKbXDUV1wUPNP-pQUk0b_s2/TaC/structure.json",
+    "structure_glb": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-dlKbXDUV1wUPNP-pQUk0b_s2/TaC/structure_mpstyle.glb",
+    "manifest_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-dlKbXDUV1wUPNP-pQUk0b_s2/TaC/manifest.json"
+  },
+  "files_abs": {
+    "summary_all_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-dlKbXDUV1wUPNP-pQUk0b_s2/TaC/summary_all.json",
+    "selected_structures_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-dlKbXDUV1wUPNP-pQUk0b_s2/TaC/selected_structures.json",
+    "summary_md": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-dlKbXDUV1wUPNP-pQUk0b_s2/TaC/summary.md",
+    "structures_dir": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-dlKbXDUV1wUPNP-pQUk0b_s2/TaC/structures",
+    "structure_cif": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-dlKbXDUV1wUPNP-pQUk0b_s2/TaC/structure.cif",
+    "structure_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-dlKbXDUV1wUPNP-pQUk0b_s2/TaC/structure.json",
+    "structure_glb": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-dlKbXDUV1wUPNP-pQUk0b_s2/TaC/structure_mpstyle.glb",
+    "manifest_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-dlKbXDUV1wUPNP-pQUk0b_s2/TaC/manifest.json"
+  },
+  "glb_info": {
+    "ok": true,
+    "out_glb": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-dlKbXDUV1wUPNP-pQUk0b_s2/TaC/structure_mpstyle.glb",
+    "standardized": true,
+    "supercell": [
+      1,
+      1,
+      1
+    ],
+    "draw_atoms": true,
+    "draw_bonds": true,
+    "poly_mode": "p",
+    "poly_centers": [],
+    "poly_cn": [
+      4
+    ],
+    "poly_alpha": 85,
+    "n_sites": 8,
+    "n_bonds": 36,
+    "n_polyhedra": 0
+  },
+  "generated_at": "2026-04-17T17:38:16.352556"
+}

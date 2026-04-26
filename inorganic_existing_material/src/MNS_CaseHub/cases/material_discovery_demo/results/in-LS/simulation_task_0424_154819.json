@@ -1,0 +1,6 @@
+{
+    "baseline_material": "AlN",
+    "advanced_material": "Si₃N₄",
+    "baseline_reason": "导热系数达标（200 W/m·K）、CTE匹配硅基板、绝缘性优异、工艺成熟、成本可控，是当前AI封装量产的黄金标准材料。",
+    "advanced_reason": "通过晶界工程实现导热>210 W/m·K，CTE近乎完美匹配硅（3.0 ppm/°C），绝缘性更强，热循环寿命超10000次，适合对可靠性与性能有极致要求的高端AI芯片。"
+}

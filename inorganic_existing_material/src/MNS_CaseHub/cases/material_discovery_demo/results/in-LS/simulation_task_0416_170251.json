@@ -1,0 +1,6 @@
+{
+    "baseline_material": "Corning EAGLE XG®",
+    "advanced_material": "Schott AF32®",
+    "baseline_reason": "全球量产成熟、良率高、供应链稳定、性能完全满足JEDEC/SEMI标准，是当前2.5D封装的工业首选，风险最低。",
+    "advanced_reason": "CTE更接近硅晶圆、介电损耗更低、可支持超薄（40μm）与高频（>10GHz）封装，代表下一代高性能基板技术方向，适合前沿应用。"
+}

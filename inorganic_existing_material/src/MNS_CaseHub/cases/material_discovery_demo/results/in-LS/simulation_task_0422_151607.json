@@ -1,0 +1,6 @@
+{
+    "baseline_material": "Corning® EAGLE XG®",
+    "advanced_material": "Schott® AF32®",
+    "baseline_reason": "具备良好的CTE匹配性、成熟的量产工艺、稳定的供应链和优异的环保合规性，是当前最可靠且经济的高性能玻璃基板选择，适合主流封装需求。",
+    "advanced_reason": "通过微晶结构实现接近硅的CTE、更高的热导率与断裂韧性，支持更薄厚度与更低介电损耗，是面向5G、AI和车规级高端封装的下一代理想材料，性能全面领先。"
+}

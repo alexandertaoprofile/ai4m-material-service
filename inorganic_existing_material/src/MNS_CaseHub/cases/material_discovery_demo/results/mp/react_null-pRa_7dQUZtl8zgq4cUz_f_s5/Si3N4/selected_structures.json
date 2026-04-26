@@ -1,0 +1,229 @@
+{
+  "ok": true,
+  "taskid": "react_null-pRa_7dQUZtl8zgq4cUz_f_s5",
+  "jobid": "Si3N4",
+  "material_id": null,
+  "formula": "Si3N4",
+  "elements": null,
+  "max_candidates": 5,
+  "prefer_stable": true,
+  "whitelist_ids": [],
+  "primary_material_id": "mp-bma",
+  "count_selected": 5,
+  "items": [
+    {
+      "material_id": "mp-bma",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bma"
+      ],
+      "formula_pretty": "Si3N4",
+      "elements": [
+        "N",
+        "Si"
+      ],
+      "chemsys": "N-Si",
+      "nsites": 14,
+      "density": 3.202079639858874,
+      "volume": 145.49663109055865,
+      "energy_above_hull": 0.0,
+      "is_stable": true,
+      "energy_per_atom": -10.297557244285715,
+      "formation_energy_per_atom": -1.320943462857144,
+      "band_gap": 4.2503,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3/m",
+        "number": 176
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-79798",
+          "icsd-34023",
+          "icsd-98634",
+          "icsd-644680",
+          "icsd-98635",
+          "icsd-100135",
+          "icsd-16818",
+          "icsd-35570",
+          "icsd-187736",
+          "icsd-170005",
+          "icsd-170004",
+          "icsd-170003",
+          "icsd-74740",
+          "icsd-35569",
+          "icsd-644690",
+          "icsd-35571",
+          "icsd-35566",
+          "icsd-23671",
+          "icsd-8263",
+          "icsd-170006",
+          "icsd-35567",
+          "icsd-170001",
+          "icsd-170002",
+          "icsd-35568"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-pRa_7dQUZtl8zgq4cUz_f_s5/Si3N4/structures/mp-bma.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-pRa_7dQUZtl8zgq4cUz_f_s5/Si3N4/structures/mp-bma.cif"
+    },
+    {
+      "material_id": "mp-dij",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-dij"
+      ],
+      "formula_pretty": "Si3N4",
+      "elements": [
+        "N",
+        "Si"
+      ],
+      "chemsys": "N-Si",
+      "nsites": 28,
+      "density": 3.186358166257212,
+      "volume": 292.42902133025774,
+      "energy_above_hull": 0.0035396235714290005,
+      "is_stable": false,
+      "energy_per_atom": -10.294017620714285,
+      "formation_energy_per_atom": -1.317403839285715,
+      "band_gap": 4.654700000000001,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "P31c",
+        "number": 159
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-35560",
+          "icsd-35561",
+          "icsd-35563",
+          "icsd-35564",
+          "icsd-164618",
+          "icsd-35565",
+          "icsd-187735",
+          "icsd-79797",
+          "icsd-644683",
+          "icsd-77811",
+          "icsd-34096",
+          "icsd-644686",
+          "icsd-644682",
+          "icsd-35562",
+          "icsd-239369",
+          "icsd-92156",
+          "icsd-159207",
+          "icsd-90146",
+          "icsd-26191"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-pRa_7dQUZtl8zgq4cUz_f_s5/Si3N4/structures/mp-dij.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-pRa_7dQUZtl8zgq4cUz_f_s5/Si3N4/structures/mp-dij.cif"
+    },
+    {
+      "material_id": "mp-rel",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-rel"
+      ],
+      "formula_pretty": "Si3N4",
+      "elements": [
+        "N",
+        "Si"
+      ],
+      "chemsys": "N-Si",
+      "nsites": 14,
+      "density": 3.411328170996549,
+      "volume": 136.57196749471183,
+      "energy_above_hull": 0.09949754000000101,
+      "is_stable": false,
+      "energy_per_atom": -10.198059704285713,
+      "formation_energy_per_atom": -1.221445922857142,
+      "band_gap": 4.026700000000001,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "I-43d",
+        "number": 220
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-97567"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-pRa_7dQUZtl8zgq4cUz_f_s5/Si3N4/structures/mp-rel.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-pRa_7dQUZtl8zgq4cUz_f_s5/Si3N4/structures/mp-rel.cif"
+    },
+    {
+      "material_id": "mp-dbv",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-dbv"
+      ],
+      "formula_pretty": "Si3N4",
+      "elements": [
+        "N",
+        "Si"
+      ],
+      "chemsys": "N-Si",
+      "nsites": 14,
+      "density": 3.94604093869418,
+      "volume": 118.06562763064186,
+      "energy_above_hull": 0.147139670000001,
+      "is_stable": false,
+      "energy_per_atom": -10.150417574285713,
+      "formation_energy_per_atom": -1.173803792857143,
+      "band_gap": 3.333299999999999,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "Fd-3m",
+        "number": 227
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-98637",
+          "icsd-156336",
+          "icsd-97566",
+          "icsd-98636"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-pRa_7dQUZtl8zgq4cUz_f_s5/Si3N4/structures/mp-dbv.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-pRa_7dQUZtl8zgq4cUz_f_s5/Si3N4/structures/mp-dbv.cif"
+    },
+    {
+      "material_id": "mp-bknap",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bknap"
+      ],
+      "formula_pretty": "Si3N4",
+      "elements": [
+        "N",
+        "Si"
+      ],
+      "chemsys": "N-Si",
+      "nsites": 28,
+      "density": 3.833340559266036,
+      "volume": 243.07352445217603,
+      "energy_above_hull": 0.287706036428572,
+      "is_stable": false,
+      "energy_per_atom": -10.009851207857142,
+      "formation_energy_per_atom": -1.033237426428572,
+      "band_gap": 3.907599999999998,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Pnma",
+        "number": 62
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-156337"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-pRa_7dQUZtl8zgq4cUz_f_s5/Si3N4/structures/mp-bknap.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-pRa_7dQUZtl8zgq4cUz_f_s5/Si3N4/structures/mp-bknap.cif"
+    }
+  ]
+}

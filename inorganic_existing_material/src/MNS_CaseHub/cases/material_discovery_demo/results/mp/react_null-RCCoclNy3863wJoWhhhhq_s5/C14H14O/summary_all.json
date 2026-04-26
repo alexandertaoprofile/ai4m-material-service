@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "query_mode": "formula",
+  "input": {
+    "material_id": null,
+    "formula": "C14H14O",
+    "elements": null,
+    "reduced_formula": "H14C14O"
+  },
+  "count_all": 0,
+  "items": []
+}

@@ -1,0 +1,6 @@
+{
+    "baseline_material": "CsPbBr3",
+    "advanced_material": "CsPbBr3–Cs4PbBr6 复合相玻璃陶瓷",
+    "baseline_reason": "CsPbBr3为纯无机钙钛矿，热稳定性优异（>300°C），制备简单，光电性能优良，但CTE过高（~14.5×10⁻⁶/K）且脆性大，与SiO₂-Al₂O₃陶瓷严重失配，仅适合短期或缓冲结构应用。",
+    "advanced_reason": "CsPbBr3–Cs4PbBr6复合相通过引入Cs4PbBr6相，显著降低CTE至~8.2×10⁻⁶/K、提升断裂韧性一倍、抑制溴离子迁移，并形成自钝化界面，大幅改善与SiO₂-Al₂O₃陶瓷的热-力-电兼容性，虽需工艺优化，但为实现长期可靠封装的唯一可行进阶方案。"
+}

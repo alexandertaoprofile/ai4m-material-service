@@ -1,0 +1,6 @@
+{
+    "baseline_material": "HfO₂",
+    "advanced_material": "Al₂O₃/HfO₂多层异质结构（ALD堆叠）",
+    "baseline_reason": "工艺成熟、热匹配性好、电磁屏蔽达标，适合量产型量子芯片，风险低、稳定性高",
+    "advanced_reason": "通过多层界面工程实现超低介电损耗（tanδ<10⁻⁴）与更高热导率，显著提升量子相干时间，适用于前沿高保真量子处理器"
+}

@@ -1,0 +1,6 @@
+{
+    "baseline_material": "Schott AF32",
+    "advanced_material": "Corning Eagle XG",
+    "baseline_reason": "肖特AF32具备优异的热匹配性（CTE=3.2 ppm/°C）、高透光率（91.5%）、高硬度（520 HV）和低成本（~$12/m²），工艺成熟、量产稳定，是显示面板领域最可靠的工业化选择。",
+    "advanced_reason": "康宁EAGLE XG在透光率（92.8%）、紫外透过（90.1%）、硬度（540 HV）和杂质控制（<0.3 ppm）上全面超越基准款，且溢流下拉工艺带来更高面内平整度，适合高端光学与半导体封装等对性能极限有严苛要求的应用场景。"
+}

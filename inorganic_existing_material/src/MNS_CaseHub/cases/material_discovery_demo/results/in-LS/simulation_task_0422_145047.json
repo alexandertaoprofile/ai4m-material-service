@@ -1,0 +1,6 @@
+{
+    "baseline_material": "AlN陶瓷基板",
+    "advanced_material": "Cu-W复合基板（3D打印梯度结构）",
+    "baseline_reason": "热导率达标、工艺成熟、热物性稳定，是当前工业界最可靠的选择，适合快速验证与量产过渡。",
+    "advanced_reason": "通过3D打印实现CTE梯度调控，可逼近硅材料膨胀特性，热导率更高、韧性更强，是解决液冷系统翘曲问题的前沿方案，适合下一代高热流AI芯片。"
+}

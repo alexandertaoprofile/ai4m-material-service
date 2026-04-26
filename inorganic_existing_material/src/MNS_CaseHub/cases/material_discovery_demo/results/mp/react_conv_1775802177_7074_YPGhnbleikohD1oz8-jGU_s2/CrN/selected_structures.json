@@ -1,0 +1,270 @@
+{
+  "ok": true,
+  "taskid": "react_conv_1775802177_7074/YPGhnbleikohD1oz8-jGU_s2",
+  "jobid": "CrN",
+  "material_id": null,
+  "formula": "CrN",
+  "elements": null,
+  "max_candidates": 5,
+  "prefer_stable": true,
+  "whitelist_ids": [],
+  "primary_material_id": "mp-csduw",
+  "count_selected": 5,
+  "items": [
+    {
+      "material_id": "mp-csduw",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csduw"
+      ],
+      "formula_pretty": "CrN",
+      "elements": [
+        "Cr",
+        "N"
+      ],
+      "chemsys": "Cr-N",
+      "nsites": 8,
+      "density": 6.200052853871006,
+      "volume": 70.70922167159108,
+      "energy_above_hull": 0.022511655000000002,
+      "is_stable": false,
+      "energy_per_atom": -12.827721695,
+      "formation_energy_per_atom": -0.726675164374999,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Pmmn",
+        "number": 59
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775802177_7074_YPGhnbleikohD1oz8-jGU_s2/CrN/structures/mp-csduw.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775802177_7074_YPGhnbleikohD1oz8-jGU_s2/CrN/structures/mp-csduw.cif"
+    },
+    {
+      "material_id": "mp-csdie",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csdie"
+      ],
+      "formula_pretty": "CrN",
+      "elements": [
+        "Cr",
+        "N"
+      ],
+      "chemsys": "Cr-N",
+      "nsites": 4,
+      "density": 6.129712959334631,
+      "volume": 35.76031329104303,
+      "energy_above_hull": 0.041064755,
+      "is_stable": false,
+      "energy_per_atom": -12.809168595000001,
+      "formation_energy_per_atom": -0.708122064374999,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "R-3m",
+        "number": 166
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775802177_7074_YPGhnbleikohD1oz8-jGU_s2/CrN/structures/mp-csdie.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775802177_7074_YPGhnbleikohD1oz8-jGU_s2/CrN/structures/mp-csdie.cif"
+    },
+    {
+      "material_id": "mp-csdqs",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csdqs"
+      ],
+      "formula_pretty": "CrN",
+      "elements": [
+        "Cr",
+        "N"
+      ],
+      "chemsys": "Cr-N",
+      "nsites": 8,
+      "density": 6.126142193788892,
+      "volume": 71.56231405539805,
+      "energy_above_hull": 0.047570155,
+      "is_stable": false,
+      "energy_per_atom": -12.802663195000001,
+      "formation_energy_per_atom": -0.701616664374999,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Monoclinic",
+        "symbol": "C2/m",
+        "number": 12
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775802177_7074_YPGhnbleikohD1oz8-jGU_s2/CrN/structures/mp-csdqs.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775802177_7074_YPGhnbleikohD1oz8-jGU_s2/CrN/structures/mp-csdqs.cif"
+    },
+    {
+      "material_id": "mp-dea",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-dea"
+      ],
+      "formula_pretty": "CrN",
+      "elements": [
+        "Cr",
+        "N"
+      ],
+      "chemsys": "Cr-N",
+      "nsites": 2,
+      "density": 5.9561209915742115,
+      "volume": 18.40127627696478,
+      "energy_above_hull": 0.048218093749999004,
+      "is_stable": false,
+      "energy_per_atom": -12.80201525625,
+      "formation_energy_per_atom": -0.700968725624999,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "Fm-3m",
+        "number": 225
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-626338",
+          "icsd-236806",
+          "icsd-41827",
+          "icsd-53146",
+          "icsd-626339",
+          "icsd-192945",
+          "icsd-626341",
+          "icsd-626337",
+          "icsd-181080",
+          "icsd-236805",
+          "icsd-152809",
+          "icsd-626364",
+          "icsd-626334",
+          "icsd-37412"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775802177_7074_YPGhnbleikohD1oz8-jGU_s2/CrN/structures/mp-dea.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775802177_7074_YPGhnbleikohD1oz8-jGU_s2/CrN/structures/mp-dea.cif"
+    },
+    {
+      "material_id": "mp-cfydx",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cfydx"
+      ],
+      "formula_pretty": "CrN",
+      "elements": [
+        "Cr",
+        "N"
+      ],
+      "chemsys": "Cr-N",
+      "nsites": 2,
+      "density": 5.147512225110709,
+      "volume": 21.291882974135,
+      "energy_above_hull": 0.070320584999999,
+      "is_stable": false,
+      "energy_per_atom": -12.779912765,
+      "formation_energy_per_atom": -0.678866234374999,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "F-43m",
+        "number": 216
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-236785",
+          "icsd-181079",
+          "icsd-236786"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775802177_7074_YPGhnbleikohD1oz8-jGU_s2/CrN/structures/mp-cfydx.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775802177_7074_YPGhnbleikohD1oz8-jGU_s2/CrN/structures/mp-cfydx.cif"
+    }
+  ],
+  "candidate_cards": [
+    {
+      "material_id": "mp-csduw",
+      "formula_pretty": "CrN",
+      "symmetry": "Orthorhombic/Pmmn/59",
+      "image_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775802177_7074_YPGhnbleikohD1oz8-jGU_s2/CrN/cards/mp-csduw_card.png",
+      "image_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775802177_7074_YPGhnbleikohD1oz8-jGU_s2/CrN/cards/mp-csduw_card.png",
+      "lattice": {
+        "a": 3.003164,
+        "b": 4.109614,
+        "c": 5.729227,
+        "alpha": 90.000069,
+        "beta": 90.000214,
+        "gamma": 89.999884,
+        "atoms": 8
+      }
+    },
+    {
+      "material_id": "mp-csdie",
+      "formula_pretty": "CrN",
+      "symmetry": "Trigonal/R-3m/166",
+      "image_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775802177_7074_YPGhnbleikohD1oz8-jGU_s2/CrN/cards/mp-csdie_card.png",
+      "image_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775802177_7074_YPGhnbleikohD1oz8-jGU_s2/CrN/cards/mp-csdie_card.png",
+      "lattice": {
+        "a": 3.00918,
+        "b": 3.009123,
+        "c": 4.88004,
+        "alpha": 72.041547,
+        "beta": 89.999329,
+        "gamma": 120.001547,
+        "atoms": 4
+      }
+    },
+    {
+      "material_id": "mp-csdqs",
+      "formula_pretty": "CrN",
+      "symmetry": "Monoclinic/C2/m/12",
+      "image_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775802177_7074_YPGhnbleikohD1oz8-jGU_s2/CrN/cards/mp-csdqs_card.png",
+      "image_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775802177_7074_YPGhnbleikohD1oz8-jGU_s2/CrN/cards/mp-csdqs_card.png",
+      "lattice": {
+        "a": 2.981278,
+        "b": 4.97369,
+        "c": 5.096717,
+        "alpha": 97.673781,
+        "beta": 107.003399,
+        "gamma": 89.999769,
+        "atoms": 8
+      }
+    },
+    {
+      "material_id": "mp-dea",
+      "formula_pretty": "CrN",
+      "symmetry": "Cubic/Fm-3m/225",
+      "image_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775802177_7074_YPGhnbleikohD1oz8-jGU_s2/CrN/cards/mp-dea_card.png",
+      "image_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775802177_7074_YPGhnbleikohD1oz8-jGU_s2/CrN/cards/mp-dea_card.png",
+      "lattice": {
+        "a": 2.963382,
+        "b": 2.963382,
+        "c": 2.963382,
+        "alpha": 60.000004,
+        "beta": 59.999999,
+        "gamma": 59.99999,
+        "atoms": 2
+      }
+    },
+    {
+      "material_id": "mp-cfydx",
+      "formula_pretty": "CrN",
+      "symmetry": "Cubic/F-43m/216",
+      "image_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775802177_7074_YPGhnbleikohD1oz8-jGU_s2/CrN/cards/mp-cfydx_card.png",
+      "image_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775802177_7074_YPGhnbleikohD1oz8-jGU_s2/CrN/cards/mp-cfydx_card.png",
+      "lattice": {
+        "a": 3.111069,
+        "b": 3.111069,
+        "c": 3.111069,
+        "alpha": 60.0,
+        "beta": 60.0,
+        "gamma": 60.0,
+        "atoms": 2
+      }
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+    "baseline_material": "氮化铝（AlN）陶瓷基板",
+    "advanced_material": "六方氮化硼（h-BN）基复合陶瓷（BN-AlN）",
+    "baseline_reason": "热导率达标（>170 W/m·K），电绝缘性优异，工艺成熟、供应链稳定、成本可控，是当前AI封装中性价比最高的绝缘散热材料。",
+    "advanced_reason": "热导率显著提升（>250 W/m·K），CTE完美匹配硅芯片（<3.5 ppm/K），绝缘性与热稳定性更优，适合超高热流密度与3D异构集成场景，虽成本高但性能不可替代。"
+}

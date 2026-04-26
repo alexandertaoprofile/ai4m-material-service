@@ -1,0 +1,254 @@
+{
+  "ok": true,
+  "taskid": "react_null-irzg80o3VDINxJP0-kXhn_s2",
+  "jobid": "Al2O3",
+  "material_id": null,
+  "formula": "Al2O3",
+  "elements": null,
+  "max_candidates": 5,
+  "prefer_stable": true,
+  "whitelist_ids": [],
+  "primary_material_id": "mp-brz",
+  "count_selected": 5,
+  "items": [
+    {
+      "material_id": "mp-brz",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-brz"
+      ],
+      "formula_pretty": "Al2O3",
+      "elements": [
+        "Al",
+        "O"
+      ],
+      "chemsys": "Al-O",
+      "nsites": 10,
+      "density": 3.873499124580814,
+      "volume": 87.42001939959368,
+      "energy_above_hull": 0.0,
+      "is_stable": true,
+      "energy_per_atom": -7.893557943,
+      "formation_energy_per_atom": -3.426551008,
+      "band_gap": 5.853700000000001,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "R-3c",
+        "number": 167
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-161060",
+          "icsd-64713",
+          "icsd-9771",
+          "icsd-25778",
+          "icsd-160604",
+          "icsd-10425",
+          "icsd-151589",
+          "icsd-52648",
+          "icsd-30025",
+          "icsd-608995",
+          "icsd-24005",
+          "icsd-52647",
+          "icsd-609004",
+          "icsd-75479",
+          "icsd-88027",
+          "icsd-169720",
+          "icsd-9772",
+          "icsd-99783",
+          "icsd-9774",
+          "icsd-89665",
+          "icsd-30024",
+          "icsd-164617",
+          "icsd-43732",
+          "icsd-92629",
+          "icsd-89663",
+          "icsd-92630",
+          "icsd-9775",
+          "icsd-608994",
+          "icsd-73076",
+          "icsd-608996",
+          "icsd-77810",
+          "icsd-608998",
+          "icsd-609001",
+          "icsd-73725",
+          "icsd-10426",
+          "icsd-31547",
+          "icsd-608993",
+          "icsd-52025",
+          "icsd-85137",
+          "icsd-63647",
+          "icsd-608997",
+          "icsd-160607",
+          "icsd-63648",
+          "icsd-89664",
+          "icsd-33639",
+          "icsd-93096",
+          "icsd-52024",
+          "icsd-31545",
+          "icsd-31546",
+          "icsd-30028",
+          "icsd-75559",
+          "icsd-9770",
+          "icsd-160605",
+          "icsd-88029",
+          "icsd-52044",
+          "icsd-56085",
+          "icsd-9773",
+          "icsd-24851",
+          "icsd-31548",
+          "icsd-60419",
+          "icsd-30026",
+          "icsd-75560",
+          "icsd-68591",
+          "icsd-30027",
+          "icsd-89662",
+          "icsd-92631",
+          "icsd-30030",
+          "icsd-26790",
+          "icsd-73724",
+          "icsd-600672",
+          "icsd-88028",
+          "icsd-92628",
+          "icsd-30029",
+          "icsd-51687",
+          "icsd-160606"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-irzg80o3VDINxJP0-kXhn_s2/Al2O3/structures/mp-brz.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-irzg80o3VDINxJP0-kXhn_s2/Al2O3/structures/mp-brz.cif"
+    },
+    {
+      "material_id": "mp-klc",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-klc"
+      ],
+      "formula_pretty": "Al2O3",
+      "elements": [
+        "Al",
+        "O"
+      ],
+      "chemsys": "Al-O",
+      "nsites": 10,
+      "density": 3.626309528339469,
+      "volume": 93.37905823230228,
+      "energy_above_hull": 0.017159517999999003,
+      "is_stable": false,
+      "energy_per_atom": -7.876398425,
+      "formation_energy_per_atom": -3.409391490000001,
+      "band_gap": 4.4553,
+      "symmetry": {
+        "crystal_system": "Monoclinic",
+        "symbol": "C2/m",
+        "number": 12
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-82504"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-irzg80o3VDINxJP0-kXhn_s2/Al2O3/structures/mp-klc.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-irzg80o3VDINxJP0-kXhn_s2/Al2O3/structures/mp-klc.cif"
+    },
+    {
+      "material_id": "mp-dis",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-dis"
+      ],
+      "formula_pretty": "Al2O3",
+      "elements": [
+        "Al",
+        "O"
+      ],
+      "chemsys": "Al-O",
+      "nsites": 40,
+      "density": 3.782405259976946,
+      "volume": 358.10162617765377,
+      "energy_above_hull": 0.020825458749999002,
+      "is_stable": false,
+      "energy_per_atom": -7.872732484250001,
+      "formation_energy_per_atom": -3.405725549250001,
+      "band_gap": 4.8274,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Pna2_1",
+        "number": 33
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-247304",
+          "icsd-94485",
+          "icsd-84375",
+          "icsd-161790"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-irzg80o3VDINxJP0-kXhn_s2/Al2O3/structures/mp-dis.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-irzg80o3VDINxJP0-kXhn_s2/Al2O3/structures/mp-dis.cif"
+    },
+    {
+      "material_id": "mp-bseql",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bseql"
+      ],
+      "formula_pretty": "Al2O3",
+      "elements": [
+        "Al",
+        "O"
+      ],
+      "chemsys": "Al-O",
+      "nsites": 40,
+      "density": 3.874797934013569,
+      "volume": 349.56286689707736,
+      "energy_above_hull": 0.035034444749999005,
+      "is_stable": false,
+      "energy_per_atom": -7.858523498250001,
+      "formation_energy_per_atom": -3.391516563250001,
+      "band_gap": 5.5116,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "Ia-3",
+        "number": 206
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-irzg80o3VDINxJP0-kXhn_s2/Al2O3/structures/mp-bseql.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-irzg80o3VDINxJP0-kXhn_s2/Al2O3/structures/mp-bseql.cif"
+    },
+    {
+      "material_id": "mp-brgep",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-brgep"
+      ],
+      "formula_pretty": "Al2O3",
+      "elements": [
+        "Al",
+        "O"
+      ],
+      "chemsys": "Al-O",
+      "nsites": 80,
+      "density": 3.57452754463431,
+      "volume": 757.854266079925,
+      "energy_above_hull": 0.035135316874999004,
+      "is_stable": false,
+      "energy_per_atom": -7.858422626125,
+      "formation_energy_per_atom": -3.391415691124999,
+      "band_gap": 4.3139,
+      "symmetry": {
+        "crystal_system": "Monoclinic",
+        "symbol": "P2/c",
+        "number": 13
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-irzg80o3VDINxJP0-kXhn_s2/Al2O3/structures/mp-brgep.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-irzg80o3VDINxJP0-kXhn_s2/Al2O3/structures/mp-brgep.cif"
+    }
+  ]
+}

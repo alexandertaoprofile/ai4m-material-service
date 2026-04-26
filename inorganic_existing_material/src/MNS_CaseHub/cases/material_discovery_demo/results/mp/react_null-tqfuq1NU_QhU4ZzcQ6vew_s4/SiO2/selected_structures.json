@@ -1,0 +1,192 @@
+{
+  "ok": true,
+  "taskid": "react_null-tqfuq1NU_QhU4ZzcQ6vew_s4",
+  "jobid": "SiO2",
+  "material_id": null,
+  "formula": "SiO2",
+  "elements": null,
+  "max_candidates": 5,
+  "prefer_stable": true,
+  "whitelist_ids": [],
+  "primary_material_id": "mp-sxv",
+  "count_selected": 5,
+  "items": [
+    {
+      "material_id": "mp-sxv",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-sxv"
+      ],
+      "formula_pretty": "SiO2",
+      "elements": [
+        "O",
+        "Si"
+      ],
+      "chemsys": "O-Si",
+      "nsites": 18,
+      "density": 2.638756646234437,
+      "volume": 226.86213460666156,
+      "energy_above_hull": 0.002772185555556,
+      "is_stable": false,
+      "energy_per_atom": -8.377139171666666,
+      "formation_energy_per_atom": -3.270059158333334,
+      "band_gap": 5.6273,
+      "symmetry": {
+        "crystal_system": "Monoclinic",
+        "symbol": "C2/c",
+        "number": 15
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-151108",
+          "icsd-67669"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-tqfuq1NU_QhU4ZzcQ6vew_s4/SiO2/structures/mp-sxv.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-tqfuq1NU_QhU4ZzcQ6vew_s4/SiO2/structures/mp-sxv.cif"
+    },
+    {
+      "material_id": "mp-bfcwo",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bfcwo"
+      ],
+      "formula_pretty": "SiO2",
+      "elements": [
+        "O",
+        "Si"
+      ],
+      "chemsys": "O-Si",
+      "nsites": 6,
+      "density": 2.223612886125405,
+      "volume": 89.73893630609501,
+      "energy_above_hull": 0.005647450555557001,
+      "is_stable": false,
+      "energy_per_atom": -8.374263906666666,
+      "formation_energy_per_atom": -3.267183893333333,
+      "band_gap": 5.689599999999999,
+      "symmetry": {
+        "crystal_system": "Tetragonal",
+        "symbol": "I-42d",
+        "number": 122
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-162246",
+          "icsd-162618",
+          "icsd-162619",
+          "icsd-162660",
+          "icsd-75648"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-tqfuq1NU_QhU4ZzcQ6vew_s4/SiO2/structures/mp-bfcwo.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-tqfuq1NU_QhU4ZzcQ6vew_s4/SiO2/structures/mp-bfcwo.cif"
+    },
+    {
+      "material_id": "mp-bfnrd",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bfnrd"
+      ],
+      "formula_pretty": "SiO2",
+      "elements": [
+        "O",
+        "Si"
+      ],
+      "chemsys": "O-Si",
+      "nsites": 12,
+      "density": 2.257872049803831,
+      "volume": 176.75461740602768,
+      "energy_above_hull": 0.0067576188888880005,
+      "is_stable": false,
+      "energy_per_atom": -8.373153738333334,
+      "formation_energy_per_atom": -3.266073725,
+      "band_gap": 5.660399999999999,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Pna2_1",
+        "number": 33
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-75649"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-tqfuq1NU_QhU4ZzcQ6vew_s4/SiO2/structures/mp-bfnrd.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-tqfuq1NU_QhU4ZzcQ6vew_s4/SiO2/structures/mp-bfnrd.cif"
+    },
+    {
+      "material_id": "mp-bfojt",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bfojt"
+      ],
+      "formula_pretty": "SiO2",
+      "elements": [
+        "O",
+        "Si"
+      ],
+      "chemsys": "O-Si",
+      "nsites": 12,
+      "density": 2.206245804230383,
+      "volume": 180.8906829645195,
+      "energy_above_hull": 0.007466217222223,
+      "is_stable": false,
+      "energy_per_atom": -8.37244514,
+      "formation_energy_per_atom": -3.265365126666667,
+      "band_gap": 5.6155,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Ama2",
+        "number": 40
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-30795"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-tqfuq1NU_QhU4ZzcQ6vew_s4/SiO2/structures/mp-bfojt.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-tqfuq1NU_QhU4ZzcQ6vew_s4/SiO2/structures/mp-bfojt.cif"
+    },
+    {
+      "material_id": "mp-bewzm",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bewzm"
+      ],
+      "formula_pretty": "SiO2",
+      "elements": [
+        "O",
+        "Si"
+      ],
+      "chemsys": "O-Si",
+      "nsites": 72,
+      "density": 2.235711217823113,
+      "volume": 1071.0398743808114,
+      "energy_above_hull": 0.0074840363888910005,
+      "is_stable": false,
+      "energy_per_atom": -8.372427320833332,
+      "formation_energy_per_atom": -3.265347307499999,
+      "band_gap": 5.5504,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "P2_12_12_1",
+        "number": 19
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-100199",
+          "icsd-153470",
+          "icsd-94091"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-tqfuq1NU_QhU4ZzcQ6vew_s4/SiO2/structures/mp-bewzm.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-tqfuq1NU_QhU4ZzcQ6vew_s4/SiO2/structures/mp-bewzm.cif"
+    }
+  ]
+}

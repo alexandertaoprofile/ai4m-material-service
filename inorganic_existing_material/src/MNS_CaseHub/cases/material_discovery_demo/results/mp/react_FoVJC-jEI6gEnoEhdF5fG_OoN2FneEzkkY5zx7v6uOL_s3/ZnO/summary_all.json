@@ -1,0 +1,444 @@
+{
+  "ok": true,
+  "query_mode": "formula",
+  "input": {
+    "material_id": null,
+    "formula": "ZnO",
+    "elements": null,
+    "reduced_formula": "ZnO"
+  },
+  "count_all": 12,
+  "items": [
+    {
+      "material_id": "mp-cfxgd",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cfxgd"
+      ],
+      "formula_pretty": "ZnO",
+      "elements": [
+        "O",
+        "Zn"
+      ],
+      "chemsys": "O-Zn",
+      "nsites": 4,
+      "density": 5.508144570126769,
+      "volume": 49.08434295009371,
+      "energy_above_hull": 0.300222592499999,
+      "is_stable": false,
+      "energy_per_atom": -4.5945288275,
+      "formation_energy_per_atom": -1.4906765199999992,
+      "band_gap": 0.45160000000000006,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3mc",
+        "number": 186
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-181039"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-ckgir",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-ckgir"
+      ],
+      "formula_pretty": "ZnO",
+      "elements": [
+        "O",
+        "Zn"
+      ],
+      "chemsys": "O-Zn",
+      "nsites": 8,
+      "density": 5.450391709469147,
+      "volume": 99.20889048362783,
+      "energy_above_hull": 0.0328996925,
+      "is_stable": false,
+      "energy_per_atom": -4.8618517274999995,
+      "formation_energy_per_atom": -1.7579994199999982,
+      "band_gap": 0.7376,
+      "symmetry": {
+        "crystal_system": "Tetragonal",
+        "symbol": "P4_2/mnm",
+        "number": 136
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvtf",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvtf"
+      ],
+      "formula_pretty": "ZnO",
+      "elements": [
+        "O",
+        "Zn"
+      ],
+      "chemsys": "O-Zn",
+      "nsites": 80,
+      "density": 4.835097081422673,
+      "volume": 1118.3380707600907,
+      "energy_above_hull": 0.24894974587499902,
+      "is_stable": false,
+      "energy_per_atom": -4.645801674125,
+      "formation_energy_per_atom": -1.541949366625,
+      "band_gap": 1.2763,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvwv",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvwv"
+      ],
+      "formula_pretty": "ZnO",
+      "elements": [
+        "O",
+        "Zn"
+      ],
+      "chemsys": "O-Zn",
+      "nsites": 80,
+      "density": 5.110085339072356,
+      "volume": 1058.1571115126565,
+      "energy_above_hull": 0.24704613737499903,
+      "is_stable": false,
+      "energy_per_atom": -4.647705282625,
+      "formation_energy_per_atom": -1.543852975125,
+      "band_gap": 1.2176,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-cswar",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cswar"
+      ],
+      "formula_pretty": "ZnO",
+      "elements": [
+        "O",
+        "Zn"
+      ],
+      "chemsys": "O-Zn",
+      "nsites": 80,
+      "density": 4.98360330117961,
+      "volume": 1085.0127538634717,
+      "energy_above_hull": 0.24484591387499902,
+      "is_stable": false,
+      "energy_per_atom": -4.649905506125,
+      "formation_energy_per_atom": -1.5460531986250001,
+      "band_gap": 1.2421,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-cswcl",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cswcl"
+      ],
+      "formula_pretty": "ZnO",
+      "elements": [
+        "O",
+        "Zn"
+      ],
+      "chemsys": "O-Zn",
+      "nsites": 80,
+      "density": 4.982001878640084,
+      "volume": 1085.3615220739296,
+      "energy_above_hull": 0.388355666874999,
+      "is_stable": false,
+      "energy_per_atom": -4.506395753125,
+      "formation_energy_per_atom": -1.402543445624999,
+      "band_gap": 0.93,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-tmf",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-tmf"
+      ],
+      "formula_pretty": "ZnO",
+      "elements": [
+        "O",
+        "Zn"
+      ],
+      "chemsys": "O-Zn",
+      "nsites": 2,
+      "density": 6.93047251446635,
+      "volume": 19.505427410212953,
+      "energy_above_hull": 0.717208989999999,
+      "is_stable": false,
+      "energy_per_atom": -4.17754243,
+      "formation_energy_per_atom": -1.0736901225,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "Pm-3m",
+        "number": 221
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-182360",
+          "icsd-163382"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-cyk",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cyk"
+      ],
+      "formula_pretty": "ZnO",
+      "elements": [
+        "O",
+        "Zn"
+      ],
+      "chemsys": "O-Zn",
+      "nsites": 2,
+      "density": 5.708336616549273,
+      "volume": 23.681474592351165,
+      "energy_above_hull": 0.00806893,
+      "is_stable": false,
+      "energy_per_atom": -4.886682489999999,
+      "formation_energy_per_atom": -1.782830182499999,
+      "band_gap": 0.630899999999999,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "F-43m",
+        "number": 216
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-647683",
+          "icsd-162753",
+          "icsd-163383",
+          "icsd-182357",
+          "icsd-187457"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-deb",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-deb"
+      ],
+      "formula_pretty": "ZnO",
+      "elements": [
+        "O",
+        "Zn"
+      ],
+      "chemsys": "O-Zn",
+      "nsites": 4,
+      "density": 5.70421780686615,
+      "volume": 47.397148259900405,
+      "energy_above_hull": 0.0,
+      "is_stable": true,
+      "energy_per_atom": -4.894751419999999,
+      "formation_energy_per_atom": -1.7908991124999991,
+      "band_gap": 0.7227,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3mc",
+        "number": 186
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-29272",
+          "icsd-165009",
+          "icsd-65120",
+          "icsd-65121",
+          "icsd-165013",
+          "icsd-165012",
+          "icsd-189104",
+          "icsd-154486",
+          "icsd-157133",
+          "icsd-166353",
+          "icsd-164209",
+          "icsd-181731",
+          "icsd-182355",
+          "icsd-166356",
+          "icsd-154488",
+          "icsd-161836",
+          "icsd-236619",
+          "icsd-182356",
+          "icsd-195802",
+          "icsd-76641",
+          "icsd-166354",
+          "icsd-169463",
+          "icsd-154489",
+          "icsd-157132",
+          "icsd-41488",
+          "icsd-26170",
+          "icsd-67848",
+          "icsd-165002",
+          "icsd-157724",
+          "icsd-67454",
+          "icsd-165014",
+          "icsd-162843",
+          "icsd-166355",
+          "icsd-647667",
+          "icsd-236754",
+          "icsd-656331",
+          "icsd-164690",
+          "icsd-52362",
+          "icsd-57478",
+          "icsd-165010",
+          "icsd-65122",
+          "icsd-155780",
+          "icsd-167690",
+          "icsd-165011",
+          "icsd-154487",
+          "icsd-82028",
+          "icsd-180052",
+          "icsd-166243",
+          "icsd-185828",
+          "icsd-193696",
+          "icsd-94002",
+          "icsd-647681",
+          "icsd-163380",
+          "icsd-184793",
+          "icsd-191642",
+          "icsd-94004",
+          "icsd-184079",
+          "icsd-65119",
+          "icsd-31060",
+          "icsd-57450",
+          "icsd-184674",
+          "icsd-34477",
+          "icsd-82029",
+          "icsd-181473",
+          "icsd-154490",
+          "icsd-185829",
+          "icsd-185827",
+          "icsd-67849",
+          "icsd-31052"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-dht",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-dht"
+      ],
+      "formula_pretty": "ZnO",
+      "elements": [
+        "O",
+        "Zn"
+      ],
+      "chemsys": "O-Zn",
+      "nsites": 2,
+      "density": 6.619789652587246,
+      "volume": 20.420864656411798,
+      "energy_above_hull": 0.14726733999999903,
+      "is_stable": false,
+      "energy_per_atom": -4.7474840799999996,
+      "formation_energy_per_atom": -1.6436317724999991,
+      "band_gap": 0.7218999999999991,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "Fm-3m",
+        "number": 225
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-190807",
+          "icsd-190802",
+          "icsd-190803",
+          "icsd-190806",
+          "icsd-190805",
+          "icsd-166359",
+          "icsd-166357",
+          "icsd-38222",
+          "icsd-166360",
+          "icsd-182359",
+          "icsd-166358",
+          "icsd-190804",
+          "icsd-163381",
+          "icsd-182358",
+          "icsd-57156"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-fdnwp",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-fdnwp"
+      ],
+      "formula_pretty": "ZnO",
+      "elements": [
+        "O",
+        "Zn"
+      ],
+      "chemsys": "O-Zn",
+      "nsites": 4,
+      "density": 4.049918983853431,
+      "volume": 66.75779396494303,
+      "energy_above_hull": 0.22402689749999902,
+      "is_stable": false,
+      "energy_per_atom": -4.6707245225000005,
+      "formation_energy_per_atom": -1.5668722149999992,
+      "band_gap": 0.8378,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3/mmc",
+        "number": 194
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-cetuk",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cetuk"
+      ],
+      "formula_pretty": "ZnO",
+      "elements": [
+        "O",
+        "Zn"
+      ],
+      "chemsys": "O-Zn",
+      "nsites": 24,
+      "density": 6.597744974458736,
+      "volume": 245.86914906117198,
+      "energy_above_hull": 0.17324365333333203,
+      "is_stable": false,
+      "energy_per_atom": -4.721507766666667,
+      "formation_energy_per_atom": -1.617655459166667,
+      "band_gap": 0.5425999999999991,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3/mmc",
+        "number": 194
+      },
+      "database_IDs": {}
+    }
+  ]
+}

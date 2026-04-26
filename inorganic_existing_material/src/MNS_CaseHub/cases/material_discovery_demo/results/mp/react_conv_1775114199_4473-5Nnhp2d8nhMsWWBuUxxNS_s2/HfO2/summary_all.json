@@ -1,0 +1,457 @@
+{
+  "ok": true,
+  "query_mode": "formula",
+  "input": {
+    "material_id": null,
+    "formula": "HfO2",
+    "elements": null,
+    "reduced_formula": "HfO2"
+  },
+  "count_all": 15,
+  "items": [
+    {
+      "material_id": "mp-cfyzp",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cfyzp"
+      ],
+      "formula_pretty": "HfO2",
+      "elements": [
+        "Hf",
+        "O"
+      ],
+      "chemsys": "Hf-O",
+      "nsites": 6,
+      "density": 10.676886282074282,
+      "volume": 65.47318501810419,
+      "energy_above_hull": 0.050883971666667006,
+      "is_stable": false,
+      "energy_per_atom": -10.586630749166664,
+      "formation_energy_per_atom": -3.968927069166663,
+      "band_gap": 4.6678000000000015,
+      "symmetry": {
+        "crystal_system": "Tetragonal",
+        "symbol": "P4_2/nmc",
+        "number": 137
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-173966"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-crrfp",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-crrfp"
+      ],
+      "formula_pretty": "HfO2",
+      "elements": [
+        "Hf",
+        "O"
+      ],
+      "chemsys": "Hf-O",
+      "nsites": 12,
+      "density": 10.894330641670964,
+      "volume": 128.33275837794628,
+      "energy_above_hull": 0.085255940833334,
+      "is_stable": false,
+      "energy_per_atom": -10.552258779999997,
+      "formation_energy_per_atom": -3.934555099999997,
+      "band_gap": 3.7545,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "P2_12_12",
+        "number": 18
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvod",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvod"
+      ],
+      "formula_pretty": "HfO2",
+      "elements": [
+        "Hf",
+        "O"
+      ],
+      "chemsys": "Hf-O",
+      "nsites": 102,
+      "density": 8.957833639278316,
+      "volume": 1326.6428296090855,
+      "energy_above_hull": 0.229321330343136,
+      "is_stable": false,
+      "energy_per_atom": -10.408193390490196,
+      "formation_energy_per_atom": -3.790489710490195,
+      "band_gap": 3.7691,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvof",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvof"
+      ],
+      "formula_pretty": "HfO2",
+      "elements": [
+        "Hf",
+        "O"
+      ],
+      "chemsys": "Hf-O",
+      "nsites": 102,
+      "density": 8.847975226452482,
+      "volume": 1343.1147197215157,
+      "energy_above_hull": 0.254510453382351,
+      "is_stable": false,
+      "energy_per_atom": -10.38300426745098,
+      "formation_energy_per_atom": -3.7653005874509793,
+      "band_gap": 3.4783,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvwt",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvwt"
+      ],
+      "formula_pretty": "HfO2",
+      "elements": [
+        "Hf",
+        "O"
+      ],
+      "chemsys": "Hf-O",
+      "nsites": 102,
+      "density": 8.93962545120878,
+      "volume": 1329.3449296326787,
+      "energy_above_hull": 0.22711691504902,
+      "is_stable": false,
+      "energy_per_atom": -10.410397805784312,
+      "formation_energy_per_atom": -3.792694125784312,
+      "band_gap": 3.7499000000000002,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvwy",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvwy"
+      ],
+      "formula_pretty": "HfO2",
+      "elements": [
+        "Hf",
+        "O"
+      ],
+      "chemsys": "Hf-O",
+      "nsites": 102,
+      "density": 8.934776811162463,
+      "volume": 1330.0663259470368,
+      "energy_above_hull": 0.20990785651960603,
+      "is_stable": false,
+      "energy_per_atom": -10.427606864313725,
+      "formation_energy_per_atom": -3.809903184313724,
+      "band_gap": 3.620099999999999,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-cswbi",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cswbi"
+      ],
+      "formula_pretty": "HfO2",
+      "elements": [
+        "Hf",
+        "O"
+      ],
+      "chemsys": "Hf-O",
+      "nsites": 102,
+      "density": 8.793253202528755,
+      "volume": 1351.4731684244116,
+      "energy_above_hull": 0.21677266749999902,
+      "is_stable": false,
+      "energy_per_atom": -10.420742053333333,
+      "formation_energy_per_atom": -3.803038373333333,
+      "band_gap": 3.401,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-ctm",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-ctm"
+      ],
+      "formula_pretty": "HfO2",
+      "elements": [
+        "Hf",
+        "O"
+      ],
+      "chemsys": "Hf-O",
+      "nsites": 24,
+      "density": 10.698913663127213,
+      "volume": 261.3535440977401,
+      "energy_above_hull": 0.01638392625,
+      "is_stable": false,
+      "energy_per_atom": -10.621130794583332,
+      "formation_energy_per_atom": -4.003427114583332,
+      "band_gap": 4.2272,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Pbca",
+        "number": 61
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-79913",
+          "icsd-173965",
+          "icsd-71354"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-no",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-no"
+      ],
+      "formula_pretty": "HfO2",
+      "elements": [
+        "Hf",
+        "O"
+      ],
+      "chemsys": "Hf-O",
+      "nsites": 12,
+      "density": 10.24124328616322,
+      "volume": 136.51657937039403,
+      "energy_above_hull": 0.0,
+      "is_stable": true,
+      "energy_per_atom": -10.637514720833332,
+      "formation_energy_per_atom": -4.019811040833332,
+      "band_gap": 4.0165,
+      "symmetry": {
+        "crystal_system": "Monoclinic",
+        "symbol": "P2_1/c",
+        "number": 14
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-57385",
+          "icsd-187015",
+          "icsd-638744",
+          "icsd-60902",
+          "icsd-173158",
+          "icsd-173964",
+          "icsd-60903",
+          "icsd-27313",
+          "icsd-638740",
+          "icsd-638737",
+          "icsd-172165"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bfiyf",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bfiyf"
+      ],
+      "formula_pretty": "HfO2",
+      "elements": [
+        "Hf",
+        "O"
+      ],
+      "chemsys": "Hf-O",
+      "nsites": 3,
+      "density": 10.971726147701107,
+      "volume": 31.856871997756667,
+      "energy_above_hull": 0.08357950333333401,
+      "is_stable": false,
+      "energy_per_atom": -10.553935217499998,
+      "formation_energy_per_atom": -3.936231537499997,
+      "band_gap": 3.8043,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "Fm-3m",
+        "number": 225
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-53033",
+          "icsd-236853",
+          "icsd-180833",
+          "icsd-180834",
+          "icsd-173967"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bmzlx",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bmzlx"
+      ],
+      "formula_pretty": "HfO2",
+      "elements": [
+        "Hf",
+        "O"
+      ],
+      "chemsys": "Hf-O",
+      "nsites": 12,
+      "density": 10.634789518075097,
+      "volume": 131.46470830953248,
+      "energy_above_hull": 0.021979467500003003,
+      "is_stable": false,
+      "energy_per_atom": -10.615535253333329,
+      "formation_energy_per_atom": -3.997831573333329,
+      "band_gap": 4.4148,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Pca2_1",
+        "number": 29
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-bcn",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bcn"
+      ],
+      "formula_pretty": "HfO2",
+      "elements": [
+        "Hf",
+        "O"
+      ],
+      "chemsys": "Hf-O",
+      "nsites": 12,
+      "density": 11.603390426384543,
+      "volume": 120.49060236290308,
+      "energy_above_hull": 0.139282821666665,
+      "is_stable": false,
+      "energy_per_atom": -10.498231899166667,
+      "formation_energy_per_atom": -3.8805282191666652,
+      "band_gap": 3.3929,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Pnma",
+        "number": 62
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-87457",
+          "icsd-87456",
+          "icsd-173968",
+          "icsd-83863"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bsdov",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bsdov"
+      ],
+      "formula_pretty": "HfO2",
+      "elements": [
+        "Hf",
+        "O"
+      ],
+      "chemsys": "Hf-O",
+      "nsites": 24,
+      "density": 10.2455682122362,
+      "volume": 272.91790420316113,
+      "energy_above_hull": 0.009928638750000001,
+      "is_stable": false,
+      "energy_per_atom": -10.627586082083331,
+      "formation_energy_per_atom": -4.00988240208333,
+      "band_gap": 4.1083,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Pbca",
+        "number": 61
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-bsebx",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bsebx"
+      ],
+      "formula_pretty": "HfO2",
+      "elements": [
+        "Hf",
+        "O"
+      ],
+      "chemsys": "Hf-O",
+      "nsites": 36,
+      "density": 9.471347955396345,
+      "volume": 442.840715548976,
+      "energy_above_hull": 0.039298047777778004,
+      "is_stable": false,
+      "energy_per_atom": -10.598216673055553,
+      "formation_energy_per_atom": -3.980512993055552,
+      "band_gap": 4.264,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Pbcn",
+        "number": 60
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-bsesq",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bsesq"
+      ],
+      "formula_pretty": "HfO2",
+      "elements": [
+        "Hf",
+        "O"
+      ],
+      "chemsys": "Hf-O",
+      "nsites": 6,
+      "density": 9.412302135077686,
+      "volume": 74.26979509702473,
+      "energy_above_hull": 0.036980001666666006,
+      "is_stable": false,
+      "energy_per_atom": -10.600534719166665,
+      "formation_energy_per_atom": -3.982831039166664,
+      "band_gap": 3.902499999999999,
+      "symmetry": {
+        "crystal_system": "Tetragonal",
+        "symbol": "P4_2/mnm",
+        "number": 136
+      },
+      "database_IDs": {}
+    }
+  ]
+}

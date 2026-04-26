@@ -1,0 +1,6 @@
+{
+    "baseline_material": "Schott NEXTERION® Glass LAS-300",
+    "advanced_material": "Corning CERAVIT™ LAS-X2",
+    "baseline_reason": "具备成熟的β-锂辉石析晶工艺，CTE精准匹配硅芯片（3.2 ppm/°C），热导率、介电性能达标，成本低于$13/片，已广泛用于量产，工艺兼容性高，风险最低，适合快速启动项目。",
+    "advanced_reason": "采用复合析晶相与高纯组分，实现更低CTE（3.0 ppm/°C）、更高热导率（1.82 W/m·K）与更低介电损耗（tanδ=0.0010），支持亚5μm线宽与高深宽比TSV，为下一代AI芯片提供性能天花板，虽成本略高但技术领先性显著。"
+}

@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "query_mode": "formula",
+  "input": {
+    "material_id": null,
+    "formula": "C16H14O3S",
+    "elements": null,
+    "reduced_formula": "H14C16SO3"
+  },
+  "count_all": 0,
+  "items": []
+}

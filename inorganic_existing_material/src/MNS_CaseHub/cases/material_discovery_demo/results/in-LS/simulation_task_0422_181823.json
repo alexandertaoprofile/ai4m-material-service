@@ -1,0 +1,6 @@
+{
+    "baseline_material": "CERANIC® 96% Al₂O₃-Based Glass-Ceramic",
+    "advanced_material": "NeoCeram® ZT (Li₂O–Al₂O₃–SiO₂–TiO₂)",
+    "baseline_reason": "具备成熟量产工艺、成本低、性能稳定，满足主流封装对CTE、热导率和介电性能的基本需求，适合消费电子和工业控制领域。",
+    "advanced_reason": "在热膨胀系数、热导率、介电性能和微加工精度上全面超越基准款，尤其适合5G、车规、航电等高可靠性、高频高速应用场景，是前沿封装的性能标杆。"
+}

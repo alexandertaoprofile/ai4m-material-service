@@ -1,0 +1,6 @@
+{
+    "baseline_material": "MAPbI₃",
+    "advanced_material": "FA₀.₈₅MA₀.₁₅PbI₃₋ₓBrₓ",
+    "baseline_reason": "MAPbI₃是钙钛矿领域最经典、文献最丰富、制备最简单的材料，具备完整的背景-方法-数据结构，适合快速入门与基准比对。",
+    "advanced_reason": "FA₀.₈₅MA₀.₁₅PbI₃₋ₓBrₓ通过离子工程显著提升效率与稳定性，是当前高效率器件（>25%）的主流材料，文献结构规范、参数标注详尽，代表下一代材料发展方向。"
+}

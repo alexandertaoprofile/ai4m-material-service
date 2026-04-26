@@ -1,0 +1,10 @@
+{
+    "simulation_task": {
+        "baseline_material": "FAPb0.6Sn0.4I3",
+        "advanced_material": "Cs0.05FA0.85Bi0.15I3",
+        "simulation_parameters": {
+            "temp_range": "223K-353K",
+            "stability": "高"
+        }
+    }
+}

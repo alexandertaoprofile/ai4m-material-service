@@ -1,0 +1,6 @@
+{
+    "baseline_material": "AlN",
+    "advanced_material": "Si3N4",
+    "baseline_reason": "AlN热导率（200 W/mK）远超170 W/mK阈值，CTE与硅芯片高度匹配（4.4 ppm/K），禁带宽（6.2 eV）保障绝缘，热力学稳定且工艺成熟，完全满足高功率AI芯片热-电-力耦合核心需求，是工程化落地的最优解。",
+    "advanced_reason": "Si₃N₄虽具优异韧性与良好绝缘性，但热导率（110 W/mK）未达标，CTE过低（3.0 ppm/K）易引发热应力裂纹，且工艺窗口窄、成本高，综合性能不满足高功率AI芯片的热管理刚需，仅可作为备选研究对象。"
+}

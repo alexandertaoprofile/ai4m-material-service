@@ -1,0 +1,6 @@
+{
+    "baseline_material": "AlN",
+    "advanced_material": "C",
+    "baseline_reason": "热导率与CTE均衡匹配硅芯片，绝缘性优异，工艺成熟、成本可控，已广泛用于量产AI芯片封装，可靠性经工业验证。",
+    "advanced_reason": "热导率突破1000 W/m·K，CTE经结构优化后完美匹配硅，绝缘性更强，热循环寿命超3000次，虽成本高、工艺难，但为下一代高功率AI芯片提供不可替代的散热解决方案。"
+}

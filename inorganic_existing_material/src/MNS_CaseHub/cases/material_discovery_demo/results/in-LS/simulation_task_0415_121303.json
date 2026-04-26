@@ -1,0 +1,6 @@
+{
+    "baseline_material": "SiO₂:62.5, B₂O₃:15.0, Al₂O₃:13.5, MgO:5.0, ZnO:3.0, CaO:1.0, Na₂O+K₂O:0.05",
+    "advanced_material": "SiO₂:65.0, B₂O₃:12.0, Al₂O₃:14.5, MgO:4.5, ZnO:2.5, CaO:0.8, SrO:0.7, Na₂O+K₂O:0.03",
+    "baseline_reason": "满足所有核心指标，工艺成熟、成本可控，适合大规模量产，是当前工业应用的最佳平衡选择。",
+    "advanced_reason": "在保持超低碱金属前提下，进一步优化SiO₂与Al₂O₃比例并引入SrO，实现更低CTE与更高透光率，适用于极端环境高端器件。"
+}

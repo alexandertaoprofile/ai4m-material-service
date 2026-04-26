@@ -1,0 +1,6 @@
+{
+    "baseline_material": "AlN",
+    "advanced_material": "SiC",
+    "baseline_reason": "氮化铝在热导率、电绝缘性、湿热稳定性与工艺兼容性上表现均衡，支持主流封装工艺（如LTCC/RDL），成本适中，适合大规模量产，是当前AI芯片封装的行业首选。",
+    "advanced_reason": "碳化硅的热膨胀系数与硅芯片完美匹配，能极大降低热应力导致的失效风险，适合高密度Chiplet和HBM堆叠结构，虽成本较高且加工复杂，但在极端性能场景下具有不可替代优势。"
+}

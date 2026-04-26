@@ -1,0 +1,6 @@
+{
+    "baseline_material": "WC-10wt% W",
+    "advanced_material": "WC-8wt% Co-2wt% TaC",
+    "baseline_reason": "WC-W体系结构清晰、缺陷少，拥有大量实验验证的热导率、弹性模量和热膨胀数据，且DFT与EAM参数成熟，保障量子化学仿真收敛与多尺度衔接的稳定性。",
+    "advanced_reason": "引入TaC强化相与Co粘结相，显著提升热导率、降低热膨胀系数、增强化学惰性，同时具备成熟的ReaxFF/MEAM分子动力学参数集与掺杂能带计算支持，更适合高精度多物理场耦合建模。"
+}

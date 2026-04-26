@@ -1,0 +1,6 @@
+{
+    "baseline_material": "Cs₀.₁₅(MA₀.₁₅FA₀.₈₅)₀.₈₅Sn₀.₆Pb₀.₄I₃",
+    "advanced_material": "Cs₀.₁FA₀.₈₅Sn₀.₅Pb₀.₅I₃ + 1% L-Ascorbic Acid",
+    "baseline_reason": "结构稳定、工艺成熟、铅含量可控，实验室重复性高，适合当前量产需求",
+    "advanced_reason": "带隙更低、迁移率更高，抗氧化添加剂显著提升湿热稳定性，适合高性能叠层电池研发"
+}

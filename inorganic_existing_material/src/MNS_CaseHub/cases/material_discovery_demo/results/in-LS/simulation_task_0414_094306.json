@@ -1,0 +1,6 @@
+{
+    "baseline_material": "Cs₀.₀₅FA₀.₈₅MA₀.₁₀PbI₃₋ₓBrₓ",
+    "advanced_material": "Cs₀.₁₀FA₀.₈₂MA₀.₀₈PbI₃₋ₓBrₓ + 1% PEAI",
+    "baseline_reason": "配方成熟、工艺稳定、量产兼容性好、成本低，PCE和稳定性均满足核心指标，是商业化落地的最优稳妥选择。",
+    "advanced_reason": "通过PEAI分子钝化显著提升界面质量，实现更高效率与稳定性，Voc损失更低，非辐射复合寿命更优，虽工艺稍复杂但代表技术前沿，适合下一代产品升级。"
+}

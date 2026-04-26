@@ -1,0 +1,6 @@
+{
+    "baseline_material": "HT-ABF",
+    "advanced_material": "Nano-AlN/Gr-ABF",
+    "baseline_reason": "在满足所有核心指标（导热>5 W/m·K、CTE≤3 ppm/K、电阻率>10¹² Ω·cm、热循环≥1000次）的前提下，工艺完全兼容现有ABF产线，成本增量低，适合大规模量产与稳定交付。",
+    "advanced_reason": "在保持绝缘与热膨胀匹配的前提下，导热性能提升近4倍，热循环寿命突破1500次，支持未来3nm节点与液冷集成，虽成本较高，但为高端AI芯片提供下一代散热解决方案。"
+}

@@ -1,0 +1,6 @@
+{
+    "baseline_material": "Corning EAGLE XG®",
+    "advanced_material": "Hoya ALUMINA-SILICA NANO-COMPOSITE",
+    "baseline_reason": "成熟商用铝硅酸盐玻璃，Dk/Df/CTE完全达标，无需填料，工艺兼容性高，成本低，已通过Intel/台积电量产验证，风险最低。",
+    "advanced_reason": "引入8% h-BN纳米填料，热导率提升至2.3 W/m·K，显著优于行业标准，机械强度更高，适用于高功率AI芯片，虽需工艺适配，但代表下一代封装材料方向。"
+}

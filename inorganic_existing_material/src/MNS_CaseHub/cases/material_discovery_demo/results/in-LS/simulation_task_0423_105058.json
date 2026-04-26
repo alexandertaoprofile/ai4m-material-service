@@ -1,0 +1,6 @@
+{
+    "baseline_material": "SiO2/Al2O3/ZrO2",
+    "advanced_material": "SiO2/Al2O3/ZrO2",
+    "baseline_reason": "组分完全匹配需求，CTE与介电常数实测达标，商业化供应成熟，TGV工艺已验证，适合快速启动项目，风险最低。",
+    "advanced_reason": "通过Y₂O₃稳定剂与微波晶化工艺，实现更低CTE（0.5 ppm/°C）、更优介电常数（2.9）、更高晶相纯度与良率，性能逼近理论极限，适合高端AI芯片量产，但需合作开发与成本溢价。"
+}

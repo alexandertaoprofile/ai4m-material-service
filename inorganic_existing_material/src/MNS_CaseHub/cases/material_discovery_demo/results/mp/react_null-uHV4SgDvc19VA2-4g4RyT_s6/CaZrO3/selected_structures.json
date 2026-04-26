@@ -1,0 +1,126 @@
+{
+  "ok": true,
+  "taskid": "react_null-uHV4SgDvc19VA2-4g4RyT_s6",
+  "jobid": "CaZrO3",
+  "material_id": null,
+  "formula": "CaZrO3",
+  "elements": null,
+  "max_candidates": 5,
+  "prefer_stable": true,
+  "whitelist_ids": [],
+  "primary_material_id": "mp-gtv",
+  "count_selected": 3,
+  "items": [
+    {
+      "material_id": "mp-gtv",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-gtv"
+      ],
+      "formula_pretty": "CaZrO3",
+      "elements": [
+        "Ca",
+        "O",
+        "Zr"
+      ],
+      "chemsys": "Ca-O-Zr",
+      "nsites": 20,
+      "density": 4.603084505750543,
+      "volume": 258.7265007863652,
+      "energy_above_hull": 0.0,
+      "is_stable": true,
+      "energy_per_atom": -8.7496117745,
+      "formation_energy_per_atom": -3.670175069499999,
+      "band_gap": 3.8263,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Pnma",
+        "number": 62
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-130053",
+          "icsd-97465",
+          "icsd-97463",
+          "icsd-183758",
+          "icsd-37264",
+          "icsd-97464",
+          "icsd-167889",
+          "icsd-97466",
+          "icsd-239370",
+          "icsd-183757"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-uHV4SgDvc19VA2-4g4RyT_s6/CaZrO3/structures/mp-gtv.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-uHV4SgDvc19VA2-4g4RyT_s6/CaZrO3/structures/mp-gtv.cif"
+    },
+    {
+      "material_id": "mp-bsdzc",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bsdzc"
+      ],
+      "formula_pretty": "CaZrO3",
+      "elements": [
+        "Ca",
+        "O",
+        "Zr"
+      ],
+      "chemsys": "Ca-O-Zr",
+      "nsites": 40,
+      "density": 4.388251250010517,
+      "volume": 542.7856698013446,
+      "energy_above_hull": 0.025365376749999002,
+      "is_stable": false,
+      "energy_per_atom": -8.724246397749999,
+      "formation_energy_per_atom": -3.644809692749999,
+      "band_gap": 3.744799999999999,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Pba2",
+        "number": 32
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-uHV4SgDvc19VA2-4g4RyT_s6/CaZrO3/structures/mp-bsdzc.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-uHV4SgDvc19VA2-4g4RyT_s6/CaZrO3/structures/mp-bsdzc.cif"
+    },
+    {
+      "material_id": "mp-bevym",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bevym"
+      ],
+      "formula_pretty": "CaZrO3",
+      "elements": [
+        "Ca",
+        "O",
+        "Zr"
+      ],
+      "chemsys": "Ca-O-Zr",
+      "nsites": 5,
+      "density": 4.135496361472064,
+      "volume": 71.99498215571205,
+      "energy_above_hull": 0.1918930845,
+      "is_stable": false,
+      "energy_per_atom": -8.55771869,
+      "formation_energy_per_atom": -3.478281985,
+      "band_gap": 3.2122,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "Pm-3m",
+        "number": 221
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-56094",
+          "icsd-29003"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-uHV4SgDvc19VA2-4g4RyT_s6/CaZrO3/structures/mp-bevym.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_null-uHV4SgDvc19VA2-4g4RyT_s6/CaZrO3/structures/mp-bevym.cif"
+    }
+  ]
+}

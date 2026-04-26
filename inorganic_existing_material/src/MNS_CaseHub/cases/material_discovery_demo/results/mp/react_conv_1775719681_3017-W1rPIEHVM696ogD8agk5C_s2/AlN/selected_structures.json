@@ -1,0 +1,186 @@
+{
+  "ok": true,
+  "taskid": "react_conv_1775719681_3017-W1rPIEHVM696ogD8agk5C_s2",
+  "jobid": "AlN",
+  "material_id": null,
+  "formula": "AlN",
+  "elements": null,
+  "max_candidates": 5,
+  "prefer_stable": true,
+  "whitelist_ids": [],
+  "primary_material_id": "mp-zl",
+  "count_selected": 4,
+  "items": [
+    {
+      "material_id": "mp-zl",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-zl"
+      ],
+      "formula_pretty": "AlN",
+      "elements": [
+        "Al",
+        "N"
+      ],
+      "chemsys": "Al-N",
+      "nsites": 4,
+      "density": 3.200889713142437,
+      "volume": 42.52728307818043,
+      "energy_above_hull": 0.0,
+      "is_stable": true,
+      "energy_per_atom": -9.6100966725,
+      "formation_energy_per_atom": -1.6796721718749992,
+      "band_gap": 4.0467,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3mc",
+        "number": 186
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-44106",
+          "icsd-602459",
+          "icsd-54697",
+          "icsd-163953",
+          "icsd-67767",
+          "icsd-161881",
+          "icsd-41482",
+          "icsd-44107",
+          "icsd-602460",
+          "icsd-34236",
+          "icsd-608627",
+          "icsd-608626",
+          "icsd-42001",
+          "icsd-181362",
+          "icsd-190420",
+          "icsd-183638",
+          "icsd-185441",
+          "icsd-82790",
+          "icsd-608624",
+          "icsd-31169",
+          "icsd-41542",
+          "icsd-34475",
+          "icsd-41480",
+          "icsd-191772"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775719681_3017-W1rPIEHVM696ogD8agk5C_s2/AlN/structures/mp-zl.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775719681_3017-W1rPIEHVM696ogD8agk5C_s2/AlN/structures/mp-zl.cif"
+    },
+    {
+      "material_id": "mp-cnk",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cnk"
+      ],
+      "formula_pretty": "AlN",
+      "elements": [
+        "Al",
+        "N"
+      ],
+      "chemsys": "Al-N",
+      "nsites": 2,
+      "density": 3.266813167449202,
+      "volume": 20.83454669051882,
+      "energy_above_hull": 0.020749162499999002,
+      "is_stable": false,
+      "energy_per_atom": -9.58934751,
+      "formation_energy_per_atom": -1.658923009375,
+      "band_gap": 3.3056,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "F-43m",
+        "number": 216
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-190408",
+          "icsd-41545",
+          "icsd-191769",
+          "icsd-181066",
+          "icsd-188512",
+          "icsd-67780",
+          "icsd-187046",
+          "icsd-82789"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775719681_3017-W1rPIEHVM696ogD8agk5C_s2/AlN/structures/mp-cnk.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775719681_3017-W1rPIEHVM696ogD8agk5C_s2/AlN/structures/mp-cnk.cif"
+    },
+    {
+      "material_id": "mp-tmw",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-tmw"
+      ],
+      "formula_pretty": "AlN",
+      "elements": [
+        "Al",
+        "N"
+      ],
+      "chemsys": "Al-N",
+      "nsites": 4,
+      "density": 3.421648366361545,
+      "volume": 39.78349858246675,
+      "energy_above_hull": 0.115290230000001,
+      "is_stable": false,
+      "energy_per_atom": -9.494806442499998,
+      "formation_energy_per_atom": -1.564381941874998,
+      "band_gap": 3.268700000000001,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3/mmc",
+        "number": 194
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-163950"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775719681_3017-W1rPIEHVM696ogD8agk5C_s2/AlN/structures/mp-tmw.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775719681_3017-W1rPIEHVM696ogD8agk5C_s2/AlN/structures/mp-tmw.cif"
+    },
+    {
+      "material_id": "mp-bze",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bze"
+      ],
+      "formula_pretty": "AlN",
+      "elements": [
+        "Al",
+        "N"
+      ],
+      "chemsys": "Al-N",
+      "nsites": 2,
+      "density": 4.041045569153921,
+      "volume": 16.842812163752075,
+      "energy_above_hull": 0.1720026375,
+      "is_stable": false,
+      "energy_per_atom": -9.438094034999999,
+      "formation_energy_per_atom": -1.507669534374999,
+      "band_gap": 4.417499999999999,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "Fm-3m",
+        "number": 225
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-189099",
+          "icsd-41358",
+          "icsd-163952",
+          "icsd-105522",
+          "icsd-186383",
+          "icsd-608628"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775719681_3017-W1rPIEHVM696ogD8agk5C_s2/AlN/structures/mp-bze.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1775719681_3017-W1rPIEHVM696ogD8agk5C_s2/AlN/structures/mp-bze.cif"
+    }
+  ]
+}

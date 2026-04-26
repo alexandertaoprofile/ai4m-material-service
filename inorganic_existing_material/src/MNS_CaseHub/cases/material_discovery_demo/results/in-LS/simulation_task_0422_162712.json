@@ -1,0 +1,6 @@
+{
+    "baseline_material": "ABF-200H",
+    "advanced_material": "ABF-GN",
+    "baseline_reason": "ABF-200H在热导率（220 W/m·K）、CTE匹配（3.1 ppm/K）和电绝缘性（>5×10¹² Ω·cm）上全面满足核心需求，工艺完全兼容现有封装产线，成本低、良率高、稳定性强，是量产场景的稳健选择。",
+    "advanced_reason": "ABF-GN通过石墨烯纳米增强实现480 W/m·K的超高热导率与2.9 ppm/K的超低CTE，电绝缘性更优，厚度更薄，专为高热流密度HBM/CoWoS架构设计，虽成本略高且需工艺微调，但能突破散热瓶颈，是高端AI芯片的理想进阶方案。"
+}

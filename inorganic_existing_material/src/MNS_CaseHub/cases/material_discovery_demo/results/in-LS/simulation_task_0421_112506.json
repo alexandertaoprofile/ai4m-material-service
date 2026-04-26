@@ -1,0 +1,6 @@
+{
+    "baseline_material": "α-Si₃N₄ + Y₂O₃-Al₂O₃烧结助剂（SPS工艺，无取向）",
+    "advanced_material": "β-Si₃N₄ + MgO-Y₂O₃烧结助剂（SPS + 晶粒取向诱导技术）",
+    "baseline_reason": "热导率达标（92–98 W/m·K）、CTE匹配良好、断裂韧性满足要求，工艺成熟、成本可控，适合大批量工业应用。",
+    "advanced_reason": "通过晶粒取向调控实现热导率突破（110–125 W/m·K）、断裂韧性大幅提升（5.0–5.8 MPa·m¹/²），并实现热传导各向异性优化，专为高功率密度、高可靠性场景设计。"
+}

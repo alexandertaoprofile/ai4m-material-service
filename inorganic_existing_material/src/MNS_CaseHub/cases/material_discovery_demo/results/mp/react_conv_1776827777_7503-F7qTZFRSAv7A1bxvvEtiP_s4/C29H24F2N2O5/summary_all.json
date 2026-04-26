@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "query_mode": "formula",
+  "input": {
+    "material_id": null,
+    "formula": "C29H24F2N2O5",
+    "elements": null,
+    "reduced_formula": "H24C29N2O5F2"
+  },
+  "count_all": 0,
+  "items": []
+}

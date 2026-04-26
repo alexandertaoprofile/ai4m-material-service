@@ -1,0 +1,257 @@
+{
+  "ok": true,
+  "query_mode": "formula",
+  "input": {
+    "material_id": null,
+    "formula": "CrN",
+    "elements": null,
+    "reduced_formula": "CrN"
+  },
+  "count_all": 8,
+  "items": [
+    {
+      "material_id": "mp-cflij",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cflij"
+      ],
+      "formula_pretty": "CrN",
+      "elements": [
+        "Cr",
+        "N"
+      ],
+      "chemsys": "Cr-N",
+      "nsites": 2,
+      "density": 6.83705635704891,
+      "volume": 16.03032389691949,
+      "energy_above_hull": 0.6788037599999991,
+      "is_stable": false,
+      "energy_per_atom": -12.17142959,
+      "formation_energy_per_atom": -0.070383059375,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "Pm-3m",
+        "number": 221
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-236826",
+          "icsd-236825"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-cfydx",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cfydx"
+      ],
+      "formula_pretty": "CrN",
+      "elements": [
+        "Cr",
+        "N"
+      ],
+      "chemsys": "Cr-N",
+      "nsites": 2,
+      "density": 5.147512225110709,
+      "volume": 21.291882974135,
+      "energy_above_hull": 0.070320584999999,
+      "is_stable": false,
+      "energy_per_atom": -12.779912765,
+      "formation_energy_per_atom": -0.678866234374999,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "F-43m",
+        "number": 216
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-236785",
+          "icsd-181079",
+          "icsd-236786"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-cpjap",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cpjap"
+      ],
+      "formula_pretty": "CrN",
+      "elements": [
+        "Cr",
+        "N"
+      ],
+      "chemsys": "Cr-N",
+      "nsites": 2,
+      "density": 6.874418675392094,
+      "volume": 15.943199429693628,
+      "energy_above_hull": 0.24439364000000002,
+      "is_stable": false,
+      "energy_per_atom": -12.60583971,
+      "formation_energy_per_atom": -0.504793179374999,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P-6m2",
+        "number": 187
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csdie",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csdie"
+      ],
+      "formula_pretty": "CrN",
+      "elements": [
+        "Cr",
+        "N"
+      ],
+      "chemsys": "Cr-N",
+      "nsites": 4,
+      "density": 6.129712959334631,
+      "volume": 35.76031329104303,
+      "energy_above_hull": 0.041064755,
+      "is_stable": false,
+      "energy_per_atom": -12.809168595000001,
+      "formation_energy_per_atom": -0.708122064374999,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "R-3m",
+        "number": 166
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csdqs",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csdqs"
+      ],
+      "formula_pretty": "CrN",
+      "elements": [
+        "Cr",
+        "N"
+      ],
+      "chemsys": "Cr-N",
+      "nsites": 8,
+      "density": 6.126142193788892,
+      "volume": 71.56231405539805,
+      "energy_above_hull": 0.047570155,
+      "is_stable": false,
+      "energy_per_atom": -12.802663195000001,
+      "formation_energy_per_atom": -0.701616664374999,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Monoclinic",
+        "symbol": "C2/m",
+        "number": 12
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csduw",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csduw"
+      ],
+      "formula_pretty": "CrN",
+      "elements": [
+        "Cr",
+        "N"
+      ],
+      "chemsys": "Cr-N",
+      "nsites": 8,
+      "density": 6.200052853871006,
+      "volume": 70.70922167159108,
+      "energy_above_hull": 0.022511655000000002,
+      "is_stable": false,
+      "energy_per_atom": -12.827721695,
+      "formation_energy_per_atom": -0.726675164374999,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Pmmn",
+        "number": 59
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csdvd",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csdvd"
+      ],
+      "formula_pretty": "CrN",
+      "elements": [
+        "Cr",
+        "N"
+      ],
+      "chemsys": "Cr-N",
+      "nsites": 8,
+      "density": 6.165733313919825,
+      "volume": 71.1028014510792,
+      "energy_above_hull": 0.07692022500000001,
+      "is_stable": false,
+      "energy_per_atom": -12.773313125,
+      "formation_energy_per_atom": -0.672266594374999,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Tetragonal",
+        "symbol": "P4/nmm",
+        "number": 129
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-dea",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-dea"
+      ],
+      "formula_pretty": "CrN",
+      "elements": [
+        "Cr",
+        "N"
+      ],
+      "chemsys": "Cr-N",
+      "nsites": 2,
+      "density": 5.9561209915742115,
+      "volume": 18.40127627696478,
+      "energy_above_hull": 0.048218093749999004,
+      "is_stable": false,
+      "energy_per_atom": -12.80201525625,
+      "formation_energy_per_atom": -0.700968725624999,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "Fm-3m",
+        "number": 225
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-626338",
+          "icsd-236806",
+          "icsd-41827",
+          "icsd-53146",
+          "icsd-626339",
+          "icsd-192945",
+          "icsd-626341",
+          "icsd-626337",
+          "icsd-181080",
+          "icsd-236805",
+          "icsd-152809",
+          "icsd-626364",
+          "icsd-626334",
+          "icsd-37412"
+        ]
+      }
+    }
+  ]
+}

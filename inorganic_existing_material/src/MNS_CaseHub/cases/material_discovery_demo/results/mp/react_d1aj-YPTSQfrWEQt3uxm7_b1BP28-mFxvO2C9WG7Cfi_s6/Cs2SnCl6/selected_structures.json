@@ -1,0 +1,52 @@
+{
+  "ok": true,
+  "taskid": "react_d1aj-YPTSQfrWEQt3uxm7/b1BP28-mFxvO2C9WG7Cfi_s6",
+  "jobid": "Cs2SnCl6",
+  "material_id": null,
+  "formula": "Cs2SnCl6",
+  "elements": null,
+  "max_candidates": 5,
+  "prefer_stable": true,
+  "whitelist_ids": [],
+  "primary_material_id": "mp-biqfz",
+  "count_selected": 1,
+  "items": [
+    {
+      "material_id": "mp-biqfz",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-biqfz"
+      ],
+      "formula_pretty": "Cs2SnCl6",
+      "elements": [
+        "Cl",
+        "Cs",
+        "Sn"
+      ],
+      "chemsys": "Cl-Cs-Sn",
+      "nsites": 9,
+      "density": 3.433579389870279,
+      "volume": 288.8351831267041,
+      "energy_above_hull": 0.0,
+      "is_stable": true,
+      "energy_per_atom": -14.139066036666668,
+      "formation_energy_per_atom": -1.7082079072222212,
+      "band_gap": 2.59,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "Fm-3m",
+        "number": 225
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-9023",
+          "icsd-26699",
+          "icsd-29030"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_d1aj-YPTSQfrWEQt3uxm7_b1BP28-mFxvO2C9WG7Cfi_s6/Cs2SnCl6/structures/mp-biqfz.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_d1aj-YPTSQfrWEQt3uxm7_b1BP28-mFxvO2C9WG7Cfi_s6/Cs2SnCl6/structures/mp-biqfz.cif"
+    }
+  ]
+}

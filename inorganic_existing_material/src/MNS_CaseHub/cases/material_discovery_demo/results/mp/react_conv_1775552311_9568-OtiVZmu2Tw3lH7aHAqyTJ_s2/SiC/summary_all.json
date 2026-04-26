@@ -1,0 +1,898 @@
+{
+  "ok": true,
+  "query_mode": "formula",
+  "input": {
+    "material_id": null,
+    "formula": "SiC",
+    "elements": null,
+    "reduced_formula": "SiC"
+  },
+  "count_all": 28,
+  "items": [
+    {
+      "material_id": "mp-cfaok",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cfaok"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 2,
+      "density": 4.008509308033139,
+      "volume": 16.609991746502004,
+      "energy_above_hull": 0.7427448055000011,
+      "is_stable": false,
+      "energy_per_atom": -8.92370153186842,
+      "formation_energy_per_atom": 0.436798360631579,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "Fm-3m",
+        "number": 225
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-182362"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-rin",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-rin"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 10,
+      "density": 3.227650770425009,
+      "volume": 103.14205479150964,
+      "energy_above_hull": 9.136636842121963e-05,
+      "is_stable": false,
+      "energy_per_atom": -9.666354971,
+      "formation_energy_per_atom": -0.30585507849999904,
+      "band_gap": 1.9535,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "R3m",
+        "number": 160
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-24168"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-rio",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-rio"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 8,
+      "density": 3.228033205690528,
+      "volume": 82.50386818181951,
+      "energy_above_hull": 0.00030097111842200005,
+      "is_stable": false,
+      "energy_per_atom": -9.66614536625,
+      "formation_energy_per_atom": -0.305645473749999,
+      "band_gap": 2.222600000000001,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3mc",
+        "number": 186
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-164971"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-cqduo",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cqduo"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 34,
+      "density": 3.227780150771845,
+      "volume": 350.66892973081065,
+      "energy_above_hull": 0.000175364721362,
+      "is_stable": false,
+      "energy_per_atom": -9.666270972647059,
+      "formation_energy_per_atom": -0.305771080147058,
+      "band_gap": 2.0037,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "R3m",
+        "number": 160
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-24632"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-cqftv",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cqftv"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 56,
+      "density": 3.171246546298422,
+      "volume": 587.8686993913593,
+      "energy_above_hull": 0.031864561928571004,
+      "is_stable": false,
+      "energy_per_atom": -9.63458177543985,
+      "formation_energy_per_atom": -0.27408188293984903,
+      "band_gap": 1.6849,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "R3m",
+        "number": 160
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-24634"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-cqhki",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cqhki"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 58,
+      "density": 3.172753901152588,
+      "volume": 608.5747427314058,
+      "energy_above_hull": 0.031709074982758004,
+      "is_stable": false,
+      "energy_per_atom": -9.634737262385663,
+      "formation_energy_per_atom": -0.274237369885662,
+      "band_gap": 1.941199999999998,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "R3m",
+        "number": 160
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-159381"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-cqiem",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cqiem"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 34,
+      "density": 3.22767635058752,
+      "volume": 350.68020703856683,
+      "energy_above_hull": 2.185089783424132e-05,
+      "is_stable": false,
+      "energy_per_atom": -9.666424486470587,
+      "formation_energy_per_atom": -0.305924593970587,
+      "band_gap": 1.969299999999998,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "R3m",
+        "number": 160
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-159380"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-cqikm",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cqikm"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 50,
+      "density": 3.170062857636804,
+      "volume": 525.0787564181098,
+      "energy_above_hull": 0.032039476500001,
+      "is_stable": false,
+      "energy_per_atom": -9.63440686086842,
+      "formation_energy_per_atom": -0.27390696836842104,
+      "band_gap": 1.9337,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "R3m",
+        "number": 160
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-24633"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-cqnpk",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cqnpk"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 38,
+      "density": 3.227670169340689,
+      "volume": 391.9374525744493,
+      "energy_above_hull": 0.0,
+      "is_stable": true,
+      "energy_per_atom": -9.666446337368422,
+      "formation_energy_per_atom": -0.30594644486842204,
+      "band_gap": 1.8389000000000002,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "R3m",
+        "number": 160
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-23887"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bghnd",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bghnd"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 16,
+      "density": 3.227418141231847,
+      "volume": 165.03918267446815,
+      "energy_above_hull": 6.303174342114914e-05,
+      "is_stable": false,
+      "energy_per_atom": -9.666383305625,
+      "formation_energy_per_atom": -0.305883413125,
+      "band_gap": 1.7772000000000001,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3mc",
+        "number": 186
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-24630"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bghox",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bghox"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 32,
+      "density": 3.227568011754725,
+      "volume": 330.06303832344054,
+      "energy_above_hull": 5.2270180921354395e-05,
+      "is_stable": false,
+      "energy_per_atom": -9.6663940671875,
+      "formation_energy_per_atom": -0.3058941746875,
+      "band_gap": 1.970600000000001,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3mc",
+        "number": 186
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-42858"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bgjdz",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bgjdz"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 10,
+      "density": 3.227469634095106,
+      "volume": 103.14784346665817,
+      "energy_above_hull": 0.0010180313684220001,
+      "is_stable": false,
+      "energy_per_atom": -9.665428305999999,
+      "formation_energy_per_atom": -0.30492841349999905,
+      "band_gap": 1.750999999999999,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "P3m1",
+        "number": 156
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-107204"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bgjfk",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bgjfk"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 20,
+      "density": 3.227626988394056,
+      "volume": 206.28562954028098,
+      "energy_above_hull": 0.000105967368421,
+      "is_stable": false,
+      "energy_per_atom": -9.66634037,
+      "formation_energy_per_atom": -0.3058404775,
+      "band_gap": 2.0052,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "P3m1",
+        "number": 156
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-38150"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bgjgy",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bgjgy"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 28,
+      "density": 3.22746872370534,
+      "volume": 288.81404317397767,
+      "energy_above_hull": 2.073201127750223e-05,
+      "is_stable": false,
+      "energy_per_atom": -9.666425605357144,
+      "formation_energy_per_atom": -0.30592571285714304,
+      "band_gap": 1.8139,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "P3m1",
+        "number": 156
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-28303"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bgjil",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bgjil"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 36,
+      "density": 3.227701527197547,
+      "volume": 371.30555824357486,
+      "energy_above_hull": 0.000151124035086,
+      "is_stable": false,
+      "energy_per_atom": -9.666295213333335,
+      "formation_energy_per_atom": -0.30579532083333305,
+      "band_gap": 1.997999999999999,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "P3m1",
+        "number": 156
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-42859"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bgmdt",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bgmdt"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 16,
+      "density": 3.169270102740201,
+      "volume": 168.06723154240382,
+      "energy_above_hull": 0.009269019250000001,
+      "is_stable": false,
+      "energy_per_atom": -9.657177318118421,
+      "formation_energy_per_atom": -0.29667742561842103,
+      "band_gap": 1.699799999999999,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "R3m",
+        "number": 160
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-18136"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bgmfq",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bgmfq"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 18,
+      "density": 3.169407551524623,
+      "volume": 189.06743577726556,
+      "energy_above_hull": 0.008367561055555,
+      "is_stable": false,
+      "energy_per_atom": -9.658078776312866,
+      "formation_energy_per_atom": -0.297578883812865,
+      "band_gap": 1.6644,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "R3m",
+        "number": 160
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-24631"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bgmjn",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bgmjn"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 38,
+      "density": 3.227713676768763,
+      "volume": 391.93216951893857,
+      "energy_above_hull": 0.00012081763157900001,
+      "is_stable": false,
+      "energy_per_atom": -9.666325519736843,
+      "formation_energy_per_atom": -0.30582562723684303,
+      "band_gap": 1.9695,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "P3m1",
+        "number": 156
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-27635"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bgmka",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bgmka"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 26,
+      "density": 3.16851133259096,
+      "volume": 273.1746533097943,
+      "energy_above_hull": 0.031695728576924,
+      "is_stable": false,
+      "energy_per_atom": -9.634750608791498,
+      "formation_energy_per_atom": -0.274250716291497,
+      "band_gap": 1.843299999999999,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "R3m",
+        "number": 160
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-bgmqz",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bgmqz"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 54,
+      "density": 3.227625683593629,
+      "volume": 556.9714249200168,
+      "energy_above_hull": 5.0489035087863974e-05,
+      "is_stable": false,
+      "energy_per_atom": -9.666395848333334,
+      "formation_energy_per_atom": -0.305895955833334,
+      "band_gap": 1.942400000000001,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "P3m1",
+        "number": 156
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-44510"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bgnco",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bgnco"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 72,
+      "density": 3.23531581241525,
+      "volume": 740.8633882359936,
+      "energy_above_hull": 0.00028339133333500004,
+      "is_stable": false,
+      "energy_per_atom": -9.666162946035087,
+      "formation_energy_per_atom": -0.30566305353508605,
+      "band_gap": 1.837100000000001,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "P3m1",
+        "number": 156
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-28360",
+          "icsd-42864"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bgnda",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bgnda"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 78,
+      "density": 3.235211431150285,
+      "volume": 802.6278991734457,
+      "energy_above_hull": 0.00043198793589700003,
+      "is_stable": false,
+      "energy_per_atom": -9.666014349432524,
+      "formation_energy_per_atom": -0.30551445693252405,
+      "band_gap": 1.6356000000000002,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "P3m1",
+        "number": 156
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-42865"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bhczy",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bhczy"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 42,
+      "density": 3.227481014209514,
+      "volume": 433.21941502072593,
+      "energy_above_hull": 2.8426654136382016e-05,
+      "is_stable": false,
+      "energy_per_atom": -9.666417910714285,
+      "formation_energy_per_atom": -0.30591801821428405,
+      "band_gap": 1.689099999999999,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "P3m1",
+        "number": 156
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-43827"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bjnrh",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bjnrh"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 22,
+      "density": 3.171994172963911,
+      "volume": 230.89398397599413,
+      "energy_above_hull": 0.031762955045454004,
+      "is_stable": false,
+      "energy_per_atom": -9.634683382322967,
+      "formation_energy_per_atom": -0.27418348982296703,
+      "band_gap": 2.003399999999999,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "R3m",
+        "number": 160
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-161172"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-koq",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-koq"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 4,
+      "density": 3.226255951846587,
+      "volume": 41.27465862347238,
+      "energy_above_hull": 0.0041458623684210005,
+      "is_stable": false,
+      "energy_per_atom": -9.662300475,
+      "formation_energy_per_atom": -0.3018005825,
+      "band_gap": 2.302899999999999,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3mc",
+        "number": 186
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-24261",
+          "icsd-41487",
+          "icsd-164970",
+          "icsd-42855",
+          "icsd-618777",
+          "icsd-86253"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-lhn",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-lhn"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 12,
+      "density": 3.227773317409295,
+      "volume": 123.76576662882943,
+      "energy_above_hull": 7.649035088874712e-06,
+      "is_stable": false,
+      "energy_per_atom": -9.666438688333333,
+      "formation_energy_per_atom": -0.305938795833333,
+      "band_gap": 2.022999999999999,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3mc",
+        "number": 186
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-164972",
+          "icsd-15325",
+          "icsd-156190",
+          "icsd-24169",
+          "icsd-164429",
+          "icsd-31069",
+          "icsd-27051"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-lyc",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-lyc"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 2,
+      "density": 3.226629134057059,
+      "volume": 20.634942460365664,
+      "energy_above_hull": 0.00016855236842100001,
+      "is_stable": false,
+      "energy_per_atom": -9.666277785,
+      "formation_energy_per_atom": -0.30577789250000004,
+      "band_gap": 1.3669,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "F-43m",
+        "number": 216
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-164973",
+          "icsd-618779",
+          "icsd-603798",
+          "icsd-28389",
+          "icsd-28895",
+          "icsd-164974",
+          "icsd-164975",
+          "icsd-182361",
+          "icsd-24217",
+          "icsd-181128"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-osp",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-osp"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 14,
+      "density": 3.227557774286588,
+      "volume": 144.40303729604565,
+      "energy_above_hull": 1.63309398502065e-05,
+      "is_stable": false,
+      "energy_per_atom": -9.666430006428572,
+      "formation_energy_per_atom": -0.305930113928572,
+      "band_gap": 1.848799999999998,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "R3m",
+        "number": 160
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-161173"
+        ]
+      }
+    }
+  ]
+}

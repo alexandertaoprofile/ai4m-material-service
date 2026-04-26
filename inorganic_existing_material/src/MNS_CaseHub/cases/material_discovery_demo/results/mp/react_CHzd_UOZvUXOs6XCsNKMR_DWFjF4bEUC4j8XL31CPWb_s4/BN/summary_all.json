@@ -1,0 +1,837 @@
+{
+  "ok": true,
+  "query_mode": "formula",
+  "input": {
+    "material_id": null,
+    "formula": "BN",
+    "elements": null,
+    "reduced_formula": "BN"
+  },
+  "count_all": 27,
+  "items": [
+    {
+      "material_id": "mp-ciimb",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-ciimb"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 2,
+      "density": 1.376461452285749,
+      "volume": 29.93964002749536,
+      "energy_above_hull": 0.8055756825000001,
+      "is_stable": false,
+      "energy_per_atom": -8.844955745,
+      "formation_energy_per_atom": -0.6074033106250011,
+      "band_gap": 3.5086,
+      "symmetry": {
+        "crystal_system": "Tetragonal",
+        "symbol": "I4/mmm",
+        "number": 139
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-cjhyo",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cjhyo"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 6,
+      "density": 3.120089535685889,
+      "volume": 39.62459402701031,
+      "energy_above_hull": 0.301722249166665,
+      "is_stable": false,
+      "energy_per_atom": -9.348809178333335,
+      "formation_energy_per_atom": -1.111256743958334,
+      "band_gap": 0.9469999999999991,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Imm2",
+        "number": 44
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-191254"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-csvns",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvns"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 100,
+      "density": 1.574835018232765,
+      "volume": 1308.4151646375108,
+      "energy_above_hull": 0.6415410798999991,
+      "is_stable": false,
+      "energy_per_atom": -9.008990347600001,
+      "formation_energy_per_atom": -0.7714379132250001,
+      "band_gap": 1.5766,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvpl",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvpl"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 100,
+      "density": 1.588014033423129,
+      "volume": 1297.5565557290674,
+      "energy_above_hull": 0.9161921377999991,
+      "is_stable": false,
+      "energy_per_atom": -8.734339289700001,
+      "formation_energy_per_atom": -0.49678685532500105,
+      "band_gap": 1.1992,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvql",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvql"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 100,
+      "density": 1.70808972847888,
+      "volume": 1206.340618588538,
+      "energy_above_hull": 0.656729168,
+      "is_stable": false,
+      "energy_per_atom": -8.9938022595,
+      "formation_energy_per_atom": -0.756249825124999,
+      "band_gap": 1.1885,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csvsh",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csvsh"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 100,
+      "density": 1.742592740404906,
+      "volume": 1182.455298866422,
+      "energy_above_hull": 0.7428832718,
+      "is_stable": false,
+      "energy_per_atom": -8.9076481557,
+      "formation_energy_per_atom": -0.6700957213250011,
+      "band_gap": 1.5503,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-cswab",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cswab"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 100,
+      "density": 1.814704087367817,
+      "volume": 1135.4677790177345,
+      "energy_above_hull": 0.8163165053999991,
+      "is_stable": false,
+      "energy_per_atom": -8.834214922100001,
+      "formation_energy_per_atom": -0.5966624877250011,
+      "band_gap": 0.2781,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-cswbk",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cswbk"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 100,
+      "density": 1.6908163520398012,
+      "volume": 1218.6645919127216,
+      "energy_above_hull": 0.666177987399999,
+      "is_stable": false,
+      "energy_per_atom": -8.984353440100001,
+      "formation_energy_per_atom": -0.7468010057250011,
+      "band_gap": 1.7402000000000002,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-cswbn",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cswbn"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 100,
+      "density": 1.6304233174759801,
+      "volume": 1263.8055390717857,
+      "energy_above_hull": 0.659199829899998,
+      "is_stable": false,
+      "energy_per_atom": -8.991331597600002,
+      "formation_energy_per_atom": -0.753779163225001,
+      "band_gap": 1.6715,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-cswdl",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cswdl"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 100,
+      "density": 1.653412680194745,
+      "volume": 1246.2333477539573,
+      "energy_above_hull": 0.8353099933999991,
+      "is_stable": false,
+      "energy_per_atom": -8.815221434100001,
+      "formation_energy_per_atom": -0.5776689997250011,
+      "band_gap": 0.054400000000000004,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-csweb",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-csweb"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 100,
+      "density": 1.829845061082032,
+      "volume": 1126.072400053092,
+      "energy_above_hull": 0.8254487987000001,
+      "is_stable": false,
+      "energy_per_atom": -8.8250826288,
+      "formation_energy_per_atom": -0.5875301944250001,
+      "band_gap": 1.0362,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-cswef",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cswef"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 100,
+      "density": 1.651114895271283,
+      "volume": 1247.9676766039884,
+      "energy_above_hull": 0.6213518854999991,
+      "is_stable": false,
+      "energy_per_atom": -9.029179542000001,
+      "formation_energy_per_atom": -0.7916271076250001,
+      "band_gap": 0.8285,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-tlu",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-tlu"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 2,
+      "density": 2.253268039495839,
+      "volume": 18.28932895279496,
+      "energy_above_hull": 5.2802500000836985e-05,
+      "is_stable": false,
+      "energy_per_atom": -9.650478625,
+      "formation_energy_per_atom": -1.412926190625,
+      "band_gap": 4.3887,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "R3m",
+        "number": 160
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-tlv",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-tlv"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 8,
+      "density": 3.302142370637725,
+      "volume": 49.92002859670767,
+      "energy_above_hull": 0.17917564625000001,
+      "is_stable": false,
+      "energy_per_atom": -9.47135578125,
+      "formation_energy_per_atom": -1.233803346875001,
+      "band_gap": 4.7783,
+      "symmetry": {
+        "crystal_system": "Tetragonal",
+        "symbol": "P4_2/mnm",
+        "number": 136
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-162875"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-cjn",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cjn"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 8,
+      "density": 2.276292173543369,
+      "volume": 72.41734760087229,
+      "energy_above_hull": 0.13794956375,
+      "is_stable": false,
+      "energy_per_atom": -9.51258186375,
+      "formation_energy_per_atom": -1.275029429375001,
+      "band_gap": 1.5671,
+      "symmetry": {
+        "crystal_system": "Monoclinic",
+        "symbol": "Cm",
+        "number": 8
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-162877",
+          "icsd-162878",
+          "icsd-162879"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-clb",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-clb"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 2,
+      "density": 3.457693562132598,
+      "volume": 11.91856931582488,
+      "energy_above_hull": 0.07735396750000001,
+      "is_stable": false,
+      "energy_per_atom": -9.57317746,
+      "formation_energy_per_atom": -1.335625025625001,
+      "band_gap": 4.4506,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "F-43m",
+        "number": 216
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-187045",
+          "icsd-42002",
+          "icsd-40914",
+          "icsd-184566",
+          "icsd-27879",
+          "icsd-614864",
+          "icsd-83729",
+          "icsd-77271",
+          "icsd-183258",
+          "icsd-182731",
+          "icsd-86357",
+          "icsd-185152",
+          "icsd-236989",
+          "icsd-162874",
+          "icsd-83728",
+          "icsd-614868",
+          "icsd-191805",
+          "icsd-56315",
+          "icsd-236990",
+          "icsd-248502"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-dyb",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-dyb"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 4,
+      "density": 3.4520052090517592,
+      "volume": 23.87641842781525,
+      "energy_above_hull": 0.094704119999999,
+      "is_stable": false,
+      "energy_per_atom": -9.555827307500001,
+      "formation_energy_per_atom": -1.318274873125002,
+      "band_gap": 5.197599999999999,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3mc",
+        "number": 186
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-614869",
+          "icsd-162873",
+          "icsd-236993",
+          "icsd-183257",
+          "icsd-614873",
+          "icsd-236994",
+          "icsd-41486"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-ng",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-ng"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 8,
+      "density": 2.542715602882939,
+      "volume": 64.8295237523755,
+      "energy_above_hull": 0.21943424,
+      "is_stable": false,
+      "energy_per_atom": -9.4310971875,
+      "formation_energy_per_atom": -1.193544753125001,
+      "band_gap": 3.5766999999999998,
+      "symmetry": {
+        "crystal_system": "Monoclinic",
+        "symbol": "Cc",
+        "number": 9
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-162881",
+          "icsd-162882",
+          "icsd-162880"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bgkrv",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bgkrv"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 8,
+      "density": 1.854587397085946,
+      "volume": 88.88394358316457,
+      "energy_above_hull": 0.3211676225,
+      "is_stable": false,
+      "energy_per_atom": -9.329363805,
+      "formation_energy_per_atom": -1.091811370624999,
+      "band_gap": 3.847899999999999,
+      "symmetry": {
+        "crystal_system": "Monoclinic",
+        "symbol": "P2_1/c",
+        "number": 14
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-162883"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bifjz",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bifjz"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 4,
+      "density": 3.471160043488049,
+      "volume": 23.744661655961877,
+      "energy_above_hull": 2.562003137499999,
+      "is_stable": false,
+      "energy_per_atom": -7.088528290000001,
+      "formation_energy_per_atom": 1.149024144374998,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3/mmc",
+        "number": 194
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-bikuu",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bikuu"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 4,
+      "density": 2.246711413298581,
+      "volume": 36.68540618899864,
+      "energy_above_hull": 0.0,
+      "is_stable": true,
+      "energy_per_atom": -9.6505314275,
+      "formation_energy_per_atom": -1.412978993125001,
+      "band_gap": 4.3683,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P-6m2",
+        "number": 187
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-162872",
+          "icsd-186249"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bjumx",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bjumx"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 4,
+      "density": 2.218149994500146,
+      "volume": 37.15777607045509,
+      "energy_above_hull": 0.0017454250000010002,
+      "is_stable": false,
+      "energy_per_atom": -9.6487860025,
+      "formation_energy_per_atom": -1.4112335681250001,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3/mmc",
+        "number": 194
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-186248"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bkrud",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bkrud"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 8,
+      "density": 3.036917717318018,
+      "volume": 54.27971941176349,
+      "energy_above_hull": 0.272241174999999,
+      "is_stable": false,
+      "energy_per_atom": -9.378290252500001,
+      "formation_energy_per_atom": -1.140737818125002,
+      "band_gap": 5.7747,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Pnma",
+        "number": 62
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-162876"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bmznt",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bmznt"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 2,
+      "density": 2.174406660097555,
+      "volume": 18.952646323898716,
+      "energy_above_hull": 0.0012874225,
+      "is_stable": false,
+      "energy_per_atom": -9.649244005,
+      "formation_energy_per_atom": -1.411691570625,
+      "band_gap": 3.2495,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Fmm2",
+        "number": 42
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-20946"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bormh",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bormh"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 2,
+      "density": 2.498037488364745,
+      "volume": 16.49725457888786,
+      "energy_above_hull": 0.098182167499999,
+      "is_stable": false,
+      "energy_per_atom": -9.552349260000002,
+      "formation_energy_per_atom": -1.314796825625002,
+      "band_gap": 2.8663,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-lvj",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-lvj"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 4,
+      "density": 2.063635709510037,
+      "volume": 39.93995665343799,
+      "energy_above_hull": 0.007704892500001,
+      "is_stable": false,
+      "energy_per_atom": -9.642826535,
+      "formation_energy_per_atom": -1.405274100625,
+      "band_gap": 3.961699999999999,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3/mmc",
+        "number": 194
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-236992",
+          "icsd-236991",
+          "icsd-186247",
+          "icsd-27987"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-blw",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-blw"
+      ],
+      "formula_pretty": "BN",
+      "elements": [
+        "B",
+        "N"
+      ],
+      "chemsys": "B-N",
+      "nsites": 4,
+      "density": 1.956240948754851,
+      "volume": 42.13260173230655,
+      "energy_above_hull": 0.005704095,
+      "is_stable": false,
+      "energy_per_atom": -9.6448273325,
+      "formation_energy_per_atom": -1.407274898125001,
+      "band_gap": 4.273999999999999,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3/mmc",
+        "number": 194
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-168894",
+          "icsd-183256",
+          "icsd-24644",
+          "icsd-167799",
+          "icsd-162870",
+          "icsd-240996",
+          "icsd-240999",
+          "icsd-168893",
+          "icsd-168892",
+          "icsd-186246",
+          "icsd-35538"
+        ]
+      }
+    }
+  ]
+}

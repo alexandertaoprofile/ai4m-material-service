@@ -1,0 +1,6 @@
+{
+    "baseline_material": "Li₂O–Al₂O₃–SiO₂–ZrO₂ 微晶玻璃（LAS-Zr）",
+    "advanced_material": "Li₂O–Al₂O₃–SiO₂–ZrO₂–AlN/SiC 纳米复合玻璃陶瓷（LASS-Zr-Nano）",
+    "baseline_reason": "完美匹配硅芯片CTE，热导率达标，成本低、工艺成熟、良率高，适合当前2.5D封装量产需求，是工业落地的最优平衡方案。",
+    "advanced_reason": "通过纳米导热网络将热导率提升至4.8 W/m·K，断裂韧性显著增强，表面更平整，专为高密度3D封装与高算力芯片散热设计，虽成本较高，但代表下一代技术方向。"
+}

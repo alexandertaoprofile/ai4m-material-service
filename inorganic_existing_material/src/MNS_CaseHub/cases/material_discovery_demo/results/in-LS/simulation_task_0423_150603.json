@@ -1,0 +1,6 @@
+{
+    "baseline_material": "Al₂O₃",
+    "advanced_material": "AlN",
+    "baseline_reason": "热导率满足最低200 W/m·K门槛以下但工艺兼容性极佳，成本低、供应链成熟，是当前AI芯片量产的工业标准选择，适合中低功率场景。",
+    "advanced_reason": "热导率远超200 W/m·K，CTE更匹配芯片，界面强度更高，专为高功率密度、瞬态热冲击场景设计，虽成本高但能解决AI芯片核心散热瓶颈。"
+}

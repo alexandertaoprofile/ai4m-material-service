@@ -1,0 +1,6 @@
+{
+    "baseline_material": "Al2O3",
+    "advanced_material": "AlN",
+    "baseline_reason": "成本低、工艺成熟、绝缘性极佳、长期可靠性高，适合大规模量产和预算敏感场景，是当前工业标准选择。",
+    "advanced_reason": "热导率远超氧化铝，CTE更接近硅芯片，界面热阻更低，能有效应对高热流密度与3D堆叠挑战，是高端AI芯片的性能最优解。"
+}

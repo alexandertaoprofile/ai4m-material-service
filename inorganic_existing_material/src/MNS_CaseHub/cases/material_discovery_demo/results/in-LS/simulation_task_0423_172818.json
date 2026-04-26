@@ -1,0 +1,6 @@
+{
+    "baseline_material": "AlN",
+    "advanced_material": "BN/AlN",
+    "baseline_reason": "热导率达标（>200 W/m·K）、CTE接近芯片、绝缘性优异、工艺成熟、成本可控，是当前AI封装量产的黄金标准材料。",
+    "advanced_reason": "热导率突破300 W/m·K，CTE可精准调控至±2 ppm/K，绝缘性更强、耐热循环更久，适合极致散热需求的前沿AI芯片，但成本高、工艺门槛高，仅推荐用于高端旗舰产品。"
+}

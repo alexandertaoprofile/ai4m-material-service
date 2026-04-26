@@ -1,0 +1,6 @@
+{
+    "baseline_material": "Perfect Electric Conductor (PEC) + Vacuum",
+    "advanced_material": "Niobium-Titanium (NbTi) Superconductor + Fused Silica",
+    "baseline_reason": "PEC和真空是理论理想材料，电导率无限、损耗为零、介电/磁导常数为精确常数，完全兼容float64自动微分，无需任何物理实现，是PINN框架验证物理约束的最优基准。",
+    "advanced_reason": "NbTi超导体在低温下实现接近无限电导率，熔融石英具有极低损耗（tanδ<10⁻⁶）和高度稳定的ε、μ参数，是工程上最接近理想绝缘体的材料组合，适用于高精度物理实验验证，虽需低温环境但更贴近真实世界物理。"
+}

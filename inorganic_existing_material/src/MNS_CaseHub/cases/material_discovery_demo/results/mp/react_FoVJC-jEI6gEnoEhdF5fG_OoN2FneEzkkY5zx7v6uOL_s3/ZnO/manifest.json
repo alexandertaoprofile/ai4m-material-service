@@ -1,0 +1,75 @@
+{
+  "ok": true,
+  "taskid": "react_FoVJC-jEI6gEnoEhdF5fG/OoN2FneEzkkY5zx7v6uOL_s3",
+  "jobid": "ZnO",
+  "material_id": null,
+  "formula": "ZnO",
+  "elements": null,
+  "query": {
+    "query_mode": "formula",
+    "prefer_stable": true,
+    "max_candidates": 5,
+    "whitelist": null,
+    "whitelist_ids": [],
+    "primary_material_id": "mp-deb"
+  },
+  "render": {
+    "supercell": [
+      1,
+      1,
+      1
+    ],
+    "atom_radius": 0.4,
+    "bond_radius": 0.07,
+    "max_bonds_per_site": null,
+    "poly_mode": "p",
+    "poly_cn": [
+      4
+    ],
+    "poly_alpha": 85
+  },
+  "base_dir": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO",
+  "base_dir_rel_to_repo": "src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO",
+  "files": {
+    "summary_all_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/summary_all.json",
+    "selected_structures_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/selected_structures.json",
+    "summary_md": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/summary.md",
+    "structures_dir": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/structures",
+    "structure_cif": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/structure.cif",
+    "structure_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/structure.json",
+    "structure_glb": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/structure_mpstyle.glb",
+    "manifest_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/manifest.json"
+  },
+  "files_abs": {
+    "summary_all_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/summary_all.json",
+    "selected_structures_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/selected_structures.json",
+    "summary_md": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/summary.md",
+    "structures_dir": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/structures",
+    "structure_cif": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/structure.cif",
+    "structure_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/structure.json",
+    "structure_glb": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/structure_mpstyle.glb",
+    "manifest_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/manifest.json"
+  },
+  "glb_info": {
+    "ok": true,
+    "out_glb": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/structure_mpstyle.glb",
+    "standardized": true,
+    "supercell": [
+      1,
+      1,
+      1
+    ],
+    "draw_atoms": true,
+    "draw_bonds": true,
+    "poly_mode": "p",
+    "poly_centers": [],
+    "poly_cn": [
+      4
+    ],
+    "poly_alpha": 85,
+    "n_sites": 4,
+    "n_bonds": 13,
+    "n_polyhedra": 0
+  },
+  "generated_at": "2026-04-16T09:36:50.866813"
+}

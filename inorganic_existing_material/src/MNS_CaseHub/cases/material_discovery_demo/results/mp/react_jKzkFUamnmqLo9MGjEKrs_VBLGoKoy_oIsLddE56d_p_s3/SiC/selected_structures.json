@@ -1,0 +1,191 @@
+{
+  "ok": true,
+  "taskid": "react_jKzkFUamnmqLo9MGjEKrs/VBLGoKoy_oIsLddE56d_p_s3",
+  "jobid": "SiC",
+  "material_id": null,
+  "formula": "SiC",
+  "elements": null,
+  "max_candidates": 5,
+  "prefer_stable": true,
+  "whitelist_ids": [],
+  "primary_material_id": "mp-cqnpk",
+  "count_selected": 5,
+  "items": [
+    {
+      "material_id": "mp-cqnpk",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cqnpk"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 38,
+      "density": 3.227670169340689,
+      "volume": 391.9374525744493,
+      "energy_above_hull": 0.0,
+      "is_stable": true,
+      "energy_per_atom": -9.666446337368422,
+      "formation_energy_per_atom": -0.30594644486842204,
+      "band_gap": 1.8389000000000002,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "R3m",
+        "number": 160
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-23887"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_jKzkFUamnmqLo9MGjEKrs_VBLGoKoy_oIsLddE56d_p_s3/SiC/structures/mp-cqnpk.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_jKzkFUamnmqLo9MGjEKrs_VBLGoKoy_oIsLddE56d_p_s3/SiC/structures/mp-cqnpk.cif"
+    },
+    {
+      "material_id": "mp-lhn",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-lhn"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 12,
+      "density": 3.227773317409295,
+      "volume": 123.76576662882943,
+      "energy_above_hull": 7.649035088874712e-06,
+      "is_stable": false,
+      "energy_per_atom": -9.666438688333333,
+      "formation_energy_per_atom": -0.305938795833333,
+      "band_gap": 2.022999999999999,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3mc",
+        "number": 186
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-164972",
+          "icsd-15325",
+          "icsd-156190",
+          "icsd-24169",
+          "icsd-164429",
+          "icsd-31069",
+          "icsd-27051"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_jKzkFUamnmqLo9MGjEKrs_VBLGoKoy_oIsLddE56d_p_s3/SiC/structures/mp-lhn.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_jKzkFUamnmqLo9MGjEKrs_VBLGoKoy_oIsLddE56d_p_s3/SiC/structures/mp-lhn.cif"
+    },
+    {
+      "material_id": "mp-osp",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-osp"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 14,
+      "density": 3.227557774286588,
+      "volume": 144.40303729604565,
+      "energy_above_hull": 1.63309398502065e-05,
+      "is_stable": false,
+      "energy_per_atom": -9.666430006428572,
+      "formation_energy_per_atom": -0.305930113928572,
+      "band_gap": 1.848799999999998,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "R3m",
+        "number": 160
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-161173"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_jKzkFUamnmqLo9MGjEKrs_VBLGoKoy_oIsLddE56d_p_s3/SiC/structures/mp-osp.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_jKzkFUamnmqLo9MGjEKrs_VBLGoKoy_oIsLddE56d_p_s3/SiC/structures/mp-osp.cif"
+    },
+    {
+      "material_id": "mp-bgjgy",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bgjgy"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 28,
+      "density": 3.22746872370534,
+      "volume": 288.81404317397767,
+      "energy_above_hull": 2.073201127750223e-05,
+      "is_stable": false,
+      "energy_per_atom": -9.666425605357144,
+      "formation_energy_per_atom": -0.30592571285714304,
+      "band_gap": 1.8139,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "P3m1",
+        "number": 156
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-28303"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_jKzkFUamnmqLo9MGjEKrs_VBLGoKoy_oIsLddE56d_p_s3/SiC/structures/mp-bgjgy.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_jKzkFUamnmqLo9MGjEKrs_VBLGoKoy_oIsLddE56d_p_s3/SiC/structures/mp-bgjgy.cif"
+    },
+    {
+      "material_id": "mp-cqiem",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cqiem"
+      ],
+      "formula_pretty": "SiC",
+      "elements": [
+        "C",
+        "Si"
+      ],
+      "chemsys": "C-Si",
+      "nsites": 34,
+      "density": 3.22767635058752,
+      "volume": 350.68020703856683,
+      "energy_above_hull": 2.185089783424132e-05,
+      "is_stable": false,
+      "energy_per_atom": -9.666424486470587,
+      "formation_energy_per_atom": -0.305924593970587,
+      "band_gap": 1.969299999999998,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "R3m",
+        "number": 160
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-159380"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_jKzkFUamnmqLo9MGjEKrs_VBLGoKoy_oIsLddE56d_p_s3/SiC/structures/mp-cqiem.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_jKzkFUamnmqLo9MGjEKrs_VBLGoKoy_oIsLddE56d_p_s3/SiC/structures/mp-cqiem.cif"
+    }
+  ]
+}

@@ -1,0 +1,202 @@
+{
+  "ok": true,
+  "query_mode": "formula",
+  "input": {
+    "material_id": null,
+    "formula": "La2O3",
+    "elements": null,
+    "reduced_formula": "La2O3"
+  },
+  "count_all": 6,
+  "items": [
+    {
+      "material_id": "mp-cpenb",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cpenb"
+      ],
+      "formula_pretty": "La2O3",
+      "elements": [
+        "La",
+        "O"
+      ],
+      "chemsys": "La-O",
+      "nsites": 5,
+      "density": 4.679824854126312,
+      "volume": 115.60663530993467,
+      "energy_above_hull": 0.23565604849999902,
+      "is_stable": false,
+      "energy_per_atom": -8.583452316,
+      "formation_energy_per_atom": -3.640272871000001,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6/mmm",
+        "number": 191
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-cxs",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cxs"
+      ],
+      "formula_pretty": "La2O3",
+      "elements": [
+        "La",
+        "O"
+      ],
+      "chemsys": "La-O",
+      "nsites": 5,
+      "density": 6.615226585908185,
+      "volume": 81.78386608522705,
+      "energy_above_hull": 0.0,
+      "is_stable": true,
+      "energy_per_atom": -8.8191083645,
+      "formation_energy_per_atom": -3.8759289195,
+      "band_gap": 3.824799999999999,
+      "symmetry": {
+        "crystal_system": "Trigonal",
+        "symbol": "P-3m1",
+        "number": 164
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-184524",
+          "icsd-56771",
+          "icsd-641603",
+          "icsd-96196",
+          "icsd-100205",
+          "icsd-160205",
+          "icsd-56166",
+          "icsd-641599",
+          "icsd-154586",
+          "icsd-151763",
+          "icsd-192270",
+          "icsd-100204",
+          "icsd-24693"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-dke",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-dke"
+      ],
+      "formula_pretty": "La2O3",
+      "elements": [
+        "La",
+        "O"
+      ],
+      "chemsys": "La-O",
+      "nsites": 40,
+      "density": 5.904323249276039,
+      "volume": 733.0476769430752,
+      "energy_above_hull": 0.001785823249997,
+      "is_stable": false,
+      "energy_per_atom": -8.817322541250002,
+      "formation_energy_per_atom": -3.874143096250002,
+      "band_gap": 3.300799999999999,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "Ia-3",
+        "number": 206
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-96201",
+          "icsd-641600",
+          "icsd-641602",
+          "icsd-184531"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-bwwm",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bwwm"
+      ],
+      "formula_pretty": "La2O3",
+      "elements": [
+        "La",
+        "O"
+      ],
+      "chemsys": "La-O",
+      "nsites": 5,
+      "density": 5.659525195442684,
+      "volume": 95.59438054291242,
+      "energy_above_hull": 0.8924609145,
+      "is_stable": false,
+      "energy_per_atom": -7.92664745,
+      "formation_energy_per_atom": -2.983468005000001,
+      "band_gap": 0.3996,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "Pm-3m",
+        "number": 221
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-bfmop",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bfmop"
+      ],
+      "formula_pretty": "La2O3",
+      "elements": [
+        "La",
+        "O"
+      ],
+      "chemsys": "La-O",
+      "nsites": 5,
+      "density": 4.820695086702337,
+      "volume": 112.22838107262248,
+      "energy_above_hull": 0.242197370499999,
+      "is_stable": false,
+      "energy_per_atom": -8.576910994,
+      "formation_energy_per_atom": -3.633731549000001,
+      "band_gap": 1.5342,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P-62m",
+        "number": 189
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-bfszr",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bfszr"
+      ],
+      "formula_pretty": "La2O3",
+      "elements": [
+        "La",
+        "O"
+      ],
+      "chemsys": "La-O",
+      "nsites": 15,
+      "density": 6.378686656469288,
+      "volume": 254.44993665426975,
+      "energy_above_hull": 0.031389613166666004,
+      "is_stable": false,
+      "energy_per_atom": -8.787718751333333,
+      "formation_energy_per_atom": -3.844539306333335,
+      "band_gap": 3.411,
+      "symmetry": {
+        "crystal_system": "Monoclinic",
+        "symbol": "C2/m",
+        "number": 12
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-160220"
+        ]
+      }
+    }
+  ]
+}

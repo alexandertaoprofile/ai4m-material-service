@@ -1,0 +1,6 @@
+{
+    "baseline_material": "氮化铝（AlN）",
+    "advanced_material": "氮化硅（Si₃N₄）（高热导改性型）",
+    "baseline_reason": "热导率达标（200 W/m·K）、CTE匹配良好、成本适中、工业量产成熟，是高热流密度场景的可靠首选。",
+    "advanced_reason": "经纳米改性后热导率接近210 W/m·K，CTE完美匹配硅芯片（±0.5 ppm/K），接触热阻更低，耐温更强，抗热震性优异，适合极端负载与长寿命需求场景。"
+}

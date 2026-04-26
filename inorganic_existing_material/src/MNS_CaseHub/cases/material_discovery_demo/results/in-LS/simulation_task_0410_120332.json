@@ -1,0 +1,10 @@
+{
+    "simulation_task": {
+        "baseline_material": "YSZ",
+        "advanced_material": "La0.2Ce0.2Pr0.2Nd0.2Gd0.2O2.8",
+        "simulation_parameters": {
+            "temp_range": "223K-573K",
+            "stability": "良好"
+        }
+    }
+}

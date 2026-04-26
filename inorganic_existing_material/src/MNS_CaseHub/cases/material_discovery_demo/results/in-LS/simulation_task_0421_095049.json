@@ -1,0 +1,6 @@
+{
+    "baseline_material": "纳米银烧结互连材料（Ag Sintering Paste）",
+    "advanced_material": "金刚石/铜梯度复合材料（Diamond/Cu Gradient Composite）",
+    "baseline_reason": "工艺成熟、良率高（≥97%）、成本低（$0.4）、热导率与热阻全面达标，已广泛用于CoWoS量产，是当前最可靠的工程化选择。",
+    "advanced_reason": "热导率超400 W/m·K，CTE完美匹配硅芯片，兼具电绝缘与机械缓冲，热阻更低、可靠性更强，虽工艺稍复杂但为下一代3D IC/HBM封装的终极解决方案。"
+}

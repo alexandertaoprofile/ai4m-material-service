@@ -1,0 +1,6 @@
+{
+    "baseline_material": "ABF-Standard",
+    "advanced_material": "ABF-NanoFill",
+    "baseline_reason": "ABF-Standard是当前量产最成熟的低成本基板，CTE与介电性能优异，成本低于$0.18/封装，完全满足基础高频封装需求，良率高、工艺稳定，是产业化的安全选择。",
+    "advanced_reason": "ABF-NanoFill通过纳米陶瓷填料改性，在不牺牲低介电和低成本的前提下，将热导率提升至6 W/m·K以上，CTE更优，热循环寿命超1200次，是唯一在ABF体系内实现'三高一低'（高导热、低CTE、低介电、低成本<0.2美元）突破的材料，代表下一代封装趋势。"
+}

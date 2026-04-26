@@ -1,0 +1,6 @@
+{
+    "baseline_material": "氮化铝（AlN）陶瓷基板",
+    "advanced_material": "氮化硅（Si₃N₄）基复合陶瓷（含纳米AlN增强相）",
+    "baseline_reason": "工艺成熟、成本可控、CTE匹配硅芯片、绝缘性优异，满足基本热管理需求，是当前AI芯片封装的工业标准选择。",
+    "advanced_reason": "通过梯度结构设计实现等效导热>500 W/m·K，CTE更优、热循环寿命超5000次，绝缘性更强，专为超高功耗、高频、Chiplet等前沿AI芯片设计，虽成本高但性能领先。"
+}

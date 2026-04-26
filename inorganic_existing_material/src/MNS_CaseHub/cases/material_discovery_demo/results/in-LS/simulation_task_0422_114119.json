@@ -1,0 +1,6 @@
+{
+    "baseline_material": "高纯度单晶氮化铝（High-Purity Single-Crystal AlN）",
+    "advanced_material": "氮化铝-碳化硅异质外延薄膜（AlN/SiC Epitaxial Heterostructure）",
+    "baseline_reason": "高纯度单晶AlN工艺成熟、参数稳定、热-电-力耦合特性清晰，可直接用于PINN物理残差建模，满足正定性与可逆推要求，适合轻量化复现与算法验证。",
+    "advanced_reason": "AlN/SiC外延结构通过界面工程显著提升电极化线性度、抑制声子散射、降低热膨胀波动，使ε、μ、σ随温/场变化更可预测，HMC后验分布更窄，适合高精度反演与不确定性量化需求。"
+}

@@ -1,0 +1,6 @@
+{
+    "baseline_material": "MAPbI₃",
+    "advanced_material": "Cs₀.₀₅(MA₀.₁₇FA₀.₈₃)₀.₉₅Pb(I₀.₈₃Br₀.₁₇)₃",
+    "baseline_reason": "成分明确、文献海量、结构经典，是钙钛矿领域的标准参照物，易于复现和标准化提取。",
+    "advanced_reason": "多阳离子-多卤素协同设计，成分高度量化，兼具高效率与高稳定性，代表当前前沿趋势，能显著扩展特征向量维度。"
+}

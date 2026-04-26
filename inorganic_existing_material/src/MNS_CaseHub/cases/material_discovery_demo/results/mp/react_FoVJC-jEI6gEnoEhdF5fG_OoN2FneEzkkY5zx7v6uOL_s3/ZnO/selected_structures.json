@@ -1,0 +1,263 @@
+{
+  "ok": true,
+  "taskid": "react_FoVJC-jEI6gEnoEhdF5fG/OoN2FneEzkkY5zx7v6uOL_s3",
+  "jobid": "ZnO",
+  "material_id": null,
+  "formula": "ZnO",
+  "elements": null,
+  "max_candidates": 5,
+  "prefer_stable": true,
+  "whitelist_ids": [],
+  "primary_material_id": "mp-deb",
+  "count_selected": 5,
+  "items": [
+    {
+      "material_id": "mp-deb",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-deb"
+      ],
+      "formula_pretty": "ZnO",
+      "elements": [
+        "O",
+        "Zn"
+      ],
+      "chemsys": "O-Zn",
+      "nsites": 4,
+      "density": 5.70421780686615,
+      "volume": 47.397148259900405,
+      "energy_above_hull": 0.0,
+      "is_stable": true,
+      "energy_per_atom": -4.894751419999999,
+      "formation_energy_per_atom": -1.7908991124999991,
+      "band_gap": 0.7227,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3mc",
+        "number": 186
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-29272",
+          "icsd-165009",
+          "icsd-65120",
+          "icsd-65121",
+          "icsd-165013",
+          "icsd-165012",
+          "icsd-189104",
+          "icsd-154486",
+          "icsd-157133",
+          "icsd-166353",
+          "icsd-164209",
+          "icsd-181731",
+          "icsd-182355",
+          "icsd-166356",
+          "icsd-154488",
+          "icsd-161836",
+          "icsd-236619",
+          "icsd-182356",
+          "icsd-195802",
+          "icsd-76641",
+          "icsd-166354",
+          "icsd-169463",
+          "icsd-154489",
+          "icsd-157132",
+          "icsd-41488",
+          "icsd-26170",
+          "icsd-67848",
+          "icsd-165002",
+          "icsd-157724",
+          "icsd-67454",
+          "icsd-165014",
+          "icsd-162843",
+          "icsd-166355",
+          "icsd-647667",
+          "icsd-236754",
+          "icsd-656331",
+          "icsd-164690",
+          "icsd-52362",
+          "icsd-57478",
+          "icsd-165010",
+          "icsd-65122",
+          "icsd-155780",
+          "icsd-167690",
+          "icsd-165011",
+          "icsd-154487",
+          "icsd-82028",
+          "icsd-180052",
+          "icsd-166243",
+          "icsd-185828",
+          "icsd-193696",
+          "icsd-94002",
+          "icsd-647681",
+          "icsd-163380",
+          "icsd-184793",
+          "icsd-191642",
+          "icsd-94004",
+          "icsd-184079",
+          "icsd-65119",
+          "icsd-31060",
+          "icsd-57450",
+          "icsd-184674",
+          "icsd-34477",
+          "icsd-82029",
+          "icsd-181473",
+          "icsd-154490",
+          "icsd-185829",
+          "icsd-185827",
+          "icsd-67849",
+          "icsd-31052"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/structures/mp-deb.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/structures/mp-deb.cif"
+    },
+    {
+      "material_id": "mp-cyk",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cyk"
+      ],
+      "formula_pretty": "ZnO",
+      "elements": [
+        "O",
+        "Zn"
+      ],
+      "chemsys": "O-Zn",
+      "nsites": 2,
+      "density": 5.708336616549273,
+      "volume": 23.681474592351165,
+      "energy_above_hull": 0.00806893,
+      "is_stable": false,
+      "energy_per_atom": -4.886682489999999,
+      "formation_energy_per_atom": -1.782830182499999,
+      "band_gap": 0.630899999999999,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "F-43m",
+        "number": 216
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-647683",
+          "icsd-162753",
+          "icsd-163383",
+          "icsd-182357",
+          "icsd-187457"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/structures/mp-cyk.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/structures/mp-cyk.cif"
+    },
+    {
+      "material_id": "mp-ckgir",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-ckgir"
+      ],
+      "formula_pretty": "ZnO",
+      "elements": [
+        "O",
+        "Zn"
+      ],
+      "chemsys": "O-Zn",
+      "nsites": 8,
+      "density": 5.450391709469147,
+      "volume": 99.20889048362783,
+      "energy_above_hull": 0.0328996925,
+      "is_stable": false,
+      "energy_per_atom": -4.8618517274999995,
+      "formation_energy_per_atom": -1.7579994199999982,
+      "band_gap": 0.7376,
+      "symmetry": {
+        "crystal_system": "Tetragonal",
+        "symbol": "P4_2/mnm",
+        "number": 136
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/structures/mp-ckgir.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/structures/mp-ckgir.cif"
+    },
+    {
+      "material_id": "mp-dht",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-dht"
+      ],
+      "formula_pretty": "ZnO",
+      "elements": [
+        "O",
+        "Zn"
+      ],
+      "chemsys": "O-Zn",
+      "nsites": 2,
+      "density": 6.619789652587246,
+      "volume": 20.420864656411798,
+      "energy_above_hull": 0.14726733999999903,
+      "is_stable": false,
+      "energy_per_atom": -4.7474840799999996,
+      "formation_energy_per_atom": -1.6436317724999991,
+      "band_gap": 0.7218999999999991,
+      "symmetry": {
+        "crystal_system": "Cubic",
+        "symbol": "Fm-3m",
+        "number": 225
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-190807",
+          "icsd-190802",
+          "icsd-190803",
+          "icsd-190806",
+          "icsd-190805",
+          "icsd-166359",
+          "icsd-166357",
+          "icsd-38222",
+          "icsd-166360",
+          "icsd-182359",
+          "icsd-166358",
+          "icsd-190804",
+          "icsd-163381",
+          "icsd-182358",
+          "icsd-57156"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/structures/mp-dht.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/structures/mp-dht.cif"
+    },
+    {
+      "material_id": "mp-cetuk",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cetuk"
+      ],
+      "formula_pretty": "ZnO",
+      "elements": [
+        "O",
+        "Zn"
+      ],
+      "chemsys": "O-Zn",
+      "nsites": 24,
+      "density": 6.597744974458736,
+      "volume": 245.86914906117198,
+      "energy_above_hull": 0.17324365333333203,
+      "is_stable": false,
+      "energy_per_atom": -4.721507766666667,
+      "formation_energy_per_atom": -1.617655459166667,
+      "band_gap": 0.5425999999999991,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3/mmc",
+        "number": 194
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/structures/mp-cetuk.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_FoVJC-jEI6gEnoEhdF5fG_OoN2FneEzkkY5zx7v6uOL_s3/ZnO/structures/mp-cetuk.cif"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+    "baseline_material": "AlSiC",
+    "advanced_material": "h-BN",
+    "baseline_reason": "AlSiC导热性达标（>180 W/m·K）、CTE精准匹配硅芯片（2.5–3.0 ppm/°C）、绝缘性优异（>10¹³ Ω·cm），且热循环寿命超5000次，工艺成熟、成本可控，是当前AI封装主流可靠选择。",
+    "advanced_reason": "h-BN复合陶瓷导热更高（达260 W/m·K）、CTE更精确（2.6±0.4 ppm/°C）、绝缘性更强（>10¹⁴ Ω·cm），热循环寿命突破8000次，且耐湿热、环保无毒，适合对长期可靠性与性能极限有严苛要求的高端AI系统。"
+}

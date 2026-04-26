@@ -1,0 +1,40 @@
+{
+  "ok": true,
+  "query_mode": "formula",
+  "input": {
+    "material_id": null,
+    "formula": "NbTi",
+    "elements": null,
+    "reduced_formula": "TiNb"
+  },
+  "count_all": 1,
+  "items": [
+    {
+      "material_id": "mp-crftq",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-crftq"
+      ],
+      "formula_pretty": "TiNb",
+      "elements": [
+        "Nb",
+        "Ti"
+      ],
+      "chemsys": "Nb-Ti",
+      "nsites": 2,
+      "density": 6.613536957188015,
+      "volume": 35.34564009251693,
+      "energy_above_hull": 0.05417519666666901,
+      "is_stable": false,
+      "energy_per_atom": -18.781740635,
+      "formation_energy_per_atom": 0.05417519666666901,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Cmmm",
+        "number": 65
+      },
+      "database_IDs": {}
+    }
+  ]
+}

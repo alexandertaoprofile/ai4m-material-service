@@ -1,0 +1,6 @@
+{
+    "baseline_material": "AlN",
+    "advanced_material": "c-BN",
+    "baseline_reason": "导热性能接近目标、绝缘性优异、工艺兼容性成熟、成本可控，是当前AI芯片封装的工业标准选择，适合快速量产部署。",
+    "advanced_reason": "导热系数突破300 W/m·K，CTE更接近硅芯片，热循环可靠性更强，综合性能最优，虽成本高、工艺复杂，但适用于下一代高性能AI芯片的热管理瓶颈突破。"
+}

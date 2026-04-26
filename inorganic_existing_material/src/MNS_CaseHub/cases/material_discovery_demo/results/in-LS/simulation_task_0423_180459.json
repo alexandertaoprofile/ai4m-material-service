@@ -1,0 +1,6 @@
+{
+    "baseline_material": "Al2O3",
+    "advanced_material": "AlN",
+    "baseline_reason": "成本低、工艺成熟、电绝缘优异，虽热导率与CTE略低于目标，但通过多层协同散热设计可满足系统级需求，是当前量产AI芯片的首选基准方案。",
+    "advanced_reason": "热导率超140 W/m·K、CTE精准匹配硅芯片（≤5 ppm/K）、热循环耐受超1500次，四项核心指标全部达标，专为高功率密度CoWoS封装设计，是下一代AI芯片的性能标杆材料。"
+}

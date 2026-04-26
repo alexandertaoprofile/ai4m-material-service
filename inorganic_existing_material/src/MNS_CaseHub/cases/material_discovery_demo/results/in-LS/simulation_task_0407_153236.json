@@ -1,0 +1,6 @@
+{
+    "baseline_material": "氮化铝（AlN）",
+    "advanced_material": "金刚石/氮化铝复合材料（Diamond-AlN）",
+    "baseline_reason": "热导率达标（>200 W/m·K）、CTE与硅匹配良好、工艺成熟、成本可控，可直接集成于现有封装产线，满足95%以上AI芯片散热需求。",
+    "advanced_reason": "热导率突破500 W/m·K，远超铜，可应对极端热流密度，虽成本高、工艺复杂，但为下一代超高功率AI芯片提供唯一可行的散热解决方案。"
+}

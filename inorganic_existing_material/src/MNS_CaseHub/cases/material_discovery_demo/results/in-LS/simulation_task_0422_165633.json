@@ -1,0 +1,6 @@
+{
+    "baseline_material": "SiO2-10mol% Al2O3",
+    "advanced_material": "SiO2-8mol% Al2O3-2mol% Y2O3",
+    "baseline_reason": "SiO2占比90%，网络连接度2.45，Ra=0.48nm，量子耦合0.142eV，工艺成熟、成本低、可直接量产，完全满足核心指标要求。",
+    "advanced_reason": "引入Y2O3提升网络连接度至2.52，降低Ra至0.32nm，量子耦合降至0.118eV，冷却耐受性提升至150K/s，热稳定性增强，虽需工艺优化，但为高端封装提供量子级界面控制能力。"
+}

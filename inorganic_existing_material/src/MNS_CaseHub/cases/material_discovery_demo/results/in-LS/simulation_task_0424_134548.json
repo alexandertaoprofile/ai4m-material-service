@@ -1,0 +1,6 @@
+{
+    "baseline_material": "AlN",
+    "advanced_material": "C",
+    "baseline_reason": "综合性能均衡，工艺成熟，成本可控，已广泛用于TSMC/Intel量产AI封装，满足所有核心指标的最低门槛，是当前最可靠的选择。",
+    "advanced_reason": "热导率超2000 W/m·K，CTE匹配近乎完美，界面热阻更低，寿命更长，代表下一代散热技术方向，虽成本高、工艺复杂，但为未来超高密度AI芯片提供不可替代的热管理解决方案。"
+}

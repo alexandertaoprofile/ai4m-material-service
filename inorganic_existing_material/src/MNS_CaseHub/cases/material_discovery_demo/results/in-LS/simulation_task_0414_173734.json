@@ -1,0 +1,6 @@
+{
+    "baseline_material": "MAPbI₃",
+    "advanced_material": "Cs₀.₀5(MA₀.₁₇FA₀.₈₃)₀.₉₅Pb(I₀.₈₃Br₀.₁₇)₃",
+    "baseline_reason": "MAPbI₃是钙钛矿太阳能电池的开创性材料，实验方法成熟、数据公开、文献权威且可复现，适合作为基准对照组用于基础研究与教学验证。",
+    "advanced_reason": "该混合阳离子/卤素钙钛矿在效率与稳定性上显著超越MAPbI₃，基于Nature/Science等顶级期刊的标准化实验数据，是当前高性能源器件的工业主流选择，具备强可复现性与产业化潜力。"
+}

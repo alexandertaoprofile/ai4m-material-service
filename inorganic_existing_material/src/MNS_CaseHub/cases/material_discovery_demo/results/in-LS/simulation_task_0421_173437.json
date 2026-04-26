@@ -1,0 +1,6 @@
+{
+    "baseline_material": "CVD金刚石/铜复合材料（CVD-Diamond/Cu）",
+    "advanced_material": "纳米金刚石/六方氮化硼梯度复合材料（n-Diamond/h-BN）",
+    "baseline_reason": "热导率稳定超过550 W/m·K，CTE控制在7.5 ppm/°C以内，体积电阻率远超10¹² Ω·cm，工艺成熟、成本可控，适合大规模工业应用。",
+    "advanced_reason": "通过纳米结构设计实现热导率突破800 W/m·K，CTE更低（6.8 ppm/°C），绝缘性更强（>10¹⁴ Ω·cm），热循环稳定性极佳，专为极端环境下的高可靠性需求设计。"
+}

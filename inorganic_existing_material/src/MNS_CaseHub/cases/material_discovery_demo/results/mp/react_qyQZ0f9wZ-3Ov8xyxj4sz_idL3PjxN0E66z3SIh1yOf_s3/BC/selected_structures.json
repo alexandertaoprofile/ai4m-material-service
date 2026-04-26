@@ -1,0 +1,75 @@
+{
+  "ok": true,
+  "taskid": "react_qyQZ0f9wZ-3Ov8xyxj4sz/idL3PjxN0E66z3SIh1yOf_s3",
+  "jobid": "BC",
+  "material_id": null,
+  "formula": "BC",
+  "elements": null,
+  "max_candidates": 5,
+  "prefer_stable": true,
+  "whitelist_ids": [],
+  "primary_material_id": "mp-cease",
+  "count_selected": 2,
+  "items": [
+    {
+      "material_id": "mp-cease",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cease"
+      ],
+      "formula_pretty": "BC",
+      "elements": [
+        "B",
+        "C"
+      ],
+      "chemsys": "B-C",
+      "nsites": 4,
+      "density": 2.79761587462252,
+      "volume": 27.09187116071718,
+      "energy_above_hull": 0.5626331801041681,
+      "is_stable": false,
+      "energy_per_atom": -8.165769420729166,
+      "formation_energy_per_atom": 0.48102527302083303,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P6_3mc",
+        "number": 186
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_qyQZ0f9wZ-3Ov8xyxj4sz_idL3PjxN0E66z3SIh1yOf_s3/BC/structures/mp-cease.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_qyQZ0f9wZ-3Ov8xyxj4sz_idL3PjxN0E66z3SIh1yOf_s3/BC/structures/mp-cease.cif"
+    },
+    {
+      "material_id": "mp-crxmt",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-crxmt"
+      ],
+      "formula_pretty": "BC",
+      "elements": [
+        "B",
+        "C"
+      ],
+      "chemsys": "B-C",
+      "nsites": 2,
+      "density": 0.8817167968689341,
+      "volume": 42.98015479664093,
+      "energy_above_hull": 0.6600824326041681,
+      "is_stable": false,
+      "energy_per_atom": -8.068320168229166,
+      "formation_energy_per_atom": 0.578474525520833,
+      "band_gap": 0.0,
+      "symmetry": {
+        "crystal_system": "Hexagonal",
+        "symbol": "P-6m2",
+        "number": 187
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_qyQZ0f9wZ-3Ov8xyxj4sz_idL3PjxN0E66z3SIh1yOf_s3/BC/structures/mp-crxmt.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_qyQZ0f9wZ-3Ov8xyxj4sz_idL3PjxN0E66z3SIh1yOf_s3/BC/structures/mp-crxmt.cif"
+    }
+  ]
+}

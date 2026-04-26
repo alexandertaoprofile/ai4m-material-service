@@ -1,0 +1,6 @@
+{
+    "baseline_material": "SiO2/Al2O3/CaO/MgO",
+    "advanced_material": "AlN/SiO2",
+    "baseline_reason": "LTCC具备良好的导热性、优异的CTE梯度调控能力、极低介电损耗和成熟的量产工艺，成本适中，完全满足AI芯片封装的可靠性与工艺要求，是平衡性能与量产可行性的理想基准选择。",
+    "advanced_reason": "AlN-Glass复合基板通过氮化铝增强实现更高垂直导热（>20 W/m·K）、更低界面热阻和更精准的CTE梯度匹配，同时保持超高绝缘性与超低介电损耗，适合100–300 W/cm²极端热流密度场景，是高端AI芯片的性能天花板选择。"
+}

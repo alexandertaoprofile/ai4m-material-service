@@ -1,0 +1,197 @@
+{
+  "ok": true,
+  "query_mode": "formula",
+  "input": {
+    "material_id": null,
+    "formula": "CH3NH3PbI3",
+    "elements": null,
+    "reduced_formula": "H6PbCI3N"
+  },
+  "count_all": 6,
+  "items": [
+    {
+      "material_id": "mp-cpzei",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cpzei"
+      ],
+      "formula_pretty": "H6PbCI3N",
+      "elements": [
+        "C",
+        "H",
+        "I",
+        "N",
+        "Pb"
+      ],
+      "chemsys": "C-H-I-N-Pb",
+      "nsites": 48,
+      "density": 4.034752006148544,
+      "volume": 1020.6311913161112,
+      "energy_above_hull": 0.041432433958331,
+      "is_stable": false,
+      "energy_per_atom": -4.37995830125,
+      "formation_energy_per_atom": -0.5278796397916661,
+      "band_gap": 1.8147000000000002,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Pnma",
+        "number": 62
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-291372"
+        ]
+      }
+    },
+    {
+      "material_id": "mp-cdphl",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cdphl"
+      ],
+      "formula_pretty": "H6PbCI3N",
+      "elements": [
+        "C",
+        "H",
+        "I",
+        "N",
+        "Pb"
+      ],
+      "chemsys": "C-H-I-N-Pb",
+      "nsites": 12,
+      "density": 3.826588550109265,
+      "volume": 269.0381845849923,
+      "energy_above_hull": 0.047423232708331,
+      "is_stable": false,
+      "energy_per_atom": -4.3739675025,
+      "formation_energy_per_atom": -0.521888841041666,
+      "band_gap": 1.6778,
+      "symmetry": {
+        "crystal_system": "Monoclinic",
+        "symbol": "Pm",
+        "number": 6
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-cejdo",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-cejdo"
+      ],
+      "formula_pretty": "H6PbCI3N",
+      "elements": [
+        "C",
+        "H",
+        "I",
+        "N",
+        "Pb"
+      ],
+      "chemsys": "C-H-I-N-Pb",
+      "nsites": 48,
+      "density": 3.786976050244644,
+      "volume": 1087.4095035363187,
+      "energy_above_hull": 0.054258709583332,
+      "is_stable": false,
+      "energy_per_atom": -4.367132025625,
+      "formation_energy_per_atom": -0.515053364166666,
+      "band_gap": 2.1442,
+      "symmetry": {
+        "crystal_system": "Triclinic",
+        "symbol": "P1",
+        "number": 1
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-ceqfb",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-ceqfb"
+      ],
+      "formula_pretty": "H6PbCI3N",
+      "elements": [
+        "C",
+        "H",
+        "I",
+        "N",
+        "Pb"
+      ],
+      "chemsys": "C-H-I-N-Pb",
+      "nsites": 48,
+      "density": 4.020663115296323,
+      "volume": 1024.2076067089151,
+      "energy_above_hull": 0.052717604791665006,
+      "is_stable": false,
+      "energy_per_atom": -4.368673130416666,
+      "formation_energy_per_atom": -0.516594468958333,
+      "band_gap": 2.2266,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Pnma",
+        "number": 62
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-ceqfm",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-ceqfm"
+      ],
+      "formula_pretty": "H6PbCI3N",
+      "elements": [
+        "C",
+        "H",
+        "I",
+        "N",
+        "Pb"
+      ],
+      "chemsys": "C-H-I-N-Pb",
+      "nsites": 48,
+      "density": 4.013168831769407,
+      "volume": 1026.1202354860395,
+      "energy_above_hull": 0.040887758749998004,
+      "is_stable": false,
+      "energy_per_atom": -4.380502976458334,
+      "formation_energy_per_atom": -0.528424315,
+      "band_gap": 2.3204000000000002,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Pnma",
+        "number": 62
+      },
+      "database_IDs": {}
+    },
+    {
+      "material_id": "mp-ceqfz",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-ceqfz"
+      ],
+      "formula_pretty": "H6PbCI3N",
+      "elements": [
+        "C",
+        "H",
+        "I",
+        "N",
+        "Pb"
+      ],
+      "chemsys": "C-H-I-N-Pb",
+      "nsites": 48,
+      "density": 4.019017442042852,
+      "volume": 1024.626990572924,
+      "energy_above_hull": 0.041160114999999005,
+      "is_stable": false,
+      "energy_per_atom": -4.380230620208333,
+      "formation_energy_per_atom": -0.5281519587499991,
+      "band_gap": 2.2896,
+      "symmetry": {
+        "crystal_system": "Monoclinic",
+        "symbol": "Cc",
+        "number": 9
+      },
+      "database_IDs": {}
+    }
+  ]
+}

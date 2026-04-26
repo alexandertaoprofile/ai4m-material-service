@@ -1,0 +1,185 @@
+{
+  "ok": true,
+  "taskid": "react_conv_1776583901_9955/Zs0doXEHAP-f1tQdCBUkW_s2",
+  "jobid": "HfO2",
+  "material_id": null,
+  "formula": "HfO2",
+  "elements": null,
+  "max_candidates": 5,
+  "prefer_stable": true,
+  "whitelist_ids": [],
+  "primary_material_id": "mp-no",
+  "count_selected": 5,
+  "items": [
+    {
+      "material_id": "mp-no",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-no"
+      ],
+      "formula_pretty": "HfO2",
+      "elements": [
+        "Hf",
+        "O"
+      ],
+      "chemsys": "Hf-O",
+      "nsites": 12,
+      "density": 10.24124328616322,
+      "volume": 136.51657937039403,
+      "energy_above_hull": 0.0,
+      "is_stable": true,
+      "energy_per_atom": -10.637514720833332,
+      "formation_energy_per_atom": -4.019811040833332,
+      "band_gap": 4.0165,
+      "symmetry": {
+        "crystal_system": "Monoclinic",
+        "symbol": "P2_1/c",
+        "number": 14
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-57385",
+          "icsd-187015",
+          "icsd-638744",
+          "icsd-60902",
+          "icsd-173158",
+          "icsd-173964",
+          "icsd-60903",
+          "icsd-27313",
+          "icsd-638740",
+          "icsd-638737",
+          "icsd-172165"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776583901_9955_Zs0doXEHAP-f1tQdCBUkW_s2/HfO2/structures/mp-no.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776583901_9955_Zs0doXEHAP-f1tQdCBUkW_s2/HfO2/structures/mp-no.cif"
+    },
+    {
+      "material_id": "mp-bsdov",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bsdov"
+      ],
+      "formula_pretty": "HfO2",
+      "elements": [
+        "Hf",
+        "O"
+      ],
+      "chemsys": "Hf-O",
+      "nsites": 24,
+      "density": 10.2455682122362,
+      "volume": 272.91790420316113,
+      "energy_above_hull": 0.009928638750000001,
+      "is_stable": false,
+      "energy_per_atom": -10.627586082083331,
+      "formation_energy_per_atom": -4.00988240208333,
+      "band_gap": 4.1083,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Pbca",
+        "number": 61
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776583901_9955_Zs0doXEHAP-f1tQdCBUkW_s2/HfO2/structures/mp-bsdov.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776583901_9955_Zs0doXEHAP-f1tQdCBUkW_s2/HfO2/structures/mp-bsdov.cif"
+    },
+    {
+      "material_id": "mp-ctm",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-ctm"
+      ],
+      "formula_pretty": "HfO2",
+      "elements": [
+        "Hf",
+        "O"
+      ],
+      "chemsys": "Hf-O",
+      "nsites": 24,
+      "density": 10.698913663127213,
+      "volume": 261.3535440977401,
+      "energy_above_hull": 0.01638392625,
+      "is_stable": false,
+      "energy_per_atom": -10.621130794583332,
+      "formation_energy_per_atom": -4.003427114583332,
+      "band_gap": 4.2272,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Pbca",
+        "number": 61
+      },
+      "database_IDs": {
+        "icsd": [
+          "icsd-79913",
+          "icsd-173965",
+          "icsd-71354"
+        ]
+      },
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776583901_9955_Zs0doXEHAP-f1tQdCBUkW_s2/HfO2/structures/mp-ctm.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776583901_9955_Zs0doXEHAP-f1tQdCBUkW_s2/HfO2/structures/mp-ctm.cif"
+    },
+    {
+      "material_id": "mp-bmzlx",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bmzlx"
+      ],
+      "formula_pretty": "HfO2",
+      "elements": [
+        "Hf",
+        "O"
+      ],
+      "chemsys": "Hf-O",
+      "nsites": 12,
+      "density": 10.634789518075097,
+      "volume": 131.46470830953248,
+      "energy_above_hull": 0.021979467500003003,
+      "is_stable": false,
+      "energy_per_atom": -10.615535253333329,
+      "formation_energy_per_atom": -3.997831573333329,
+      "band_gap": 4.4148,
+      "symmetry": {
+        "crystal_system": "Orthorhombic",
+        "symbol": "Pca2_1",
+        "number": 29
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776583901_9955_Zs0doXEHAP-f1tQdCBUkW_s2/HfO2/structures/mp-bmzlx.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776583901_9955_Zs0doXEHAP-f1tQdCBUkW_s2/HfO2/structures/mp-bmzlx.cif"
+    },
+    {
+      "material_id": "mp-bsesq",
+      "legacy_numeric_id": null,
+      "all_ids": [
+        "mp-bsesq"
+      ],
+      "formula_pretty": "HfO2",
+      "elements": [
+        "Hf",
+        "O"
+      ],
+      "chemsys": "Hf-O",
+      "nsites": 6,
+      "density": 9.412302135077686,
+      "volume": 74.26979509702473,
+      "energy_above_hull": 0.036980001666666006,
+      "is_stable": false,
+      "energy_per_atom": -10.600534719166665,
+      "formation_energy_per_atom": -3.982831039166664,
+      "band_gap": 3.902499999999999,
+      "symmetry": {
+        "crystal_system": "Tetragonal",
+        "symbol": "P4_2/mnm",
+        "number": 136
+      },
+      "database_IDs": {},
+      "selected_reason": "ranked_topk",
+      "cif_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776583901_9955_Zs0doXEHAP-f1tQdCBUkW_s2/HfO2/structures/mp-bsesq.cif",
+      "cif_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776583901_9955_Zs0doXEHAP-f1tQdCBUkW_s2/HfO2/structures/mp-bsesq.cif"
+    }
+  ]
+}

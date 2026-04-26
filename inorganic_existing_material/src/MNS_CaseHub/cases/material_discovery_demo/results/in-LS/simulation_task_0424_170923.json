@@ -1,0 +1,6 @@
+{
+    "baseline_material": "Al2O3",
+    "advanced_material": "AlN",
+    "baseline_reason": "Al₂O₃具备优异的电绝缘性与长期热稳定性，工艺成熟、成本低廉，是满足基础可靠性要求的经济型选择，适合中低功率密度AI芯片量产场景。",
+    "advanced_reason": "AlN在热导率、CTE匹配与界面热阻三项核心指标上远超Al₂O₃，是当前陶瓷基板体系中最接近300 W/m·K目标且能实现高可靠性热管理的唯一可行方案，适用于高功率密度2.5D/3D封装的前沿AI芯片。"
+}

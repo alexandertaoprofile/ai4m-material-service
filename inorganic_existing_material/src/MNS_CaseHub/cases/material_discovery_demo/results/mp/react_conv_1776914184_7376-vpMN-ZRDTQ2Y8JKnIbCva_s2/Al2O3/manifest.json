@@ -1,0 +1,159 @@
+{
+  "ok": true,
+  "taskid": "react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2",
+  "jobid": "Al2O3",
+  "material_id": null,
+  "formula": "Al2O3",
+  "elements": null,
+  "query": {
+    "query_mode": "formula",
+    "prefer_stable": true,
+    "max_candidates": 5,
+    "whitelist": null,
+    "whitelist_ids": [],
+    "primary_material_id": "mp-brz"
+  },
+  "render": {
+    "supercell": [
+      1,
+      1,
+      1
+    ],
+    "atom_radius": 0.4,
+    "bond_radius": 0.07,
+    "max_bonds_per_site": null,
+    "poly_mode": "p",
+    "poly_cn": [
+      4
+    ],
+    "poly_alpha": 85
+  },
+  "base_dir": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3",
+  "base_dir_rel_to_repo": "src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3",
+  "files": {
+    "summary_all_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/summary_all.json",
+    "selected_structures_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/selected_structures.json",
+    "summary_md": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/summary.md",
+    "cards_dir": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/cards",
+    "structures_dir": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/structures",
+    "structure_cif": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/structure.cif",
+    "structure_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/structure.json",
+    "structure_glb": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/structure_mpstyle.glb",
+    "manifest_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/manifest.json"
+  },
+  "files_abs": {
+    "summary_all_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/summary_all.json",
+    "selected_structures_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/selected_structures.json",
+    "summary_md": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/summary.md",
+    "cards_dir": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/cards",
+    "structures_dir": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/structures",
+    "structure_cif": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/structure.cif",
+    "structure_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/structure.json",
+    "structure_glb": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/structure_mpstyle.glb",
+    "manifest_json": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/manifest.json"
+  },
+  "candidate_cards": [
+    {
+      "material_id": "mp-brz",
+      "formula_pretty": "Al2O3",
+      "symmetry": "Trigonal/R-3c/167",
+      "image_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/cards/mp-brz_ortho_card.png",
+      "image_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/cards/mp-brz_ortho_card.png",
+      "lattice": {
+        "a": 5.177955,
+        "b": 5.177954,
+        "c": 5.177956,
+        "alpha": 55.289628,
+        "beta": 55.289609,
+        "gamma": 55.289595,
+        "atoms": 10
+      }
+    },
+    {
+      "material_id": "mp-klc",
+      "formula_pretty": "Al2O3",
+      "symmetry": "Monoclinic/C2/m/12",
+      "image_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/cards/mp-klc_ortho_card.png",
+      "image_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/cards/mp-klc_ortho_card.png",
+      "lattice": {
+        "a": 2.907477,
+        "b": 5.615156,
+        "c": 6.072966,
+        "alpha": 103.646337,
+        "beta": 103.849883,
+        "gamma": 89.999998,
+        "atoms": 10
+      }
+    },
+    {
+      "material_id": "mp-dis",
+      "formula_pretty": "Al2O3",
+      "symmetry": "Orthorhombic/Pna2_1/33",
+      "image_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/cards/mp-dis_ortho_card.png",
+      "image_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/cards/mp-dis_ortho_card.png",
+      "lattice": {
+        "a": 4.832813,
+        "b": 8.303333,
+        "c": 8.923881,
+        "alpha": 90.0,
+        "beta": 90.0,
+        "gamma": 90.0,
+        "atoms": 40
+      }
+    },
+    {
+      "material_id": "mp-bseql",
+      "formula_pretty": "Al2O3",
+      "symmetry": "Cubic/Ia-3/206",
+      "image_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/cards/mp-bseql_ortho_card.png",
+      "image_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/cards/mp-bseql_ortho_card.png",
+      "lattice": {
+        "a": 7.686272,
+        "b": 7.686272,
+        "c": 7.686272,
+        "alpha": 109.471221,
+        "beta": 109.471221,
+        "gamma": 109.471221,
+        "atoms": 40
+      }
+    },
+    {
+      "material_id": "mp-brgep",
+      "formula_pretty": "Al2O3",
+      "symmetry": "Monoclinic/P2/c/13",
+      "image_path": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/cards/mp-brgep_ortho_card.png",
+      "image_path_abs": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/cards/mp-brgep_ortho_card.png",
+      "lattice": {
+        "a": 5.658037,
+        "b": 5.656882,
+        "c": 24.266056,
+        "alpha": 77.35924,
+        "beta": 90.0,
+        "gamma": 90.0,
+        "atoms": 80
+      }
+    }
+  ],
+  "glb_info": {
+    "ok": true,
+    "out_glb": "/home/ubuntu/inorganic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/mp/react_conv_1776914184_7376-vpMN-ZRDTQ2Y8JKnIbCva_s2/Al2O3/structure_mpstyle.glb",
+    "standardized": true,
+    "supercell": [
+      1,
+      1,
+      1
+    ],
+    "draw_atoms": true,
+    "draw_bonds": true,
+    "poly_mode": "p",
+    "poly_centers": [],
+    "poly_cn": [
+      4
+    ],
+    "poly_alpha": 85,
+    "n_sites": 30,
+    "n_bonds": 104,
+    "n_polyhedra": 0
+  },
+  "generated_at": "2026-04-23T15:07:11.321628"
+}

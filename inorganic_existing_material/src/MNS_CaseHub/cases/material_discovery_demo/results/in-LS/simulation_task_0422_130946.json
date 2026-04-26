@@ -1,0 +1,6 @@
+{
+    "baseline_material": "Corning EAGLE XG®",
+    "advanced_material": "Schott D263® T eco",
+    "baseline_reason": "具备优异的CTE匹配性、低成本、高量产成熟度，满足主流高性能封装的热-电-机械核心需求，是行业通用基准选择。",
+    "advanced_reason": "通过ZrO₂/La₂O₃微调实现更优CTE与高频介电性能，支持超薄加工与AEC-Q100车规认证，专为先进2.5D/3D封装与严苛环境设计，性能天花板更高。"
+}

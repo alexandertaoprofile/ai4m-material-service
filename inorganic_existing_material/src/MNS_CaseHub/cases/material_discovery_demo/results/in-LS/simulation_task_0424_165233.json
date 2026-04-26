@@ -1,0 +1,6 @@
+{
+    "baseline_material": "AlN",
+    "advanced_material": "h-BN",
+    "baseline_reason": "导热性优异（>170 W/m·K）、绝缘性极佳、工艺成熟、成本可控，完全满足100–300 W/cm²热流密度与5000次热循环需求，是当前CoWoS封装的工业标准选择。",
+    "advanced_reason": "导热性突破350 W/m·K，CTE精准匹配硅基板（±0.8 ppm/°C），绝缘性与高频性能超越常规材料，热循环寿命达8000次，适用于500 W/cm²极端场景与高端AI芯片，虽成本高但性能无短板。"
+}
