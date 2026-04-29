@@ -70,6 +70,7 @@ def setup_science_backend_logger():
 
 UPLOAD_DIR="upload"
 app = FastAPI()
+#app.mount("/public", StaticFiles(directory="public"), name="public")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # 允许所有源，也可以指定具体源列表如["http://example.com", "https://example.com"]

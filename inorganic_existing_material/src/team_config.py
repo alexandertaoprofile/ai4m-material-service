@@ -3287,7 +3287,9 @@ class Coding(Action):
                 )
 
             # 候选材料概览下方补充数据库周期图（右侧）
-            period_abs = os.path.join(_repo_root(), "src", "MNS_CaseHub", "cases", "material_discovery_demo", "results", "databasepic", "period.png")
+            period_abs = os.path.join(_repo_root(), "public", "databasepic", "period.png")
+            if not os.path.exists(period_abs):
+                period_abs = os.path.join(_repo_root(), "src", "MNS_CaseHub", "cases", "material_discovery_demo", "results", "databasepic", "period.png")
             period_url = await _upload_database_pic_for_markdown(period_abs, "period.png")
             if period_url:
                 await websocket.send_text(f"\n\n![候选材料周期分布示意]({period_url})\n")
@@ -3342,7 +3344,9 @@ class Coding(Action):
             await websocket.send_text("\n\n#### 材料数据库检索说明\n\n")
 
             # 检索说明下先展示 MP 数据库示意图（左侧）
-            mp_abs = os.path.join(_repo_root(), "src", "MNS_CaseHub", "cases", "material_discovery_demo", "results", "databasepic", "mp.png")
+            mp_abs = os.path.join(_repo_root(), "public", "databasepic", "mp.png")
+            if not os.path.exists(mp_abs):
+                mp_abs = os.path.join(_repo_root(), "src", "MNS_CaseHub", "cases", "material_discovery_demo", "results", "databasepic", "mp.png")
             mp_url = await _upload_database_pic_for_markdown(mp_abs, "mp.png")
             if mp_url:
                 await websocket.send_text(f"![Materials Project 数据库示意图]({mp_url})\n\n")
@@ -3377,7 +3381,9 @@ class Coding(Action):
             """
             # 这里改为非流式一次性发送，避免末尾无换行导致后续 ### 标题粘连
             try:
-                alignn_abs = os.path.join(_repo_root(), "src", "MNS_CaseHub", "cases", "material_discovery_demo", "results", "databasepic", "alignn.png")
+                alignn_abs = os.path.join(_repo_root(), "public", "databasepic", "alignn.png")
+                if not os.path.exists(alignn_abs):
+                    alignn_abs = os.path.join(_repo_root(), "src", "MNS_CaseHub", "cases", "material_discovery_demo", "results", "databasepic", "alignn.png")
                 alignn_url = await _upload_database_pic_for_markdown(alignn_abs, "alignn.png")
                 if alignn_url:
                     await websocket.send_text(f"![ALIGNN 图神经网络分析示意]({alignn_url})\n\n")
