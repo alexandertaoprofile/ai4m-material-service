@@ -20,6 +20,20 @@ from alpha.actions import Action, UserRequirement
 
 from src.llm_utils import SeLLM, load_config
 from src.storage_utils import oss_upload, get_image_url
+from src.materials.payloads import build_payload as build_material_payload
+from src.roles.mns_role_prompts import (
+    XIMU_MNS_ENGINEERING_PROMPT,
+    XIMU_MNS_MATERIAL_PROMPT,
+    XIMU_MNS_MATERIAL_MP_EXPLAIN_PROMPT,
+)
+from src.tools.team_config_helpers import (
+    repo_root as _helpers_repo_root,
+    resolve_case_readme_path as _helpers_resolve_case_readme_path,
+    safe_str as _helpers_safe_str,
+    get_case_root as _helpers_get_case_root,
+    as_text as _helpers_as_text,
+    infer_prompt_mode as _helpers_infer_prompt_mode,
+)
 
 # Optional: reranker (heavy dependency)
 try:
@@ -28,37 +42,10 @@ except Exception:
     CrossEncoder = None  # type: ignore
 
 def _repo_root() -> str:
-    # 当前文件: .../ai4m_tqm/src/team_config.py
-    # 仓库根:   .../ai4m_tqm
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    return _helpers_repo_root()
 
 def _resolve_case_readme_path(case: dict) -> str:
-    repo = _repo_root()
-
-    # 兼容 root_path / paths.project_root
-    root_path = case.get("root_path")
-    if not root_path:
-        paths = case.get("paths") or {}
-        root_path = paths.get("project_root")
-
-    if not root_path:
-        return ""  # 让上层打印 “root_path缺失”
-
-    readme_name = case.get("readme") or "README.md"
-
-    # 1) 先按 “repo/root_path/readme” 试
-    p1 = os.path.join(repo, root_path, readme_name)
-
-    # 2) 再按 “repo/src/root_path/readme” 试（兼容 root_path 没写 src/ 的情况）
-    p2 = os.path.join(repo, "src", root_path, readme_name)
-
-    if os.path.exists(p1):
-        return p1
-    if os.path.exists(p2):
-        return p2
-
-    # 两种都不存在
-    return p2  # 返回一个“最可能”的路径给日志打印
+    return _helpers_resolve_case_readme_path(case)
 
 load_dotenv()
 today = datetime.datetime.now().strftime("%Y%m%d")
@@ -115,95 +102,24 @@ CODE_BLOCK_PATTERN = re.compile(
 
 ### json 格式化 ###
 def build_payload(data, type_: str = "chat", request_id: str = None, meta: dict = None) -> dict:
-    """
-    将任意输出打包成统一 JSON 格式，供前端解析。
-
-    - 支持 meta.ui.hidden: True  -> 前端可忽略（你服务端仍可记录日志）
-    - 支持 meta.ui.level: "debug"/"info" -> 前端可按级别过滤（需要前端配合）
-    - progress 的 icon 允许在后续统一清空（你也可在这里直接清空）
-    """
-    import uuid
-    import datetime
-
-    if request_id is None:
-        request_id = str(uuid.uuid4())
-
-    payload = {
-        "version": "1.0.0",
-        "agent": "XIMUAlpha_MNS",
-        "request_id": request_id,
-        "time": datetime.datetime.now().isoformat(),
-        "type": type_,
-        "data": data
-    }
-
-    if meta:
-        # 兜底：避免 meta 不是 dict
-        payload["meta"] = meta if isinstance(meta, dict) else {"raw_meta": str(meta)}
-
-    # ✅ 可选：默认把 progress 的 icon 清空（你说“卡通图标不需要这么频繁”）
-    # 如果你仍想保留少数关键步骤的 icon，可以在 meta 里显式写 ui.keep_icon=True
-    try:
-        keep_icon = bool(payload.get("meta", {}).get("ui", {}).get("keep_icon", False))
-        if type_ == "progress" and isinstance(payload.get("data"), dict) and not keep_icon:
-            payload["data"]["icon"] = ""
-    except Exception:
-        pass
-
-    # ✅ 可选：截断过长文本（避免 summary/md 或 LLM 输出把前端刷爆）
-    # 这里不改 image / parameters
-    try:
-        max_chars = int(payload.get("meta", {}).get("ui", {}).get("max_text_chars", 6000))
-        if type_ in ("chat", "error", "progress") and isinstance(payload.get("data"), str):
-            if len(payload["data"]) > max_chars:
-                payload["data"] = payload["data"][:max_chars] + "…"
-    except Exception:
-        pass
-
-    return payload
+    return build_material_payload(data=data, type_=type_, request_id=request_id, meta=meta)
 
 
 #########################################辅助函数分类prompt#########################################
 def _safe_str(x) -> str:
-    if x is None:
-        return ""
-    if isinstance(x, str):
-        return x
-    try:
-        return str(x)
-    except Exception:
-        return ""
+    return _helpers_safe_str(x)
 
 def _get_case_root(case: dict) -> str:
-    """
-    兼容两种字段：
-      - 旧：case["root_path"]
-      - 新：case["paths"]["project_root"]
-    返回相对 repo_root 的路径（不带前导 /）
-    """
-    root_path = case.get("root_path")
-    if not root_path:
-        paths = case.get("paths") or {}
-        root_path = paths.get("project_root")
-    return root_path or ""
+    return _helpers_get_case_root(case)
 
 
 
 def _as_text(x) -> str:
-    if x is None:
-        return ""
-    if isinstance(x, (dict, list)):
-        try:
-            import json
-            return json.dumps(x, ensure_ascii=False)
-        except Exception:
-            return str(x)
-    return str(x)
+    return _helpers_as_text(x)
 
 
 def _infer_prompt_mode(best_proj: dict) -> str:
-    # 仅保留“已有无机材料”服务线
-    return "materials"
+    return _helpers_infer_prompt_mode(best_proj)
 
 
 ########################################
@@ -391,25 +307,12 @@ class CodeRetriever:
 
         q = str(query).lower()
 
+        # NOTE(2026-04): 旧业务关键词（手机/钨/喷管等）已下线，先注释对应规则。
+        # 当前仅保留“已有无机材料”主线相关关键词，避免旧路由误命中。
         RULES = [
-            # 手机跌落
-            (r"(drop|impact|fall|跌落|冲击)", ["drop", "impact", "跌落", "冲击"]),
-            # 手机散热
-            (r"(thermal|heat|cool|散热|热)", ["thermal", "heat", "散热", "温度"]),
-            # 钨高温蠕变 / 高温变形（新增）
             (
-                r"(tungsten|wolfram|钨|蠕变|creep|高温蠕变|高温变形|高温强度|stress\s*rupture|应力松弛|蠕变断裂)",
-                ["tungsten", "wolfram", "钨", "蠕变", "creep", "高温", "断裂", "应力", "强度"]
-            ),
-            # 钨喷管/高温结构（可选增强）
-            (
-                r"(nozzle|喷管|rocket|aerospace|高温喷管|发动机|火箭)",
-                ["nozzle", "喷管", "rocket", "aerospace", "高温"]
-            ),
-            # 材料线泛化（建议保留，方便材料 demo 触发）
-            (
-                r"(dft|mlip|deepmd|lammps|mace|ase|materials? project|material|晶体|结构|势函数|分子动力学|扩散|弹性)",
-                ["dft", "mlip", "deepmd", "lammps", "mace", "ase", "材料", "晶体", "结构", "势"]
+                r"(materials? project|material|晶体|结构|化学式|无机|数据库|筛选|带隙|形成能|稳定性)",
+                ["materials", "project", "material", "晶体", "结构", "化学式", "无机", "数据库", "筛选", "带隙", "形成能", "稳定性"],
             ),
         ]
 
@@ -438,9 +341,7 @@ class CodeRetriever:
                     # hit：命中 tokens 的数量（越多越像）
                     hit = sum(1 for t in must_tokens if t and t.lower() in text)
 
-                    # 额外加权：如果 query 里出现 “钨/creep/tungsten”，且项目文本也包含，则强加权
-                    if ("钨" in q or "tungsten" in q or "creep" in q) and ("钨" in text or "tungsten" in text or "creep" in text):
-                        hit += 3
+                    # NOTE(2026-04): 旧加权（钨/creep）已注释下线
 
                     if hit > best_hit:
                         best_hit = hit
@@ -1596,6 +1497,12 @@ class Coding(Action):
         import json
         import glob
 
+        # 结构图在前端停留时长（秒），默认3秒，可通过环境变量调节
+        try:
+            asset_hold_seconds = max(0.0, float(os.getenv("MATERIAL_ASSET_HOLD_SECONDS", "3")))
+        except Exception:
+            asset_hold_seconds = 3.0
+
         result = {
             "manifest_found": False,
             "glb_ready": False,
@@ -1604,15 +1511,20 @@ class Coding(Action):
         }
 
         async def _ws_asset(name: str, docs: str, url: str, asset_type: str, description: str = ""):
+            safe_desc = description if isinstance(description, str) else ""
             payload = {
                 "step_id": step_id,          # ✅ 不写死
                 "name": name,
                 "docs": docs,
                 "url": url,
-                "type": asset_type           # MaterialsPNG / MaterialsGLB
+                "type": asset_type,          # MaterialsPNG / MaterialsGLB
+                # 始终携带 description，避免前端因字段缺失触发空态分支
+                "description": safe_desc,
             }
-            if isinstance(description, str) and description.strip():
-                payload["description"] = description.strip()
+            logger.info(
+                f"[send_results_to_frontend] ws_asset type={asset_type} name={name} "
+                f"desc_len={len(safe_desc)}"
+            )
             await websocket.send_json(payload)
 
         async def _ws_right(step_id_local: str, text: str):
@@ -1741,6 +1653,8 @@ class Coding(Action):
                     heading=f"{str(jobid or '').strip() or 'Material'}_无机化合物可能候选结构",
                     fig_label=fname,
                 )
+                if asset_hold_seconds > 0:
+                    await asyncio.sleep(asset_hold_seconds)
 
             return result
 
@@ -1847,6 +1761,8 @@ class Coding(Action):
                 heading=(display_name or f"{str(jobid or '').strip() or 'Material'}_无机化合物可能候选结构"),
                 fig_label=(display_docs or display_name or os.path.basename(abs_img)),
             )
+            if asset_hold_seconds > 0:
+                await asyncio.sleep(asset_hold_seconds)
 
         # ---------- 6) GLB（MaterialsGLB） ----------
         glb_path = _abspath(files.get("structure_glb", ""))
@@ -1902,6 +1818,8 @@ class Coding(Action):
                     asset_type="MaterialsGLB",
                     description=glb_description,
                 )
+                if asset_hold_seconds > 0:
+                    await asyncio.sleep(asset_hold_seconds)
 
                 if keep_block_open_after_asset:
                     await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
@@ -2092,54 +2010,135 @@ class Coding(Action):
                 return ""
 
         def _render_performance_bar_png(metric_rows: list, out_png_path: str):
-            """用 matplotlib 绘制满足度柱状图（英文标签，避免中文字体乱码）。"""
-            import matplotlib
-            matplotlib.use("Agg")
-            import matplotlib.pyplot as plt
-
+            """绘制预期值 vs 当前值对比图（matplotlib 优先，PIL 兜底）。"""
             labels = [str(r.get("label", "")).strip() for r in (metric_rows or [])]
-            scores = [int(r.get("score", 0) or 0) for r in (metric_rows or [])]
+            expected_scores = [int(r.get("expected", 0) or 0) for r in (metric_rows or [])]
+            current_scores = [int(r.get("current", 0) or 0) for r in (metric_rows or [])]
             states = [str(r.get("state", "Pending")) for r in (metric_rows or [])]
 
             n = len(labels)
             if n <= 0:
                 return
 
-            fig_h = max(2.6, 0.8 * n + 1.6)
-            fig, ax = plt.subplots(figsize=(8.8, fig_h), dpi=160)
-            fig.patch.set_facecolor("#F8FAFD")
-            ax.set_facecolor("#F8FAFD")
+            # 1) 首选 matplotlib
+            try:
+                import matplotlib
+                matplotlib.use("Agg")
+                import matplotlib.pyplot as plt
+                try:
+                    plt.rcParams["font.sans-serif"] = ["Noto Sans CJK SC", "Microsoft YaHei", "SimHei", "WenQuanYi Zen Hei", "DejaVu Sans"]
+                    plt.rcParams["axes.unicode_minus"] = False
+                except Exception:
+                    pass
 
-            y_pos = list(range(n))[::-1]
-            for i, y in enumerate(y_pos):
-                score = max(0, min(100, int(scores[i])))
-                st = states[i]
+                fig_h = max(2.6, 0.8 * n + 1.6)
+                fig, ax = plt.subplots(figsize=(8.8, fig_h), dpi=160)
+                fig.patch.set_facecolor("#F8FAFD")
+                ax.set_facecolor("#F8FAFD")
 
-                # 背景轨道
-                ax.barh(y, 100, color="#E9EEF6", edgecolor="#E0E6F1", height=0.46)
+                x_pos = list(range(n))
+                w = 0.34
+                for i, x in enumerate(x_pos):
+                    exp_v = max(0, min(100, int(expected_scores[i])))
+                    cur_v = max(0, min(100, int(current_scores[i])))
+                    st = states[i]
 
-                if st == "Met":
-                    ax.barh(y, score, color="#5B6CFF", edgecolor="#5B6CFF", height=0.46)
-                elif st == "Partially Met":
-                    ax.barh(y, score, color="#8A96FF", edgecolor="#5B6CFF", hatch="///", linewidth=0.8, height=0.46)
-                else:
-                    ax.barh(y, score, color="#C3CBD9", edgecolor="#AEB7C7", height=0.46)
+                    # Expected（基线）
+                    ax.bar(x - w / 2, exp_v, color="#D7DEED", edgecolor="#C8D2E6", width=w, label="Expected" if i == 0 else "")
 
-                ax.text(min(score + 1.5, 99.0), y, f"{st}  {score}%", va="center", ha="left", fontsize=9, color="#4B5568")
+                    # Current（当前）
+                    if st == "Met":
+                        ax.bar(x + w / 2, cur_v, color="#5B6CFF", edgecolor="#4B5CF0", width=w, label="Current" if i == 0 else "")
+                    elif st == "Partially Met":
+                        ax.bar(x + w / 2, cur_v, color="#8A96FF", edgecolor="#5B6CFF", hatch="///", linewidth=0.8, width=w, label="Current" if i == 0 else "")
+                    else:
+                        ax.bar(x + w / 2, cur_v, color="#C3CBD9", edgecolor="#AEB7C7", width=w, label="Current" if i == 0 else "")
 
-            ax.set_yticks(y_pos)
-            ax.set_yticklabels(labels, fontsize=9, color="#3E4A5A")
-            ax.set_xlim(0, 100)
-            ax.set_xticks([0, 20, 40, 60, 80, 100])
-            ax.tick_params(axis="x", labelsize=8, colors="#6A7382")
-            ax.grid(axis="x", color="#DEE5F0", linestyle="--", linewidth=0.6, alpha=0.8)
-            for sp in ["top", "right", "left", "bottom"]:
-                ax.spines[sp].set_visible(False)
+                    ax.text(x + w / 2, min(cur_v + 2.5, 99.0), f"{st}\nE:{exp_v}% / C:{cur_v}%", va="bottom", ha="center", fontsize=8, color="#4B5568")
 
-            ax.set_title("Performance Satisfaction Bar Comparison", fontsize=11, color="#2F6FEF", pad=10, loc="left")
-            plt.tight_layout()
-            fig.savefig(out_png_path, dpi=160)
-            plt.close(fig)
+                ax.set_xticks(x_pos)
+                ax.set_xticklabels(labels, fontsize=9, color="#3E4A5A", rotation=10, ha="right")
+                ax.set_ylim(0, 100)
+                ax.set_yticks([0, 20, 40, 60, 80, 100])
+                ax.tick_params(axis="y", labelsize=8, colors="#6A7382")
+                ax.grid(axis="y", color="#DEE5F0", linestyle="--", linewidth=0.6, alpha=0.8)
+                for sp in ["top", "right", "left", "bottom"]:
+                    ax.spines[sp].set_visible(False)
+
+                ax.set_title("Expected vs Current Performance Comparison", fontsize=11, color="#2F6FEF", pad=10, loc="left")
+                ax.legend(loc="upper right", frameon=False, fontsize=8)
+                plt.tight_layout()
+                fig.savefig(out_png_path, dpi=160)
+                plt.close(fig)
+                return
+            except Exception as e:
+                logger.warning(f"[PERF_BAR] matplotlib unavailable, fallback to PIL: {e!s}")
+
+            # 2) 回退 PIL
+            try:
+                from PIL import Image, ImageDraw, ImageFont
+
+                W = 1280
+                H = max(300, 110 + n * 90)
+                img = Image.new("RGB", (W, H), "#F8FAFD")
+                draw = ImageDraw.Draw(img)
+
+                try:
+                    font_title = ImageFont.truetype("DejaVuSans.ttf", 28)
+                    font_label = ImageFont.truetype("DejaVuSans.ttf", 22)
+                    font_text = ImageFont.truetype("DejaVuSans.ttf", 20)
+                except Exception:
+                    font_title = ImageFont.load_default()
+                    font_label = ImageFont.load_default()
+                    font_text = ImageFont.load_default()
+
+                draw.text((36, 24), "Expected vs Current Performance Comparison", fill="#2F6FEF", font=font_title)
+
+                # legend
+                draw.rectangle((900, 24, 930, 42), fill="#D7DEED", outline="#C8D2E6", width=1)
+                draw.text((938, 22), "Expected", fill="#4B5568", font=font_text)
+                draw.rectangle((1070, 24, 1100, 42), fill="#5B6CFF", outline="#4B5CF0", width=1)
+                draw.text((1108, 22), "Current", fill="#4B5568", font=font_text)
+
+                x_label = 36
+                x_bar = 430
+                bar_w = 700
+                y0 = 90
+                bar_h = 20
+
+                for i in range(n):
+                    y = y0 + i * 86
+                    label = labels[i]
+                    exp_v = max(0, min(100, int(expected_scores[i])))
+                    cur_v = max(0, min(100, int(current_scores[i])))
+                    state = states[i]
+
+                    draw.text((x_label, y + 2), label, fill="#3E4A5A", font=font_label)
+
+                    # Expected bar
+                    exp_w = int(bar_w * exp_v / 100)
+                    draw.rounded_rectangle((x_bar, y, x_bar + exp_w, y + bar_h), radius=10, fill="#D7DEED", outline="#C8D2E6", width=1)
+
+                    # Current bar
+                    cur_y = y + 28
+                    cur_w = int(bar_w * cur_v / 100)
+                    if cur_w > 0:
+                        if state == "Met":
+                            draw.rounded_rectangle((x_bar, cur_y, x_bar + cur_w, cur_y + bar_h), radius=10, fill="#5B6CFF", outline="#4B5CF0", width=1)
+                        elif state == "Partially Met":
+                            draw.rounded_rectangle((x_bar, cur_y, x_bar + cur_w, cur_y + bar_h), radius=10, fill="#8A96FF", outline="#5B6CFF", width=1)
+                            step = 8
+                            for xx in range(x_bar - bar_h, x_bar + cur_w + bar_h, step):
+                                draw.line((xx, cur_y + bar_h, xx + bar_h, cur_y), fill="#EDF0FF", width=2)
+                        else:
+                            draw.rounded_rectangle((x_bar, cur_y, x_bar + cur_w, cur_y + bar_h), radius=10, fill="#C3CBD9", outline="#AEB7C7", width=1)
+
+                    draw.text((x_bar + bar_w + 16, y + 12), f"{state}  E:{exp_v}% / C:{cur_v}%", fill="#4B5568", font=font_text)
+
+                img.save(out_png_path)
+            except Exception as e:
+                logger.exception(f"[PERF_BAR] PIL fallback failed: {e!s}")
+                raise
 
         # =========================
         # 1) 调试：入口日志
@@ -2714,7 +2713,7 @@ class Coding(Action):
             in_ls_summary = in_ls_summary if isinstance(in_ls_summary, dict) else {}
             prompt = (
                 "你是材料候选抽取校正器。任务：根据用户上下文与候选 token，判断哪些应保留为当前页候选展示，哪些可以进入后续 MP 检索。"
-                "这里不要做结构合法性评估、稳定性评估、材料优劣判断，只判断‘像不像应该保留的材料/化学式候选’。"
+                "这里只判断‘像不像应该保留的材料/化学式候选’。"
                 "请特别过滤单位、工艺词、测试术语、时间戳、编号等噪声，例如 m·K、GPa、XRD。"
                 "如果候选是材料名称/材料体系而非严格化学式，可放入 display_tokens，但不要放入 mp_tokens。"
                 "如果候选是缩写或化学式，可同时进入 display_tokens；只有明确适合后续 MP 检索时才进入 mp_tokens。"
@@ -2921,6 +2920,27 @@ class Coding(Action):
                             seen_local.add(nf)
                 return out
 
+            def _extract_locked_tokens_from_inls_summary(summary: dict) -> list:
+                """
+                从 in-LS 摘要中提取“锁定候选”，这些候选不允许被 LLM 后置筛选清空。
+                优先字段：baseline_material / advanced_material。
+                """
+                if not isinstance(summary, dict):
+                    return []
+                cands = []
+                for k in ("baseline_material", "advanced_material"):
+                    v = str(summary.get(k) or "").strip()
+                    if not v:
+                        continue
+                    # 兼容复合写法：TiAl3V/C、Si3N4-SiC
+                    parts = [p.strip() for p in re.split(r"[\s,/+;，、]+", v) if p.strip()]
+                    for p in parts:
+                        p2 = _to_ascii_formula(p)
+                        if p2:
+                            cands.append(p2)
+                # 去重保序
+                return list(dict.fromkeys(cands))
+
             def _is_noise_token(t: str) -> bool:
                 s = str(t or "").strip()
                 if not s:
@@ -2994,6 +3014,13 @@ class Coding(Action):
                 if nt not in seen:
                     display_tokens.append(nt)
                     seen.add(nt)
+
+            # 锁定候选（来源：in-LS 上下文）。这些 token 不允许被 LLM 后置筛选误杀。
+            locked_tokens = _extract_locked_tokens_from_inls_summary(in_ls_summary)
+            for lt in locked_tokens:
+                if lt not in seen:
+                    display_tokens.append(lt)
+                    seen.add(lt)
 
             mp_tokens = []
             mp_seen = set()
@@ -3073,6 +3100,27 @@ class Coding(Action):
                             pass
                     else:
                         mp_tokens = llm_mp_tokens
+
+            # 强保护：确保锁定候选不会被 LLM 误筛掉
+            if locked_tokens:
+                for lt in locked_tokens:
+                    if lt not in display_tokens:
+                        display_tokens.append(lt)
+                try:
+                    logger.info(f"[ROUTER] locked_tokens_before_mp={locked_tokens}")
+                except Exception:
+                    pass
+
+                # 把锁定候选尽量补进 MP 检索集合
+                for lt in locked_tokens:
+                    if _looks_like_formula(lt):
+                        nlt = _normalize_formula_for_mp(lt) or lt
+                        if nlt not in mp_tokens:
+                            mp_tokens.append(nlt)
+                    elif _is_system_token(lt):
+                        for _m in _explode_system_to_mp_tokens(lt):
+                            if _m not in mp_tokens:
+                                mp_tokens.append(_m)
 
             # 兜底：若 LLM/规则汇总后 mp_tokens 为空，但 display 中存在体系表达，则自动拆解补全
             if len(mp_tokens or []) == 0 and len(display_tokens or []) > 0:
@@ -3329,6 +3377,10 @@ class Coding(Action):
             """
             # 这里改为非流式一次性发送，避免末尾无换行导致后续 ### 标题粘连
             try:
+                alignn_abs = os.path.join(_repo_root(), "src", "MNS_CaseHub", "cases", "material_discovery_demo", "results", "databasepic", "alignn.png")
+                alignn_url = await _upload_database_pic_for_markdown(alignn_abs, "alignn.png")
+                if alignn_url:
+                    await websocket.send_text(f"![ALIGNN 图神经网络分析示意]({alignn_url})\n\n")
                 await websocket.send_text(
                     f"1. 正在使用 ALIGNN 对 {formula_} 的晶体结构进行图神经网络分析，快速估算其离子电导率与结构稳定性等关键性质。\n\n"
                     "2. 模型基于原子位置与化学键关系自动提取结构特征，实现毫秒级性质预测。\n\n"
@@ -3374,15 +3426,29 @@ class Coding(Action):
 
             def _score_label(sat: str):
                 if sat == "满足":
-                    return 100, "Met"
+                    return "Met"
                 if sat == "部分满足":
-                    return 65, "Partially Met"
-                return 30, "Pending"
+                    return "Partially Met"
+                return "Pending"
 
-            s_stab, l_stab = _score_label(sat_stab)
-            s_bg, l_bg = _score_label(sat_bg)
-            s_mech, l_mech = _score_label(sat_mech)
-            s_trans, l_trans = _score_label(sat_trans)
+            def _expected_current_pair(sat: str):
+                # 预期值固定基准，当前值按满足度做相对高低
+                base_expected = 72
+                if sat == "满足":
+                    return base_expected, min(100, base_expected + 10)
+                if sat == "部分满足":
+                    return base_expected, base_expected + 1
+                return base_expected, max(0, base_expected - 12)
+
+            l_stab = _score_label(sat_stab)
+            l_bg = _score_label(sat_bg)
+            l_mech = _score_label(sat_mech)
+            l_trans = _score_label(sat_trans)
+
+            e_stab, c_stab = _expected_current_pair(sat_stab)
+            e_bg, c_bg = _expected_current_pair(sat_bg)
+            e_mech, c_mech = _expected_current_pair(sat_mech)
+            e_trans, c_trans = _expected_current_pair(sat_trans)
 
             await websocket.send_text("| 宏观目标项 | 对应微观代理指标 | 本轮结果 | 满足度 | 不确定性与下一步 |\n")
             await websocket.send_text("|---|---|---|---|---|\n")
@@ -3402,17 +3468,17 @@ class Coding(Action):
             # 画英文PNG柱状图，避免HTML直出与中文字体乱码
             try:
                 perf_rows = [
-                    {"label": "Thermodynamic Stability", "score": s_stab, "state": l_stab},
-                    {"label": "Electronic Window", "score": s_bg, "state": l_bg},
-                    {"label": "Mechanical Reliability", "score": s_mech, "state": l_mech},
-                    {"label": "Transport Potential", "score": s_trans, "state": l_trans},
+                    {"label": "Thermodynamic Stability", "expected": e_stab, "current": c_stab, "state": l_stab},
+                    {"label": "Electronic Window", "expected": e_bg, "current": c_bg, "state": l_bg},
+                    {"label": "Mechanical Reliability", "expected": e_mech, "current": c_mech, "state": l_mech},
+                    {"label": "Transport Potential", "expected": e_trans, "current": c_trans, "state": l_trans},
                 ]
                 perf_abs = f"/tmp/perf_satisfaction_{str(taskid).replace('/', '_')}.png"
                 _render_performance_bar_png(perf_rows, perf_abs)
                 perf_url = await _upload_database_pic_for_markdown(perf_abs, "performance_satisfaction.png")
                 if perf_url:
-                    await websocket.send_text("#### Performance Satisfaction Bar Comparison\n\n")
-                    await websocket.send_text(f"![Performance Satisfaction Bar Comparison]({perf_url})\n\n")
+                    await websocket.send_text("#### 性能满足度对比\n\n")
+                    await websocket.send_text(f"![性能满足度对比]({perf_url})\n\n")
             except Exception as e:
                 logger.exception(f"[PERF_BAR] render/upload failed: {e!s}")
             await _close_material_block("MATERIAL_SCREENING")
@@ -3483,11 +3549,14 @@ class Coding(Action):
 
         async def _stream_final_li6ps5cl_bridge(formulas_: list):
             """
-            材料模拟与计算流程总结：
-            - 简述前序步骤
-            - 说明为何最终选 Li6PS5Cl
-            - 输出 Li6PS5Cl 性质小表，衔接后续流程
+            NOTE(2026-04, 第3刀“先注释不删除”):
+            该桥接函数原用于 ADiT/MACE 结果汇总（从 adit_pymatgen/mace_md 读取）。
+            当前主链已切换为 MP + ALIGNN，本函数保留函数壳以避免引用中断，
+            但内部逻辑不再参与运行。
             """
+            # ADiT/MACE 路径显式下线：保留函数签名，直接返回。
+            return
+
             async def _send_lines_stream(lines_, delay_s: float = 0.05):
                 for _ln in lines_:
                     await websocket.send_text((_ln or "") + "\n")
@@ -3685,7 +3754,7 @@ class Coding(Action):
             return ok
 
         # =========================
-        # 6) ADiT 运行：adit_pymatgen_eval.py
+        # 6) ADiT 运行（已下线，保留注释占位）
         # =========================
         def _find_mp_manifest_abs(repo_root: str, root_path: str, taskid_: str, formula: str) -> str:
             abs_root_path = os.path.abspath(os.path.join(repo_root, root_path))
@@ -3770,7 +3839,7 @@ class Coding(Action):
             return True
 
         # =========================
-        # 8) ADiT：评估 + 右侧下发 + 左侧解释（如果你实现了就自动走）
+        # 8) ADiT：评估 + 下发 + 解释（已下线，保留注释占位）
         # =========================
 
         # =========================
@@ -3916,7 +3985,7 @@ class Coding(Action):
 class XIMUAlpha_MNS(Role):
     """
     工业平台 · 无机已有材料筛选智能体。
-    定位：面向无机晶体/陶瓷/功能材料的已有材料检索、性质补全与工程化解释，
+    定位：面向无机晶体/陶瓷/玻璃类材料的已有材料检索、性质补全与工程化解释，
     以“结构化 JSON”为唯一对接载体，侧重“数据库检索 → 代理模型补全 → 稳定性/性质整理 → 可视化产物拼装”。
     """
     # 对外展示名（前端/日志可见）
@@ -3925,6 +3994,7 @@ class XIMUAlpha_MNS(Role):
     # 简要画像（供框架/上游作为 system profile 使用）
     profile: str = (
     "无机已有材料检索与性质补全专用智能体。"
+    "定位：面向无机晶体/陶瓷/玻璃类材料的已有材料检索、性质补全与工程化解释。"
     "输入前提：必须已完成文献筛选，并提供候选化学式或候选材料列表。"
     "职责边界：仅执行已有无机材料数据库检索、结构与性质补全、候选排序与结果整理；"
     "不负责文献再筛选、不负责材料制备流程、不负责实验执行。"
@@ -3933,20 +4003,18 @@ class XIMUAlpha_MNS(Role):
     "除非上游重新提供新的候选化学式，否则不应再次调用本服务。"
     )
     
-        # "本智能体只根据文献筛选模块选出的候选材料和化学式进行对接，如没有运行文献筛选模块则不运作此模块；本服务下游通常应为材料制备模块。"
-        # "本智能体只针对无机材料，比如无机晶体，钙钛矿，固态电解质材料，其他材料不运作此模块。"
-        # "无机已有材料筛选与性质补全专用智能体。"
-        # "能力覆盖 Materials Project 等已有无机材料数据库检索、"
-        # "晶体结构读取与可视化、稳定性与基础物性整理，"
-        # "并结合 ALIGNN/相关代理模型对形成能、Ehull、带隙、介电、弹性等性质进行快速补全与排序。"
-        # "擅长围绕实验制备与多物理场需求，"
-        # "将已有无机材料的结构、稳定性、热学、电学、力学等信息组织为工程可读结果，"
-        # "并以结构化 JSON 形式输出候选材料表、性质说明与可视化资源索引。"
-
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # 保持不变
         self._watch([UserRequirement])
         self.set_actions([Coding])
+
+# NOTE(2026-04, 第2刀“先注释不删除”):
+# Coding 类内仍保留历史内嵌 prompt 文本，避免大规模删改带来的行为风险。
+# 但运行时统一改为引用 src/roles/mns_role_prompts.py 的常量，
+# 以屏蔽旧链路 prompt（工程反演/DFT-MLIP-LAMMPS 旧文案）对当前主线的影响。
+Coding.XIMU_MNS_ENGINEERING_PROMPT = XIMU_MNS_ENGINEERING_PROMPT
+Coding.XIMU_MNS_MATERIAL_PROMPT = XIMU_MNS_MATERIAL_PROMPT
+Coding.XIMU_MNS_MATERIAL_MP_EXPLAIN_PROMPT = XIMU_MNS_MATERIAL_MP_EXPLAIN_PROMPT
     

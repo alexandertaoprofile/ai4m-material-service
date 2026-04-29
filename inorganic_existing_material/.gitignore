@@ -33,3 +33,25 @@ upload/
 # logs & backups
 *.log
 *.bak
+
+# git junk / disabled metadata
+.git_DISABLED_DO_NOT_USE/
+
+# env / ide
+.venv/
+venv/
+env/
+.vscode/
+.idea/
+.DS_Store
+
+# runtime / artifacts
+tmp/
+tmp_*/
+*.glb
+*.extxyz
+*.cif
+*.traj
+
+# case outputs
+src/MNS_CaseHub/cases/**/results/
