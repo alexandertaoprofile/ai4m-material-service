@@ -228,11 +228,11 @@ class CodeRetriever:
             json_file_path = os.path.join(self.registry_dir, "dataset.json")
         self.json_file_path = json_file_path
 
-        # 支持多个 registry 合并（你现在拆成 materials/phone）
+        # 软删策略：当前仅保留“无机新材料”材料线 registry
+        # （phone/general 先停用，不做物理删除，方便回滚）
         if json_files is None:
             json_files = [
                 os.path.join(self.registry_dir, "dataset_materials.json"),
-                os.path.join(self.registry_dir, "dataset.json"),
             ]
         self.json_files = [os.path.abspath(p) for p in json_files]
 
@@ -833,7 +833,7 @@ class Coding(Action):
 
         按上述规则直接输出解释内容，不要解释规则本身。
         """
-# Adit/MACE暂时移除
+# 软删说明：ADiT/MACE 历史流程暂不启用（保留代码结构，先不物理删除）
 
 
     #懒加载，初始化Code_retriever
@@ -3222,7 +3222,7 @@ class Coding(Action):
                 "",
                 "## 材料模拟与计算流程总结",
                 "- 正在进行 材料模拟与计算流程总结",
-                "    前序已完成 MP 初筛、ADiT+Pymatgen 稳定性评估，以及 MACE-fast / MACE-md 性质计算。",
+                "    前序已完成 MP 初筛，并进入材料性质补充分析阶段。",
                 f"    综合当前流程指标，最终推荐结构为 {chosen}。",
                 f"    选择依据：Gate={pass_gate_txt}，末态 fmax={fmax_txt} eV/Å，末态 min_dist={mindist_txt} Å，势能漂移ΔEpot={depot_txt} eV。",
                 "",
@@ -3271,7 +3271,7 @@ class Coding(Action):
             return ok
 
         # =========================
-        # 6) ADiT 运行：adit_pymatgen_eval.py
+        # 6) （软删占位）ADiT 历史流程
         # =========================
         def _find_mp_manifest_abs(repo_root: str, root_path: str, taskid_: str, formula: str) -> str:
             abs_root_path = os.path.abspath(os.path.join(repo_root, root_path))
@@ -3338,7 +3338,7 @@ class Coding(Action):
             return True
 
         # =========================
-        # 8) ADiT：评估 + 右侧下发 + 左侧解释（如果你实现了就自动走）
+        # 8) （软删占位）ADiT 评估链路
         # =========================
 
         # =========================
@@ -3441,7 +3441,7 @@ class Coding(Action):
                         else:
                             await websocket.send_text(f"材料 `{f}` 未命中 MP 可用结果，继续尝试下一候选。\n")
 
-                    # 当前版本：执行 MP + ALIGNN；ADiT/MACE 流程下线
+                    # 当前版本（软删后）：执行 MP + ALIGNN；ADiT/MACE 流程保持停用
                     if mp_ready_formulas:
                         await websocket.send_text("\n\n#### 材料性质补充分析\n\n")
                         await _stream_alignn_stage_intro(selected_formula)

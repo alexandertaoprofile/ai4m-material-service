@@ -96,6 +96,17 @@ source_path = config['SOURCE_CODE_PATH']
 minio_addr = "https://www.science42.tech/"
 https_vip_addr = "https://www.science42.tech/"
 
+# 前端访问资源的固定公开前缀（与无机线对齐）
+glb_public_base_url = os.getenv(
+    "GLB_PUBLIC_BASE_URL",
+    "https://www.science42.tech/alpha/materials/modelfiles/glb"
+).rstrip("/")
+
+picture_public_base_url = os.getenv(
+    "PICTURE_PUBLIC_BASE_URL",
+    "https://www.science42.tech/alpha/materials/modelfiles/image"
+).rstrip("/")
+
 
 base_dir = '/data/XIMUAlpha_MNS/src'
 ########################################
@@ -1653,14 +1664,22 @@ class Coding(Action):
         import json
         import glob
 
-        async def _ws_asset(name: str, docs: str, url: str, asset_type: str):
-            await websocket.send_json({
+        async def _ws_asset(name: str, docs: str, url: str, asset_type: str, description: str = ""):
+            safe_desc = description if isinstance(description, str) else ""
+            payload = {
                 "step_id": step_id,          # ✅ 不写死
                 "name": name,
                 "docs": docs,
                 "url": url,
-                "type": asset_type           # MaterialsPNG / MaterialsGLB
-            })
+                "type": asset_type,          # MaterialsPNG / MaterialsGLB
+                # 与无机线对齐：字段恒定输出
+                "description": safe_desc,
+            }
+            logger.info(
+                f"[send_results_to_frontend] ws_asset type={asset_type} name={name} "
+                f"desc_len={len(safe_desc)} url={url}"
+            )
+            await websocket.send_json(payload)
 
         async def _ws_right(step_id_local: str, text: str):
             await websocket.send_text(f"<<<CONTENT_START:{step_id_local}>>>")
@@ -1703,17 +1722,26 @@ class Coding(Action):
         except Exception as e:
             logger.warning(f"[send_results_to_frontend] 查找 manifest 失败: {e}")
 
-        async def _upload_and_get_url(abs_path: str, oss_key: str):
+        async def _upload_and_get_url(abs_path: str, oss_key: str, asset_kind: str = "asset", public_url_override: str = ""):
             try:
                 with open(abs_path, "rb") as f:
                     b = f.read()
+                upload_endpoint = os.getenv("MINIO_ENDPOINT", "")
+                logger.info(
+                    f"[send_results_to_frontend] [{asset_kind}] PutObject target => "
+                    f"endpoint={upload_endpoint} bucket=alpha key={oss_key}"
+                )
                 result = await oss_upload("alpha", oss_key, b)
                 if result.get("status") != 200:
                     logger.error(f"[send_results_to_frontend] ❗ 上传失败: {abs_path}, resp={result}")
                     return None
-                url = get_image_url("alpha", oss_key)
-                if url.startswith(minio_addr):
-                    url = url.replace(minio_addr, https_vip_addr, 1)
+                if public_url_override:
+                    url = public_url_override
+                else:
+                    url = get_image_url("alpha", oss_key)
+                    if url.startswith(minio_addr):
+                        url = url.replace(minio_addr, https_vip_addr, 1)
+                logger.info(f"[send_results_to_frontend] [{asset_kind}] Frontend URL => {url}")
                 return url
             except Exception as e:
                 logger.exception(f"[send_results_to_frontend] 上传失败: {abs_path} | {e}")
@@ -1736,8 +1764,9 @@ class Coding(Action):
 
             for fname in image_files:
                 abs_img = os.path.join(results_dir, fname)
-                oss_key = f"XIMUAlpha_MNS/{taskid_sanitized}/{pipeline}/{jobid or 'job'}/{fname}"
-                url = await _upload_and_get_url(abs_img, oss_key)
+                oss_key = f"materials/modelfiles/image/{taskid_sanitized}/{pipeline}/{jobid or 'job'}/{fname}"
+                image_public_url = f"{picture_public_base_url}/{taskid_sanitized}/{pipeline}/{jobid or 'job'}/{fname}"
+                url = await _upload_and_get_url(abs_img, oss_key, asset_kind="png", public_url_override=image_public_url)
                 if not url:
                     continue
                 await _ws_asset(
@@ -1810,8 +1839,9 @@ class Coding(Action):
                 continue
 
             fname = os.path.basename(abs_img)
-            oss_key = f"XIMUAlpha_MNS/{taskid_sanitized}/{pipeline}/{jobid or 'job'}/{fname}"
-            url = await _upload_and_get_url(abs_img, oss_key)
+            oss_key = f"materials/modelfiles/image/{taskid_sanitized}/{pipeline}/{jobid or 'job'}/{fname}"
+            image_public_url = f"{picture_public_base_url}/{taskid_sanitized}/{pipeline}/{jobid or 'job'}/{fname}"
+            url = await _upload_and_get_url(abs_img, oss_key, asset_kind="png", public_url_override=image_public_url)
             if not url:
                 continue
 
@@ -1826,8 +1856,11 @@ class Coding(Action):
         glb_path = _abspath(files.get("structure_glb", ""))
         if glb_path and os.path.exists(glb_path):
             fname = os.path.basename(glb_path)
-            oss_key = f"XIMUAlpha_MNS/{taskid_sanitized}/{pipeline}/{jobid or 'job'}/{fname}"
-            url = await _upload_and_get_url(glb_path, oss_key)
+            glb_ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            glb_publish_name = f"{glb_ts}_{fname}"
+            oss_key = f"materials/modelfiles/glb/{glb_publish_name}"
+            glb_public_url = f"{glb_public_base_url}/{glb_publish_name}"
+            url = await _upload_and_get_url(glb_path, oss_key, asset_kind="glb", public_url_override=glb_public_url)
 
             if url:
                 formula_for_asset = (str(jobid or "").strip() or str(manifest.get("formula") or "").strip())
@@ -1840,13 +1873,21 @@ class Coding(Action):
                     if (formula_for_asset and cn_name)
                     else "结构三维可视化模型（GLB）"
                 )
+                base_name = (formula_for_asset or os.path.splitext(fname)[0] or "Material").replace("/", "_")
+                glb_description = (
+                    f"该三维模型展示了 {base_name} 的最优候选聚合物结构。"
+                    f"可通过旋转、缩放观察原子排布与分子骨架形貌，"
+                    f"用于直观理解结构稳定性与后续性质分析的结构基础；"
+                    f"其中结果用于筛选与工程判断，不替代最终实验表征。"
+                )
                 # JSON 资产消息也用独立内容块包裹，便于前端按 <<<>>> 统一解析
                 await websocket.send_text(f"<<<CONTENT_START:{step_id}>>>")
                 await _ws_asset(
                     name=rich_name,
                     docs=rich_docs,
                     url=url,
-                    asset_type="MaterialsGLB"
+                    asset_type="MaterialsGLB",
+                    description=glb_description,
                 )
                 await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
                 logger.info(f"[send_results_to_frontend] ✅ sent MaterialsGLB: {fname}")
@@ -2040,6 +2081,32 @@ class Coding(Action):
             except Exception as e:
                 logger.warning(f"[VERBATIM_STREAM] llm relay failed, fallback local stream: {e}")
                 return False
+
+        async def _send_openpoly_stage_image(abs_img_path: str, docs: str, description: str = ""):
+            """OpenPoly 阶段图片仅走左侧对话流展示（不进入右侧资产面板）。"""
+            try:
+                p = str(abs_img_path or "").strip()
+                if (not p) or (not os.path.exists(p)):
+                    logger.warning(f"[OPENPOLY][IMG] file not found, skip: {p}")
+                    return
+                fname = os.path.basename(p)
+                oss_key = f"materials/modelfiles/image/{str(taskid).replace('/', '_')}/openpoly/{fname}"
+                with open(p, "rb") as f:
+                    b = f.read()
+                result = await oss_upload("alpha", oss_key, b)
+                if result.get("status") != 200:
+                    logger.warning(f"[OPENPOLY][IMG] upload failed path={p} resp={result}")
+                    return
+                img_url = f"{picture_public_base_url}/{str(taskid).replace('/', '_')}/openpoly/{fname}"
+                title = str(docs or fname)
+                desc = str(description or "").strip()
+                await websocket.send_text(f"\n\n#### {title}\n\n")
+                await websocket.send_text(f"![{title}]({img_url})\n")
+                if desc:
+                    await websocket.send_text(f"\n{desc}\n")
+                logger.info(f"[OPENPOLY][IMG] sent left-chat image fname={fname} url={img_url}")
+            except Exception as e:
+                logger.exception(f"[OPENPOLY][IMG] send failed: {e}")
 
         # 诊断模式：MATERIAL_SCREENING 全流程单一包裹（不做分段包裹）
         material_block_opened = False
@@ -2462,24 +2529,28 @@ class Coding(Action):
             legend = meta.get("legend") or []
 
             lines = []
-            lines.append("\n### 最优候选结构结构信息\n")
+            lines.append("\n### 最优候选结构信息（可对照右侧GLB）\n")
             lines.append(f"- 分子式（Formula）: `{formula}`\n")
             lines.append(f"- 原子总数: `{atom_count}`\n")
             lines.append(f"- 分子量: `{mw}`\n")
             lines.append(f"- 聚合物结构表达（PSMILES）: `{normalized_psmiles}`\n")
 
             if legend:
-                lines.append("\n**元素说明（对应下方 GLB 结构模型的颜色）**\n")
+                lines.append("\n**元素对照说明（对应右侧GLB球体颜色）**\n")
                 for item in legend:
                     symbol = str(item.get("symbol") or "-")
                     label = str(item.get("label") or symbol)
                     count = item.get("count", 0)
                     color_hex = str(item.get("color_hex") or "-")
+                    zh_map = {
+                        "C": "碳", "H": "氢", "O": "氧", "N": "氮", "F": "氟", "S": "硫", "P": "磷", "Cl": "氯", "Br": "溴", "I": "碘", "R": "聚合物连接位点"
+                    }
+                    zh_name = zh_map.get(symbol, label)
                     lines.append(
-                        f"- `{symbol}`：{label}，数量 `{count}`，在 GLB 模型中对应颜色 `{color_hex}`。\n"
+                        f"- `{symbol}`（{zh_name}）：右图中该颜色球体为 `{color_hex}`，数量 `{count}`。\n"
                     )
 
-            lines.append("\n注：`R` 表示聚合物重复单元的连接位点（链段在这里继续延伸），在 GLB 里也用于标识连接位置。\n")
+            lines.append("\n注：`R` 表示聚合物链继续延伸的连接位点；对照右侧GLB时，可理解为“链条从这里接到下一段”。\n")
             return "".join(lines)
 
         async def _generate_and_send_openpoly_first_glb(
@@ -2513,11 +2584,10 @@ class Coding(Action):
             meta = _load_psmiles_meta(meta_path)
             meta_md = _format_psmiles_meta_md(meta)
             if meta_md:
-                await websocket.send_text("<<<CONTENT_START:MATERIAL_SCREENING>>>")
-                # 标题写死本地发送，避免LLM转发导致Markdown标题偶发失效
-                #await websocket.send_text("\n### 首条候选结构 3D 可视化\n")
+                # 最优候选结构信息固定走右侧内容区，避免落到左侧
                 body_md = str(meta_md)
                 body_md = body_md.replace("\n### 首条候选结构 3D 可视化\n", "\n", 1)
+                await websocket.send_text("<<<CONTENT_START:MATERIAL_SCREENING>>>")
                 ok_stream = await _stream_verbatim_via_llm(body_md)
                 if not ok_stream:
                     await _stream_lines(body_md.splitlines(keepends=True), delay_s=0.02)
@@ -2601,6 +2671,13 @@ class Coding(Action):
             if not ok_stream:
                 await _stream_lines(property_md.splitlines(keepends=True), delay_s=0.02)
             await websocket.send_text("<<<CONTENT_END:MATERIAL_SCREENING>>>")
+
+            # 性质补全阶段配图（右侧资产）
+            await _send_openpoly_stage_image(
+                "/data/se42/alpha_project/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/openpoly/openpolyprediction.jpg",
+                docs="OpenPoly 性质补全结果图",
+                description="该图对应最优候选结构的性质补全阶段输出，可用于快速核对关键预测指标。",
+            )
 
         def _display_polymer_name(row: dict) -> str:
             """Name 展示优化：优先输出中文可读名称。"""
@@ -2741,8 +2818,7 @@ class Coding(Action):
             return _fmt_poly_prop(row, keys)
 
         async def _stream_organic_pre_analysis(user_context: str = ""):
-            """恢复有机主线的前置泛化分析（保持流式输出）。"""
-            await websocket.send_text("<<<CONTENT_START:MATERIAL_SCREENING>>>")
+            """恢复有机主线的前置泛化分析（按约定：需求提取左、关键性质右、候选检索左）。"""
             await websocket.send_text("\n\n### 需求信息提取\n\n")
             p1 = (
                 "请输出3~6个分点，必须使用阿拉伯数字编号（1. / 2. / 3. ...）。"
@@ -2760,7 +2836,8 @@ class Coding(Action):
                 mirror_step_id="MATERIAL_SCREENING",
             )
 
-            await websocket.send_text("\n\n#### 关键性质分析\n\n")
+            await websocket.send_text("<<<CONTENT_START:MATERIAL_SCREENING>>>")
+            await websocket.send_text("\n\n### 关键性质分析\n\n")
             p2 = (
                 "请输出一张Markdown表格，不要额外说明。"
                 "表头固定：性质维度 | 建议关注区间/阈值 | 工程意义 | 对应数据库字段。"
@@ -2777,8 +2854,6 @@ class Coding(Action):
                 mirror_step_id="MATERIAL_SCREENING",
             )
             await websocket.send_text("<<<CONTENT_END:MATERIAL_SCREENING>>>")
-
-            await websocket.send_text("<<<CONTENT_START:MATERIAL_SCREENING>>>")
             await websocket.send_text("\n\n### 候选材料检索\n\n")
             p3 = (
                 "请输出两部分内容："
@@ -3351,10 +3426,18 @@ class Coding(Action):
             if organic_hits:
                 try:
                     await _ensure_material_progress_started()
+                    # 恢复开头前置分析链路：需求信息提取/候选材料检索走左侧，关键性质分析走右侧
                     await _stream_organic_pre_analysis(norm)
 
-                    # 该段不再单独包裹 CONTENT_START/END，便于与上文合并为同一内容区域
-                    await websocket.send_text("\n\n#### OpenPoly 有机数据库候选检索\n\n")
+                    # 数据库检索阶段配图保持左侧展示
+                    await _send_openpoly_stage_image(
+                        "/data/se42/alpha_project/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/openpoly/openpoly.jpg",
+                        docs="OpenPoly 数据库检索结果图",
+                        description="该图对应 OpenPoly 数据库检索阶段的候选结果展示，用于快速查看检索命中概况。",
+                    )
+
+                    # 候选检索表格（含小标题）按约定走左侧
+                    await websocket.send_text("\n\n### OpenPoly 有机数据库候选检索\n\n")
                     table_lines = [
                         "| Name | PSMILES | 玻璃化转变温度 Tg (K) | 热分解温度 Td (K) | 熔融温度 Tm (K) | 吸水率 Water_Uptake | 介电常数 Dielectric_Constant_Total | 导热系数 Thermal_Conductivity |\n",
                         "|---|---|---:|---:|---:|---:|---:|---:|\n",
@@ -3385,7 +3468,7 @@ class Coding(Action):
                     ok_stream = await _stream_verbatim_via_llm(table_md)
                     if not ok_stream:
                         await _stream_lines(table_md.splitlines(keepends=True), delay_s=0.02)
-                    await websocket.send_text("<<<CONTENT_END:MATERIAL_SCREENING>>>")
+                    
 
                     # 取首条命中，生成 GLB 并下发前端
                     try:
@@ -3425,26 +3508,16 @@ class XIMUAlpha_MNS(Role):
     # 对外展示名（前端/日志可见）
     name: str = "XIMUAlpha_organic_existing_materials"
 
-    # 简要画像（供框架/上游作为 system profile 使用）
-    # profile: str = (
-    #     "本智能体只根据文献筛选模块选出的候选材料和化学式进行对接，如没有运行文献筛选模块则不运作此模块；本服务下游通常应为材料制备模块。"
-    #     "有机已有材料筛选与性质补全专用智能体。"
-    #     "本智能体只针对有机材料，比如有机聚合物，树脂材料等，其他材料不运作此模块。"
-    #     "能力覆盖 OpenPoly/CEM 等聚合物与树脂数据库检索、"
-    #     "P SMILES/重复单元结构解析与可视化、"
-    #     "并结合 OpenPoly predictor 等代理模型对 Tg、Td、Tm、介电常数、热导率、吸水率、力学强度等性质进行快速补全与排序。"
-    #     "擅长围绕 PCB 基板树脂、功能聚合物与工程有机材料场景，"
-    #     "将已有材料的结构骨架、实验参考值、补全性质与工程 proxy 组织为可读结果，"
-    #     "并以结构化 JSON 形式输出候选材料表、性质说明与可视化资源索引。"
-    # )
     profile: str = (
         "有机已有材料检索与性质补全专用智能体。"
+        "定位：面向聚合物/树脂/有机功能材料的已有材料检索、性质补全与工程化解释。"
         "输入前提：上游已完成文献筛选，并提供候选材料名称（Name）或 PSMILES。"
-        "  职责边界：仅执行 OpenPoly/CEM 等已有有机材料数据库检索、结构表示解析、性质补全、候选排序与可视化结果整理。"
+        "当上游询问到PCB树脂、有机物等内容时调用此模块。"
+        "职责边界：仅执行 OpenPoly/CEM 等已有有机材料数据库检索、结构表示解析、性质补全、候选排序与可视化结果整理。"
         "不负责文献再次筛选、不负责材料制备流程、不负责实验执行。"
         "完成判据：当候选材料表、关键性质参数与可视化资源索引已输出时，本服务即结束。"
         "路由建议：本服务结束后应优先转入“材料制备模块”或“性能检测与结果对比模块”。"
-        "再次调用条件：仅当上游提供新的 Name 或新的 PSMILES 时才应再次调用；否则不得重复调用本服务。"
+        "不得重复调用本服务。"
     )
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

@@ -34,9 +34,7 @@ upload/
 *.log
 *.bak
 
-.git_DISABLED_DO_NOT_USE/
-
-# git junk
+# git junk / disabled metadata
 .git_DISABLED_DO_NOT_USE/
 
 # env / ide
