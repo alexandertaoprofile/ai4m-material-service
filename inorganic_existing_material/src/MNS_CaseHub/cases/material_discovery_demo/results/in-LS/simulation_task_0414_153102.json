@@ -1,6 +1,0 @@
-{
-    "baseline_material": "氮化铝 + 硼硅玻璃（Borosilicate Glass）",
-    "advanced_material": "氮化铝 + Zerodur® 玻璃陶瓷",
-    "baseline_reason": "热导率达标、绝缘性能优异、工艺兼容性好、成本低、制造成熟，适合初期小批量验证与系统闭环测试，风险可控。",
-    "advanced_reason": "CTE匹配性近乎完美（0.3 ppm/K）、绝缘性与介电性能更优、长期热稳定性极佳，适合高性能AI芯片的终极封装方案，但需承担高成本与加工复杂性。"
-}

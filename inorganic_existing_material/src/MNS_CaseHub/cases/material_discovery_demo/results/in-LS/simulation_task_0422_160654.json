@@ -1,6 +1,0 @@
-{
-    "baseline_material": "MAPbI₃ (CH₃NH₃PbI₃)",
-    "advanced_material": "Cs₀.₀₅(MA₀.₁₇FA₀.₈₃)₀.₉₅Pb(I₀.₈₃Br₀.₁₇)₃",
-    "baseline_reason": "MAPbI₃是钙钛矿光伏的奠基性材料，制备简单、文献丰富、性能可重复，适合快速原型验证与基础研究，满足低门槛、高可及性需求。",
-    "advanced_reason": "三阳离子混合卤化物钙钛矿在效率、稳定性与工业兼容性上实现突破，经NREL认证并发表于Science，是当前唯一可满足IEC 61215工业标准的钙钛矿体系，代表商业化前沿。"
-}

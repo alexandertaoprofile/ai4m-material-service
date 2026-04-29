@@ -1,6 +1,0 @@
-{
-    "baseline_material": "AlSiC",
-    "advanced_material": "C/Cu",
-    "baseline_reason": "AlSiC热导率达标（180–220 W/m·K）、CTE匹配硅基（6.5–7.5 ppm/°C）、电绝缘、可回流焊、工艺成熟、成本可控、已在主流AI芯片封装中验证十年可靠性，是当前最稳健的工程选择。",
-    "advanced_reason": "CVD金刚石/铜复合材料热导率高达400–800 W/m·K，CTE低至4.5–5.5 ppm/°C，远超需求，适合超高热通量场景；虽成本高、工艺复杂，但代表未来方向，适用于对散热极限有极致要求的前沿AI芯片。"
-}

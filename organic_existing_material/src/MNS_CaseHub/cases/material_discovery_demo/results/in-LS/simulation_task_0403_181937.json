@@ -1,6 +1,0 @@
-{
-    "baseline_material": "氮化铝（AlN）陶瓷基板",
-    "advanced_material": "氮化铝-碳化硅梯度复合陶瓷（AlN-SiC Graded Composite）",
-    "baseline_reason": "导热性接近需求下限，CTE匹配优异，绝缘性卓越，工艺成熟、成本可控，可稳定通过10,000次热循环，是当前量产场景下的最优平衡选择。",
-    "advanced_reason": "通过梯度结构实现导热系数突破300 W/m·K，CTE更贴近硅芯片，热循环可靠性优于标准要求，热阻增幅低于8%，虽成本高、工艺复杂，但满足未来AI芯片极端散热需求，是技术领先者的首选。"
-}

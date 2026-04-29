@@ -1,6 +1,0 @@
-{
-    "baseline_material": "MAPbI₃",
-    "advanced_material": "FAPbI3",
-    "baseline_reason": "MAPbI₃是钙钛矿光伏的奠基性材料，制备简单、性能可重复、文献基础雄厚，适合入门验证与教学演示，是工业与学术界的通用基准。",
-    "advanced_reason": "FA₀.₈₅MA₀.₁₅PbI₃₋ₓBrₓ通过阳离子与卤素共掺杂显著提升热/湿稳定性与光电效率，是当前高效稳定钙钛矿器件的主流技术路线，代表实用化发展方向。"
-}

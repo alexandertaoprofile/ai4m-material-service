@@ -1,6 +1,0 @@
-{
-    "baseline_material": "无碱硼硅玻璃（Alkali-Free Borosilicate Glass, AFBG）",
-    "advanced_material": "锂铝硅酸盐玻璃陶瓷（Lithium Aluminosilicate Glass Ceramic, LAS-GC）",
-    "baseline_reason": "成本低、工艺成熟、CTE匹配良好、介电性能达标，满足主流AI芯片量产需求，是当前CoWoS/FO-WLP封装的最优性价比选择。",
-    "advanced_reason": "本征高导热、超低CTE、超高机械强度与更低介电损耗，无需填料即可满足高端AI服务器的热管理与100Gbps+信号完整性要求，是面向3D集成与下一代AI芯片的工程化首选。"
-}

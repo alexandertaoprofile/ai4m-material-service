@@ -1,6 +1,0 @@
-{
-    "baseline_material": "氮化铝（AlN）陶瓷基板",
-    "advanced_material": "六方氮化硼/氮化铝复合陶瓷（h-BN/AlN）",
-    "baseline_reason": "导热性达标（195 W/m·K）、CTE匹配良好（4.5 ppm/K）、绝缘优异、工艺成熟且成本可控，已在NVIDIA H100等主流产品中大规模验证，是当前最可靠的量产方案。",
-    "advanced_reason": "在导热（240 W/m·K）、CTE匹配（4.0 ppm/K）、绝缘性（>10¹⁴ Ω·cm）和热循环寿命（>2000次）上全面超越AlN，通过h-BN片层结构实现应力缓冲与声子协同传导，代表未来高端封装趋势，适合追求极限性能的前沿应用。"
-}

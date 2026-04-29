@@ -1,6 +1,0 @@
-{
-    "baseline_material": "AlN",
-    "advanced_material": "Si₃N₄",
-    "baseline_reason": "热导率达标（~200 W/m·K）、CTE匹配硅基板、损耗极低、供应链成熟、成本可控，是当前AI封装最平衡的工业级选择。",
-    "advanced_reason": "CTE更接近硅、介电损耗更低、抗热震与空洞率最优、加工精度达±1μm，虽热导率略低，但综合可靠性远超基准款，适用于极端环境与顶级AI芯片。"
-}

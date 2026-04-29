@@ -1,6 +1,0 @@
-{
-    "baseline_material": "CVD金刚石薄膜/铜复合基板（Cu-Dia_CVD）",
-    "advanced_material": "纳米TiC涂层金刚石/铜梯度复合基板（Cu-Dia-TiC_Grad）",
-    "baseline_reason": "在满足所有核心性能指标的前提下，成本最低、工艺最成熟、已具备量产基础，是2025年AI芯片封装的最优平衡选择。",
-    "advanced_reason": "在热导率、CTE匹配、界面强度和环境稳定性上全面超越基准款，采用纳米级界面工程与双钝化技术，适用于下一代超高功率密度AI芯片，具备技术前瞻性。"
-}

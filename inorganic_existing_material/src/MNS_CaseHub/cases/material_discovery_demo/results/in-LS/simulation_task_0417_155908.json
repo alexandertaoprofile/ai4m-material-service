@@ -1,6 +1,0 @@
-{
-    "baseline_material": "高纯烧结氮化铝（Sintered High-Purity AlN）",
-    "advanced_material": "纳米结构梯度AlN复合基板（Nano-Gradient AlN with TiN Buffer Layer）",
-    "baseline_reason": "热导率达标、绝缘性优异、工艺成熟且成本可控，满足除CTE外全部核心需求，是当前工程化落地的最优平衡方案。",
-    "advanced_reason": "通过纳米晶粒与TiN梯度层实现CTE近硅匹配，热循环1000次后热阻增幅<5%，绝缘性更强，是唯一在AlN体系内全面达标且具备工程化前景的进阶材料。"
-}

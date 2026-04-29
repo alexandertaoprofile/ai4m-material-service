@@ -1,6 +1,0 @@
-{
-    "baseline_material": "MAPbI₃",
-    "advanced_material": "FAPbI₃-CsPbI₃",
-    "baseline_reason": "制备简单、成本低、实验室验证成熟，适合快速原型开发与教学应用，是钙钛矿领域的标准参照材料。",
-    "advanced_reason": "通过甲脒与铯共掺杂显著提升相稳定性与光谱响应，实现更高效率与耐久性，是当前面向商业化应用的最优平衡方案。"
-}

@@ -1,6 +1,0 @@
-{
-    "baseline_material": "高导热氮化铝玻璃复合基板（AlN-Glass Composite, AGC-600）",
-    "advanced_material": "碳纤维增强氮化铝-玻璃梯度异质基板（CF-AlN-Glass Gradient, CAG-850）",
-    "baseline_reason": "在满足所有核心指标（导热≥600、CTE≈3.8、绝缘>10¹³、热循环1800次）的前提下，工艺兼容性高、成本可控、已实现量产，是当前CoWoS封装最稳健的工程化选择。",
-    "advanced_reason": "在导热（830 W/m·K）、CTE匹配（3.2 ppm/K）和热循环可靠性（2200次）上全面超越基准款，尤其适合HBM3+等超高密度封装，虽成本高且需定制工艺，但代表未来高性能AI芯片的材料方向。"
-}

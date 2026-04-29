@@ -1,6 +1,0 @@
-{
-    "baseline_material": "AlN-Cu梯度复合陶瓷（AlN 70 vol% + Cu 30 vol%）",
-    "advanced_material": "AlN-h-BN-Cu三元纳米复合材料（AlN 60 vol% + h-BN 10 vol% + Cu 30 vol%）",
-    "baseline_reason": "工艺成熟、成本可控、性能达标，可快速实现工程化落地，满足当前量产需求。",
-    "advanced_reason": "导热与热匹配性能显著提升，长期热循环可靠性更优，h-BN增韧与抗氧化特性为未来高端AI芯片提供技术壁垒。"
-}

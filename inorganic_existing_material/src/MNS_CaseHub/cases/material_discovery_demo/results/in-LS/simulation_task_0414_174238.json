@@ -1,6 +1,0 @@
-{
-    "baseline_material": "CaZrO3",
-    "advanced_material": "CaHfO3",
-    "baseline_reason": "CaZrO3是钙钛矿氧化物中热稳定性最优的已知原型，结构清晰、文献丰富，适合作为AI框架的初始验证基准，确保模型可运行且可校验。",
-    "advanced_reason": "CaHfO3通过Hf替代Zr显著降低热导率、优化热膨胀系数，且形成能更高、DFT预测更稳定，结构完全兼容CaZrO3，仅需原子质量参数替换即可实现低冗余可微分建模，是AI驱动新材料发现的理想进阶候选。"
-}

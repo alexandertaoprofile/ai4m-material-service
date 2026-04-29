@@ -1,6 +1,0 @@
-{
-    "baseline_material": "热压成型高取向氮化硼（HOPBN）",
-    "advanced_material": "氮化硼-氮化铝复合玻璃陶瓷（BN-AlN-Glass）",
-    "baseline_reason": "热导率达标、CTE低、绝缘优异，工艺成熟稳定，适合量产前验证，虽需缓冲层光刻但风险可控。",
-    "advanced_reason": "热导率更高、CTE更接近硅、本征光刻兼容，无需额外涂层，集成度与可靠性显著提升，适合下一代高性能芯片封装。"
-}

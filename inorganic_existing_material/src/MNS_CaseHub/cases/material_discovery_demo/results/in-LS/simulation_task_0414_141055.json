@@ -1,6 +1,0 @@
-{
-    "baseline_material": "Graphene (15 wt%) / PBI (85 wt%)",
-    "advanced_material": "Graphene (25 wt%) / PBI (75 wt%) + BN Nanosheet Coating",
-    "baseline_reason": "中等石墨烯含量平衡了导热性、加工性和成本，满足所有核心指标，适合批量生产与中等热负荷场景，是工程落地的稳健选择。",
-    "advanced_reason": "高石墨烯含量结合BNNS表面包覆构建三维导热网络，导热系数突破160 W/m·K，CTE低至1.8 ppm/K，界面稳定性优异，专为极端热管理场景设计，性能远超需求基准。"
-}

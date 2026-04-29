@@ -1,6 +1,0 @@
-{
-    "baseline_material": "Erythromycin A",
-    "advanced_material": "Clarithromycin",
-    "baseline_reason": "Erythromycin A是琥乙红霉素的母体化合物，拥有最完整的实验溶解度、logP、HBD/HBA和溶剂化自由能数据，文献来源权威且可追溯，适合作为建模校准的基准参照。",
-    "advanced_reason": "Clarithromycin是Erythromycin A的6-O-甲基化衍生物，结构高度相似但溶解度更高（18.7 mg/mL）、构象采样更完整（≥95%），logP与溶剂化自由能均完美匹配目标范围，是性能更优的进阶候选，适合用于模型验证与预测拓展。"
-}

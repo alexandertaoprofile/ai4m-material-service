@@ -1,6 +1,0 @@
-{
-    "baseline_material": "ZrO₂-Al₂O₃-SiO₂-Li₂O 玻璃-陶瓷复合体系（ZAS-Li）",
-    "advanced_material": "AlN-SiC-玻璃相复合体系（ASG-Composite）",
-    "baseline_reason": "工艺成熟、成本低28%、已通过JEDEC认证，适合当前量产过渡，性能全面达标且稳定可靠。",
-    "advanced_reason": "热导率提升至4.1 W/m·K，TGV深径比达15:1，介电损耗更低，金属结合更强，虽工艺稍复杂，但全面超越IRDS 2023路线图要求，为未来3D AI封装提供技术护城河。"
-}

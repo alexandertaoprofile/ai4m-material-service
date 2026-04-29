@@ -1,6 +1,0 @@
-{
-    "baseline_material": "Corning EAGLE XG®",
-    "advanced_material": "Hoya N-GLASS® 300",
-    "baseline_reason": "热膨胀系数与硅匹配优异（3.2 ppm/°C），离子污染极低，弯曲强度达标，成本低、良率高（92%），工艺成熟且已被CoWoS/InFO大规模验证，是量产首选。",
-    "advanced_reason": "在基准款基础上全面提升：CTE更低（3.0）、强度更高（610 MPa）、介电损耗更优（tanδ=0.0006）、支持15:1 TSV，适合高频AI芯片与3D堆叠，虽成本略高但性能领先一代，面向未来封装需求。"
-}

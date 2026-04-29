@@ -1,6 +1,0 @@
-{
-    "baseline_material": "Corning Eagle XG",
-    "advanced_material": "Schott AF32 Eco",
-    "baseline_reason": "工业成熟度高、量产稳定、CTE与介电性能完全满足核心指标，已通过Intel/TSMC验证，供应链可靠，适合主流AI芯片量产。",
-    "advanced_reason": "无碱无硼全硅氧结构，CTE更优、介电损耗全球最低、杂质更少、可加工至0.12mm，专为下一代高频AI芯片设计，性能天花板更高。"
-}

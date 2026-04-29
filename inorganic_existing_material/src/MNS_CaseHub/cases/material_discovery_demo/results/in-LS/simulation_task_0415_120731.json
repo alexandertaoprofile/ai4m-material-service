@@ -1,6 +1,0 @@
-{
-    "baseline_material": "AlN-SiC复合陶瓷薄膜（85wt% AlN + 15wt% SiC）",
-    "advanced_material": "AlN-SiC-ZrO₂三元复合陶瓷薄膜（75wt% AlN + 12wt% SiC + 13wt% Y₂O₃稳定ZrO₂）",
-    "baseline_reason": "在热导率、CTE匹配、绝缘性、工艺兼容性和成本上实现最佳平衡，已实现300mm晶圆量产，性价比极高，满足绝大多数高性能芯片需求。",
-    "advanced_reason": "通过ZrO₂增韧显著提升机械强度与断裂韧性，同时优化绝缘性与抗氧化寿命，适用于高可靠性、极端环境场景，虽成本略高但综合耐久性优势突出。"
-}

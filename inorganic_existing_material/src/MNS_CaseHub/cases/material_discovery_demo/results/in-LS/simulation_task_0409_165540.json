@@ -1,6 +1,0 @@
-{
-    "baseline_material": "AlN/BN环氧复合陶瓷基板",
-    "advanced_material": "CVD金刚石薄膜陶瓷复合基板",
-    "baseline_reason": "综合性能均衡、工艺成熟、成本低（<$1.5/cm²），已实现工业级量产，完美满足CTE匹配、绝缘性与回流焊要求，是当前AI基板的可靠选择。",
-    "advanced_reason": "热导率超1000 W/m·K，CTE与硅芯片近乎完美匹配（±0.3 ppm/K），电绝缘性更强，可加工至50μm，是应对500 W/cm²热流密度的终极方案，适合下一代高性能AI芯片的芯片级封装。"
-}

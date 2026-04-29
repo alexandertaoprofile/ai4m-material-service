@@ -1,6 +1,0 @@
-{
-    "baseline_material": "EAGLE XG™ (Corning)",
-    "advanced_material": "Borofloat® 33 + 高纯度改性版 (Schott)",
-    "baseline_reason": "商业化成熟、CTE低至4.8×10⁻⁶/K、介电强度达15kV/mm、工艺兼容性好、供应链稳定，是性价比最高的可靠选择。",
-    "advanced_reason": "经深度净化与离子交换强化，CTE降至4.2×10⁻⁶/K、表面粗糙度<0.3nm、金属杂质<1ppm，更适合高密度AI芯片的极端热-电-机械协同环境。"
-}

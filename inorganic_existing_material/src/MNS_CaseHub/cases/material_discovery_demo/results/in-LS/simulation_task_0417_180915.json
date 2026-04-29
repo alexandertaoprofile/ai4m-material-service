@@ -1,6 +1,0 @@
-{
-    "baseline_material": "AlN (Wurtzite, mp-1018)",
-    "advanced_material": "AlN (strain-engineered Wurtzite, Nature Mater. 2019)",
-    "baseline_reason": "化学式标准化（AlN）、晶体结构明确（P6₃mc）、晶格常数与带隙数据被Materials Project和JCPDS广泛收录，兼容性最强，适合快速建模与数据库对接。",
-    "advanced_reason": "通过外延应变调控实现更高热导率（>220 W/m·K）和更宽带隙（~6.5 eV），性能超越标准相，适用于高端光电子与功率器件，数据源自高影响力实验研究，具备前沿应用价值。"
-}

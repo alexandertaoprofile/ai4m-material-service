@@ -1,6 +1,0 @@
-{
-    "baseline_material": "氮化铝陶瓷基板（AlN-DBC/AMB）",
-    "advanced_material": "碳化硅陶瓷基板（SiC-AMB）",
-    "baseline_reason": "热导率达标（170–220 W/m·K）、CTE与硅完美匹配（4.5 ppm/K）、绝缘强度高（>25 kV/mm）、工艺成熟且成本可控（$0.15–0.45/cm²），是当前AI芯片封装的工业标准方案，风险低、量产稳定。",
-    "advanced_reason": "热导率与绝缘性略优（可达220 W/m·K、>30 kV/mm），CTE可调范围更广（2.7–4.5 ppm/K），高温耐受达200°C，适合下一代高密度Chiplet与极端环境应用，虽成本略高、工艺成熟度稍低，但代表未来技术方向。"
-}

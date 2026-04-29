@@ -1,6 +1,0 @@
-{
-    "baseline_material": "AJINOMOTO ABF-3000系列",
-    "advanced_material": "Shin-Etsu Chemical SE-ABF-XR",
-    "baseline_reason": "成熟稳定，性能达标，成本可控，已大规模用于台积电CoWoS和AMD产品，适合量产型项目",
-    "advanced_reason": "突破性微细化与低损耗特性，CTE更接近硅，支持8μm线宽与12层积层，专为下一代AI/高速计算芯片设计，代表行业前沿"
-}

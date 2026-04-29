@@ -1,6 +1,0 @@
-{
-    "baseline_material": "高纯度氮化铝（High-Purity AlN, 99.5%+）",
-    "advanced_material": "纳米晶氮化铝复合陶瓷（Nano-AlN/Al₂O₃ Composite, 98% AlN + 2% Y₂O₃-Al₂O₃）",
-    "baseline_reason": "热导率高、绝缘性优异、成本可控、工业成熟度高，满足绝大多数AI芯片封装的热-电-结构综合需求。",
-    "advanced_reason": "通过纳米结构与微量助剂优化，实现热导率、热匹配性与耐辐照性的全面提升，专为极端环境下的高可靠性AI系统设计。"
-}

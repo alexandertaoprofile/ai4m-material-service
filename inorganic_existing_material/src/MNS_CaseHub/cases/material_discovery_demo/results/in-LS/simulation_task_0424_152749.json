@@ -1,6 +1,0 @@
-{
-    "baseline_material": "AlN",
-    "advanced_material": "Si3N4",
-    "baseline_reason": "热导率接近200 W/m·K，界面热阻低，工艺兼容性好，成本适中，是当前AI芯片量产封装（如CoWoS）的行业标准选择，满足高功率密度与可靠性平衡需求。",
-    "advanced_reason": "CTE最接近硅芯片，抗氧化与耐湿热性能卓越，电绝缘性更强，适合极端环境与长寿命场景，虽成本较高，但可显著提升系统可靠性与服役年限。"
-}

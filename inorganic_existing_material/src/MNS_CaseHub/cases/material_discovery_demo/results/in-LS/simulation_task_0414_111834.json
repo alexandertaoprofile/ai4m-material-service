@@ -1,6 +1,0 @@
-{
-    "baseline_material": "Ti6Al4V ELI",
-    "advanced_material": "Ti6Al4V VIM-VAR + 纳米净化处理",
-    "baseline_reason": "符合ASTM标准，氧含量低至800 ppm以下，工艺成熟、成本可控，适合大规模量产与高可靠性医疗/航空应用，是当前工业主流选择。",
-    "advanced_reason": "通过VIM-VAR真空熔炼与纳米表面钝化技术，氧含量降至600 ppm以下，球形度与流动性显著提升，疲劳寿命提高40%，适合对性能极限有严苛要求的高端部件，虽成本高但可降低整体失效风险。"
-}

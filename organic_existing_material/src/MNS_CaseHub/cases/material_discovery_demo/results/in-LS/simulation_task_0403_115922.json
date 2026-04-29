@@ -1,6 +1,0 @@
-{
-    "baseline_material": "氮化铝陶瓷基板（AlN Ceramic Substrate）",
-    "advanced_material": "铜-钨复合基板（Cu-W Composite Substrate with AlN表面层）",
-    "baseline_reason": "热导率达标（190 W/mK）、CTE匹配良好、绝缘优异、成本低（$0.25/cm²）、工艺成熟且已在台积电/Intel量产，是高性价比的工程首选。",
-    "advanced_reason": "热导率突破300 W/mK，CTE匹配更精准（±0.4 ppm/K），界面热阻低至0.2 mm²·K/W，热循环寿命更长，专为超高功率密度（>250 W/cm²）AI芯片设计，虽成本略高但性能天花板更高。"
-}

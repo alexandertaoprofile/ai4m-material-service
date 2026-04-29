@@ -1,6 +1,0 @@
-{
-    "baseline_material": "La2O3-10Al2O3-90SiO2",
-    "advanced_material": "La2O3-18Al2O3-82SiO2",
-    "baseline_reason": "高硅含量结构稳定，工艺成熟，易于建模与实验验证，适合作为AI驱动开发的起点。",
-    "advanced_reason": "铝含量提升增强La³⁺配位调控，显著降低介电损耗、提高热稳定性，且成分可调空间更大，更适合AI高通量优化与下一代高频封装需求。"
-}

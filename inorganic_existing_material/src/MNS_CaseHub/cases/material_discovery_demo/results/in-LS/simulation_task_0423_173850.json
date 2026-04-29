@@ -1,6 +1,0 @@
-{
-    "baseline_material": "C21H25ClO5",
-    "advanced_material": "C21H25ClO5",
-    "baseline_reason": "在满足所有核心指标（热导率>100、CTE±1、绝缘>10¹²、固化<200°C）前提下，具备最高量产成熟度、最优成本效益，已被TSMC/Intel大规模采用，风险最低。",
-    "advanced_reason": "在基准款基础上通过石墨烯-氮化硼纳米复合技术，将热导率提升至280 W/m·K，同时保持CTE与绝缘性能更优，适合高热流密度（>300 W/cm²）的下一代AI芯片，虽成本高但性能突破显著。"
-}

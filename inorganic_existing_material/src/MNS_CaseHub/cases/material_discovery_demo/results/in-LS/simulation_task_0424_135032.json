@@ -1,6 +1,0 @@
-{
-    "baseline_material": "Schott BOROFLOAT® 33",
-    "advanced_material": "SiO2",
-    "baseline_reason": "成本低、工艺成熟、尺寸稳定性尚可，适用于预算受限或非核心信号层的过渡性封装结构。",
-    "advanced_reason": "超低热膨胀系数（±0.05 ppm/K）和超低损耗因子（0.0015）使其成为当前玻璃基板体系中最接近AI芯片高频、高稳定性需求的材料，适用于高端AI芯片的电互连与尺寸基准层。"
-}

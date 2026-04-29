@@ -1,6 +1,0 @@
-{
-    "baseline_material": "氮化铝（AlN）陶瓷基板",
-    "advanced_material": "CVD金刚石/AlSiC梯度复合基板",
-    "baseline_reason": "氮化铝在导热、CTE匹配、绝缘性与可靠性上全面达标，工艺成熟、成本可控，是当前AI芯片封装最稳健的量产选择。",
-    "advanced_reason": "CVD金刚石/AlSiC复合结构在导热性能与长期热稳定性上远超常规材料，专为>300 W/cm²超密度AI芯片设计，虽成本高、工艺复杂，但代表未来高端封装方向。"
-}

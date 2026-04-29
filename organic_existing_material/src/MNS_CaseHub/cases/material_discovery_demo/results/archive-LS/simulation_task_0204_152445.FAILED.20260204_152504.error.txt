@@ -1,2 +1,0 @@
-RuntimeError: Step1 failed rc=1: Retrieving SummaryDoc documents:   0%|          | 0/14 [00:00<?, ?it/s]
-Retrieving SummaryDoc documents: 100%|██████████| 14/14 [00:00<00:00, 221585.87it/s]

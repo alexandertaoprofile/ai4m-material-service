@@ -1,6 +1,0 @@
-{
-    "baseline_material": "AlN",
-    "advanced_material": "Ag-BN",
-    "baseline_reason": "工艺成熟、绝缘性优异、成本低，满足基本封装需求，是当前工业主流选择，适合量产稳定场景。",
-    "advanced_reason": "热导率超500 W/m·K、CTE完美匹配硅基板、断裂韧性显著提升，综合性能顶尖，适用于高性能AI芯片的极限散热需求。"
-}

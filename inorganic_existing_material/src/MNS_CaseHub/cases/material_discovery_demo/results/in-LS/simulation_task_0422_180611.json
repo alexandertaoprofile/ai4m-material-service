@@ -1,6 +1,0 @@
-{
-    "baseline_material": "氮化铝（AlN）陶瓷基板",
-    "advanced_material": "六方氮化硼/铜金刚石复合材料（h-BN/Cu-Diamond）",
-    "baseline_reason": "热导率达标（>180 W/mK）、CTE匹配良好、击穿电压优异、工艺成熟、成本可控，是当前AI封装的最优平衡选择。",
-    "advanced_reason": "热导率突破500 W/mK、CTE更接近硅、散热能力远超常规材料，适用于高密度Chiplet与3D IC等极端热场景，虽成本高但可支撑下一代AI芯片的可靠性需求。"
-}

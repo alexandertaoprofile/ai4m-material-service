@@ -1,6 +1,0 @@
-{
-    "baseline_material": "CVD金刚石/环氧树脂复合材料（CVD-D/Epoxy）",
-    "advanced_material": "CVD金刚石/氮化铝陶瓷梯度复合材料（CVD-D/AlN Gradient）",
-    "baseline_reason": "满足所有核心指标，工艺成熟、成本低、易量产，适合商业级高功耗AI芯片封装，热循环稳定性超1200次，性价比最优。",
-    "advanced_reason": "导热性能提升50%以上，CTE更接近硅，高温绝缘性更稳定，热循环寿命超3000次，适合极端功耗密度（>1 W/mm²）的CoWoS/HBM3封装，虽成本高但可靠性无与伦比。"
-}

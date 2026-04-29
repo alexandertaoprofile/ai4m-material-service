@@ -1,6 +1,0 @@
-{
-    "baseline_material": "ZrO₂-10wt% SiO₂",
-    "advanced_material": "Y₂O₃-ZrO₂-8wt% SiO₂",
-    "baseline_reason": "成本低、工艺成熟，满足基础绝缘性与热稳定性需求，适用于中低负载AI应用场景。",
-    "advanced_reason": "超低CTE、超高热稳定性与极致绝缘性，专为高算力AI芯片的高频、高温、高可靠性场景优化，性能全面领先。"
-}

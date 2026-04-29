@@ -1,6 +1,0 @@
-{
-    "baseline_material": "氮化铝陶瓷（AlN）",
-    "advanced_material": "氮化硼-氮化铝复合陶瓷（BN/AlN）",
-    "baseline_reason": "工业成熟、成本低、绝缘性优异、工艺兼容性好，满足核心热导率与可靠性需求，是当前量产AI封装的最优平衡选择。",
-    "advanced_reason": "热导率显著提升（350 W/m·K）、介电损耗更低、CTE匹配更优，支持低温键合与高密度Chiplet集成，适用于下一代高性能AI芯片，虽成本较高但性能优势明确。"
-}

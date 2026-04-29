@@ -1,6 +1,0 @@
-{
-    "baseline_material": "AlN",
-    "advanced_material": "SiC",
-    "baseline_reason": "热导率达标（170–220 W/m·K）、CTE匹配性良好、电绝缘性优异、工艺成熟且成本可控，是当前AI芯片封装的工业标准选择，适合大规模量产。",
-    "advanced_reason": "CTE最接近硅基底（4.0–4.5 ppm/K）、绝缘性更强、接触热阻更低、耐温更高，虽成本高且加工复杂，但为未来超高功率密度AI芯片提供最优热管理潜力。"
-}

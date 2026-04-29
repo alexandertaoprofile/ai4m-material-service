@@ -1,6 +1,0 @@
-{
-    "baseline_material": "高纯氮化铝（High-Purity AlN）陶瓷基板",
-    "advanced_material": "超高纯熔融石英（Fused Silica）+ AlN复合多层结构",
-    "baseline_reason": "热导率高、CTE匹配硅芯片、磁性杂质<0.5 ppb、工艺成熟且成本可控，已在主流量子平台量产验证，是工程化应用的黄金标准。",
-    "advanced_reason": "介电损耗更低（<2×10⁻⁵）、磁性杂质更少（<0.2 ppb）、真空出气率极低，通过多层结构实现性能极限优化，适用于前沿量子实验，但成本高昂且尚未规模化。"
-}

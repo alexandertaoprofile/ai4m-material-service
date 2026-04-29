@@ -1,6 +1,0 @@
-{
-    "baseline_material": "D263T",
-    "advanced_material": "XG Ultra",
-    "baseline_reason": "D263T是工业级成熟材料，CTE低至5.9×10⁻⁶/°C，Na₂O<0.05wt%，模量75GPa，透光率91.5%，工艺兼容性强，成本可控，适合大规模半导体封装与显示应用。",
-    "advanced_reason": "XG Ultra是下一代超薄高精度玻璃，CTE低至4.8×10⁻⁶/°C，Ra<0.2nm，模量达82GPa，透光率92.8%，厚度可低至50μm，缺陷密度<0.1/cm²，支持柔性加工，满足未来折叠显示与微电子极致需求。"
-}

@@ -1,6 +1,0 @@
-{
-    "baseline_material": "HfO₂–7mol%Al₂O₃ (H7A)",
-    "advanced_material": "HfO₂–7mol%Al₂O₃–0.5mol%Y₂O₃ (H7AY)",
-    "baseline_reason": "成分简单、烧结温度适中、成本低、致密性达标，适合中试与初期量产，满足核心热膨胀与结构稳定性需求，虽介电损耗略超限但工程上可接受。",
-    "advanced_reason": "通过Y₂O₃稳定化实现更优CTE匹配硅芯片、更低介电损耗、更高表面平整度，高温相稳定性显著提升，虽工艺复杂、成本较高，但完全满足高性能封装的极限指标要求。"
-}

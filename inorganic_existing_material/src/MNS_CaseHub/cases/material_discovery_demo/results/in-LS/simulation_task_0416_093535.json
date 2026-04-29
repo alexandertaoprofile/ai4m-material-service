@@ -1,6 +1,0 @@
-{
-    "baseline_material": "ZnO-B₂O₃-SiO₂ (ZBS-420)",
-    "advanced_material": "ZnO-B₂O₃-SiO₂-Al₂O₃-Na₂O (ZBSAN-400)",
-    "baseline_reason": "熔点420°C，CTE 4.8×10⁻⁶/K，气密性3×10⁻¹⁰ Pa·m³/s，无铅，工艺成熟，成本低，适合消费电子和普通传感器封装。",
-    "advanced_reason": "熔点降至400°C，CTE 4.5×10⁻⁶/K，气密性<1×10⁻¹⁰ Pa·m³/s，Al₂O₃增强致密性，耐湿热退化<2%，满足医疗植入与航天军工严苛标准，性能全面超越基准款。"
-}

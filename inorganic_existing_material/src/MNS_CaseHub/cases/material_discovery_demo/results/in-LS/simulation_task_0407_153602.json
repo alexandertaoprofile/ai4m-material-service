@@ -1,6 +1,0 @@
-{
-    "baseline_material": "MAPbI₃",
-    "advanced_material": "Cs₀.₀₅(MA₀.₁₇FA₀.₈₃)₀.₉₅Pb(I₀.₈₃Br₀.₁₇)₃",
-    "baseline_reason": "MAPbI₃是钙钛矿领域的奠基性材料，结构清晰、数据完备、文献丰富，适合入门研究与原理验证，满足独立完整性与可追溯性要求。",
-    "advanced_reason": "该三元混合钙钛矿在效率（>24%）和稳定性（>90%保持率）上实现突破，被Nature/Science等顶刊反复验证，是当前产业界主流技术路线，代表材料演进方向。"
-}

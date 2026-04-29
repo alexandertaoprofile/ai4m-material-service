@@ -1,6 +1,0 @@
-{
-    "baseline_material": "AlN/SiO2",
-    "advanced_material": "h-BN/Glass Gradient Ceramic",
-    "baseline_reason": "在满足所有核心指标（导热>100 W/m·K、CTE±1 ppm/K、绝缘>10¹² Ω·cm、1000次热循环）前提下，具备高量产良率（>92%）和标准工艺兼容性，成本可控，是当前AI封装量产的最优平衡选择。",
-    "advanced_reason": "在导热性（达210 W/m·K）和CTE匹配度（2.6±0.5 ppm/K）上实现突破，热可靠性更强，特别适合100+ W/cm²的超高功耗AI芯片，虽成本较高但为下一代3D封装提供技术护城河。"
-}

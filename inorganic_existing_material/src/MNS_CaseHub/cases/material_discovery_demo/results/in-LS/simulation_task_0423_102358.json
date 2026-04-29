@@ -1,6 +1,0 @@
-{
-    "baseline_material": "ZrB2/SiC",
-    "advanced_material": "HfB2/SiC/TiC",
-    "baseline_reason": "ZrB₂-SiC具备成熟的工业工艺、良好的高温稳定性与抗氧化性能，成本可控，是1000–1400°C环境下的可靠基准材料，适合快速验证与规模化应用。",
-    "advanced_reason": "HfB₂-SiC-TiC通过HfO₂/SiO₂双层氧化膜和TiC晶界强化，在1500–1600°C下展现出更优的抗氧化寿命与蠕变强度，虽工艺复杂、成本较高，但能满足极端高温环境的极限性能需求。"
-}

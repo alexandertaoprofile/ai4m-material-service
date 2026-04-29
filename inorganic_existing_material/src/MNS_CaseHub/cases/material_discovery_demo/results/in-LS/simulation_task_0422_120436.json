@@ -1,6 +1,0 @@
-{
-    "baseline_material": "CERAN® 96% Al₂O₃ 玻璃陶瓷",
-    "advanced_material": "LAPIS™ 氮化物增强玻璃陶瓷",
-    "baseline_reason": "热导率适中（18–22 W/m·K），CTE略高但可通过设计补偿，化学惰性良好，加工成熟，成本低，适合中功率量产场景。",
-    "advanced_reason": "热导率高达110–130 W/m·K，CTE精准匹配硅芯片（3.8–4.2 ppm/°C），化学纯度极高，支持亚微米级加工，满足前沿高性能芯片的极限散热与可靠性需求。"
-}

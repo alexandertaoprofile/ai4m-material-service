@@ -1,6 +1,0 @@
-{
-    "baseline_material": "Lithium Aluminosilicate Glass-Ceramic (LAS-100)",
-    "advanced_material": "Magnesium Aluminosilicate Glass-Ceramic with Nanoscale ZrO₂ Dispersion (MAS-ZR-200)",
-    "baseline_reason": "工艺成熟、成本低、良率高（≥96%），CTE、热导率和介电损耗均稳定达标，适合大规模量产和主流AI芯片封装，是当前最可靠的工程化选择。",
-    "advanced_reason": "在CTE、热导率和介电损耗三项核心指标上全面超越基准款，纳米氧化锆增强结构显著提升机械强度与防潮性，适用于超高功率密度（>120W/cm²）与高频（>70GHz）场景，是面向下一代AI芯片的性能标杆。"
-}

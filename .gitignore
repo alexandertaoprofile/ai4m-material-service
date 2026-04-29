@@ -7,3 +7,13 @@
 **/tmp_mace_md_debug/
 **/*.log
 .DS_Store
+**/.git_DISABLED_DO_NOT_USE/
+**/.git_DISABLED_DO_NOT_USE/**
+**/results/
+**/*.glb
+**/*.cif
+**/*.extxyz
+**/*.traj
+**/.venv/
+**/.idea/
+**/.vscode/

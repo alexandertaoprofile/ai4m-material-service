@@ -1,6 +1,0 @@
-{
-    "baseline_material": "Al2O3",
-    "advanced_material": "AlN",
-    "baseline_reason": "通过厚铜层复合结构实现系统级热导率>200 W/m·K，CTE接近硅芯片，成本低、工艺成熟，适合中高端AI芯片量产场景。",
-    "advanced_reason": "本体热导率高达200 W/m·K以上，CTE精准匹配硅与HBM，热循环稳定性更强，是高端AI加速器与3D IC封装的理想材料，虽成本高但性能无妥协。"
-}

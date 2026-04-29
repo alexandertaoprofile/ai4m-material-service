@@ -1,6 +1,0 @@
-{
-    "baseline_material": "氮化铝陶瓷（AlN Ceramic）",
-    "advanced_material": "氮化硼纳米片增强型氮化铝复合陶瓷（AlN/BNns Composite）",
-    "baseline_reason": "导热性达标（180–220 W/m·K）、绝缘性优异（>10¹³ Ω·cm）、热循环可靠性>1500次，工艺成熟、成本可控，已被台积电等大厂量产验证，是当前最稳妥的工业选择。",
-    "advanced_reason": "在AlN基础上引入氮化硼纳米片，导热提升至260 W/m·K，CTE降至3.5 ppm/K更接近硅芯片，热循环寿命超2000次，虽成本较高且工艺复杂，但为未来高性能AI芯片提供最优热管理潜力。"
-}

@@ -1,6 +1,0 @@
-{
-    "baseline_material": "SiO2",
-    "advanced_material": "SiO2",
-    "baseline_reason": "EAGLE XG是OLED行业成熟标准，CTE、平整度、碱金属含量均满足核心需求，抗弯强度达标，供应链稳定，适合大规模量产，成本可控。",
-    "advanced_reason": "AXO在CTE、表面平整度、抗弯强度、碱金属纯度和柔性弯曲能力上全面超越基准款，支持30μm超薄与1.5mm折叠半径，专为下一代柔性显示设计，虽成本较高，但能构建产品技术壁垒。"
-}

@@ -1,6 +1,0 @@
-{
-    "baseline_material": "高热导率氮化铝玻璃复合基板（AlN-Glass Composite）",
-    "advanced_material": "纳米金刚石-玻璃陶瓷复合基板（ND-Glass Ceramic）",
-    "baseline_reason": "在满足核心热导率>100 W/m·K、CTE<5 ppm/°C、电阻率>10¹² Ω·cm等硬性指标前提下，成本低（3.8美元/cm²）、工艺成熟、量产稳定，适合主流AI芯片封装，是性价比最优的工程化选择。",
-    "advanced_reason": "热导率突破200 W/m·K，CTE匹配更优（<3.5 ppm/°C），耐热循环更强，且具备电磁屏蔽能力，虽成本略高但能支撑下一代高密度AI芯片的极端散热需求，是面向未来高性能计算的首选进阶方案。"
-}

@@ -1,6 +1,0 @@
-{
-    "baseline_material": "HT-ABF",
-    "advanced_material": "NG-ABF",
-    "baseline_reason": "HT-ABF在满足所有核心性能指标（热导率>65 W/m·K、CTE±2 ppm/K、电阻率>10¹³ Ω·cm、280°C兼容）的同时，与现有ABF产线100%兼容，成本可控，技术成熟度高，是实现快速量产与风险控制的最佳平衡选择。",
-    "advanced_reason": "NG-ABF通过AlN+GO协同增强，实现热导率突破115 W/m·K、CTE更接近硅、电阻率更高、密度更低，且仍兼容ABF工艺，代表2025年后AI芯片封装散热材料的技术前沿，适合面向未来3–5年高性能计算场景的战略布局。"
-}

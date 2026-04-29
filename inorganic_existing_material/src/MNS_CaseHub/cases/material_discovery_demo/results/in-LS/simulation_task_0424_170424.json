@@ -1,6 +1,0 @@
-{
-    "baseline_material": "Al2O3",
-    "advanced_material": "AlN",
-    "baseline_reason": "成本低、工艺成熟、绝缘性优异，满足基本RoHS与可靠性要求，适合中低热流密度场景，是当前量产的稳健选择。",
-    "advanced_reason": "导热系数接近180 W/m·K，CTE与硅高度匹配，热循环寿命超2000次，完美应对100–500 W/cm²高热流密度与3D IC封装需求，是下一代AI芯片的首选高性能材料。"
-}

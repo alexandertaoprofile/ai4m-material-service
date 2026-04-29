@@ -1,6 +1,0 @@
-{
-    "baseline_material": "CERANIC® 96",
-    "advanced_material": "NEXTEC® 800",
-    "baseline_reason": "热导率160-170 W/m·K、CTE 4.2-4.5 ppm/°C，满足核心指标，商业化成熟、成本可控，适合主流高性能芯片散热场景。",
-    "advanced_reason": "热导率高达220-240 W/m·K，CTE低至3.8-4.0 ppm/°C，可薄化至80μm，绝缘与耐湿热性能更优，专为超高热流密度（>250W/cm²）与多层堆叠设计，代表下一代散热基板趋势。"
-}

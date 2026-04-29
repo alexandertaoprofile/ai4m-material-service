@@ -1,6 +1,0 @@
-{
-    "baseline_material": "AlN–h-BN纳米复合陶瓷（80:20 wt%）",
-    "advanced_material": "AlN–h-BN–Si₃N₄梯度复合陶瓷",
-    "baseline_reason": "在满足≥180 W/m·K导热、3.0–3.8 ppm/K CTE、≥10¹³ Ω·cm电阻率及1000次热循环等核心指标前提下，工艺成熟、成本可控、量产可行性高，符合主流封装路线，是稳健的首选方案。",
-    "advanced_reason": "通过梯度CTE设计与Si₃N₄增强层，实现超210 W/m·K导热、更优热匹配、更高绝缘性与1500+次热循环可靠性，适用于高端Chiplet与3D封装场景，虽成本与工艺复杂度高，但性能天花板显著更高。"
-}

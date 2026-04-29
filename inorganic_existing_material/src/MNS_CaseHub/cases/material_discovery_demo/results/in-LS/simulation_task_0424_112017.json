@@ -1,6 +1,0 @@
-{
-    "baseline_material": "C21H25ClO5",
-    "advanced_material": "C21H25ClO5",
-    "baseline_reason": "ABF-200是业界最成熟的ABF材料，CTE与硅芯片完美匹配，工艺兼容性极佳，成本低，适合中低功耗AI芯片的大规模量产，是风险最低的基准选择。",
-    "advanced_reason": "ABF-300X通过氮化物填料将热导率提升近3倍，同时保持CTE匹配与低介电损耗，在ABF体系内实现热性能极限突破，已通过高端封装验证，适合高算力、高密度AI芯片的性能升级需求。"
-}

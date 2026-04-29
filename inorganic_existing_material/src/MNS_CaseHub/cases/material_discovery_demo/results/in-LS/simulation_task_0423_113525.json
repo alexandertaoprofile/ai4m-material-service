@@ -1,6 +1,0 @@
-{
-    "baseline_material": "AlN",
-    "advanced_material": "AlN/SiC",
-    "baseline_reason": "热导率达标（170–200 W/m·K）、CTE与硅匹配、电绝缘优异、工艺成熟、成本低，适合主流AI芯片封装量产需求。",
-    "advanced_reason": "热导率提升至220–260 W/m·K，机械强度与热稳定性显著增强，可应对3D IC局部热点与多轮高温工艺，虽成本高但性能突破明显，适合高端AI加速器。"
-}

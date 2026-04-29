@@ -1,6 +1,0 @@
-{
-    "baseline_material": "AlN",
-    "advanced_material": "SiC",
-    "baseline_reason": "热导率满足200 W/cm²需求，CTE与硅高度匹配，绝缘性能优异，工艺成熟、成本可控，是当前AI芯片量产的最优平衡选择。",
-    "advanced_reason": "热导率显著提升（达350 W/mK），CTE更接近硅，热稳定性更强，适合极端功耗场景，虽加工难度和成本较高，但能突破热管理瓶颈，支撑下一代AI芯片性能极限。"
-}

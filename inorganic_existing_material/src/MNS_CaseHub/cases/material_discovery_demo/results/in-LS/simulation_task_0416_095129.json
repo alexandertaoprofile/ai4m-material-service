@@ -1,6 +1,0 @@
-{
-    "baseline_material": "Li₂O–Al₂O₃–SiO₂–ZrO₂ 微晶玻璃（LASZ）",
-    "advanced_material": "Li₂O–Al₂O₃–SiO₂–ZrO₂–AlN 复合微晶玻璃（LASZ-AlN）",
-    "baseline_reason": "热导率达标、CTE完美匹配硅、光刻兼容性优异、成本低于10美元/片、工艺成熟且原料本土化程度高，是当前量产最可行的平衡方案。",
-    "advanced_reason": "热导率显著提升至6 W/m·K以上，热循环可靠性更强，适合高功耗AI芯片，虽成本略高且工艺复杂，但代表下一代高性能封装材料方向。"
-}

@@ -1,6 +1,0 @@
-{
-    "baseline_material": "Ethylene Carbonate (EC)",
-    "advanced_material": "Fluoroethylene Carbonate (FEC)",
-    "baseline_reason": "EC具有高离子电导率和良好的锂盐溶解性，是电解液体系中最经典、成本最低的溶剂，广泛用于商业化电池，适合作为基准材料。",
-    "advanced_reason": "FEC通过氟原子修饰显著提升抗氧化性、热稳定性和SEI膜质量，能有效延长电池循环寿命并支持高压充电，是提升EC体系性能的首选功能型添加剂。"
-}

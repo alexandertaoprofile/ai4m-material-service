@@ -1,6 +1,0 @@
-{
-    "baseline_material": "AlN",
-    "advanced_material": "BN/Gr-AlN",
-    "baseline_reason": "导热接近200 W/m·K，CTE与硅匹配优异，热循环超8000次，工艺成熟、成本可控，是当前AI封装的工业标准选择。",
-    "advanced_reason": "导热超250 W/m·K、介电常数低至4.2、热循环超10000次，综合性能最优，虽成本高、工艺复杂，但满足下一代AI芯片对热-电-可靠性协同的极致需求。"
-}

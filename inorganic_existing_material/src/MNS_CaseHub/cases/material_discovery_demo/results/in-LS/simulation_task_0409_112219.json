@@ -1,6 +1,0 @@
-{
-    "baseline_material": "氮化铝（AlN）陶瓷基板",
-    "advanced_material": "金刚石/铜复合陶瓷基板",
-    "baseline_reason": "热导率达标（200 W/m·K）、CTE匹配性好、化学稳定、工艺成熟、成本可控，适合绝大多数AI芯片量产场景。",
-    "advanced_reason": "热导率远超200 W/m·K（可达800），满足极端热流密度需求，适合前沿AI芯片，但需专业工艺支持与成本预算。"
-}

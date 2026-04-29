@@ -1,6 +1,0 @@
-{
-    "baseline_material": "AlN",
-    "advanced_material": "h-BN",
-    "baseline_reason": "热导率达标（220 W/m·K）、CTE与硅芯片高度匹配、工艺成熟、成本适中，满足绝大多数AI芯片封装的可靠性与量产需求，是当前工业界最稳健的首选方案。",
-    "advanced_reason": "通过h-BN纳米增强，热导率提升至280 W/m·K以上，CTE匹配更精准，绝缘性与高温稳定性显著超越基准款，专为3D Chiplet、高热流密度AI核心芯片设计，虽成本高但可解决前沿封装的热管理瓶颈。"
-}

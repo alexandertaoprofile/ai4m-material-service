@@ -1,6 +1,0 @@
-{
-    "baseline_material": "AlN/SiO2",
-    "advanced_material": "BN-Glass Gradient Stack",
-    "baseline_reason": "在玻璃基板体系中实现导热>50 W/m·K、CTE<8 ppm/K、介电常数<5、耐受1000次热循环的全面达标，工艺成熟、成本可控，适合大规模量产，是当前AI封装的最优平衡选择。",
-    "advanced_reason": "通过梯度结构实现定向导热（110 W/m·K）与超低CTE（6.8 ppm/K），热循环耐受性超1500次，高频损耗更低，专为3D堆叠高热流密度AI芯片设计，虽成本高但性能天花板更高，适合旗舰级产品。"
-}

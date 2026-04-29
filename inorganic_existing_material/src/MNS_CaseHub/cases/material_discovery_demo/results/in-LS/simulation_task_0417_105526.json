@@ -1,6 +1,0 @@
-{
-    "baseline_material": "Corning Eagle XG®",
-    "advanced_material": "Schott AF32®",
-    "baseline_reason": "Eagle XG®是全球最成熟的高纯低碱硼硅酸盐玻璃，CTE精准匹配硅芯片，介电性能优异，工艺兼容性极佳，供应链稳定，成本可控，适合绝大多数AI芯片封装场景，是行业事实标准。",
-    "advanced_reason": "AF32®采用玻璃陶瓷复合技术，在保持优异介电性能基础上，将热导率提升至3.8 W/m·K，气密性翻倍，表面平整度更高，支持更高温工艺，专为高密度、高可靠性、极端环境AI芯片设计，虽成本高但性能全面超越基准款。"
-}

@@ -1,6 +1,0 @@
-{
-    "baseline_material": "Li₂O–Al₂O₃–SiO₂微晶玻璃（CERAN®类）",
-    "advanced_material": "Li₂O–Al₂O₃–SiO₂–ZrO₂–TiO₂纳米晶玻璃",
-    "baseline_reason": "性能均衡、工艺成熟、成本可控，已实现工业量产，可快速满足AI封装核心指标，是当前最稳妥的工程化选择。",
-    "advanced_reason": "纳米晶相结构显著提升热导率、降低CTE与介电损耗，支持亚微米互连与AI缺陷检测，具备未来技术代差优势，适合高端AI芯片前瞻布局。"
-}

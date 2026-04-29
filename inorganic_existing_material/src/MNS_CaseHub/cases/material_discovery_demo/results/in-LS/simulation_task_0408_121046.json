@@ -1,6 +1,0 @@
-{
-    "baseline_material": "氮化铝（AlN）陶瓷基板",
-    "advanced_material": "化学气相沉积金刚石（CVD Diamond）热沉层",
-    "baseline_reason": "AlN具备优异的综合性能：热导率达标（200 W/m·K）、电绝缘性强、成本低、工艺成熟，已被TSMC和Intel在CoWoS中大规模量产验证，是当前最可靠、性价比最高的基板材料。",
-    "advanced_reason": "CVD金刚石热沉拥有超高的热导率（>2000 W/m·K）和完美的CTE匹配，能有效应对500 W/cm²极端热流密度，界面热阻可低至0.2 mm²·K/W，已在AMD Foveros中实现验证，是面向下一代AI芯片的极限散热首选。"
-}

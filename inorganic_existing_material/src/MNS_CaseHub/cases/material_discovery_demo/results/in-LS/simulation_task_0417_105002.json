@@ -1,6 +1,0 @@
-{
-    "baseline_material": "Borosilicate Glass 8051-SiC",
-    "advanced_material": "Borosilicate Glass 8052-SiC/AlN/ZrO₂",
-    "baseline_reason": "在满足核心性能指标（CTE匹配、热导率≥2.0、低介电损耗）的前提下，成本最低、工艺成熟、良率稳定，适合首次量产验证与中端AI芯片应用。",
-    "advanced_reason": "通过多相纳米陶瓷协同增强，实现CTE近乎完美匹配硅、热导率突破2.8 W/m·K、介电损耗降至0.0015，湿热寿命延长50%，是面向高端AI芯片（如HPC、自动驾驶）的终极封装基板解决方案。"
-}

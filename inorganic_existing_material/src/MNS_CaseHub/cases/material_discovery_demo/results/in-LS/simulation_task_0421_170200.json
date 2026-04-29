@@ -1,6 +1,0 @@
-{
-    "baseline_material": "氮化铝（AlN）",
-    "advanced_material": "碳化硅（SiC）",
-    "baseline_reason": "AlN具备优异的绝缘性、良好的CTE匹配性（与硅差值<3 ppm/°C）、成熟的量产工艺和低成本优势，作为中层基板与CVD金刚石协同可实现系统导热≥500 W/m·K，是当前工程化落地的最佳平衡选择。",
-    "advanced_reason": "SiC在导热系数（可达400+ W/m·K）和CTE匹配性（与硅差值<2 ppm/°C）上全面优于AlN，热循环可靠性更强，更适合高功率密度、长寿命AI芯片系统，虽成本较高，但可作为下一代高性能封装的核心基板。"
-}

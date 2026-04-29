@@ -1,6 +1,0 @@
-{
-    "baseline_material": "氮化铝（AlN）陶瓷基板（CVD表面SiO₂钝化）",
-    "advanced_material": "六方氮化硼（h-BN）-AlN梯度复合陶瓷基板（CVD金刚石微结构嵌入 + SiO₂钝化）",
-    "baseline_reason": "导热性能达标（170–220 W/m·K）、CTE匹配优异、绝缘性可靠、工艺兼容现有封装产线，成本适中，已获Intel/AMD等工业验证，是当前AI芯片封装的最优平衡选择。",
-    "advanced_reason": "通过h-BN绝缘层与CVD金刚石微柱协同，实现250–290 W/m·K超高导热、超低介损（tanδ<0.0006）、更强湿热耐受性，满足下一代高频高功耗AI芯片的极限散热与信号完整性需求，虽成本高但代表技术前沿。"
-}

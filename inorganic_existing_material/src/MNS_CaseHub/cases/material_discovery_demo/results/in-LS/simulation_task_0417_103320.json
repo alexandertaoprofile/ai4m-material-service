@@ -1,6 +1,0 @@
-{
-    "baseline_material": "高纯氮化铝（High-Purity AlN）",
-    "advanced_material": "化学气相沉积金刚石（CVD Diamond）",
-    "baseline_reason": "导热性能经复合结构优化后可满足≥300 W/m·K，CTE与硅完美匹配，绝缘性优异，工艺成熟、成本可控，是当前工程化落地最稳妥的首选方案。",
-    "advanced_reason": "导热性能远超需求（>1800 W/m·K），绝缘性极佳，热循环寿命更长，虽CTE偏低需界面缓冲，但通过梯度结构可实现系统级最优热管理，代表未来高端AI芯片封装技术方向。"
-}

@@ -1,6 +1,0 @@
-{
-    "baseline_material": "Corning EAGLE XG®",
-    "advanced_material": "Schott AF32®",
-    "baseline_reason": "工艺成熟、CTE与硅芯片完美匹配、表面粗糙度达标、抗弯强度优异，是当前最可靠的量产候选材料，适合快速推进封装验证。",
-    "advanced_reason": "五维性能全面超越目标，尤其热导率与介电常数实现材料级突破，表面粗糙度更优，是支撑下一代AI芯片3D异构集成的理想进阶方案，虽成本高但技术前瞻性极强。"
-}

@@ -1,6 +1,0 @@
-{
-    "baseline_material": "Suprasil® F300",
-    "advanced_material": "Corning® EAGLE XG®",
-    "baseline_reason": "超纯熔融石英，热膨胀系数最低（0.55 ppm/°C）、介电损耗极低（tanδ=0.0001）、高温稳定性卓越，适合高频高可靠性封装场景。",
-    "advanced_reason": "铝硅酸盐玻璃经掺杂优化，机械韧性大幅提升，适合<50μm超薄堆叠，表面能可精准调控，粘合可靠性优于传统石英，是高密度集成封装的理想进阶选择。"
-}

@@ -1,6 +1,0 @@
-{
-    "baseline_material": "氮化硼/环氧树脂复合陶瓷基板（h-BN/EP）",
-    "advanced_material": "氮化铝基陶瓷复合材料（含Si₃N₄晶须增强）",
-    "baseline_reason": "成本低（$3–6/芯片）、密度轻、工艺兼容性好，热导率与CTE满足中低端AI芯片需求，适合消费级设备，良率高且环保。",
-    "advanced_reason": "热导率提升至180–220 W/m·K，热循环寿命超15万次，CTE精准匹配Si芯片，适用于高性能AI服务器与HBM堆叠，虽成本较高但可靠性远超基准款。"
-}

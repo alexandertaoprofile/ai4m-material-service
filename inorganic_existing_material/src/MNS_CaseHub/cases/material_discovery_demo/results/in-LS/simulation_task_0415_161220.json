@@ -1,6 +1,0 @@
-{
-    "baseline_material": "PharmPure™ Solubility Database v3.2",
-    "advanced_material": "ThermoSol™ AI-Enhanced Solubility Platform (v4.1)",
-    "baseline_reason": "提供符合药典标准的20–60°C温度下琥乙红霉素在THF/H₂O (1:1)体系中的实测溶解度数据，方法清晰、来源权威，满足基础文献检索需求，成本低且易获取。",
-    "advanced_reason": "不仅提供高精度溶解度数值，还整合了化学稳定性动态分析（降解产物与半衰期）、溶剂纯度全谱验证及AI趋势预测，可确保数据在高温下不因降解失真，适用于研发与注册级决策。"
-}

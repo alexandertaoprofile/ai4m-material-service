@@ -1,6 +1,0 @@
-{
-    "baseline_material": "氮化铝（AlN）",
-    "advanced_material": "金刚石-铜复合基板（CVD金刚石/Cu）",
-    "baseline_reason": "热导率接近230 W/mK，CTE与硅芯片高度匹配，高温稳定性达标，可薄至100μm且工艺成熟、成本可控，是当前AI芯片封装的工业标准选择。",
-    "advanced_reason": "热导率超800 W/mK，远超500 W/mK需求，CTE可调至极低水平，耐温超250℃，可实现50μm超薄结构，虽成本高、工艺复杂，但满足下一代超高功率AI芯片的极限散热需求。"
-}

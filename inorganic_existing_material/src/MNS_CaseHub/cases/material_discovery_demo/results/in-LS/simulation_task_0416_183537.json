@@ -1,6 +1,0 @@
-{
-    "baseline_material": "Borofloat® 33",
-    "advanced_material": "LithoGlass™ X1",
-    "baseline_reason": "无碱铝硅酸盐玻璃工业标准，CTE极低（5.5 ppm/°C），成本低廉（<$2.2/片），工艺成熟度高，经AlN/SiC复合后热导率>3.0 W/m·K，满足核心指标且量产风险最低。",
-    "advanced_reason": "专为AI封装定制的高阶复合玻璃，本体热导率达4.1 W/m·K，tanδ低至0.0009，弯曲强度>720 MPa，支持<20μm通孔与低温键合，虽成本较高但性能全面超越，是下一代高性能封装的理想载体。"
-}

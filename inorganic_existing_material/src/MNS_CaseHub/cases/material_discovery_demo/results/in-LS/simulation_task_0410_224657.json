@@ -1,6 +1,0 @@
-{
-    "baseline_material": "96Al₂O₃（氧化铝陶瓷）",
-    "advanced_material": "AlN（氮化铝陶瓷）",
-    "baseline_reason": "工艺成熟、成本低，介电和损耗指标达标，适合原型验证和非极限场景，但热导率不足需外部散热补偿。",
-    "advanced_reason": "唯一同时满足介电常数8–10、损耗<0.0003、CTE 4–6 ppm/K、热导率>150 W/m·K四大核心指标的材料，是量子芯片高性能封装的黄金标准。"
-}

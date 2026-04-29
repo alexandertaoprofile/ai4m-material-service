@@ -1,6 +1,0 @@
-{
-    "baseline_material": "氮化铝（AlN）",
-    "advanced_material": "氮化硅（Si₃N₄）",
-    "baseline_reason": "热导率接近200 W/m·K门槛，热膨胀系数与硅芯片完美匹配，工艺成熟、成本可控，是当前AI芯片封装的主流可靠选择。",
-    "advanced_reason": "热导率突破200 W/m·K，机械强度与耐腐蚀性显著优于AlN，适合高功率密度、长期高负载的下一代AI芯片，虽工艺复杂但性能领先。"
-}

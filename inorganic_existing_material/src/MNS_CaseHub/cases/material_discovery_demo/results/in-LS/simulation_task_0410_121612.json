@@ -1,6 +1,0 @@
-{
-    "baseline_material": "高纯氮化铝（High-Purity AlN）陶瓷基板",
-    "advanced_material": "氮化铝/氮化硼/氮化硅梯度复合陶瓷（AlN/h-BN/Si₃N₄ Gradient Composite）",
-    "baseline_reason": "导热、绝缘、CTE性能全面达标，工艺成熟、成本低、良率高，是当前AI芯片封装的工业标准，可立即部署且风险极低。",
-    "advanced_reason": "通过多层梯度结构实现CTE精准匹配硅芯片（3–4 ppm/K），显著提升绝缘性与热循环寿命（>15,000次），是应对>200 W/cm²功率密度的前沿解决方案，适合高端定制化场景。"
-}
