@@ -1,57 +1,45 @@
-# Inorganic New Material Service（阶段1骨架）
+# inorganic_new_material
 
-本仓库当前处于“从已有材料服务拷贝后进行瘦身”的第一阶段，目标是演化为：
+无机新材料服务（演进中）。当前定位是为“新材料发现链路”提供服务骨架与可运行入口。
 
-**无机新材料发现服务（Inorganic New Material Discovery Service）**。
+## 当前状态
 
-## 当前阶段目标
+- 服务可启动（FastAPI/WebSocket 主入口存在）
+- 保留了 `handler/pipeline` 相关结构，便于后续扩展
+- 部分能力仍处于占位或迁移阶段，目标是逐步从“已有材料链路”解耦
 
-当前只保留并强化下面这些能力骨架：
-
-- Service 主入口（FastAPI）
-- Handler / Pipeline 基本结构
-- 输入 schema 的位置与约定
-- 候选生成接口占位（stub）
-- 候选校验/排序接口占位（stub）
-- 结构化 JSON 输出框架
-- 日志与基础配置
-
-> 说明：本阶段不接入真实生成模型，不追求完整业务闭环，优先做仓库收敛与结构治理。
-
-## 当前主要入口
+## 主要入口
 
 - `main.py`：服务启动入口
-- `team_config.py`：兼容入口（桥接到 `src/team_config.py`）
-- `src/MNS_CaseHub/cases/material_discovery_demo/`：现有材料发现 demo 管线（后续会逐步抽象为通用 discovery pipeline）
+- `team_config.py`：兼容入口（桥接 `src/team_config.py`）
+- `src/`：核心业务与案例管线代码
 
-## 目录说明（阶段1）
+## 目录说明
 
-- `config/`：基础配置
-- `src/`：主要业务代码
-- `tools/`：工具脚本（后续会继续精简，只保留新服务需要的）
-- `alpha/`：历史框架代码（暂保留，后续按需下沉至 legacy）
+- `config/`：配置文件
+- `src/`：业务实现
+- `tools/`：工具脚本
+- `alpha/`：历史框架代码（暂保留）
 
-## 运行（开发态）
+## 运行方式（开发态）
 
 ```bash
-python /data/se42/alpha_project/inorganic_new_material/main.py
+python main.py
 ```
 
 或：
 
 ```bash
-bash /data/se42/alpha_project/inorganic_new_material/start.sh
+bash start.sh
 ```
 
-## 依赖说明
+## 依赖建议
 
-- 历史全量依赖：`pip_requirements.txt`（非常大，不建议新环境直接全量安装）
-- 最小骨架依赖：`requirements.minimal.txt`（本次清理新增）
+- `requirements.minimal.txt`：最小运行依赖（建议优先）
+- `pip_requirements.txt`：历史全量依赖（体积大，建议按需补装）
 
-建议新环境先从最小依赖启动，再按缺失模块逐步补充。
+## 后续演进方向
 
-## 下一步（阶段2/3）
-
-- 把 `material_discovery_demo` 抽象成标准化 `handler/pipeline/services/schemas`
-- 收敛旧有“已有材料检索/补全/展示强耦合”逻辑
-- 逐步引入真实候选生成与校验模块
+1. 新材料候选生成与校验模块独立化
+2. 与已有材料服务共享的公共能力抽到通用层
+3. 完善输入/输出 schema 与部署文档

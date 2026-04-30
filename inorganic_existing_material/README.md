@@ -1,105 +1,46 @@
-# AI4M Materials Screening & Property Calculation Pipeline
+# inorganic_existing_material
 
-## Overview
+无机已有材料服务，面向“已有化学式/候选材料”的快速筛选、性质补全与前端结果下发。
 
-This service implements a structured, production-oriented materials
-evaluation workflow:
+## 当前主链路（按当前实现）
 
-MP (structure & basic screening) ↓ ADiT + Pymatgen (structure sanity &
-stability gate) ↓ MACE (fast relax + short MD sanity check) ↓ Structured
-assets (JSON / CIF / EXTXYZ / GLB)
+1. 从用户输入与上下文中提取化学式候选
+2. 调用 MP 检索脚本生成候选结构与结果资产
+3. 读取 manifest / summary / 图片 / GLB，按协议推送前端
+4. 对候选结构进行性质补全（含 ALIGNN 路径，可按环境启用）
 
-This pipeline is designed for fast engineering-grade screening and
-visualization, not high-precision thermodynamic production simulations.
+## 主要代码入口
 
-------------------------------------------------------------------------
+- `main.py`：FastAPI/WebSocket 服务入口
+- `team_config.py`：兼容桥接入口（转发到 `src/team_config.py`）
+- `src/team_config.py`：主要业务编排逻辑
 
-## Stage 1 --- Materials Project (MP)
+## 关键子环境（代码中实际引用）
 
-Environment: mp-api-py311\
-Script: tools/mp_export_assets.py
+- `mp-api-py311`：MP 检索脚本调用
+- `ALIGNN_ENV`：ALIGNN 推理环境名（默认 `alignn-gpu-test`）
 
-Outputs: - structure.cif - structure.glb (static visualization) -
-summary.json - summary.md - manifest.json
+> 若未设置 `ALIGNN_ENV`，代码会默认使用 `alignn-gpu-test`。
 
-Purpose: - Query stable structures - Export CIF + GLB - Generate
-standardized manifest for frontend
+## 结果与静态资源
 
-------------------------------------------------------------------------
+- 运行产物主要落在 `src/MNS_CaseHub/cases/.../results/`
+- 稳定展示资源建议放在 `public/`（例如 `public/databasepic/`）
+- `main.py` 已支持 `/public` 静态目录挂载
 
-## Stage 2 --- ADiT + Pymatgen Stability Gate
+## 运行方式（开发态）
 
-Environment: adit-py310\
-Script: tools/adit_pymatgen_eval.py
+```bash
+python main.py
+```
 
-Outputs: - report.json - summary.md - manifest.json
+或：
 
-Purpose: - Structure sanity checks - Basic geometric validation -
-Stability gating before MACE
+```bash
+bash start.sh
+```
 
-------------------------------------------------------------------------
+## 说明
 
-## Stage 3 --- MACE Property Calculation
-
-Environment: mace_ase\
-Model: mace-mp-0b2-medium.model
-
-### Fast Relax Mode
-
-Arguments: --do-relax --relax-fmax 0.1 --relax-steps 200
-
-Outputs: - relaxed.cif - relaxed.extxyz - summary.json - manifest.json
-
-Purpose: - Quick structural relaxation - Force convergence check
-
-------------------------------------------------------------------------
-
-### Short MD Sanity Mode
-
-Arguments: --do-md --md-steps 1000 --md-timestep-fs 0.25 --md-temp-K 300
---md-friction 0.20 --md-init-temp-K 300 --md-log-every 50
---md-tail-fraction 0.40
-
-Outputs: - md_traj.extxyz - md_log.csv - md_final.cif - md_traj.glb
-(animated) - summary.json - manifest.json
-
-Purpose: - Short NVT Langevin MD - Detect structural instability -
-Provide engineering sanity signal
-
-------------------------------------------------------------------------
-
-## Visualization
-
-Static GLB: generated from structure.cif\
-Animated GLB: generated from md_traj.extxyz
-
-Tool: tools/extxyz_to_animated_glb.py
-
-------------------------------------------------------------------------
-
-## Runtime Model
-
--   Fast relax runs immediately
--   MD runs in background with GPU semaphore control
--   Frontend consumes manifest.json for asset rendering
-
-------------------------------------------------------------------------
-
-## Environments
-
-MP → mp-api-py311\
-ADiT → adit-py310\
-MACE → mace_ase
-
-------------------------------------------------------------------------
-
-## Status
-
-MP export: Stable\
-ADiT evaluation: Stable\
-MACE relax: Stable\
-MACE MD: Stable\
-Static + animated GLB: Working\
-Frontend manifest integration: Working
-
-Pipeline ready for engineering screening workflows.
+- 本 README 以当前仓库实现为准，已移除旧 ADiT/MACE 主链描述。
+- 如后续恢复/切换流程，请同步更新本文档。
