@@ -1086,10 +1086,10 @@ class Coding(Action):
         """
         async def _stream_table_header_once():
             await websocket.send_text("\n")
-            await websocket.send_text("| 性质项 | 数值 | 单位 | 口径/来源 | 应用解读 |\n")
-            await websocket.send_text("|---|---:|---|---|---|\n")
+            await websocket.send_text("| 性质项 | 数值 | 单位 | 来源 | 可信度 | 应用解读 |\n")
+            await websocket.send_text("|---|---:|---|---|---|---|\n")
 
-        async def _stream_property_row(name: str, value, unit: str, source: str, hint: str, nd: int = 4):
+        async def _stream_property_row(name: str, value, unit: str, source: str, confidence: str, hint: str, nd: int = 4, confidence_note: str = ""):
             if isinstance(value, float):
                 value_text = f"{value:.{nd}f}"
             elif value is None:
@@ -1097,7 +1097,12 @@ class Coding(Action):
             else:
                 value_text = str(value)
 
-            row_text = f"| {name} | {value_text} | {unit} | {source} | {hint} |"
+            hint_text = str(hint or "").strip()
+            conf_text = str(confidence_note or "").strip()
+            if conf_text:
+                hint_text = f"{hint_text}（{conf_text}）" if hint_text else conf_text
+
+            row_text = f"| {name} | {value_text} | {unit} | {source} | {confidence} | {hint_text} |"
 
             # 使用现有 LLM 流式链路输出表格行（不直接 send_text）
             # 说明：此处以“效果优先”为目标，先不做严格格式兜底
@@ -1116,13 +1121,13 @@ class Coding(Action):
                 # 兜底：无 llm 时回退原有直发
                 await websocket.send_text(row_text + "\n")
 
-        def _source_text(raw_source: str, fallback: str = "模型预测/数据库值") -> str:
+        def _source_confidence(raw_source: str, fallback_source: str = "模型预测/数据库值", fallback_conf: str = "中") -> tuple:
             src_v = str(raw_source or "")
             if src_v.startswith("ALIGNN"):
-                return f"ALIGNN补全（{src_v.replace('ALIGNN:', '')}）"
+                return "ALIGNN图神经网络预测补全", "较高"
             if src_v:
-                return f"MP已给出（{src_v}）"
-            return fallback
+                return "MP数据库第一性原理结果", "高"
+            return fallback_source, fallback_conf
 
         def _resolve_symmetry_text(item: dict) -> str:
             crystal = str(item.get("crystal_system") or item.get("crystal") or "").strip()
@@ -1295,38 +1300,50 @@ class Coding(Action):
             else:
                 stability_class = "偏离稳定"
 
+        src_ehull, conf_ehull = _source_confidence(e_hull_src, "MP数据库第一性原理结果", "高")
         await _stream_property_row(
             "距稳定相包络能量差",
             e_hull,
             "eV/atom",
-            _source_text(e_hull_src, "MP热力学字段"),
+            src_ehull,
+            conf_ehull,
             f"用于热力学稳定性快速筛选，当前字段判读：{stability_class}",
+            confidence_note="适合用于初筛与相对比较",
         )
+        src_fe, conf_fe = _source_confidence(fe_src, "MP数据库第一性原理结果", "高")
         await _stream_property_row(
             "形成能",
             fe,
             "eV/atom",
-            _source_text(fe_src, "MP热力学字段"),
+            src_fe,
+            conf_fe,
             "数值越负通常仅表示形成倾向更强，可作为候选排序参考",
+            confidence_note="适合用于候选排序，最终结论建议结合后续验证",
         )
+        src_density, conf_density = _source_confidence(density_src, "MP数据库第一性原理结果", "高")
         await _stream_property_row(
             "密度",
             density,
             "g/cm3",
-            _source_text(density_src, "MP结构字段"),
+            src_density,
+            conf_density,
             "用于判断压实、堆叠与宏观结构设计的体积负载趋势",
+            confidence_note="可用于工程估算，建议与实测密度交叉核对",
         )
 
         if (bg is None) and cif_path and os.path.exists(cif_path):
             bg_pred, mn, _ = self._try_alignn_models(cif_path, BG_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
             if bg_pred is not None:
                 bg, bg_src = bg_pred, f"ALIGNN:{mn}"
+        src_bg, conf_bg = _source_confidence(bg_src, "ALIGNN图神经网络预测补全", "较高")
         await _stream_property_row(
             "带隙",
             bg,
             "eV",
-            _source_text(bg_src),
+            src_bg,
+            conf_bg,
             "过小可能提升电子泄漏风险，影响电化学应用边界",
+            confidence_note="用于趋势判断，关键设计阶段建议复核",
         )
 
         if (bulk is None) and cif_path and os.path.exists(cif_path):
@@ -1337,12 +1354,15 @@ class Coding(Action):
                 _, _, bulk_err = self._try_alignn_models(cif_path, BULK_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
         elif (bulk is None) and (not cif_path or not os.path.exists(cif_path)):
             bulk_err = f"cif缺失或路径无效({cif_source})"
+        src_bulk, conf_bulk = _source_confidence(bulk_src, "ALIGNN图神经网络预测补全", "较高")
         await _stream_property_row(
             "体积模量",
             bulk,
             "GPa",
-            _source_text(bulk_src, bulk_err or "模型预测/数据库值"),
+            src_bulk,
+            conf_bulk,
             "更高通常更抗压，更利于压片与堆叠稳定",
+            confidence_note="若为模型补全值，建议后续以高精度计算或实验复核",
         )
 
         if (shear is None) and cif_path and os.path.exists(cif_path):
@@ -1353,12 +1373,15 @@ class Coding(Action):
                 _, _, shear_err = self._try_alignn_models(cif_path, SHEAR_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
         elif (shear is None) and (not cif_path or not os.path.exists(cif_path)):
             shear_err = f"cif缺失或路径无效({cif_source})"
+        src_shear, conf_shear = _source_confidence(shear_src, "ALIGNN图神经网络预测补全", "较高")
         await _stream_property_row(
             "剪切模量",
             shear,
             "GPa",
-            _source_text(shear_src, shear_err or "模型预测/数据库值"),
+            src_shear,
+            conf_shear,
             "更高通常更抗剪切形变，降低使用中开裂风险",
+            confidence_note="若为模型补全值，建议后续以高精度计算或实验复核",
         )
 
         if (elec_mass is None) and cif_path and os.path.exists(cif_path):
@@ -1369,12 +1392,15 @@ class Coding(Action):
                 _, _, em_err = self._try_alignn_models(cif_path, ELEC_MASS_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
         elif (elec_mass is None) and (not cif_path or not os.path.exists(cif_path)):
             em_err = f"cif缺失或路径无效({cif_source})"
+        src_em, conf_em = _source_confidence(elec_mass_src, "ALIGNN图神经网络预测补全", "较高")
         await _stream_property_row(
             "电子有效质量",
             elec_mass,
             "m0",
-            _source_text(elec_mass_src, em_err or "模型预测/数据库值"),
+            src_em,
+            conf_em,
             "关联电子输运趋势，影响宏观导电特征",
+            confidence_note="主要用于趋势判断",
         )
 
         if (hole_mass is None) and cif_path and os.path.exists(cif_path):
@@ -1385,12 +1411,15 @@ class Coding(Action):
                 _, _, hm_err = self._try_alignn_models(cif_path, HOLE_MASS_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
         elif (hole_mass is None) and (not cif_path or not os.path.exists(cif_path)):
             hm_err = f"cif缺失或路径无效({cif_source})"
+        src_hm, conf_hm = _source_confidence(hole_mass_src, "ALIGNN图神经网络预测补全", "较高")
         await _stream_property_row(
             "空穴有效质量",
             hole_mass,
             "m0",
-            _source_text(hole_mass_src, hm_err or "模型预测/数据库值"),
+            src_hm,
+            conf_hm,
             "关联空穴输运趋势，影响界面极化表现",
+            confidence_note="主要用于趋势判断",
         )
 
         hardness_est = None
@@ -1410,8 +1439,10 @@ class Coding(Action):
             "硬度（估算）",
             hardness_est,
             "GPa",
-            hardness_formula,
+            "经验公式估算结果",
+            "中高",
             "可用于粗略判断抗压痕与耐磨趋势，数值越高通常机械支撑更强",
+            confidence_note="用于快速比较，不等同于标准硬度测试结果",
         )
 
         cond_diff_proxy = None
@@ -1425,8 +1456,10 @@ class Coding(Action):
             "导电/扩散相关量（粗略）",
             cond_diff_proxy,
             "无量纲",
-            "由带隙/形成能/有效质量组合得到的排序指标",
+            "综合排序参考指标",
+            "中",
             "仅用于候选排序的趋势参考，不等同于实验电导率或扩散系数",
+            confidence_note="不作为定量性能结论，仅用于优先级筛选",
         )
 
         top = {
@@ -3774,14 +3807,14 @@ class Coding(Action):
         # =========================
         # 7) MP：导出 + 右侧下发 + 左侧解释
         # =========================
-        async def _mp_one(formula: str) -> bool:
+        async def _mp_one(formula: str, emit_mp_explain: bool = True) -> bool:
             formula = _to_ascii_formula(formula)
 
             ok = await _run_mp_export_assets(formula)
             if not ok:
                 await websocket.send_text(
-                    f"{formula} 在 MP 数据库中未检索到可用结果。"
-                    "可视为全新材料候选，建议转入新材料发现流程。\n"
+                    f"在 Materials Project 中暂未检索到 {formula} 的可用公开结构数据。"
+                    "该候选将保留为新材料候选，可在后续新材料发现流程中继续评估。\n"
                 )
                 return False
 
@@ -3818,7 +3851,7 @@ class Coding(Action):
             except Exception:
                 pass
 
-            # ✅ 左侧解释：你已有
+            # ✅ 左侧解释：按需发送，避免候选回退时重复输出
             try:
                 collected = self._collect_material_outputs(repo_root, taskid, jobid=formula)
                 parameters = self._build_material_parameters(collected)
@@ -3832,13 +3865,14 @@ class Coding(Action):
                     )
                     return False
 
-                await self._material_mp_explain_stage(
-                    llm,
-                    websocket,
-                    query=f"解释 {formula} 的 MP 初筛结果：逐条说明每个候选结构的关键字段含义，并给出字段层面的好/坏判读（仅限 MP 字段）。",
-                    parameters=parameters,
-                    taskid=taskid
-                )
+                if emit_mp_explain:
+                    await self._material_mp_explain_stage(
+                        llm,
+                        websocket,
+                        query=f"解释 {formula} 的 MP 初筛结果：逐条说明每个候选结构的关键字段含义，并给出字段层面的好/坏判读（仅限 MP 字段）。",
+                        parameters=parameters,
+                        taskid=taskid
+                    )
             except Exception as e:
                 logger.exception(f"[MP_EXPLAIN] failed formula={formula}: {e!s}")
 
@@ -3939,23 +3973,26 @@ class Coding(Action):
                 await websocket.send_text("\n将按候选顺序进行数据库检索。\n")
 
                 total_mp = len(mp_formulas)
+                mp_intro_sent = False
                 for idx, f in enumerate(mp_formulas, start=1):
                     pf = self._formula_profile(f)
 
                     # 左侧：候选标题与数据库检索说明
-                    await websocket.send_text(f"\n当前检索材料：`{f}（{pf['中文名称']}）`\n")
-                    await _stream_mp_stage_intro(f)
+                    await websocket.send_text(f"\n正在检索候选材料：`{f}（{pf['中文名称']}）`\n")
+                    if not mp_intro_sent:
+                        await _stream_mp_stage_intro(f)
+                        mp_intro_sent = True
 
                     # 左侧：候选进度与命中播报
                     await websocket.send_text(f"当前候选进度：{idx}/{total_mp}\n")
                     logger.info(f"[MP_SCREENING] single_formula_first_hit_mode start formula={f}")
-                    ok = await _mp_one(f)
+                    ok = await _mp_one(f, emit_mp_explain=True)
                     if ok:
                         selected_formula = f
                         mp_ready_formulas = [f]
                         break
                     else:
-                        await websocket.send_text(f"材料 `{f}` 未命中 MP 可用结果，继续尝试下一候选。\n")
+                        await websocket.send_text(f"当前候选 `{f}` 暂未获得可用结果，已继续检索下一候选材料。\n")
 
                 # 当前版本：执行 MP + ALIGNN；ADiT/MACE 流程下线
                 if mp_ready_formulas:
