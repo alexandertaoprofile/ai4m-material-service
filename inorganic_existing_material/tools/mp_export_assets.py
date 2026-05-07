@@ -6,6 +6,7 @@ import json
 import os
 import re
 import sys
+import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -538,13 +539,46 @@ def query_candidates(
         chemsys = "-".join(el_list)
         rf = ""  # unknown if only elements
 
-    docs = mpr.materials.summary.search(
-        chemsys=chemsys,
-        fields=fields,
-        num_chunks=1,
-        chunk_size=fetch_n,
+    effective_fetch_n = max(20, min(int(fetch_n or 100), 20))
+    print(
+        f"[MP_QUERY] mode={mode} formula={formula} chemsys={chemsys} "
+        f"fields_count={len(fields or [])} fetch_n={effective_fetch_n}",
+        flush=True,
     )
-    docs = [to_dict(d) for d in list(docs)]
+
+    last_err: Optional[Exception] = None
+    docs = []
+    for attempt in range(1, 5):
+        t0 = time.perf_counter()
+        try:
+            docs = mpr.materials.summary.search(
+                chemsys=chemsys,
+                fields=fields,
+                num_chunks=1,
+                chunk_size=effective_fetch_n,
+            )
+            docs = [to_dict(d) for d in list(docs)]
+            dt = time.perf_counter() - t0
+            print(
+                f"[MP_QUERY] summary.search ok attempt={attempt} chemsys={chemsys} "
+                f"count={len(docs)} elapsed={dt:.2f}s",
+                flush=True,
+            )
+            break
+        except Exception as e:
+            dt = time.perf_counter() - t0
+            last_err = e
+            print(
+                f"[MP_QUERY] summary.search failed attempt={attempt} chemsys={chemsys} "
+                f"elapsed={dt:.2f}s err={type(e).__name__}: {e}",
+                flush=True,
+            )
+            if attempt >= 4:
+                raise
+            sleep_s = min(8, 2 ** (attempt - 1))
+            time.sleep(sleep_s)
+    if not docs and last_err is not None:
+        raise last_err
 
     if mode == "formula":
         filtered = []
@@ -563,26 +597,62 @@ def query_candidates(
 
 
 def fetch_by_id(mpr: MPRester, material_id: str, fields: List[str]) -> Optional[Dict[str, Any]]:
-    docs = mpr.materials.summary.search(
-        material_ids=[material_id],
-        fields=fields,
-        num_chunks=1,
-        chunk_size=1,
-    )
-    docs = list(docs)
+    print(f"[MP_FETCH_BY_ID] material_id={material_id}", flush=True)
+    last_err: Optional[Exception] = None
+    docs = []
+    for attempt in range(1, 4):
+        t0 = time.perf_counter()
+        try:
+            docs = mpr.materials.summary.search(
+                material_ids=[material_id],
+                fields=fields,
+                num_chunks=1,
+                chunk_size=1,
+            )
+            docs = list(docs)
+            dt = time.perf_counter() - t0
+            print(f"[MP_FETCH_BY_ID] ok attempt={attempt} elapsed={dt:.2f}s", flush=True)
+            break
+        except Exception as e:
+            dt = time.perf_counter() - t0
+            last_err = e
+            print(f"[MP_FETCH_BY_ID] failed attempt={attempt} elapsed={dt:.2f}s err={type(e).__name__}: {e}", flush=True)
+            if attempt >= 3:
+                raise
+            time.sleep(2 ** (attempt - 1))
+    if not docs and last_err is not None:
+        raise last_err
     if not docs:
         return None
     return to_dict(docs[0])
 
 
 def fetch_structure(mpr: MPRester, material_id: str) -> Structure:
-    docs = mpr.materials.summary.search(
-        material_ids=[material_id],
-        fields=["material_id", "structure"],
-        num_chunks=1,
-        chunk_size=1,
-    )
-    docs = list(docs)
+    print(f"[MP_FETCH_STRUCTURE] material_id={material_id}", flush=True)
+    last_err: Optional[Exception] = None
+    docs = []
+    for attempt in range(1, 4):
+        t0 = time.perf_counter()
+        try:
+            docs = mpr.materials.summary.search(
+                material_ids=[material_id],
+                fields=["material_id", "structure"],
+                num_chunks=1,
+                chunk_size=1,
+            )
+            docs = list(docs)
+            dt = time.perf_counter() - t0
+            print(f"[MP_FETCH_STRUCTURE] ok attempt={attempt} elapsed={dt:.2f}s", flush=True)
+            break
+        except Exception as e:
+            dt = time.perf_counter() - t0
+            last_err = e
+            print(f"[MP_FETCH_STRUCTURE] failed attempt={attempt} elapsed={dt:.2f}s err={type(e).__name__}: {e}", flush=True)
+            if attempt >= 3:
+                raise
+            time.sleep(2 ** (attempt - 1))
+    if not docs and last_err is not None:
+        raise last_err
     if not docs:
         raise RuntimeError(f"material_id not found: {material_id}")
 

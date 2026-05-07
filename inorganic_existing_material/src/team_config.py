@@ -3,7 +3,6 @@ import os
 import re
 import sys
 import asyncio
-import subprocess
 import glob
 import json
 import uuid
@@ -33,6 +32,34 @@ from src.tools.team_config_helpers import (
     get_case_root as _helpers_get_case_root,
     as_text as _helpers_as_text,
     infer_prompt_mode as _helpers_infer_prompt_mode,
+)
+from src.utils.formula_utils import (
+    to_ascii_formula as _utils_to_ascii_formula,
+    looks_like_formula as _utils_looks_like_formula,
+    normalize_formula_for_mp as _utils_normalize_formula_for_mp,
+    build_formula_extraction_text as _utils_build_formula_extraction_text,
+)
+from src.utils.team_config_runtime_helpers import (
+    normalize_user_text as _normalize_user_text_external,
+    parse_route as _parse_route_external,
+    render_progress_bar as _render_progress_bar_external,
+)
+from src.utils.material_candidate_extractor import (
+    extract_formulas_from_targets as _extract_formulas_from_targets_external,
+    extract_formulas_from_in_ls as _extract_formulas_from_in_ls_external,
+)
+from src.utils.subprocess_runner import (
+    run_mp_export_assets_streaming as _run_mp_export_assets_streaming_external,
+)
+from src.utils.alignn_runner import (
+    extract_cif_path_from_item as _alignn_extract_cif_path_from_item,
+    pick_num as _alignn_pick_num,
+    try_alignn_models as _alignn_try_alignn_models,
+    probe_alignn_model as _alignn_probe_alignn_model,
+)
+from src.utils.material_candidate_selector import (
+    llm_select_material_candidates as _llm_select_material_candidates_external,
+    build_candidate_lists as _build_candidate_lists_external,
 )
 
 # Optional: reranker (heavy dependency)
@@ -537,214 +564,7 @@ class Coding(Action):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
     
-    XIMU_MNS_ENGINEERING_PROMPT :str= """
-        你是 XIMUAlpha_MNS 平台中的工程物理建模与参数反演定义模块。
-        你的任务是：将用户需求转化为“工程参数反演问题”的正式物理定义文档。
-        
-        ---
-        用户问题：
-        {query}
-
-        ---
-        工程背景资料（仅用于理解，不可复述）：
-        {file_info}
-
-        ---
-        工程目标说明：
-        {summary}
-
-        ---
-        已知结构化参数：
-        {parameters}
-
-        ---
-        输出格式与内容必须严格遵守以下规则（任何违反均视为错误）：
-
-        【整体结构顺序不可改变】
-        控制变量与目标参数
-        频域或时间域响应表达式
-        动力学或力学物理模型参数
-        物理控制方程
-        物理常数与固定参数
-        环境与边界条件
-        设计目标约束
-
-        【表格规则】
-        - 每个章节必须优先使用 Markdown 表格表达；
-        - 表格列名必须统一为：
-          | 符号 | 物理量 | 单位 | 取值或范围 | 功能说明 |
-        - 表格中禁止出现任何 LaTeX 语法（包括 $ \\ ^ _ 等）；
-        - 表格内容必须是工程设计或反演相关参数，不得给出泛化教材符号。
-
-        【公式规则】
-        - 所有公式必须使用独立的 $$ ... $$ 数学块；
-        - 每个 $$ 块中只能包含一个公式；
-        - 严禁使用以下 LaTeX 环境：
-          begin{{cases}}, begin{{array}}, begin{{align}}, begin{{tabular}}；
-        - 严禁使用 \\text{{}}, \\left, \\right；
-        - 禁止在公式中解释文字。
-
-        【语言与风格】
-        - 只允许使用中文；
-        - 禁止使用“本案例 / 本系统 / 本项目 / 我们”等指代；
-        - 禁止总结性语句、建议性语句或结尾说明；
-        - 禁止编号（如 1.、（一）等）；
-        - 每一个表格、公式或章节块结束后必须空一行。
-
-        【工程约束】
-        - 输出内容必须体现“可反演的工程参数”，而不是纯理论 PDE；
-        - 若涉及连续介质模型，必须服务于工程参数识别目的；
-        - 若涉及接触、冲击或热源，仅保留工程等效形式。
-
-        按上述规则直接输出结果，不要解释、不要求确认。
-        """
-
-    XIMU_MNS_MATERIAL_PROMPT: str = """
-        你是 XIMUAlpha_MNS 平台中的材料计算与多尺度仿真报告组织模块。
-        你的任务是：将用户需求转化为“DFT → MLIP → LAMMPS → 材料性质验证”的正式工程计算说明文档。
-
-        ---
-        用户问题：
-        {query}
-
-        ---
-        材料案例背景资料（仅用于理解，不可复述）：
-        {file_info}
-
-        ---
-        材料体系与研究目标说明：
-        {summary}
-
-        ---
-        已知结构化参数与计算元数据：
-        {parameters}
-
-        ---
-        输出格式与内容必须严格遵守以下规则（任何违反均视为错误）：
-
-        【整体结构顺序不可改变】
-        材料体系与目标性质定义
-        DFT 数据来源与覆盖范围
-        机器学习势（MLIP）训练与可用性判定
-        LAMMPS 验证流程与物性计算路径
-        工程相关性质与应用解释
-        已生成产物清单
-        下一步计算行动项
-
-        【内容表达规则】
-        - 每一章节必须以工程计算视角描述，不得出现教学性、科普性表述；
-        - 禁止出现推测性语言（如“可能”“大概”“预计”）；
-        - 禁止编造未在 {summary}/{parameters}/{file_info} 中出现的事实；
-        - 若信息缺失，不得简单重复“未提供”，而应改写为：
-          “当前输入未包含该信息，将在后续计算产物或日志中自动补全”；
-        - 允许使用“待计算”“待从产物中提取”等工程占位语。
-
-        【表格优先规则】
-        - 每一章节至少包含一张 Markdown 表格；
-        - 已知信息必须优先落入表格，不得仅用段落描述；
-        - 若数值尚未计算，表格取值列填写“待计算”，不得写“未提供”。
-
-        【表格规则】
-        - 表格列名必须统一为：
-          | 名称 | 物理含义 | 单位 | 取值或范围 | 说明 |
-        - 表格中禁止出现任何 LaTeX 语法（包括 $ \\ ^ _ 等）；
-        - 表格内容必须直接服务于材料计算或验证流程。
-
-        【公式规则】
-        - 公式仅用于关键派生关系或定义，不得大量堆叠；
-        - 所有公式必须使用独立的 $$ ... $$ 数学块；
-        - 每个 $$ 块中只能包含一个公式；
-        - 严禁使用 begin{{cases}}, begin{{array}}, begin{{align}}, begin{{tabular}}；
-        - 严禁使用 \\text{{}}, \\left, \\right；
-        - 禁止在公式中解释文字。
-
-        【语言与风格】
-        - 只允许使用中文；
-        - 禁止使用“本案例 / 本体系 / 本项目 / 我们”等指代；
-        - 禁止总结性语句、营销性语句或结尾说明；
-        - 禁止编号（如 1.、（一）等）；
-        - 每一个章节、表格或公式块结束后必须空一行。
-
-        【工程计算约束】
-        - 输出内容必须围绕 DFT → MLIP → LAMMPS 的实际计算与验证链路；
-        - 若涉及材料性质，必须说明其来源于哪一计算阶段或后处理步骤；
-        - 禁止仅给出最终结论而不说明计算路径；
-        - “已生成产物清单”必须仅从 {file_info} 或 {parameters} 中出现过的文件名或路径提取；
-        - 若当前输入尚未包含文件或路径，允许说明“将在计算完成后生成”。
-
-        按上述规则直接输出结果，不要解释、不要求确认。
-        """
-
-
-    XIMU_MNS_MATERIAL_MP_EXPLAIN_PROMPT :str= """
-        你是 XIMUAlpha_MNS 平台中的材料数据库初筛解释模块。
-        你的任务是：对 Materials Project（MP）阶段返回的候选结构列表进行逐条解读，
-        只基于 MP 可直接获得的字段，给出“字段层面”的判读（不做工程结论）。
-
-        ---
-        用户问题：
-        {query}
-
-        ---
-        材料数据库返回结果（仅用于解释，不可复述原始 JSON）：
-        {parameters}
-
-        ---
-        输出内容必须严格遵守以下规则（任何违反均视为错误）：
-
-        【解释范围限定】
-        - 仅允许解释 Materials Project 阶段可直接获得的信息（例如：material_id、对称性/空间群、E_above_hull、E_form、band_gap、nsites 等）；
-        - 禁止推断缺陷形成能、动力学稳定性、离子迁移或电导率；
-        - 禁止输出任何文件路径、URL、目录名、manifest 字段、生成时间戳等工程信息；
-        - 禁止输出“下一步需要什么数据/建议做什么计算”的展望性内容；
-    
-
-        【强制取数规则（最重要）】
-        - 必须从 {parameters} 中提取并使用数值；
-        - 只要 {parameters} 中存在某字段的数值（哪怕为 0），就严禁写“待计算/未提供/unknown，如果0的话就直接写0”；
-        - 仅当 {parameters} 中完全找不到该字段时，才允许写“待计算”。
-
-        【必须说明的要点】
-        - 必须对“候选结构列表”的每一行（每个 material_id）逐条解读；
-        - 必须对 E_above_hull、E_form、band_gap、对称性/空间群等字段分别解释“含义 + 在筛选中代表什么”；
-        - 必须基于以下口径做“字段层面判读”（只做口径判读，不做性能优劣结论）：
-          1) E_above_hull：
-             - = 0：记为“稳定（MP 热力学口径）”
-             - (0, 0.02] eV/atom：记为“接近稳定”
-             - > 0.02 eV/atom：记为“偏离稳定”
-          2) E_form：数值越负仅表示“形成倾向更强”（只可描述趋势，不可写优劣结论）
-          3) band_gap：> 0 表示“非金属性倾向”，≈0 表示“金属性倾向”（只做电子结构类型提示）
-          4) symmetry / space_group：只做结构分类与对称性提示，不做性质推断
-
-        【语言与风格】
-        - 只允许使用中文；
-        - 禁止使用“本案例 / 本系统 / 我们”等指代；
-        - 禁止总结性结论或展望性描述；
-        - 语气必须保持工程记录式、克制、客观，但表达要让非计算背景的工艺/应用人员也能读懂；
-        - 判读信息应优先放入表格列中，不要在表格后再写“补充说明”段落；
-        - 禁止复述原始 JSON（必须转为表格与短句解读）。
-
-        【表格优先规则】
-        - 至少包含两张 Markdown 表格：
-          表1｜候选结构逐行对比与判读表：每个材料一行，必须包含：
-               材料ID | 对称性（晶系/空间群） | 原子位点数 | 距稳定相包络能量差（eV/atom） | 形成能（eV/atom） | 带隙（eV） | 字段判读（稳定/接近稳定/偏离稳定）
-          表2｜字段口径与应用解释映射表：字段名 | 物理含义 | 工程意义与决策影响（非性能结论）
-        - 表2“字段名”必须优先使用中文术语，不得仅输出英文 snake_case；如需保留英文，仅可放在中文后的括号中。
-        - 推荐字段名写法：
-          距稳定相包络能量差（energy_above_hull）、形成能（formation_energy_per_atom）、带隙（band_gap）、
-          对称性/空间群（crystal_system & symbol）、原子位点数（nsites）。
-        - 表2“工程意义与决策影响（非性能结论）”必须面向非本领域但具工程阅读能力的成年人：
-          采用严肃、客观、克制的技术写法，强调“该字段对筛选与后续验证决策的影响”。
-        - 禁止使用幼稚化、拟人化、口语化比喻（如“像石头/像海绵”等）。
-        - 禁止营销措辞、情绪化措辞、夸张措辞。
-        - 表2中的解释必须替换掉“本次判读口径”式的模板化描述，不得写成同义重复。
-        - 表格之外不再输出“补充说明”段落；若需解释，请并入表格列；
-        - 这些表格哪怕是英语结果，也要按照他们的中文意思来解释和写。
-        - 若某字段缺失或未计算，表格取值写“待计算”，不得写“未提供”。
-
-        按上述规则直接输出解释内容，不要解释规则本身。
-        """
-# Adit/MACE暂时移除
+    # Prompt 常量已迁移到 src/roles/mns_role_prompts.py
 
 
     #懒加载，初始化Code_retriever
@@ -980,102 +800,6 @@ class Coding(Action):
         """兼容旧调用名，实际已接入 ALIGNN 补全。"""
         return await self._material_alignn_completion_stage(websocket, formula, llm=llm)
 
-    def _extract_cif_path_from_item(self, item: dict, base_dir: str) -> str:
-        if not isinstance(item, dict):
-            return ""
-        for k in ("abs_path", "cif_path", "structure_path", "file_path", "path"):
-            v = item.get(k)
-            if isinstance(v, str) and v.strip():
-                p = v.strip()
-                if os.path.isabs(p):
-                    return p
-                return os.path.abspath(os.path.join(base_dir, p))
-        return ""
-
-    def _pick_num(self, item: dict, keys: list):
-        if not isinstance(item, dict):
-            return None
-        for k in keys:
-            v = item.get(k)
-            try:
-                if v is None:
-                    continue
-                return float(v)
-            except Exception:
-                continue
-        return None
-
-    def _call_alignn_pretrained(self, model_name: str, cif_path: str, timeout_sec: int = 30):
-        alignn_env = os.getenv("ALIGNN_ENV", "alignn-gpu-test")
-        cmd = [
-            "micromamba", "run", "-n", alignn_env,
-            "python", "-m", "alignn.pretrained",
-            "--model_name", model_name,
-            "--file_format", "cif",
-            "--file_path", str(cif_path),
-        ]
-        try:
-            proc = subprocess.run(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                check=False,
-                timeout=int(timeout_sec),
-            )
-        except subprocess.TimeoutExpired:
-            raise RuntimeError(f"alignn推理超时({timeout_sec}s): model={model_name}")
-        if proc.returncode != 0:
-            raise RuntimeError(proc.stdout[-1200:] if proc.stdout else f"returncode={proc.returncode}")
-
-        txt = proc.stdout or ""
-        m = re.search(r"Predicted value:.*?\[([-+]?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?)\]", txt)
-        if not m:
-            m = re.search(r"\[([-+]?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?)\]", txt)
-        if not m:
-            raise RuntimeError(f"无法解析预测值: {txt[-500:]}")
-        return float(m.group(1))
-
-    def _try_alignn_models(
-        self,
-        cif_path: str,
-        model_candidates: list,
-        invalid_models: set = None,
-        pred_cache: dict = None,
-        timeout_sec: int = 30,
-    ):
-        last_err = ""
-        invalid_models = invalid_models if isinstance(invalid_models, set) else set()
-        pred_cache = pred_cache if isinstance(pred_cache, dict) else {}
-        for mn in model_candidates:
-            if mn in invalid_models:
-                continue
-            cache_key = (str(cif_path), str(mn))
-            if cache_key in pred_cache:
-                val = pred_cache.get(cache_key)
-                if isinstance(val, float):
-                    return val, mn, ""
-                continue
-            try:
-                val = self._call_alignn_pretrained(mn, cif_path, timeout_sec=timeout_sec)
-                pred_cache[cache_key] = val
-                return val, mn, ""
-            except Exception as e:
-                last_err = str(e)
-                pred_cache[cache_key] = None
-                err_l = last_err.lower()
-                if ("keyerror" in err_l) or ("not found" in err_l and "model" in err_l):
-                    invalid_models.add(mn)
-        return None, "", last_err
-
-    def _probe_alignn_model(self, model_name: str, cif_path: str):
-        """轻量探测：返回 (ok, err)。"""
-        try:
-            _ = self._call_alignn_pretrained(model_name, cif_path)
-            return True, ""
-        except Exception as e:
-            return False, str(e)
-
 
     async def _material_alignn_completion_stage(self, websocket, formula: str, llm=None):
         """
@@ -1202,7 +926,7 @@ class Coding(Action):
             source: item_path / local_manifest / manifest_abs / manifest_rel / scanned / missing
             """
             # 1) item 内路径（若有）
-            p_item = self._extract_cif_path_from_item(it, base_dir_)
+            p_item = _alignn_extract_cif_path_from_item(it, base_dir_)
             if p_item and os.path.exists(p_item):
                 return p_item, "item_path"
 
@@ -1248,14 +972,14 @@ class Coding(Action):
         mid = str(top.get("material_id") or top.get("id") or "")
         cif_path, cif_source = _resolve_cif_for_item(top, base_dir)
         mp_all_keys = sorted(list(top.keys())) if isinstance(top, dict) else []
-        e_hull = self._pick_num(top, ["energy_above_hull", "e_above_hull", "energy_above_hull_ev_per_atom"])
-        fe = self._pick_num(top, ["formation_energy_per_atom", "formation_energy", "e_form", "formation_energy_ev_per_atom"])
-        bg = self._pick_num(top, ["band_gap", "bandgap", "band_gap_ev"])
-        bulk = self._pick_num(top, ["bulk_modulus", "bulk_modulus_gpa", "kvrh", "k_vrh"])
-        shear = self._pick_num(top, ["shear_modulus", "shear_modulus_gpa", "gvrh", "g_vrh"])
-        density = self._pick_num(top, ["density", "density_g_cm3"])
-        elec_mass = self._pick_num(top, ["avg_elec_mass", "avg_electron_mass", "electron_effective_mass", "m_e_avg"])
-        hole_mass = self._pick_num(top, ["avg_hole_mass", "hole_effective_mass", "m_h_avg"])
+        e_hull = _alignn_pick_num(top, ["energy_above_hull", "e_above_hull", "energy_above_hull_ev_per_atom"])
+        fe = _alignn_pick_num(top, ["formation_energy_per_atom", "formation_energy", "e_form", "formation_energy_ev_per_atom"])
+        bg = _alignn_pick_num(top, ["band_gap", "bandgap", "band_gap_ev"])
+        bulk = _alignn_pick_num(top, ["bulk_modulus", "bulk_modulus_gpa", "kvrh", "k_vrh"])
+        shear = _alignn_pick_num(top, ["shear_modulus", "shear_modulus_gpa", "gvrh", "g_vrh"])
+        density = _alignn_pick_num(top, ["density", "density_g_cm3"])
+        elec_mass = _alignn_pick_num(top, ["avg_elec_mass", "avg_electron_mass", "electron_effective_mass", "m_e_avg"])
+        hole_mass = _alignn_pick_num(top, ["avg_hole_mass", "hole_effective_mass", "m_h_avg"])
 
         e_hull_src, fe_src, bg_src, bulk_src, shear_src = "MP", "MP", "MP", "MP", "MP"
         density_src = "MP" if isinstance(density, float) else "NA"
@@ -1267,7 +991,7 @@ class Coding(Action):
         hm_err = ""
 
         if (not model_probe_done) and cif_path and os.path.exists(cif_path):
-            ok_probe, err_probe = self._probe_alignn_model(BULK_MODELS[0], cif_path)
+            ok_probe, err_probe = _alignn_probe_alignn_model(BULK_MODELS[0], cif_path)
             model_probe_done = True
             model_probe_msg = "ALIGNN模型可用" if ok_probe else f"ALIGNN模型探测失败: {err_probe[:220]}"
 
@@ -1332,7 +1056,7 @@ class Coding(Action):
         )
 
         if (bg is None) and cif_path and os.path.exists(cif_path):
-            bg_pred, mn, _ = self._try_alignn_models(cif_path, BG_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
+            bg_pred, mn, _ = _alignn_try_alignn_models(cif_path, BG_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
             if bg_pred is not None:
                 bg, bg_src = bg_pred, f"ALIGNN:{mn}"
         src_bg, conf_bg = _source_confidence(bg_src, "ALIGNN图神经网络预测补全", "较高")
@@ -1347,11 +1071,11 @@ class Coding(Action):
         )
 
         if (bulk is None) and cif_path and os.path.exists(cif_path):
-            bulk_pred, mn, _ = self._try_alignn_models(cif_path, BULK_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
+            bulk_pred, mn, _ = _alignn_try_alignn_models(cif_path, BULK_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
             if bulk_pred is not None:
                 bulk, bulk_src = bulk_pred, f"ALIGNN:{mn}"
             else:
-                _, _, bulk_err = self._try_alignn_models(cif_path, BULK_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
+                _, _, bulk_err = _alignn_try_alignn_models(cif_path, BULK_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
         elif (bulk is None) and (not cif_path or not os.path.exists(cif_path)):
             bulk_err = f"cif缺失或路径无效({cif_source})"
         src_bulk, conf_bulk = _source_confidence(bulk_src, "ALIGNN图神经网络预测补全", "较高")
@@ -1366,11 +1090,11 @@ class Coding(Action):
         )
 
         if (shear is None) and cif_path and os.path.exists(cif_path):
-            shear_pred, mn, _ = self._try_alignn_models(cif_path, SHEAR_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
+            shear_pred, mn, _ = _alignn_try_alignn_models(cif_path, SHEAR_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
             if shear_pred is not None:
                 shear, shear_src = shear_pred, f"ALIGNN:{mn}"
             else:
-                _, _, shear_err = self._try_alignn_models(cif_path, SHEAR_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
+                _, _, shear_err = _alignn_try_alignn_models(cif_path, SHEAR_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
         elif (shear is None) and (not cif_path or not os.path.exists(cif_path)):
             shear_err = f"cif缺失或路径无效({cif_source})"
         src_shear, conf_shear = _source_confidence(shear_src, "ALIGNN图神经网络预测补全", "较高")
@@ -1385,11 +1109,11 @@ class Coding(Action):
         )
 
         if (elec_mass is None) and cif_path and os.path.exists(cif_path):
-            em_pred, mn, _ = self._try_alignn_models(cif_path, ELEC_MASS_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
+            em_pred, mn, _ = _alignn_try_alignn_models(cif_path, ELEC_MASS_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
             if em_pred is not None:
                 elec_mass, elec_mass_src = em_pred, f"ALIGNN:{mn}"
             else:
-                _, _, em_err = self._try_alignn_models(cif_path, ELEC_MASS_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
+                _, _, em_err = _alignn_try_alignn_models(cif_path, ELEC_MASS_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
         elif (elec_mass is None) and (not cif_path or not os.path.exists(cif_path)):
             em_err = f"cif缺失或路径无效({cif_source})"
         src_em, conf_em = _source_confidence(elec_mass_src, "ALIGNN图神经网络预测补全", "较高")
@@ -1404,11 +1128,11 @@ class Coding(Action):
         )
 
         if (hole_mass is None) and cif_path and os.path.exists(cif_path):
-            hm_pred, mn, _ = self._try_alignn_models(cif_path, HOLE_MASS_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
+            hm_pred, mn, _ = _alignn_try_alignn_models(cif_path, HOLE_MASS_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
             if hm_pred is not None:
                 hole_mass, hole_mass_src = hm_pred, f"ALIGNN:{mn}"
             else:
-                _, _, hm_err = self._try_alignn_models(cif_path, HOLE_MASS_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
+                _, _, hm_err = _alignn_try_alignn_models(cif_path, HOLE_MASS_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
         elif (hole_mass is None) and (not cif_path or not os.path.exists(cif_path)):
             hm_err = f"cif缺失或路径无效({cif_source})"
         src_hm, conf_hm = _source_confidence(hole_mass_src, "ALIGNN图神经网络预测补全", "较高")
@@ -2296,20 +2020,7 @@ class Coding(Action):
                 return True
 
         def _normalize_formula_for_mp(s: str) -> str:
-            """
-            把分数/括号配方归一为 MP 友好的化学式字符串：
-            - 优先返回 reduced_formula（通常为整数计量简式）
-            - 失败时返回空串
-            """
-            src = _to_ascii_formula(s).strip()
-            if not src:
-                return ""
-            try:
-                from pymatgen.core import Composition
-                rf = Composition(src).reduced_formula
-                return str(rf or "").strip()
-            except Exception:
-                return ""
+            return _utils_normalize_formula_for_mp(s)
 
 
         # =========================
@@ -2387,805 +2098,49 @@ class Coding(Action):
             return m.group(1).lower(), m.group(2).strip()
 
         def _build_formula_extraction_text(s: str) -> str:
-            """
-            仅用于“化学式提取”的输入清洗：
-            - 不改动原始日志发送逻辑；
-            - 只在 fallback 全文检索前去掉协议噪声（如 <<<CONTENT_*>>>）；
-            - 若存在“### 需求”，优先从该段开始做提取，避免前置 progress/json 污染。
-            """
-            t = str(s or "")
-
-            # 前置结果拼接串：优先截取其后正文，避免把 metadata 当成提取源
-            if "=== 前置结果 ===" in t:
-                t = t.split("=== 前置结果 ===", 1)[-1]
-
-            # 去掉前置结果中常见 JSON payload（仅影响化学式提取输入）
-            t = re.sub(
-                r"\{[^{}]{0,20000}\"version\"\s*:\s*\"1\.0\.0\"[^{}]{0,20000}\}",
-                " ",
-                t,
-                flags=re.DOTALL,
-            )
-            # 宽松兜底：删除包含 progress 元数据的 JSON 串（兼容连在一起的片段）
-            t = re.sub(
-                r"\{[^{}]{0,30000}\"type\"\s*:\s*\"progress\"[^{}]{0,30000}\}",
-                " ",
-                t,
-                flags=re.DOTALL,
-            )
-            t = re.sub(
-                r"\{[^{}]{0,30000}\"agent\"\s*:\s*\"XIMUAlpha_MNS\"[^{}]{0,30000}\}",
-                " ",
-                t,
-                flags=re.DOTALL,
-            )
-            # time 字段残片（如 2026-03-24T16:16:24.958040）直接清掉
-            t = re.sub(r"\"time\"\s*:\s*\"[^\"]{4,64}\"", " ", t, flags=re.IGNORECASE)
-            t = re.sub(
-                r"\{[^{}]{0,20000}\"type\"\s*:\s*\"progress\"[^{}]{0,20000}\}",
-                " ",
-                t,
-                flags=re.DOTALL,
-            )
-            t = re.sub(
-                r"\{[^{}]{0,20000}\"request_id\"\s*:\s*\"[^\"]+\"[^{}]{0,20000}\}",
-                " ",
-                t,
-                flags=re.DOTALL,
-            )
-
-            # 去掉协议标记行（仅影响提取输入，不删除任何真实日志）
-            t = re.sub(r"<<<CONTENT_(?:START|END):[^>]*>>>", " ", t)
-
-            # 去掉 MATERIAL_RETRIEVAL 整段协议内容（仅影响提取输入）
-            t = re.sub(
-                r"<<<CONTENT_START:MATERIAL_RETRIEVAL>>>.*?<<<CONTENT_END:MATERIAL_RETRIEVAL>>>",
-                " ",
-                t,
-                flags=re.DOTALL,
-            )
-
-            # 去掉包含 MATERIAL_RETRIEVAL / MaterialsPNG / MaterialsGLB 的 JSON 片段（仅影响提取输入）
-            t = re.sub(
-                r"\{[^{}]{0,12000}(?:\"id\"\s*:\s*\"MATERIAL_RETRIEVAL\"|\"type\"\s*:\s*\"MaterialsPNG\"|\"type\"\s*:\s*\"MaterialsGLB\")[^{}]{0,12000}\}",
-                " ",
-                t,
-                flags=re.DOTALL,
-            )
-
-            # 行级兜底：残留协议/资产行不参与化学式提取
-            _kept = []
-            for _ln in t.splitlines():
-                _low = _ln.lower()
-                if (
-                    "material_retrieval" in _low
-                    or '"type":"materialspng"' in _low
-                    or '"type":"materialsglb"' in _low
-                    or "<<<content_start:" in _low
-                    or "<<<content_end:" in _low
-                ):
-                    continue
-                _kept.append(_ln)
-            t = "\n".join(_kept)
-
-            # 若存在“需求”正文，优先只用这部分做化学式提取
-            anchor_candidates = []
-            for _k in ["### 需求", "用户问题", "需求描述", "需求如下"]:
-                _idx = t.find(_k)
-                if _idx >= 0:
-                    anchor_candidates.append(_idx)
-            if anchor_candidates:
-                t = t[min(anchor_candidates):]
-
-            return t
+            return _utils_build_formula_extraction_text(s)
 
         # =========================
         # 4) ✅只从“计算对象”行抽取（避免把别的材料带进来）
         # =========================
         def _extract_formulas_from_targets(text: str) -> list:
-            text = _to_ascii_formula(text or "")
-            lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
-
-            ABBR_HINT_TOKENS = {
-                "LLZO", "LATP", "LAGP", "LPSCL", "LIPON", "NCM811", "LNMO", "LCO", "NCA"
-            }
-
-            EXCLUDE_GAS_TOKENS = {"O2", "CO2", "N2", "H2", "H2O", "CO"}
-            EXCLUDE_TECH_TOKENS = {
-                "GC-MS", "GCMS", "XRD", "XPS", "SEM", "TEM", "EDS", "AFM", "FTIR", "Raman",
-                "ALD", "CVD", "PVD", "PLD", "SPS",
-            }
-
-            def _is_spacegroup_like(t: str) -> bool:
-                s = str(t or "").strip()
-                # 常见空间群短写，如 Fm-3m / R-3m / Pnma / P63/mmc
-                return bool(re.fullmatch(r"[A-Z][a-z]?(?:-[0-9][a-z]?)?(?:/[a-z0-9]+)?", s))
-
-            def _is_single_element_formula(t: str) -> bool:
-                s = _to_ascii_formula(t)
-                if not _looks_like_formula(s):
-                    return False
-                toks = re.findall(r"([A-Z][a-z]?)(\d*)", s)
-                return len(toks) == 1
-
-            def _is_noise_token(tok: str) -> bool:
-                t = str(tok or "").strip()
-                if not t:
-                    return True
-
-                # 日期/时间类噪声：2026-03-24 / 2026-03-24T16 / 16:16(:24)
-                if re.fullmatch(r"\d{4}-\d{2}-\d{2}(?:[Tt]\d{1,2}(?::\d{1,2}(?::\d{1,2})?)?)?", t):
-                    return True
-                if re.fullmatch(r"\d{1,2}:\d{2}(?::\d{2})?", t):
-                    return True
-
-                t_up = t.upper()
-
-                # 常见环境小分子：默认不作为候选材料
-                if t_up in EXCLUDE_GAS_TOKENS:
-                    return True
-
-                if t_up in EXCLUDE_TECH_TOKENS:
-                    return True
-
-                # 项目编号/仪器编号样式：EEE-INST-002 / ABC-123-XYZ
-                if re.fullmatch(r"[A-Z]{2,}(?:-[A-Z0-9]{2,}){1,}", t):
-                    return True
-
-                if _is_spacegroup_like(t):
-                    return True
-
-                # 单元素计量式（如 Li7）在兜底里视作噪声，避免误吃
-                if _is_single_element_formula(t):
-                    return True
-
-                # 典型单位串（如 MPa·m / GPa / eV / S/cm）
-                if re.search(r"(?i)\b(?:MPA|GPA|PA|EV|KV|MV|W|KW|MW|J|KJ|MJ|V|A|MA|UA|OHM|S/CM)\b", t):
-                    if "·" in t or "/" in t or re.search(r"(?i)\b(?:MPA|GPA|EV|S/CM)\b", t):
-                        return True
-
-                # 随机ID样式：多段连字符且字母数字混杂（如 gvn-A0-w7gtIKrk9qijIV）
-                if "-" in t and len(t) >= 10:
-                    parts = [p for p in t.split("-") if p]
-                    if len(parts) >= 2:
-                        def _id_like_part(p: str) -> bool:
-                            has_alpha = bool(re.search(r"[A-Za-z]", p))
-                            has_digit = bool(re.search(r"\d", p))
-                            has_upper = bool(re.search(r"[A-Z]", p))
-                            has_lower = bool(re.search(r"[a-z]", p))
-                            return has_alpha and has_digit and ((has_upper and has_lower) or len(p) >= 6)
-
-                        if any(_id_like_part(p) for p in parts):
-                            return True
-
-                # 英文描述短语（Cutting-Edge / Solid-State / Sulfide-Based 等）直接过滤
-                if "-" in t:
-                    parts = [p.strip() for p in t.split("-") if p.strip()]
-                    if len(parts) >= 2 and all(re.fullmatch(r"[A-Za-z]{2,}", p) for p in parts):
-                        if not all(p in _ELEMENTS for p in parts):
-                            return True
-
-                # 工艺词-化学式/术语-化学式，保留后者，不把整体当候选
-                if "-" in t and len(t.split("-")) == 2:
-                    a, b = t.split("-", 1)
-                    if a.strip().upper() in EXCLUDE_TECH_TOKENS or b.strip().upper() in EXCLUDE_TECH_TOKENS:
-                        return True
-
-                return False
-
-            targets = []
-            for ln in lines:
-                m = re.search(r"计算对象\s*\d+\s*\(.*?\)\s*[:：]\s*([A-Za-z0-9₀₁₂₃₄₅₆₇₈₉]{2,40})", ln)
-                if m:
-                    tok = _to_ascii_formula(m.group(1))
-                    tok_up = str(tok).upper()
-                    if (_looks_like_formula(tok) or tok_up in ABBR_HINT_TOKENS) and (not _is_noise_token(tok)):
-                        targets.append(tok)
-
-            seen = set()
-            out = []
-            for x in targets:
-                if x not in seen:
-                    out.append(x)
-                    seen.add(x)
-
-            # fallback：全局兜底（保留复合/聚合表达，不拆碎）
-            composite_pat = re.compile(
-                r"(?:[A-Za-z0-9₀₁₂₃₄₅₆₇₈₉ₙ\(\)]+(?:[·\-][A-Za-z0-9₀₁₂₃₄₅₆₇₈₉ₙ\(\)]+)+)"
+            return _extract_formulas_from_targets_external(
+                text=text,
+                to_ascii_formula=_to_ascii_formula,
+                looks_like_formula=_looks_like_formula,
+                elements_set=_ELEMENTS,
             )
-            composite_spans = []
-            for m in composite_pat.finditer(text):
-                tok = m.group(0).strip()
-                if tok and any(ch.isupper() for ch in tok) and (not _is_noise_token(tok)):
-                    if tok not in seen:
-                        out.append(tok)
-                        seen.add(tok)
-                    composite_spans.append((m.start(), m.end()))
-
-            # 兼容类似 C2H4Oₙ 这类单段聚合写法
-            polymer_pat = re.compile(r"\b[A-Z][A-Za-z0-9₀₁₂₃₄₅₆₇₈₉]*ₙ\b")
-            for m in polymer_pat.finditer(text):
-                tok = m.group(0).strip()
-                if tok and (not _is_noise_token(tok)) and tok not in seen:
-                    out.append(tok)
-                    seen.add(tok)
-                composite_spans.append((m.start(), m.end()))
-
-            tokens = re.finditer(r"\b[A-Z][A-Za-z0-9₀₁₂₃₄₅₆₇₈₉]{1,39}\b", text)
-            for m in tokens:
-                    tok = m.group(0)
-
-                    # 如果在复合/聚合表达片段内部，跳过，避免被拆成 C2H4 这类碎片
-                    if any(m.start() >= a and m.end() <= b for a, b in composite_spans):
-                            continue
-
-                    # ✅ 最小改动：如果 token 左右紧贴 '.'，说明来自小数配方（如 Ni₀.₈ / XX5.4），直接跳过
-                    left = text[m.start() - 1] if m.start() - 1 >= 0 else ""
-                    right = text[m.end()] if m.end() < len(text) else ""
-                    if left == "." or right == ".":
-                            continue
-
-                    tok2 = _to_ascii_formula(tok)
-                    tok2_up = str(tok2).upper()
-                    if (_looks_like_formula(tok2) or tok2_up in ABBR_HINT_TOKENS) and (not _is_noise_token(tok2)) and tok2 not in seen:
-                            out.append(tok2)
-                            seen.add(tok2)
-            return out
 
         def _extract_formulas_from_in_ls(repo_root: str) -> tuple:
-            """
-            第三来源：读取 in-LS 最新 json 中的结构候选。
-            当前优先字段：
-              - baseline_material / advanced_material
-              - simulation_task.baseline_material / simulation_task.advanced_material
-            """
-            in_ls_dir = os.path.join(
-                repo_root,
-                "src", "MNS_CaseHub", "cases", "material_discovery_demo", "results", "in-LS"
+            return _extract_formulas_from_in_ls_external(
+                repo_root=repo_root,
+                to_ascii_formula=_to_ascii_formula,
+                looks_like_formula=_looks_like_formula,
+                normalize_formula_for_mp=_normalize_formula_for_mp,
+                logger=logger,
             )
-            if not os.path.isdir(in_ls_dir):
-                return [], {}
-
-            def _extract_formula_candidates_from_material_label(label: str) -> list:
-                s = _to_ascii_formula(str(label or "")).strip()
-                if not s:
-                    return []
-
-                out = []
-                seen_local = set()
-
-                def _try_add(tok: str):
-                    t = _to_ascii_formula(tok).strip().strip("()（）[]{}")
-                    if not t:
-                        return
-                    if _looks_like_formula(t):
-                        t2 = _normalize_formula_for_mp(t) or t
-                        if t2 and t2 not in seen_local:
-                            out.append(t2)
-                            seen_local.add(t2)
-                        return
-
-                    # 混合有机-无机钙钛矿常见写法兼容（如 MAPbI3 / Cs0.05(MA0.17FA0.83)0.95Pb(I0.83Br0.17)3）
-                    if re.search(r"(?i)(?:\bMA\b|\bFA\b|MA\d|FA\d)", t) and re.search(r"Pb", t):
-                        if t not in seen_local:
-                            out.append(t)
-                            seen_local.add(t)
-
-                # 1) 括号内容优先（如 AlN Ceramic / AlN/BNns Composite）
-                for m in re.finditer(r"[\(（]([^\)）]{1,200})[\)）]", s):
-                    seg = m.group(1)
-                    for part in re.split(r"[\s,/+;，、]+", seg):
-                        _try_add(part)
-
-                # 2) 全串 token 扫描（兜住无括号写法）
-                for part in re.split(r"[\s,/+;，、\-·]+", s):
-                    _try_add(part)
-
-                # 3) 混合文本兜底：从“化学式+中文描述”里抽取化学式片段
-                # 例如：AlN（氮化铝）陶瓷基板 / Al2O3氧化铝基板 / SiC陶瓷
-                # 仅抓取由元素符号与可选计量组成的连续串，避免把中文后缀整体吞掉
-                for m in re.finditer(r"(?:[A-Z][a-z]?\d*(?:\.\d*)?){2,}", s):
-                    _try_add(m.group(0))
-
-                return out
-
-            try:
-                cands = [
-                    os.path.join(in_ls_dir, fn)
-                    for fn in os.listdir(in_ls_dir)
-                    if fn.lower().endswith(".json")
-                ]
-                if not cands:
-                    return [], {}
-                latest = max(cands, key=lambda p: os.path.getmtime(p))
-                with open(latest, "r", encoding="utf-8") as f:
-                    obj = json.load(f)
-            except Exception as e:
-                logger.warning(f"[IN_LS] read latest json failed: {e!s}")
-                return [], {}
-
-            tokens = []
-            summary = {}
-            try:
-                root_obj = obj if isinstance(obj, dict) else {}
-                st = root_obj.get("simulation_task") if isinstance(root_obj.get("simulation_task"), dict) else {}
-
-                for src in (root_obj, st):
-                    if isinstance(src, dict):
-                        for k in ("baseline_material", "advanced_material", "baseline_reason", "advanced_reason"):
-                            v = src.get(k)
-                            if isinstance(v, str) and v.strip():
-                                tokens.extend(_extract_formula_candidates_from_material_label(v))
-
-                summary = {
-                    "baseline_material": str(root_obj.get("baseline_material") or st.get("baseline_material") or "").strip(),
-                    "advanced_material": str(root_obj.get("advanced_material") or st.get("advanced_material") or "").strip(),
-                    "baseline_reason": str(root_obj.get("baseline_reason") or st.get("baseline_reason") or "").strip(),
-                    "advanced_reason": str(root_obj.get("advanced_reason") or st.get("advanced_reason") or "").strip(),
-                }
-            except Exception as e:
-                logger.warning(f"[IN_LS] parse json failed: {e!s}")
-
-            # 去重且保持顺序
-            seen = set()
-            out = []
-            for t in tokens:
-                if t and t not in seen:
-                    out.append(t)
-                    seen.add(t)
-
-            if out:
-                logger.info(f"[IN_LS] loaded tokens from {in_ls_dir}: {out}")
-            return out, summary
 
         async def _llm_select_material_candidates(raw_tokens: list, user_context: str = "", in_ls_summary: dict = None) -> tuple:
-            raw_list = [str(x).strip() for x in (raw_tokens or []) if str(x).strip()]
-            if not raw_list:
-                return [], [], [], []
-
-            in_ls_summary = in_ls_summary if isinstance(in_ls_summary, dict) else {}
-            prompt = (
-                "你是材料候选抽取校正器。任务：根据用户上下文与候选 token，判断哪些应保留为当前页候选展示，哪些可以进入后续 MP 检索。"
-                "这里只判断‘像不像应该保留的材料/化学式候选’。"
-                "请特别过滤单位、工艺词、测试术语、时间戳、编号等噪声，例如 m·K、GPa、XRD。"
-                "如果候选是材料名称/材料体系而非严格化学式，可放入 display_tokens，但不要放入 mp_tokens。"
-                "如果候选是缩写或化学式，可同时进入 display_tokens；只有明确适合后续 MP 检索时才进入 mp_tokens。"
-                "输出必须是 JSON，且仅输出 JSON，不要附加解释。"
-                "JSON 结构固定为："
-                "{\"display_tokens\":[],\"mp_tokens\":[],\"dropped_tokens\":[{\"token\":\"...\",\"reason\":\"...\"}],\"non_mp_notes\":[]}"
-                f"\n用户原文上下文：{str(user_context or '')}"
-                f"\n上游 in-LS 摘要：{json.dumps(in_ls_summary, ensure_ascii=False)}"
-                f"\n候选 token 列表：{json.dumps(raw_list, ensure_ascii=False)}"
-            )
-
-            try:
-                out = await llm.aask(prompt, stream=False, timeout=30)
-                txt = str(out or "").strip()
-
-                if not txt:
-                    raise ValueError("empty_llm_response")
-
-                payload = None
-
-                # 1) 直接按 JSON 解析
-                try:
-                    payload = json.loads(txt)
-                except Exception:
-                    payload = None
-
-                # 2) 解析 ```json ... ``` 代码块
-                if payload is None:
-                    m_code = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", txt, flags=re.IGNORECASE)
-                    if m_code:
-                        try:
-                            payload = json.loads(m_code.group(1).strip())
-                        except Exception:
-                            payload = None
-
-                # 3) 兜底提取首个 {...}
-                if payload is None:
-                    m = re.search(r"\{[\s\S]*\}", txt)
-                    if m:
-                        payload = json.loads(m.group(0))
-
-                if not isinstance(payload, dict):
-                    raise ValueError(f"non_json_payload:{txt[:200]}")
-
-                display_tokens = [str(x).strip() for x in (payload.get("display_tokens") or []) if str(x).strip()]
-                mp_tokens = [str(x).strip() for x in (payload.get("mp_tokens") or []) if str(x).strip()]
-                non_mp_notes = [str(x).strip() for x in (payload.get("non_mp_notes") or []) if str(x).strip()]
-                dropped_items = []
-                for item in (payload.get("dropped_tokens") or []):
-                    if isinstance(item, dict):
-                        tk = str(item.get("token") or "").strip()
-                        rs = str(item.get("reason") or "llm_drop")
-                        if tk:
-                            dropped_items.append((tk, rs))
-                    elif isinstance(item, str) and item.strip():
-                        dropped_items.append((item.strip(), "llm_drop"))
-
-                display_tokens = list(dict.fromkeys([x for x in display_tokens if x in raw_list]))
-                mp_tokens = list(dict.fromkeys([x for x in mp_tokens if x in display_tokens or x in raw_list]))
-                return display_tokens, mp_tokens, non_mp_notes, dropped_items
-            except Exception as e:
-                try:
-                    logger.warning(f"[LLM_CANDIDATE_SELECT] raw_response_preview={str(locals().get('txt', ''))[:200]}")
-                except Exception:
-                    pass
-                logger.warning(f"[LLM_CANDIDATE_SELECT] failed, fallback to rule-based lists: {e!s}")
-                return None, None, None, None
-
-        async def _build_candidate_lists(raw_tokens: list, user_context: str = "", in_ls_summary: dict = None):
-            """
-            分层处理候选：
-            - display_tokens: 前端展示候选（体系表达/缩写/标准化学式）
-            - mp_tokens: 仅可用于 MP 检索的标准化学式
-            """
-            ABBR_FORMULA_MAP = {
-                "LLZO": "Li7La3Zr2O12",
-                "LATP": "Li1.3Al0.3Ti1.7(PO4)3",
-                "LAGP": "Li1.5Al0.5Ge1.5(PO4)3",
-                "LPSCL": "Li6PS5Cl",
-                "LIPON": "LiPON",
-                "NCM811": "NCM811",
-                "LNMO": "LNMO",
-                "LCO": "LCO",
-                "NCA": "NCA",
-            }
-            EXCLUDE_GAS_TOKENS = {"O2", "CO2", "N2", "H2", "H2O", "CO"}
-            EXCLUDE_TECH_TOKENS = {
-                "GC-MS", "GCMS", "XRD", "XPS", "SEM", "TEM", "EDS", "AFM", "FTIR", "RAMAN",
-                "ALD", "CVD", "PVD", "PLD", "SPS",
-            }
-
-            def _norm_tok(t: str) -> str:
-                return str(t or "").strip().replace("＋", "+")
-
-            def _is_chem_piece(t: str) -> bool:
-                s = _to_ascii_formula(str(t or "").strip())
-                if not s:
-                    return False
-                if _looks_like_formula(s):
-                    return True
-                if s in _ELEMENTS:
-                    return True
-                if re.fullmatch(r"[A-Z]{2,8}", s):
-                    return True
-                return False
-
-            def _is_system_token(t: str) -> bool:
-                if not t:
-                    return False
-                if _looks_like_formula(t):
-                    return False
-                if not any(x in t for x in ["-", "+", "·", "/"]):
-                    return False
-                parts = [
-                    p.strip().strip("()").strip("（）").strip()
-                    for p in re.split(r"[\-\+·/]", str(t))
-                    if str(p).strip()
-                ]
-                if len(parts) < 2:
-                    return False
-                chem_hits = sum(1 for p in parts if _is_chem_piece(p))
-                return chem_hits >= 2
-
-            def _looks_like_hybrid_formula_notation(t: str) -> bool:
-                """兼容混合有机-无机钙钛矿记法（MA/FA等有机片段）。"""
-                s = _to_ascii_formula(str(t or "").strip())
-                if not s:
-                    return False
-                if not re.search(r"Pb", s):
-                    return False
-                if not re.search(r"(?i)(MA|FA)", s):
-                    return False
-                if not re.search(r"[0-9]", s):
-                    return False
-                return True
-
-            def _hybrid_to_mp_surrogates(t: str) -> list:
-                """将混合有机-无机记法尽量转换为可检索的无机骨架近似式。"""
-                s = _to_ascii_formula(str(t or "").strip())
-                if not s:
-                    return []
-
-                out = []
-                seen_local = set()
-
-                # 常见缩写直接映射
-                if re.fullmatch(r"(?i)MAPbI3", s):
-                    for cand in ("CH6I3NPb", "PbI3"):
-                        if _looks_like_formula(cand) and cand not in seen_local:
-                            out.append(cand)
-                            seen_local.add(cand)
-                    return out
-
-                # 去掉 MA/FA 相关括号段，尽量保留无机框架
-                s2 = re.sub(r"\((?:[^\)]*?(?:MA|FA)[^\)]*?)\)\d*(?:\.\d+)?", "", s, flags=re.IGNORECASE)
-                s2 = re.sub(r"(?:MA|FA)\d*(?:\.\d+)?", "", s2, flags=re.IGNORECASE)
-                s2 = re.sub(r"\s+", "", s2)
-                if _looks_like_formula(s2):
-                    nf = _normalize_formula_for_mp(s2) or s2
-                    if nf not in seen_local:
-                        out.append(nf)
-                        seen_local.add(nf)
-
-                # 兜底：提取纯无机子串
-                for m in re.finditer(r"(?:[A-Z][a-z]?\d*(?:\.\d+)?|\([A-Za-z0-9\.]+\)\d*(?:\.\d+)?) {0,}", s.replace(" ", "")):
-                    seg = m.group(0).strip()
-                    if not seg:
-                        continue
-                    if re.search(r"(?i)(MA|FA)", seg):
-                        continue
-                    if _looks_like_formula(seg):
-                        nf = _normalize_formula_for_mp(seg) or seg
-                        if nf not in seen_local:
-                            out.append(nf)
-                            seen_local.add(nf)
-
-                return out
-
-            def _explode_system_to_mp_tokens(t: str) -> list:
-                """
-                将体系表达拆解为可用于 MP 检索的子化学式。
-                例：Li2O·Al2O3·nSiO2 -> [Li2O, Al2O3, SiO2]
-                """
-                s = _to_ascii_formula(str(t or "").strip())
-                if not s:
-                    return []
-                parts = [
-                    p.strip().strip("()").strip("（）").strip()
-                    for p in re.split(r"[\-\+·/]", s)
-                    if str(p).strip()
-                ]
-                out = []
-                seen_local = set()
-                for p in parts:
-                    # 去掉前缀占位系数：nSiO2 / xAl2O3 / yZrO2
-                    p2 = re.sub(r"^(?:[nNxXyYzZmMkK])+", "", p)
-                    p2 = p2.strip()
-                    if not p2:
-                        continue
-                    if _looks_like_formula(p2):
-                        nf = _normalize_formula_for_mp(p2) or p2
-                        if nf not in seen_local:
-                            out.append(nf)
-                            seen_local.add(nf)
-                return out
-
-            def _extract_locked_tokens_from_inls_summary(summary: dict) -> list:
-                """
-                从 in-LS 摘要中提取“锁定候选”，这些候选不允许被 LLM 后置筛选清空。
-                优先字段：baseline_material / advanced_material。
-                """
-                if not isinstance(summary, dict):
-                    return []
-                cands = []
-                for k in ("baseline_material", "advanced_material"):
-                    v = str(summary.get(k) or "").strip()
-                    if not v:
-                        continue
-                    # 兼容复合写法：TiAl3V/C、Si3N4-SiC
-                    parts = [p.strip() for p in re.split(r"[\s,/+;，、]+", v) if p.strip()]
-                    for p in parts:
-                        p2 = _to_ascii_formula(p)
-                        if p2:
-                            cands.append(p2)
-                # 去重保序
-                return list(dict.fromkeys(cands))
-
-            def _is_noise_token(t: str) -> bool:
-                s = str(t or "").strip()
-                if not s:
-                    return True
-
-                # 日期/时间类噪声：2026-03-24 / 2026-03-24T16 / 16:16(:24)
-                if re.fullmatch(r"\d{4}-\d{2}-\d{2}(?:[Tt]\d{1,2}(?::\d{1,2}(?::\d{1,2})?)?)?", s):
-                    return True
-                if re.fullmatch(r"\d{1,2}:\d{2}(?::\d{2})?", s):
-                    return True
-
-                s_up = s.upper()
-                if s_up in EXCLUDE_GAS_TOKENS:
-                    return True
-
-                if s_up in EXCLUDE_TECH_TOKENS:
-                    return True
-
-                # 项目编号/仪器编号样式：EEE-INST-002 / ABC-123-XYZ
-                if re.fullmatch(r"[A-Z]{2,}(?:-[A-Z0-9]{2,}){1,}", s):
-                    return True
-
-                if re.fullmatch(r"[A-Z][a-z]?(?:-[0-9][a-z]?)?(?:/[a-z0-9]+)?", s):
-                    return True
-
-                toks = re.findall(r"([A-Z][a-z]?)(\d*)", _to_ascii_formula(s))
-                if _looks_like_formula(s) and len(toks) == 1:
-                    return True
-
-                if re.search(r"(?i)\b(?:MPA|GPA|PA|EV|KV|MV|W|KW|MW|J|KJ|MJ|V|A|MA|UA|OHM|S/CM)\b", s):
-                    if "·" in s or "/" in s or re.search(r"(?i)\b(?:MPA|GPA|EV|S/CM)\b", s):
-                        return True
-
-                if "-" in s and len(s) >= 10:
-                    parts = [p for p in s.split("-") if p]
-                    if len(parts) >= 2:
-                        def _id_like_part(p: str) -> bool:
-                            has_alpha = bool(re.search(r"[A-Za-z]", p))
-                            has_digit = bool(re.search(r"\d", p))
-                            has_upper = bool(re.search(r"[A-Z]", p))
-                            has_lower = bool(re.search(r"[a-z]", p))
-                            return has_alpha and has_digit and ((has_upper and has_lower) or len(p) >= 6)
-
-                        if any(_id_like_part(p) for p in parts):
-                            return True
-
-                # 英文描述短语（Cutting-Edge / Solid-State / Sulfide-Based 等）直接过滤
-                if "-" in s:
-                    parts = [p.strip() for p in s.split("-") if p.strip()]
-                    if len(parts) >= 2 and all(re.fullmatch(r"[A-Za-z]{2,}", p) for p in parts):
-                        if not all(p in _ELEMENTS for p in parts):
-                            return True
-
-                if "-" in s and len(s.split("-")) == 2:
-                    a, b = s.split("-", 1)
-                    if a.strip().upper() in EXCLUDE_TECH_TOKENS or b.strip().upper() in EXCLUDE_TECH_TOKENS:
-                        return True
-
-                return False
-
-            display_tokens = []
-            dropped_tokens = []
-            seen = set()
-            for t in (raw_tokens or []):
-                nt = _norm_tok(t)
-                if not nt:
-                    continue
-                if _is_noise_token(nt):
-                    dropped_tokens.append((nt, "noise_token"))
-                    continue
-                if nt not in seen:
-                    display_tokens.append(nt)
-                    seen.add(nt)
-
-            # 锁定候选（来源：in-LS 上下文）。这些 token 不允许被 LLM 后置筛选误杀。
-            locked_tokens = _extract_locked_tokens_from_inls_summary(in_ls_summary)
-            for lt in locked_tokens:
-                if lt not in seen:
-                    display_tokens.append(lt)
-                    seen.add(lt)
-
-            mp_tokens = []
-            mp_seen = set()
-            non_mp_notes = []
-
-            for t in display_tokens:
-                key = re.sub(r"\s+", "", str(t).upper())
-
-                # 缩写：先映射，映射后才进入 MP
-                if key in ABBR_FORMULA_MAP:
-                    mapped = ABBR_FORMULA_MAP[key]
-                    if _looks_like_formula(mapped) and mapped not in mp_seen:
-                        mp_tokens.append(mapped)
-                        mp_seen.add(mapped)
-                    elif mapped not in mp_seen:
-                        dropped_tokens.append((t, f"abbr_mapped_non_mp_formula:{mapped}"))
-                    non_mp_notes.append(f"`{t}` 识别为材料缩写，仅在映射后参与 MP 检索。")
-                    continue
-
-                # 标准/分数/括号化学式：归一后参与 MP
-                if _looks_like_formula(t):
-                    mp_formula = _normalize_formula_for_mp(t) or t
-                    if mp_formula not in mp_seen:
-                        mp_tokens.append(mp_formula)
-                        mp_seen.add(mp_formula)
-                    if mp_formula != t:
-                        non_mp_notes.append(f"`{t}` 已归一为 `{mp_formula}` 后参与 MP 检索。")
-                    continue
-
-                # 体系表达：仅展示，不直接跑 MP
-                if _is_system_token(t):
-                    non_mp_notes.append(f"`{t}` 为体系/复合表达，仅用于展示，不直接参与 MP 检索。")
-                    # 同时尝试拆解出可检索子化学式，避免后续 mp_tokens 为空导致流程中断
-                    exploded = _explode_system_to_mp_tokens(t)
-                    for _mp in exploded:
-                        if _mp not in mp_seen:
-                            mp_tokens.append(_mp)
-                            mp_seen.add(_mp)
-                    if exploded:
-                        non_mp_notes.append(f"`{t}` 已拆解为 {exploded} 参与 MP 检索。")
-                    continue
-
-                # 混合有机-无机记法：保留展示，并尽量提取无机骨架用于 MP
-                if _looks_like_hybrid_formula_notation(t):
-                    non_mp_notes.append(f"`{t}` 识别为混合有机-无机化学式记法，已保留展示并尝试提取无机骨架参与 MP。")
-                    for _mp in _hybrid_to_mp_surrogates(t):
-                        if _mp not in mp_seen:
-                            mp_tokens.append(_mp)
-                            mp_seen.add(_mp)
-                else:
-                    dropped_tokens.append((t, "not_formula_or_system"))
-
-            llm_display, llm_mp, llm_notes, llm_dropped = await _llm_select_material_candidates(
-                display_tokens,
+            return await _llm_select_material_candidates_external(
+                llm=llm,
+                logger=logger,
+                raw_tokens=raw_tokens,
                 user_context=user_context,
                 in_ls_summary=in_ls_summary,
             )
 
-            if isinstance(llm_display, list):
-                # 保护：若规则已提取到候选，而 LLM 误返回空列表，则保留规则结果，避免 AlN/SiC 被清空
-                if len(llm_display) == 0 and len(display_tokens) > 0:
-                    dropped_tokens = list(dict.fromkeys(dropped_tokens + (llm_dropped or [])))
-                    non_mp_notes = list(dict.fromkeys((non_mp_notes or [])))
-                else:
-                    rule_mp_tokens = list(mp_tokens or [])
-                    rule_non_mp = set(non_mp_notes)
-                    non_mp_notes = list(dict.fromkeys((llm_notes or []) + [x for x in non_mp_notes if x not in rule_non_mp or x]))
-                    dropped_tokens = list(dict.fromkeys(dropped_tokens + (llm_dropped or [])))
-                    display_tokens = llm_display
-                    llm_mp_tokens = [x for x in (llm_mp or []) if x in display_tokens or _looks_like_formula(x)]
-                    # 保护：规则已得到可用于 MP 的化学式，而 LLM 返回空 mp_tokens 时，不应将其清空
-                    if len(llm_mp_tokens) == 0 and len(rule_mp_tokens) > 0:
-                        mp_tokens = rule_mp_tokens
-                        try:
-                            logger.info("[ROUTER] LLM mp_tokens empty, fallback to rule-based MP candidates")
-                        except Exception:
-                            pass
-                    else:
-                        mp_tokens = llm_mp_tokens
-
-            # 强保护：确保锁定候选不会被 LLM 误筛掉
-            if locked_tokens:
-                for lt in locked_tokens:
-                    if lt not in display_tokens:
-                        display_tokens.append(lt)
-                try:
-                    logger.info(f"[ROUTER] locked_tokens_before_mp={locked_tokens}")
-                except Exception:
-                    pass
-
-                # 把锁定候选尽量补进 MP 检索集合
-                for lt in locked_tokens:
-                    if _looks_like_formula(lt):
-                        nlt = _normalize_formula_for_mp(lt) or lt
-                        if nlt not in mp_tokens:
-                            mp_tokens.append(nlt)
-                    elif _is_system_token(lt):
-                        for _m in _explode_system_to_mp_tokens(lt):
-                            if _m not in mp_tokens:
-                                mp_tokens.append(_m)
-
-            # 兜底：若 LLM/规则汇总后 mp_tokens 为空，但 display 中存在体系表达，则自动拆解补全
-            if len(mp_tokens or []) == 0 and len(display_tokens or []) > 0:
-                rebuilt_mp = []
-                rebuilt_seen = set()
-                for _d in (display_tokens or []):
-                    for _m in _explode_system_to_mp_tokens(_d):
-                        if _m not in rebuilt_seen:
-                            rebuilt_mp.append(_m)
-                            rebuilt_seen.add(_m)
-                if rebuilt_mp:
-                    mp_tokens = rebuilt_mp
-                    try:
-                        logger.info("[ROUTER] LLM/rule mp_tokens empty, rebuilt from system tokens")
-                        logger.info(f"[ROUTER] rebuilt_mp_tokens_from_system={rebuilt_mp}")
-                    except Exception:
-                        pass
-
-            # 强约束：MP候选必须是可解析化学式（并归一化）
-            mp_tokens_strict = []
-            mp_seen_strict = set()
-            for _t in (mp_tokens or []):
-                _tt = _to_ascii_formula(str(_t or "")).strip()
-                if not _looks_like_formula(_tt):
-                    continue
-                _nf = _normalize_formula_for_mp(_tt) or _tt
-                if _nf not in mp_seen_strict:
-                    mp_tokens_strict.append(_nf)
-                    mp_seen_strict.add(_nf)
-            mp_tokens = mp_tokens_strict
-
-            return display_tokens, mp_tokens, non_mp_notes, dropped_tokens
+        async def _build_candidate_lists(raw_tokens: list, user_context: str = "", in_ls_summary: dict = None):
+            return await _build_candidate_lists_external(
+                llm=llm,
+                logger=logger,
+                raw_tokens=raw_tokens,
+                user_context=user_context,
+                in_ls_summary=in_ls_summary,
+                to_ascii_formula=_to_ascii_formula,
+                looks_like_formula=_looks_like_formula,
+                normalize_formula_for_mp=_normalize_formula_for_mp,
+                elements_set=_ELEMENTS,
+            )
 
         async def _stream_route_intro_before_mp(formulas_: list, user_context: str = ""):
             """替换为：宏观目标性能窗口表（MP 前置）。"""
@@ -3246,7 +2201,7 @@ class Coding(Action):
                 "请基于用户输入，输出一张 Markdown 表格，不要标题、不要编号、不要额外段落。"
                 "表头固定为：性能维度 | 目标区间/阈值 | 工程原因 | 与应用场景关系 | 后续验证口径。"
                 "按“性能维度”聚合输出：每个性能维度只能出现1行（例如本征热导率、CTE、介电损耗等），禁止同一性能维度重复多行。"
-                "“目标区间/阈值”列必须在同一单元格内汇总多个材料，格式示例：A材料: 100~120 单位；B材料: 80~95 单位；C材料: ≥130 单位。"
+                "“目标区间/阈值”列必须在同一单元格内汇总多个材料，格式示例：A材料: 100至120 单位；B材料: 80至95 单位；C材料: ≥130 单位。"
                 "禁止把不同材料拆成多行重复展示。"
                 "严格格式要求（必须全部满足）："
                 "1) 第1行必须是表头且以'|'开头、以'|'结尾；"
@@ -3255,6 +2210,7 @@ class Coding(Action):
                 "4) 禁止在表格前后输出任何解释文字；"
                 "5) 禁止单元格内换行，所有内容保持单行。"
                 "严格要求：每一行“目标区间/阈值”必须给出带阿拉伯数字的数值或区间，并包含单位；"
+                "区间连接符必须使用中文“至”，严禁使用“~”或“～”，以避免前端误触发删除线渲染。"
                 "禁止出现“未明确/未获取/待定/unknown/待计算”等字样。"
                 "若输入不足，请给出工程常用默认阈值范围，不得留空。"
                 f"\n用户输入：{str(user_context or '')}"
@@ -3522,197 +2478,15 @@ class Coding(Action):
                 logger.exception(f"[PERF_BAR] render/upload failed: {e!s}")
             await _close_material_block("MATERIAL_SCREENING")
 
-        def _safe_float(x):
-            try:
-                if x is None:
-                    return None
-                if isinstance(x, bool):
-                    return float(int(x))
-                return float(x)
-            except Exception:
-                return None
-
-        def _safe_bool(x):
-            if isinstance(x, bool):
-                return x
-            if isinstance(x, (int, float)):
-                return bool(x)
-            if isinstance(x, str):
-                t = x.strip().lower()
-                if t in {"true", "pass", "passed", "yes", "y", "1"}:
-                    return True
-                if t in {"false", "fail", "failed", "no", "n", "0"}:
-                    return False
-            return None
-
-        def _flatten_dict(obj, prefix="", out=None):
-            if out is None:
-                out = {}
-            if isinstance(obj, dict):
-                for k, v in obj.items():
-                    nk = f"{prefix}.{k}" if prefix else str(k)
-                    _flatten_dict(v, nk, out)
-            elif isinstance(obj, list):
-                for i, v in enumerate(obj):
-                    nk = f"{prefix}[{i}]"
-                    _flatten_dict(v, nk, out)
-            else:
-                out[prefix.lower()] = obj
-            return out
-
-        def _pick_value(flat: dict, include_any: list, exclude_any: list = None):
-            exclude_any = [x.lower() for x in (exclude_any or [])]
-            for k, v in flat.items():
-                kk = str(k).lower()
-                if all(x.lower() in kk for x in include_any):
-                    if any(ex in kk for ex in exclude_any):
-                        continue
-                    return v
-            for k, v in flat.items():
-                kk = str(k).lower()
-                if any(x.lower() in kk for x in include_any):
-                    if any(ex in kk for ex in exclude_any):
-                        continue
-                    return v
-            return None
-
-        def _load_latest_json(pattern_: str):
-            try:
-                cands_ = sorted(glob.glob(pattern_))
-                if not cands_:
-                    return {}
-                with open(cands_[-1], "r", encoding="utf-8") as f:
-                    return json.load(f)
-            except Exception:
-                return {}
-
         async def _stream_final_li6ps5cl_bridge(formulas_: list):
-            """
-            NOTE(2026-04, 第3刀“先注释不删除”):
-            该桥接函数原用于 ADiT/MACE 结果汇总（从 adit_pymatgen/mace_md 读取）。
-            当前主链已切换为 MP + ALIGNN，本函数保留函数壳以避免引用中断，
-            但内部逻辑不再参与运行。
-            """
-            # ADiT/MACE 路径显式下线：保留函数签名，直接返回。
+            """ADiT/MACE 旧桥接函数已下线，保留空壳以保持接口稳定。"""
             return
-
-            async def _send_lines_stream(lines_, delay_s: float = 0.05):
-                for _ln in lines_:
-                    await websocket.send_text((_ln or "") + "\n")
-                    if delay_s > 0:
-                        await asyncio.sleep(delay_s)
-
-            repo_root_ = _repo_root()
-            root_path_ = f"src/MNS_CaseHub/cases/{CASE_MP}"
-            abs_case_root_ = os.path.abspath(os.path.join(repo_root_, root_path_))
-            results_dir_ = os.path.join(abs_case_root_, "results")
-            taskid_s_ = str(taskid).replace("/", "_")
-
-            fs = [str(x) for x in (formulas_ or []) if isinstance(x, str) and x.strip()]
-
-            metrics = {}
-            for f in fs:
-                adit_pat = os.path.join(results_dir_, "adit_pymatgen", f"*{taskid_s_}*", str(f), "report.json")
-                md_pat = os.path.join(results_dir_, "mace_md", f"dr_*{taskid_s_}*", str(f), "summary.json")
-                mp_pat = os.path.join(results_dir_, "mp", f"*{taskid_s_}*", str(f), "selected_structures.json")
-
-                adit = _load_latest_json(adit_pat)
-                md = _load_latest_json(md_pat)
-                mp = _load_latest_json(mp_pat)
-
-                flat_adit = _flatten_dict(adit)
-                flat_md = _flatten_dict(md)
-                flat_mp = _flatten_dict(mp)
-
-                pass_gate = _safe_bool(_pick_value(flat_adit, ["pass_gate"]))
-                if pass_gate is None:
-                    pass_gate = _safe_bool(_pick_value(flat_adit, ["gate", "pass"]))
-
-                fmax_final = _safe_float(_pick_value(flat_md, ["fmax", "final"]))
-                if fmax_final is None:
-                    fmax_final = _safe_float(_pick_value(flat_md, ["fmax"], ["init", "initial"]))
-
-                min_dist_final = _safe_float(_pick_value(flat_md, ["min_dist", "final"]))
-                if min_dist_final is None:
-                    min_dist_final = _safe_float(_pick_value(flat_md, ["min_dist"], ["init", "initial"]))
-
-                d_epot = _safe_float(_pick_value(flat_md, ["epot", "drift"]))
-                if d_epot is None:
-                    d_epot = _safe_float(_pick_value(flat_md, ["depot"]))
-
-                density = _safe_float(_pick_value(flat_adit, ["density"]))
-                if density is None:
-                    density = _safe_float(_pick_value(flat_mp, ["density"]))
-
-                score = 0.0
-                if pass_gate is True:
-                    score += 3.0
-                elif pass_gate is False:
-                    score -= 3.0
-
-                if fmax_final is not None:
-                    score += max(0.0, 1.5 - min(fmax_final, 1.5))
-                if min_dist_final is not None:
-                    score += 1.0 if min_dist_final >= 1.8 else -1.0
-                if d_epot is not None:
-                    score += 0.5 if abs(d_epot) <= 1.0 else -0.5
-
-                metrics[f] = {
-                    "score": score,
-                    "pass_gate": pass_gate,
-                    "fmax_final": fmax_final,
-                    "min_dist_final": min_dist_final,
-                    "d_epot": d_epot,
-                    "density": density,
-                }
-
-            chosen = None
-            if metrics:
-                chosen = sorted(metrics.keys(), key=lambda x: metrics[x].get("score", -9999), reverse=True)[0]
-
-            if not chosen:
-                chosen = "Li6PS5Cl" if any(x.lower() == "li6ps5cl" for x in fs) else (fs[0] if fs else "Li6PS5Cl")
-
-            # 口径兜底：若 Li6PS5Cl 在列表中，优先推荐它（按你的业务口径）
-            if any(x.lower() == "li6ps5cl" for x in fs):
-                chosen = "Li6PS5Cl"
-
-            m = metrics.get(chosen, {})
-            pass_gate_txt = "通过" if m.get("pass_gate") is True else ("未通过" if m.get("pass_gate") is False else "待核验")
-
-            fmax_txt = f"{m.get('fmax_final'):.3f}" if isinstance(m.get("fmax_final"), float) else "本次结果待补全"
-            mindist_txt = f"{m.get('min_dist_final'):.3f}" if isinstance(m.get("min_dist_final"), float) else "本次结果待补全"
-            depot_txt = f"{m.get('d_epot'):.3f}" if isinstance(m.get("d_epot"), float) else "本次结果待补全"
-
-            if isinstance(m.get("density"), float):
-                density_txt = f"{m.get('density'):.3f}"
-                density_basis = "本次 MP/结构评估输出"
-            else:
-                density_txt = "约 1.9~2.1（典型范围）"
-                density_basis = "文献典型值（待后续精算更新）"
-
-            await _send_lines_stream([
-                "",
-                "## 材料模拟与计算流程总结",
-                "- 正在进行 材料模拟与计算流程总结",
-                "    前序已完成 MP 初筛、ADiT+Pymatgen 稳定性评估，以及 MACE-fast / MACE-md 性质计算。",
-                f"    综合当前流程指标，最终推荐结构为 {chosen}。",
-                f"    选择依据：Gate={pass_gate_txt}，末态 fmax={fmax_txt} eV/Å，末态 min_dist={mindist_txt} Å，势能漂移ΔEpot={depot_txt} eV。",
-                "",
-                "    | Li6PS5Cl 性质参数（用于后续流程） | 数值 | 口径 |",
-                "    |---|---:|---|",
-                "    | 离子电导率（室温）S/cm | 1e-3 ~ 1e-2 | 文献典型值（待后续物理场反演细化） |",
-                f"    | 密度 g/cm³ | {density_txt} | {density_basis} |",
-                "    | 热膨胀系数 10^-6/K | 10 ~ 20 | 文献典型值（待后续热场计算更新） |",
-            ], delay_s=0.05)
 
         # MP 检索耗时估计（秒）：按你给出的 8~15s 经验设置初值，并在会话内动态微调
         _mp_eta_seconds = 12.0
 
         def _render_progress_bar(pct: int, width: int = 10) -> str:
-            pct = max(0, min(100, int(pct)))
-            filled = int(round((pct / 100.0) * width))
-            return "[" + ("█" * filled) + ("░" * (width - filled)) + "]"
+            return _render_progress_bar_external(pct, width)
 
         # =========================
         # 5) MP 运行：mp_export_assets.py
@@ -3720,23 +2494,19 @@ class Coding(Action):
         async def _run_mp_export_assets(formula: str) -> bool:
             nonlocal _mp_eta_seconds
             repo_root = _repo_root()
-            script = os.path.join(repo_root, "tools", "mp_export_assets.py")
             formula = _to_ascii_formula(formula)
             progress_emit_interval_s = 4
 
             cmd = [
                 "micromamba", "run", "-n", "mp-api-py311",
-                "python", script,
+                "python", os.path.join(repo_root, "tools", "mp_export_assets.py"),
                 "--taskid", str(taskid),
                 "--jobid", str(formula),
                 "--formula", str(formula),
                 "--prefer-stable",
             ]
             logger.info(f"[mp_export_assets] CMD={' '.join(cmd)}")
-
-            start_ts = asyncio.get_event_loop().time()
             try:
-                # 强制新段落起始，避免首条进度被 markdown 误并入上一段导致“缩进错位”
                 await websocket.send_text("\n\n")
                 await websocket.send_text(
                     f"检索进度 {_render_progress_bar(0)} 0%（已用时 0s，预计剩余 {int(round(_mp_eta_seconds))}s）\n\n"
@@ -3744,52 +2514,51 @@ class Coding(Action):
             except Exception:
                 pass
 
-            proc = await asyncio.create_subprocess_exec(
-                *cmd,
-                cwd=repo_root,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.STDOUT,
+            run_res = await _run_mp_export_assets_streaming_external(
+                repo_root=repo_root,
+                taskid=str(taskid),
+                formula=str(formula),
+                eta_seconds=float(_mp_eta_seconds),
+                progress_emit_interval_s=int(progress_emit_interval_s),
             )
 
-            while proc.returncode is None:
-                await asyncio.sleep(progress_emit_interval_s)
-                elapsed = asyncio.get_event_loop().time() - start_ts
-                eta = max(8.0, float(_mp_eta_seconds))
-                # 完成前最多到 95%，避免“假完成”
-                pct = min(95, max(1, int((elapsed / eta) * 90)))
-                remain = max(0, int(round(eta - elapsed)))
+            for ev in (run_res.get("progress_events") or []):
+                elapsed = int(ev.get("elapsed", 0))
+                pct = int(ev.get("pct", 1))
+                remain = int(ev.get("remain", 0))
                 try:
+                    slow_hint = ""
+                    if elapsed > 24:
+                        slow_hint = "（网络波动，预计时间延长）"
                     await websocket.send_text(
-                        f"检索进度 {_render_progress_bar(pct)} {pct}%（已用时 {int(elapsed)}s，预计剩余 {remain}s）\n\n"
+                        f"检索进度 {_render_progress_bar(pct)} {pct}%（已用时 {int(elapsed)}s，预计剩余 {remain}s）{slow_hint}\n\n"
                     )
                 except Exception:
                     pass
 
-            out_b, _ = await proc.communicate()
-            out_t = (out_b or b"").decode("utf-8", errors="ignore")
+            out_t = str(run_res.get("stdout") or "")
             if out_t:
                 logger.info(f"[mp_export_assets] STDOUT:\n{out_t[-6000:]}")
 
-            elapsed_total = max(0.0, asyncio.get_event_loop().time() - start_ts)
-            # 用真实耗时轻量更新 ETA（保持在合理区间）
-            _mp_eta_seconds = max(8.0, min(20.0, 0.7 * float(_mp_eta_seconds) + 0.3 * float(elapsed_total)))
+            _mp_eta_seconds = float(run_res.get("eta_seconds_new") or _mp_eta_seconds)
 
             # 注意：这里不发送 100%，仅表示“检索脚本结束”；
             # 100% 需等到 GLB 真正下发给前端后再发送。
             try:
-                tail_pct = 95 if proc.returncode == 0 else 99
+                ok = bool(run_res.get("ok"))
+                tail_pct = 95 if ok else 99
                 tail_text = (
                     f"检索进度 {_render_progress_bar(tail_pct)} {tail_pct}%（检索完成，正在上传并下发结构资源）\n\n"
-                    if proc.returncode == 0
+                    if ok
                     else f"检索进度 {_render_progress_bar(tail_pct)} {tail_pct}%（检索失败，请查看日志）\n\n"
                 )
                 await websocket.send_text(tail_text)
             except Exception:
                 pass
 
-            ok = (proc.returncode == 0)
+            ok = bool(run_res.get("ok"))
             if not ok:
-                logger.error(f"[mp_export_assets] FAILED rc={proc.returncode}")
+                logger.error(f"[mp_export_assets] FAILED rc={run_res.get('returncode')}")
             return ok
 
         # =========================
