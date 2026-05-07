@@ -24,7 +24,7 @@ from src.roles.mns_role_prompts import (
     XIMU_MNS_MATERIAL_PROMPT,
     XIMU_MNS_MATERIAL_MP_EXPLAIN_PROMPT,
 )
-from src.tools.team_config_helpers import (
+from src.utils.team_config_helpers import (
     repo_root as _helpers_repo_root,
     resolve_case_readme_path as _helpers_resolve_case_readme_path,
     safe_str as _helpers_safe_str,
