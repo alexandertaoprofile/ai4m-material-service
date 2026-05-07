@@ -7,9 +7,8 @@ import glob
 import json
 import uuid
 import datetime
-from typing import Dict, Optional, Any
+from typing import Optional
 
-import numpy as np
 from dotenv import load_dotenv
 from pydantic import PrivateAttr
 
@@ -61,12 +60,6 @@ from src.utils.material_candidate_selector import (
     llm_select_material_candidates as _llm_select_material_candidates_external,
     build_candidate_lists as _build_candidate_lists_external,
 )
-
-# Optional: reranker (heavy dependency)
-try:
-    from sentence_transformers import CrossEncoder  # noqa: F401
-except Exception:
-    CrossEncoder = None  # type: ignore
 
 def _repo_root() -> str:
     return _helpers_repo_root()
@@ -150,400 +143,37 @@ def _infer_prompt_mode(best_proj: dict) -> str:
 
 
 ########################################
-# CodeRetriever
+# CodeRetriever（接口保留）
+#
+# 说明：
+# - 该能力在当前主链（化学式 -> MP -> ALIGNN）中不启用；
+# - 保留最小接口壳，作为后续恢复“项目检索/路由匹配”能力的稳定扩展点；
+# - 当前默认返回空结果，不参与运行分支决策。
+########################################
+
 
 class CodeRetriever:
-    """
-    负责加载项目结构信息，并支持项目级检索
-    """
-
-    def __init__(
-        self,
-        json_file_path: str = None,
-        reranker_model_path: str = "/home/ubuntu/services/models/bge-reranker-large",
-        score_threshold: float = 0.3,
-        json_files: list = None,
-        source_root: str = None,
-        enable_reranker: bool = True, 
-        
-    ): 
-        # repo 根目录：/home/ubuntu/se42/ai4m_tqm
-        if not source_root:
-            source_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-        self.source_root = os.path.abspath(source_root)
-
-        # registry 目录：repo_root/src/MNS_CaseHub/registry
-        self.registry_dir = os.path.join(self.source_root, "src", "MNS_CaseHub", "registry")
-
-        # 兼容旧参数：json_file_path 仍可用
-        if json_file_path is None:
-            json_file_path = os.path.join(self.registry_dir, "dataset.json")
-        self.json_file_path = json_file_path
-
-        # 支持多个 registry 合并（你现在拆成 materials/phone）
-        if json_files is None:
-            json_files = [
-                os.path.join(self.registry_dir, "dataset_materials.json"),
-                os.path.join(self.registry_dir, "dataset.json"),
-            ]
-        self.json_files = [os.path.abspath(p) for p in json_files]
-
-        self.reranker_model_path = reranker_model_path
-        self.score_threshold = float(score_threshold)
-
-        self.projects = []
-        self.reranker = None
-
-        self._load_projects()
-        self._init_reranker()
-
-
-    def _load_projects(self):
-        """
-        从 registry json 加载 projects
-        兼容以下顶层结构：
-        - {"version": "...", "cases": [...]}
-        - {"version": "...", "projects": [...]}
-        - {"data": [...]}
-        - list[...]
-        """
-        self.projects = []
-
-        def _ensure_list(data):
-            if isinstance(data, list):
-                return data
-            if isinstance(data, dict):
-                for k in ("cases", "projects", "data", "items"):
-                    v = data.get(k, None)
-                    if isinstance(v, list):
-                        return v
-            return []
-
-        def _normalize_case(x: dict) -> dict:
-            """
-            把 case/cases item 统一成 project 结构，保证后续匹配字段存在
-            """
-            if not isinstance(x, dict):
-                return {}
-
-            # 你们 registry 里可能叫 case_id / id
-            cid = x.get("id") or x.get("case_id") or x.get("name") or ""
-            name = x.get("name") or x.get("title") or cid
-            domain = x.get("domain") or x.get("team_type") or x.get("category") or ""
-
-            tags = x.get("tags") or x.get("keywords") or []
-            if isinstance(tags, str):
-                tags = [tags]
-            if tags is None:
-                tags = []
-
-            description = x.get("description") or ""
-            summary = x.get("summary") or ""
-
-            # paths 兼容：你截图里是 x["paths"]["project_root"]/["main_entry"]
-            paths = x.get("paths") or {}
-            if not isinstance(paths, dict):
-                paths = {}
-
-            project_root = paths.get("project_root") or x.get("project_root") or ""
-            main_entry = paths.get("main_entry") or x.get("main_entry") or ""
-
-            # 给一些常用字段兜底
-            proj = {
-                "id": cid,
-                "name": name,
-                "domain": domain,
-                "tags": tags,
-                "description": description,
-                "summary": summary,
-                "paths": {
-                    "project_root": project_root,
-                    "main_entry": main_entry,
-                },
-                # 原始字段保留，方便 debug
-                "_raw": x,
-            }
-            return proj
-
-        # 依次加载多个 json 合并
-        for fp in self.json_files:
-            try:
-                if not os.path.exists(fp):
-                    logger.warning(f"[CodeRetriever] registry file not found: {fp}")
-                    continue
-
-                with open(fp, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-
-                cases = _ensure_list(data)
-                if not cases:
-                    logger.warning(f"[CodeRetriever] no cases/projects found in: {fp}")
-                    continue
-
-                for item in cases:
-                    proj = _normalize_case(item)
-                    if proj:
-                        self.projects.append(proj)
-
-                logger.info(f"[CodeRetriever] loaded {len(cases)} items from {fp}")
-
-            except Exception as e:
-                logger.exception(f"[CodeRetriever] failed to load {fp}: {e}")
-
-        logger.info(f"[CodeRetriever] total projects loaded: {len(self.projects)}")
-
-        
-    def _init_reranker(self):
-        """
-        初始化 CrossEncoder reranker（可选依赖）。
-        - sentence_transformers 缺失 / CrossEncoder 不可用：自动禁用
-        - 模型路径不存在：自动禁用
-        - 任何加载异常：自动禁用
-        """
-        self.reranker = None
-
-        # 1) CrossEncoder 可能被 try/except 降级成 None
-        if CrossEncoder is None:
-            logger.warning("[CodeRetriever] reranker 未启用：sentence-transformers / CrossEncoder 不可用，走 fallback")
-            return
-
-        # 2) 模型路径检查（你日志里是 /homel '/home/ubuntu/services/models/bge-reranker-large'）
-        model_path = getattr(self, "reranker_model_path", None)
-        if not model_path or not os.path.exists(model_path):
-            logger.warning(f"[CodeRetriever] reranker 未启用：model_path 不存在或为空: {model_path}")
-            return
-
-        # 3) 尝试加载
-        try:
-            self.reranker = CrossEncoder(model_path)
-            logger.info(f"[CodeRetriever] ✅ reranker loaded: {model_path}")
-        except Exception as e:
-            logger.exception(f"[CodeRetriever] ❌ reranker 加载失败，自动降级 fallback: {e}")
-            self.reranker = None
-            return
-
-    def _fallback_match_project(self, query: str):
-        """
-        无 reranker 时的兜底匹配：
-        1) 关键词规则（强约束，命中就直接返回）
-        2) 轻量字符串打分（domain/name/tags/description/summary）
-        返回: (best_proj or None, score, best_idx)
-        """
-        if not query:
-            return None, 0.0, None
-
-        q = str(query).lower()
-
-        # NOTE(2026-04): 旧业务关键词（手机/钨/喷管等）已下线，先注释对应规则。
-        # 当前仅保留“已有无机材料”主线相关关键词，避免旧路由误命中。
-        RULES = [
-            (
-                r"(materials? project|material|晶体|结构|化学式|无机|数据库|筛选|带隙|形成能|稳定性)",
-                ["materials", "project", "material", "晶体", "结构", "化学式", "无机", "数据库", "筛选", "带隙", "形成能", "稳定性"],
-            ),
-        ]
-
-        def proj_text(p):
-            parts = [
-                p.get("domain", ""),
-                p.get("name", ""),
-                p.get("id", ""),
-                " ".join(p.get("tags", []) or []),
-                p.get("description", ""),
-                p.get("summary", ""),
-                # 额外字段兼容（有些dataset.json可能还有）
-                p.get("title", ""),
-                p.get("keywords", ""),
-            ]
-            return " | ".join([str(x) for x in parts if x])
-
-        # 1) 强规则命中：命中就直接返回最像的
-        for pattern, must_tokens in RULES:
-            if re.search(pattern, q, flags=re.IGNORECASE):
-                best_idx = None
-                best_hit = -1
-                for i, p in enumerate(self.projects):
-                    text = proj_text(p).lower()
-
-                    # hit：命中 tokens 的数量（越多越像）
-                    hit = sum(1 for t in must_tokens if t and t.lower() in text)
-
-                    # NOTE(2026-04): 旧加权（钨/creep）已注释下线
-
-                    if hit > best_hit:
-                        best_hit = hit
-                        best_idx = i
-
-                if best_idx is not None and best_hit > 0:
-                    # 规则命中给高置信度
-                    return self.projects[best_idx], 0.95, best_idx
-
-        # 2) 轻量 Jaccard token 相似度（通用兜底）
-        q_tokens = set(re.findall(r"[a-z0-9_]+|[\u4e00-\u9fff]+", q))
-        if not q_tokens:
-            return None, 0.0, None
-
-        best_idx = None
-        best_score = -1.0
-
-        for i, p in enumerate(self.projects):
-            text = proj_text(p).lower()
-            t_tokens = set(re.findall(r"[a-z0-9_]+|[\u4e00-\u9fff]+", text))
-            if not t_tokens:
-                continue
-
-            inter = len(q_tokens & t_tokens)
-            union = len(q_tokens | t_tokens)
-            score = inter / union if union else 0.0
-
-            # 额外加权：材料线关键词
-            if ("钨" in q_tokens or "tungsten" in q_tokens or "creep" in q_tokens) and ("钨" in t_tokens or "tungsten" in t_tokens or "creep" in t_tokens):
-                score += 0.15
-
-            if score > best_score:
-                best_score = score
-                best_idx = i
-
-        if best_idx is None:
-            return None, 0.0, None
-
-        # 这个阈值你可以按项目数量调；项目少时建议更低一点，否则永远匹配不到
-        if best_score >= 0.08:
-            return self.projects[best_idx], float(best_score), best_idx
-
-        return None, float(best_score), None
-    
-
-    def _proj_text_for_rerank(self, p: Dict[str, Any]) -> str:
-        """
-        给 reranker 的候选文本：比 domain|name 更强，能显著提升命中。
-        """
-        tags = " ".join(p.get("tags", []) or [])
-        text = (
-            f"domain: {p.get('domain','')} | "
-            f"name: {p.get('name','')} | "
-            f"id: {p.get('id','')} | "
-            f"tags: {tags} | "
-            f"description: {p.get('description','')} | "
-            f"summary: {p.get('summary','')}"
-        )
-
-        # 截断，避免极端长文本导致慢
-        max_chars = int(os.getenv("RERANKER_MAX_DOC_CHARS", "1200"))
-        if len(text) > max_chars:
-            text = text[:max_chars]
-        return text
+    """项目检索能力接口壳（当前停用）。"""
 
     def find_matching_project(self, query: str):
-        """
-        使用 CrossEncoder 在已加载的 self.projects 上打分，返回最匹配的项目。
-        返回: (project_dict or None, score: float, best_idx: int or None)
-        """
-        if not self.projects:
-            logger.warning("[find_matching_project] 项目列表为空")
-            return None, 0.0, None
-
-        if not isinstance(query, str):
-            query = str(query)
-
-        # reranker 不可用 -> fallback
-        if self.reranker is None or (not getattr(self, "enable_reranker", True)):
-            logger.warning("[find_matching_project] reranker 不可用/未启用，走 fallback 匹配")
-            return self._fallback_match_project(query)
-
-        # 候选文本（增强版）
-        texts = [self._proj_text_for_rerank(p) for p in self.projects]
-        print("[DEBUG] rerank doc preview:", texts[0][:200])
-        pairs = [[query, t] for t in texts]
-
-        try:
-            scores = self.reranker.predict(pairs)
-            scores = np.asarray(scores, dtype=float)
-            if scores.size == 0:
-                logger.warning("[find_matching_project] reranker 返回空分数，走 fallback")
-                return self._fallback_match_project(query)
-
-            best_idx = int(np.nanargmax(scores))
-            best_score = float(scores[best_idx])
-            best_proj = self.projects[best_idx]
-
-            logger.info(
-                f"[find_matching_project] Top1: {best_proj.get('domain','')}/{best_proj.get('name','')} "
-                f"| score={best_score:.4f} | idx={best_idx}"
-            )
-
-            # 低于阈值，认为不稳 -> fallback 再兜一下
-            if best_score < float(self.score_threshold):
-                logger.warning(
-                    f"[find_matching_project] score<{self.score_threshold}, fallback 再匹配一次 | "
-                    f"score={best_score:.4f}"
-                )
-                fb_proj, fb_score, fb_idx = self._fallback_match_project(query)
-                # fallback 命中就用 fallback，否则仍返回 reranker top1（但上层可提示“不确定”）
-                if fb_proj is not None:
-                    return fb_proj, fb_score, fb_idx
-
-            return best_proj, best_score, best_idx
-        except Exception as e:
-            logger.exception(f"[find_matching_project] reranker 评分异常，走 fallback: {e}")
-            return self._fallback_match_project(query)
+        return None, 0.0, None
 
     def get_parameters(self, idx: int) -> Optional[dict]:
-        if 0 <= idx < len(self.projects):
-            return self.projects[idx].get("parameters", {})
-        logger.warning(f"[get_parameters_by_index] 无效项目索引: {idx}")
         return None
 
     def get_root_path(self, idx: int) -> Optional[str]:
-        if 0 <= idx < len(self.projects):
-            project = self.projects[idx] or {}
-
-            root_path = project.get("root_path")
-            if isinstance(root_path, str) and root_path.strip():
-                return root_path.strip()
-
-            paths = project.get("paths") or {}
-            if isinstance(paths, dict):
-                root_path_2 = paths.get("project_root")
-                if isinstance(root_path_2, str) and root_path_2.strip():
-                    return root_path_2.strip()
-
-            return ""
-
-        logger.warning(f"[get_root_path] 无效项目索引: {idx}")
         return None
-
 
     def get_main_entry(self, idx: int) -> Optional[str]:
-        if 0 <= idx < len(self.projects):
-            project = self.projects[idx] or {}
-
-            main_entry = project.get("main_entry")
-            if isinstance(main_entry, str) and main_entry.strip():
-                return main_entry.strip()
-
-            paths = project.get("paths") or {}
-            if isinstance(paths, dict):
-                main_entry_2 = paths.get("main_entry")
-                if isinstance(main_entry_2, str) and main_entry_2.strip():
-                    return main_entry_2.strip()
-
-            return ""
-
-        logger.warning(f"[get_main_entry] 无效项目索引: {idx}")
         return None
-    
 
     def get_summary(self, idx: int) -> Optional[str]:
-        if 0 <= idx < len(self.projects):
-            return self.projects[idx].get("summary", "")
-        logger.warning(f"[get_summary] 无效项目索引: {idx}")
         return None
-    
+
+
 ########################################
 # Coding Action 模块
 # - 功能：根据用户输入生成可运行的代码、选择模型脚本、执行与反馈运行结果
-# - 支持 reranker 和 fallback 模式选择主程序入口
 # - 执行模式支持 quick/train，数据支持 simul/load
 ########################################
 
@@ -558,7 +188,7 @@ class Coding(Action):
         "输出可供前端展示与下游计算使用的 JSON 与可视化资产路径，不进行闲聊式解释。"
     )
 
-    _code_retriever: CodeRetriever = PrivateAttr(default = None)
+    _code_retriever: Optional[CodeRetriever] = PrivateAttr(default=None)
     _emitted_glb_keys: set = PrivateAttr(default_factory=set)
     
     def __init__(self, **kwargs):
@@ -566,11 +196,13 @@ class Coding(Action):
     
     # Prompt 常量已迁移到 src/roles/mns_role_prompts.py
 
-
-    #懒加载，初始化Code_retriever
-    def _get_code_retriever(self) -> CodeRetriever:
-        # 瘦身阶段：当前主链（化学式→MP→ALIGNN）未使用，先停用
+    def _get_code_retriever(self) -> Optional[CodeRetriever]:
+        """
+        预留接口：后续若恢复“项目检索/路由匹配”能力，可在此懒加载 CodeRetriever。
+        当前主链不依赖该能力，保持返回 None。
+        """
         return None
+
 
     async def _safe_send_text(self, websocket, content):
         # 瘦身阶段：当前主链未使用，先停用
