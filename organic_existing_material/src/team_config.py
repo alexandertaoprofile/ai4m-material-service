@@ -972,7 +972,12 @@ class Coding(Action):
             except Exception as e:
                 logger.debug(f"[LLM_Stream-LOG] 关闭流时发生异常: {e!s}")
 
-        logger.info(f"[LLM_Stream-LOG] 收集到 {len(collected_chunks)} 段输出，总长 {sum(len(c) for c in collected_chunks)} 字符")
+        chunks_n = len(collected_chunks)
+        total_n = sum(len(c) for c in collected_chunks)
+        avg_n = (total_n / chunks_n) if chunks_n > 0 else 0.0
+        logger.info(f"[LLM_Stream-LOG] 收集到 {chunks_n} 段输出，总长 {total_n} 字符，平均每段 {avg_n:.2f} 字符")
+        if chunks_n >= 4000 and avg_n <= 3.0:
+            logger.warning("[LLM_Stream-LOG] 检测到高碎片流式输出（段数过高且平均段长过短），通常由超长结构串回显导致")
         return "".join(collected_chunks)
 
 
@@ -2271,6 +2276,33 @@ class Coding(Action):
                 return None, s
             return m.group(1).lower(), m.group(2).strip()
 
+        def _truncate_for_display(text: str, max_len: int = 220) -> str:
+            """用于提示词/前端展示，避免超长结构串刷屏。"""
+            s = str(text or "")
+            if len(s) <= max_len:
+                return s
+            return f"{s[:max_len]}...<省略{len(s)-max_len}字符>"
+
+        def _sanitize_user_context_for_llm(text: str) -> str:
+            """
+            把超长 PSMILES/结构串压缩后再放入提示词：
+            - 计算流程仍用原始字符串；
+            - 仅限制 LLM 上下文与前端长文本输出。
+            """
+            s = str(text or "")
+            if not s:
+                return s
+            # 先整体限长
+            s = _truncate_for_display(s, max_len=800)
+            # 再对连续超长化学结构片段做二次压缩
+            s = re.sub(r"([A-Za-z0-9\[\]\(\)=#@\+\-\*\\/]{120,})", lambda m: _truncate_for_display(m.group(1), 120), s)
+            return s
+
+        def _psmiles_for_display(psmiles: str) -> str:
+            """展示层使用缩略串，避免表格被超长 PSMILES 撑爆。"""
+            s = _normalize_psmiles(psmiles)
+            return _truncate_for_display(s, max_len=140)
+
         # =========================
         # 4) ✅只从“计算对象”行抽取（避免把别的材料带进来）
         # =========================
@@ -2820,13 +2852,14 @@ class Coding(Action):
         async def _stream_organic_pre_analysis(user_context: str = ""):
             """恢复有机主线的前置泛化分析（按约定：需求提取左、关键性质右、候选检索左）。"""
             await websocket.send_text("\n\n### 需求信息提取\n\n")
+            safe_ctx = _sanitize_user_context_for_llm(user_context)
             p1 = (
                 "请输出3~6个分点，必须使用阿拉伯数字编号（1. / 2. / 3. ...）。"
                 "每一点单独一行，行与行之间保留正常换行。"
                 "不要表格、不要额外标题。"
                 "任务：从输入中提炼应用场景、关键约束、可检索实体（Name/PSMILES/别名）。"
                 "语气工程化、克制。"
-                f"\n输入：{str(user_context or '')}"
+                f"\n输入：{safe_ctx}"
             )
             await self._stream_llm_response(
                 llm,
@@ -2844,7 +2877,7 @@ class Coding(Action):
                 "至少覆盖并用中文解释：玻璃化转变温度（Tg）、热分解温度（Td）、杨氏模量（Young's Modulus）、拉伸强度（Tensile Strength）、"
                 "介电常数（Dielectric Constant）、热膨胀系数（CTE，允许标注当前待计算）。"
                 "若输入缺信息可给工程常用默认口径。"
-                f"\n输入：{str(user_context or '')}"
+                f"\n输入：{safe_ctx}"
             )
             await self._stream_llm_response(
                 llm,
@@ -2859,7 +2892,7 @@ class Coding(Action):
                 "请输出两部分内容："
                 "第一部分3~5行中文短段落，不要表格，说明如何从 Name/PSMILES/别名做检索与去重，避免同名异写与同结构多别名混淆。"
                 "第二部分新增小节“聚合物类型与结构论证”，用3~5行说明上文提到的聚合物各自属于什么类型、代表性结构单元是什么、结构与性质（Tg/Td/模量/强度）的关系。"
-                f"\n输入：{str(user_context or '')}"
+                f"\n输入：{safe_ctx}"
             )
             await self._stream_llm_response(
                 llm,
@@ -3460,8 +3493,9 @@ class Coding(Action):
                         dc = _fmt_poly_prop(r, ["Dielectric_Constant_Total"])
                         tc = _fmt_poly_prop(r, ["Thermal_Conductivity"])
 
+                        psmiles_display = _psmiles_for_display(psmiles_raw)
                         table_lines.append(
-                            f"| {name} | `{psmiles_raw}` | {tg} | {td} | {tm} | {wu} | {dc} | {tc} |\n"
+                            f"| {name} | `{psmiles_display}` | {tg} | {td} | {tm} | {wu} | {dc} | {tc} |\n"
                         )
 
                     table_md = "".join(table_lines)
