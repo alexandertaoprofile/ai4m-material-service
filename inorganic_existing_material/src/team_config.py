@@ -2146,15 +2146,7 @@ class Coding(Action):
             except Exception:
                 pass
 
-            run_res = await _run_mp_export_assets_streaming_external(
-                repo_root=repo_root,
-                taskid=str(taskid),
-                formula=str(formula),
-                eta_seconds=float(_mp_eta_seconds),
-                progress_emit_interval_s=int(progress_emit_interval_s),
-            )
-
-            for ev in (run_res.get("progress_events") or []):
+            async def _on_progress_event(ev: dict):
                 elapsed = int(ev.get("elapsed", 0))
                 pct = int(ev.get("pct", 1))
                 remain = int(ev.get("remain", 0))
@@ -2167,6 +2159,15 @@ class Coding(Action):
                     )
                 except Exception:
                     pass
+
+            run_res = await _run_mp_export_assets_streaming_external(
+                repo_root=repo_root,
+                taskid=str(taskid),
+                formula=str(formula),
+                eta_seconds=float(_mp_eta_seconds),
+                progress_emit_interval_s=int(progress_emit_interval_s),
+                progress_callback=_on_progress_event,
+            )
 
             out_t = str(run_res.get("stdout") or "")
             if out_t:
@@ -2397,7 +2398,7 @@ class Coding(Action):
 
                 # 当前版本：执行 MP + ALIGNN；ADiT/MACE 流程下线
                 if mp_ready_formulas:
-                    await websocket.send_text("\n\n#### <span style=\"color:#2f6fef;\">材料性质补充分析</span>\n\n")
+                    await websocket.send_text("\n\n#### 材料性质补充分析\n\n")
                     # ALIGNN阶段说明保持在左侧
                     await _stream_alignn_stage_intro(selected_formula)
                     await websocket.send_text("<<<CONTENT_START:MATERIAL_SCREENING>>>")

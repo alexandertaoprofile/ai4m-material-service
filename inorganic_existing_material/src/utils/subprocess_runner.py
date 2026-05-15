@@ -3,7 +3,7 @@ import sys
 import json
 import asyncio
 import subprocess
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Callable, Awaitable
 
 def run_in_micromamba(
     env_name: str,
@@ -59,6 +59,7 @@ async def run_mp_export_assets_streaming(
     progress_emit_interval_s: int = 4,
     env_name: str = "mp-api-py311",
     script_relpath: str = "tools/mp_export_assets.py",
+    progress_callback: Optional[Callable[[Dict[str, int]], Awaitable[None]]] = None,
 ):
     """
     等价执行 mp_export_assets.py（异步流式），返回结构化结果供上层保持原有日志/WS行为。
@@ -88,7 +89,10 @@ async def run_mp_export_assets_streaming(
         eta = max(8.0, float(eta_seconds))
         pct = min(95, max(1, int((elapsed / eta) * 90)))
         remain = max(0, int(round(eta - elapsed)))
-        progress_events.append({"elapsed": int(elapsed), "pct": int(pct), "remain": int(remain)})
+        event = {"elapsed": int(elapsed), "pct": int(pct), "remain": int(remain)}
+        progress_events.append(event)
+        if progress_callback is not None:
+            await progress_callback(event)
 
     out_b, _ = await proc.communicate()
     out_t = (out_b or b"").decode("utf-8", errors="ignore")
