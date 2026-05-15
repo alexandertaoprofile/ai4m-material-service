@@ -85,6 +85,10 @@
   - `SOURCE_CODE_PATH`
   - `base_url_1` / `api_key`（LLM 调用）
 
+配置口径说明（最小整改，2026-05-15）：
+- 当前主链仅使用 `config/config.yaml`。
+- `config/legacy/` 下文件为历史/兼容用途，不作为当前主链默认配置入口。
+
 ### 5.2 运行环境（当前代码会引用）
 
 - `mp-api-py311`
@@ -144,6 +148,12 @@ WebSocket 侧主要发送两类信息：
 - 将 `send_results_to_frontend` 抽到独立模块
 - 将 `_material_alignn_completion_stage` 的编排输出层拆分
 - 将 `run()` 内多个 `_stream_*` 输出函数统一迁移到渲染模块
+
+## 10. 结构边界补充（最小整改）
+
+- 生效入口保持不变：`main.py -> team_config.py -> src/team_config.py`。
+- `team_config.py` 仅作为兼容桥接层，避免新增业务逻辑。
+- `src/team_config_en.py`、根目录 `utils.py` 当前视为历史/旁路文件，暂不参与主链整改。
 
 ---
 
