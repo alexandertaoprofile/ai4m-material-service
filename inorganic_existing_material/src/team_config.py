@@ -205,8 +205,24 @@ class Coding(Action):
 
 
     async def _safe_send_text(self, websocket, content):
-        # 瘦身阶段：当前主链未使用，先停用
-        return
+        if not websocket or content is None:
+            return
+        try:
+            await websocket.send_text(str(content))
+        except Exception:
+            logger.exception("[WS] send_text failed")
+
+    async def _send_content_start(self, websocket, step_id: str):
+        await self._safe_send_text(websocket, f"<<<CONTENT_START:{step_id}>>>")
+
+    async def _send_content_end(self, websocket, step_id: str):
+        await self._safe_send_text(websocket, f"<<<CONTENT_END:{step_id}>>>")
+
+    async def _send_content_block(self, websocket, step_id: str, text: str):
+        await self._send_content_start(websocket, step_id)
+        if text:
+            await self._safe_send_text(websocket, text.rstrip() + "\n")
+        await self._send_content_end(websocket, step_id)
 
     # 流式发送 LLM 响应
     async def _stream_llm_response(
@@ -263,7 +279,7 @@ class Coding(Action):
         mirror_enabled = bool(mirror_to_content and step_id)
 
         if mirror_enabled and websocket and websocket.client_state.name == "CONNECTED":
-            await websocket.send_text(f"<<<CONTENT_START:{step_id}>>>")
+            await self._send_content_start(websocket, step_id)
             mirror_started = True
 
         try:
@@ -319,7 +335,7 @@ class Coding(Action):
         finally:
             if mirror_started and websocket and websocket.client_state.name == "CONNECTED":
                 try:
-                    await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
+                    await self._send_content_end(websocket, step_id)
                 except Exception:
                     pass
             # 尽可能优雅关闭流
@@ -346,15 +362,15 @@ class Coding(Action):
         )
 
         # MP 字段判读统一放右侧新页
-        await websocket.send_text("<<<CONTENT_START:MATERIAL_SCREENING>>>")
-        await websocket.send_text("### 数据库获取信息总览\n\n")
+        await self._send_content_start(websocket, "MATERIAL_SCREENING")
+        await self._safe_send_text(websocket, "### 数据库获取信息总览\n\n")
         await self._stream_llm_response(
             llm,
             [llm._default_system_msg(), llm._user_msg(prompt)],
             websocket
         )
-        await websocket.send_text("\n以上表格汇总了从 Materials Project 数据库中检索到的相关化学式候选结构与关键字段，用于说明当前候选为什么会进入后续筛选与性质分析流程。\n")
-        await websocket.send_text("<<<CONTENT_END:MATERIAL_SCREENING>>>")
+        await self._safe_send_text(websocket, "\n以上表格汇总了从 Materials Project 数据库中检索到的相关化学式候选结构与关键字段，用于说明当前候选为什么会进入后续筛选与性质分析流程。\n")
+        await self._send_content_end(websocket, "MATERIAL_SCREENING")
 
     def _formula_profile(self, formula_: str) -> dict:
         f = str(formula_ or "").strip()
@@ -917,10 +933,7 @@ class Coding(Action):
             await websocket.send_json(payload)
 
         async def _ws_right(step_id_local: str, text: str):
-            await websocket.send_text(f"<<<CONTENT_START:{step_id_local}>>>")
-            if text:
-                await websocket.send_text(text.rstrip() + "\n")
-            await websocket.send_text(f"<<<CONTENT_END:{step_id_local}>>>")
+            await self._send_content_block(websocket, step_id_local, text)
 
         async def _ws_png_markdown(formula_label: str, image_url: str, heading: str = "", fig_label: str = ""):
             safe_formula = str(formula_label or "Material").strip() or "Material"
@@ -1188,8 +1201,8 @@ class Coding(Action):
 
                 # 仅在需要“资产插入到右侧正文流中”时进行分段包裹切换
                 if keep_block_open_after_asset:
-                    await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
-                    await websocket.send_text(f"<<<CONTENT_START:{step_id}>>>")
+                    await self._send_content_end(websocket, step_id)
+                    await self._send_content_start(websocket, step_id)
 
                 base_name = (formula_for_asset or os.path.splitext(fname)[0] or "Material").replace("/", "_")
                 rich_name = f"{base_name}_无机化合物最优候选结构"
@@ -1211,8 +1224,8 @@ class Coding(Action):
                     await asyncio.sleep(asset_hold_seconds)
 
                 if keep_block_open_after_asset:
-                    await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
-                    await websocket.send_text(f"<<<CONTENT_START:{step_id}>>>")
+                    await self._send_content_end(websocket, step_id)
+                    await self._send_content_start(websocket, step_id)
                 logger.info(f"[send_results_to_frontend] ✅ sent MaterialsGLB: {fname}")
                 result["glb_sent"] = True
                 result["glb_url"] = str(url or "")
@@ -1309,8 +1322,7 @@ class Coding(Action):
 
 
     async def _ws_right(self, websocket, step_id: str, text: str):
-        # 瘦身阶段：当前主链未使用，先停用
-        return
+        await self._send_content_block(websocket, step_id, text)
 
     async def run(self, instruction: str, *args):
         import os, re, json, asyncio, subprocess, glob
@@ -1328,11 +1340,7 @@ class Coding(Action):
         # 0) WS helpers：右侧内容块（去掉前置多余空行）
         # =========================
         async def _ws_right(step_id: str, text: str):
-            # ✅ 不要在 <<<CONTENT_START 前面加额外 '\n'
-            await websocket.send_text(f"<<<CONTENT_START:{step_id}>>>")
-            if text:
-                await websocket.send_text(text.rstrip() + "\n")
-            await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
+            await self._ws_right(websocket, step_id, text)
 
         # =========================
         # 0.5) progress helper：只发 completed，且每次都带全字段
@@ -1369,14 +1377,14 @@ class Coding(Action):
             nonlocal material_block_opened
             if material_block_opened:
                 return
-            await websocket.send_text(f"<<<CONTENT_START:{step_id}>>>")
+            await self._send_content_start(websocket, step_id)
             material_block_opened = True
 
         async def _close_material_block(step_id: str = "MATERIAL_SCREENING"):
             nonlocal material_block_opened
             if not material_block_opened:
                 return
-            await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
+            await self._send_content_end(websocket, step_id)
             material_block_opened = False
 
         async def _upload_database_pic_for_markdown(pic_abs_path: str, pic_name: str) -> str:
@@ -2401,9 +2409,9 @@ class Coding(Action):
                     await websocket.send_text("\n\n#### 材料性质补充分析\n\n")
                     # ALIGNN阶段说明保持在左侧
                     await _stream_alignn_stage_intro(selected_formula)
-                    await websocket.send_text("<<<CONTENT_START:MATERIAL_SCREENING>>>")
+                    await self._send_content_start(websocket, "MATERIAL_SCREENING")
                     selected_metrics = await self._material_alignn_placeholder_stage(websocket, selected_formula, llm=llm)
-                    await websocket.send_text("<<<CONTENT_END:MATERIAL_SCREENING>>>")
+                    await self._send_content_end(websocket, "MATERIAL_SCREENING")
                 else:
                     await websocket.send_text("\n无可用于材料性质计算的候选结构，已结束本轮计算。\n")
 
