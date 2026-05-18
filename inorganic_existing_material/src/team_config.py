@@ -1406,6 +1406,119 @@ class Coding(Action):
                 logger.exception(f"[DB_PIC] upload exception: {e!s}")
                 return ""
 
+        def _find_current_selected_structures_json(formula_: str) -> str:
+            """Find the selected_structures.json produced by the current MP run."""
+            try:
+                repo_root = _repo_root()
+                abs_root = os.path.join(
+                    repo_root,
+                    "src", "MNS_CaseHub", "cases", "material_discovery_demo",
+                )
+                results_dir = os.path.join(abs_root, "results")
+                taskid_s = str(taskid).replace("/", "_")
+                formula_s = str(formula_ or "").strip()
+                if not formula_s:
+                    return ""
+
+                manifest_pat = os.path.join(
+                    results_dir, "mp", f"*{taskid_s}*", formula_s, "manifest.json"
+                )
+                manifest_cands = sorted(glob.glob(manifest_pat))
+                if not manifest_cands:
+                    return ""
+
+                manifest_path = manifest_cands[-1]
+                with open(manifest_path, "r", encoding="utf-8") as f:
+                    manifest = json.load(f)
+
+                base_dir = manifest.get("base_dir") or os.path.dirname(manifest_path)
+                files = manifest.get("files") or {}
+                files_abs = manifest.get("files_abs") or {}
+                selected_path = (
+                    files_abs.get("selected_structures_json")
+                    or files.get("selected_structures_json")
+                    or ""
+                )
+                if selected_path and not os.path.isabs(selected_path):
+                    selected_path = os.path.abspath(os.path.join(base_dir, selected_path))
+                if selected_path and os.path.exists(selected_path):
+                    return selected_path
+
+                fallback = os.path.join(base_dir, "selected_structures.json")
+                return fallback if os.path.exists(fallback) else ""
+            except Exception as e:
+                logger.exception(f"[ALIGNN_GIF] locate selected_structures failed: {e!s}")
+                return ""
+
+        def _render_alignn_json_gif(formula_: str, selected_json: str) -> str:
+            """Render a per-run ALIGNN GIF from selected_structures.json."""
+            try:
+                if not selected_json or not os.path.exists(selected_json):
+                    return ""
+                repo_root = _repo_root()
+                script = os.path.join(repo_root, "src", "utils", "alignn_gif_renderer.py")
+                if not os.path.exists(script):
+                    logger.warning(f"[ALIGNN_GIF] renderer missing: {script}")
+                    return ""
+
+                taskid_s = str(taskid).replace("/", "_")
+                formula_s = str(formula_ or "material").replace("/", "_").strip() or "material"
+                out_dir = os.path.join(
+                    repo_root,
+                    "src", "MNS_CaseHub", "cases", "material_discovery_demo",
+                    "results", "alignn_gif", taskid_s, formula_s,
+                )
+                os.makedirs(out_dir, exist_ok=True)
+                out_gif = os.path.join(out_dir, "alignn_json_driven.gif")
+
+                cmd = [
+                    sys.executable,
+                    script,
+                    "--selected-json", selected_json,
+                    "--out", out_gif,
+                ]
+                proc = subprocess.run(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    timeout=45,
+                )
+                if proc.returncode != 0:
+                    logger.warning(
+                        f"[ALIGNN_GIF] render failed rc={proc.returncode} "
+                        f"stderr={str(proc.stderr or '')[-1200:]}"
+                    )
+                    return ""
+                if os.path.exists(out_gif):
+                    logger.info(f"[ALIGNN_GIF] rendered: {out_gif}")
+                    return out_gif
+                return ""
+            except Exception as e:
+                logger.exception(f"[ALIGNN_GIF] render exception: {e!s}")
+                return ""
+
+        async def _upload_alignn_dynamic_or_static(formula_: str) -> str:
+            """Prefer the JSON-driven GIF for this run, then fall back to the static asset."""
+            try:
+                selected_json = _find_current_selected_structures_json(formula_)
+                alignn_gif = _render_alignn_json_gif(formula_, selected_json)
+                if alignn_gif and os.path.exists(alignn_gif):
+                    url = await _upload_database_pic_for_markdown(alignn_gif, "alignn_json_driven.gif")
+                    if url:
+                        return url
+            except Exception as e:
+                logger.exception(f"[ALIGNN_GIF] dynamic upload failed: {e!s}")
+
+            alignn_abs = os.path.join(_repo_root(), "public", "databasepic", "alignn.png")
+            if not os.path.exists(alignn_abs):
+                alignn_abs = os.path.join(
+                    _repo_root(),
+                    "src", "MNS_CaseHub", "cases", "material_discovery_demo",
+                    "results", "databasepic", "alignn.png",
+                )
+            return await _upload_database_pic_for_markdown(alignn_abs, "alignn.png")
+
         def _render_performance_bar_png(metric_rows: list, out_png_path: str):
             """绘制预期值 vs 当前值对比图（matplotlib 优先，PIL 兜底）。"""
             labels = [str(r.get("label", "")).strip() for r in (metric_rows or [])]
@@ -2010,10 +2123,7 @@ class Coding(Action):
             """
             # 这里改为非流式一次性发送，避免末尾无换行导致后续 ### 标题粘连
             try:
-                alignn_abs = os.path.join(_repo_root(), "public", "databasepic", "alignn.png")
-                if not os.path.exists(alignn_abs):
-                    alignn_abs = os.path.join(_repo_root(), "src", "MNS_CaseHub", "cases", "material_discovery_demo", "results", "databasepic", "alignn.png")
-                alignn_url = await _upload_database_pic_for_markdown(alignn_abs, "alignn.png")
+                alignn_url = await _upload_alignn_dynamic_or_static(formula_)
                 if alignn_url:
                     await websocket.send_text(f"![ALIGNN 图神经网络分析示意]({alignn_url})\n\n")
                 await websocket.send_text(
