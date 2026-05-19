@@ -1519,6 +1519,72 @@ class Coding(Action):
                 )
             return await _upload_database_pic_for_markdown(alignn_abs, "alignn.png")
 
+        def _render_periodic_elements_gif(formulas_: list) -> str:
+            """Render a per-run periodic table GIF from candidate formulas."""
+            try:
+                fs = [str(x).strip() for x in (formulas_ or []) if str(x).strip()]
+                if not fs:
+                    return ""
+
+                repo_root = _repo_root()
+                script = os.path.join(repo_root, "src", "utils", "periodic_gif_renderer.py")
+                if not os.path.exists(script):
+                    logger.warning(f"[PERIODIC_GIF] renderer missing: {script}")
+                    return ""
+
+                taskid_s = str(taskid).replace("/", "_")
+                out_dir = os.path.join(
+                    repo_root,
+                    "src", "MNS_CaseHub", "cases", "material_discovery_demo",
+                    "results", "periodic_gif", taskid_s,
+                )
+                os.makedirs(out_dir, exist_ok=True)
+                out_gif = os.path.join(out_dir, "periodic_elements.gif")
+
+                cmd = [sys.executable, script, "--out", out_gif]
+                for f in fs:
+                    cmd.extend(["--formula", f])
+                proc = subprocess.run(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    timeout=45,
+                )
+                if proc.returncode != 0:
+                    logger.warning(
+                        f"[PERIODIC_GIF] render failed rc={proc.returncode} "
+                        f"stderr={str(proc.stderr or '')[-1200:]}"
+                    )
+                    return ""
+                if os.path.exists(out_gif):
+                    logger.info(f"[PERIODIC_GIF] rendered: {out_gif}")
+                    return out_gif
+                return ""
+            except Exception as e:
+                logger.exception(f"[PERIODIC_GIF] render exception: {e!s}")
+                return ""
+
+        async def _upload_periodic_dynamic_or_static(formulas_: list) -> str:
+            """Prefer the formula-driven periodic GIF, then fall back to the static asset."""
+            try:
+                periodic_gif = _render_periodic_elements_gif(formulas_)
+                if periodic_gif and os.path.exists(periodic_gif):
+                    url = await _upload_database_pic_for_markdown(periodic_gif, "periodic_elements.gif")
+                    if url:
+                        return url
+            except Exception as e:
+                logger.exception(f"[PERIODIC_GIF] dynamic upload failed: {e!s}")
+
+            period_abs = os.path.join(_repo_root(), "public", "databasepic", "period.png")
+            if not os.path.exists(period_abs):
+                period_abs = os.path.join(
+                    _repo_root(),
+                    "src", "MNS_CaseHub", "cases", "material_discovery_demo",
+                    "results", "databasepic", "period.png",
+                )
+            return await _upload_database_pic_for_markdown(period_abs, "period.png")
+
         def _render_performance_bar_png(metric_rows: list, out_png_path: str):
             """绘制预期值 vs 当前值对比图（matplotlib 优先，PIL 兜底）。"""
             labels = [str(r.get("label", "")).strip() for r in (metric_rows or [])]
@@ -2029,10 +2095,7 @@ class Coding(Action):
                 )
 
             # 候选材料概览下方补充数据库周期图（右侧）
-            period_abs = os.path.join(_repo_root(), "public", "databasepic", "period.png")
-            if not os.path.exists(period_abs):
-                period_abs = os.path.join(_repo_root(), "src", "MNS_CaseHub", "cases", "material_discovery_demo", "results", "databasepic", "period.png")
-            period_url = await _upload_database_pic_for_markdown(period_abs, "period.png")
+            period_url = await _upload_periodic_dynamic_or_static(fs)
             if period_url:
                 await websocket.send_text(f"\n\n![候选材料周期分布示意]({period_url})\n")
             await _close_material_block("MATERIAL_SCREENING")
