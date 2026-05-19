@@ -67,6 +67,30 @@ def _repo_root() -> str:
 def _resolve_case_readme_path(case: dict) -> str:
     return _helpers_resolve_case_readme_path(case)
 
+_CURRENCY_SKIP_PATTERN = re.compile(r"(```.*?```|`[^`\n]*`|\$\$.*?\$\$)", re.DOTALL)
+
+def _normalize_currency_symbols_for_markdown(text: str) -> str:
+    """Avoid front-end confusion between currency dollars and LaTeX delimiters."""
+    if not isinstance(text, str) or "$" not in text:
+        return text
+
+    def _normalize_plain_segment(segment: str) -> str:
+        s = segment
+        s = re.sub(r"(人民币|RMB|CNY)\s*(?<!\\)\$\s*(\d+(?:\.\d+)?)", r"\2 CNY", s, flags=re.IGNORECASE)
+        s = re.sub(r"(美元|美金|USD)\s*(?<!\\)\$\s*(\d+(?:\.\d+)?)", r"\2 USD", s, flags=re.IGNORECASE)
+        s = re.sub(r"(人民币|RMB|CNY)\s*(?<!\\)\$", "CNY", s, flags=re.IGNORECASE)
+        s = re.sub(r"(美元|美金|USD)\s*(?<!\\)\$", "USD", s, flags=re.IGNORECASE)
+        s = re.sub(r"(?<!\\)\$\s*(\d+(?:\.\d+)?)", r"\1 USD", s)
+        s = re.sub(r"(\d+(?:\.\d+)?)\s*(?<!\\)\$(?=\s*(?:/|\)|，|,|。|；|;|\s|$))", r"\1 USD", s)
+        s = re.sub(r"(?<!\\)\$\s*(?=/)", "USD", s)
+        return s
+
+    parts = _CURRENCY_SKIP_PATTERN.split(text)
+    return "".join(
+        part if _CURRENCY_SKIP_PATTERN.fullmatch(part or "") else _normalize_plain_segment(part)
+        for part in parts
+    )
+
 load_dotenv()
 today = datetime.datetime.now().strftime("%Y%m%d")
 
@@ -208,7 +232,7 @@ class Coding(Action):
         if not websocket or content is None:
             return
         try:
-            await websocket.send_text(str(content))
+            await websocket.send_text(_normalize_currency_symbols_for_markdown(str(content)))
         except Exception:
             logger.exception("[WS] send_text failed")
 
@@ -312,7 +336,7 @@ class Coding(Action):
                     total_chars += len(chunk_msg)
 
                     if websocket and websocket.client_state.name == "CONNECTED":
-                        await websocket.send_text(chunk_msg)
+                        await websocket.send_text(_normalize_currency_symbols_for_markdown(chunk_msg))
                     elif websocket:
                         logger.warning("[LLM_Stream-LOG] WebSocket 已关闭，终止发送")
                         break
@@ -1997,6 +2021,7 @@ class Coding(Action):
                 "禁止使用“用户需要/用户希望/用户要求”等措辞。"
                 "禁止出现任何具体化学式、具体材料名称或已选候选结论（例如 Li6PS5Cl）。"
                 "语气严肃、工程化，不要夸张，不使用比喻。"
+                "涉及货币或成本单位时，禁止使用 $ 符号；美元写 USD，人民币写 CNY。"
                 f"\n用户输入：{str(user_context or '')}"
                 f"\n候选材料：{fs}"
             )
@@ -2030,6 +2055,7 @@ class Coding(Action):
                 "5) 禁止单元格内换行，所有内容保持单行。"
                 "严格要求：每一行“目标区间/阈值”必须给出带阿拉伯数字的数值或区间，并包含单位；"
                 "区间连接符必须使用中文“至”，严禁使用“~”或“～”，以避免前端误触发删除线渲染。"
+                "涉及货币或成本单位时，禁止使用 $ 符号；美元写 USD，人民币写 CNY；例如单位电导率成本 ≤ 0.5 USD/(S/cm·m^3)。"
                 "禁止出现“未明确/未获取/待定/unknown/待计算”等字样。"
                 "若输入不足，请给出工程常用默认阈值范围，不得留空。"
                 f"\n用户输入：{str(user_context or '')}"
@@ -2066,6 +2092,7 @@ class Coding(Action):
                 "最后1行：再给出本轮对应的具体化学式,在化学式前面加上自然语言过渡，如对应的化学式为。"
                 "严格要求：内容必须具备泛化性，不能写成只针对SSE的固定模板。"
                 "语气严肃、工程化，不使用比喻。"
+                "涉及货币或成本单位时，禁止使用 $ 符号；美元写 USD，人民币写 CNY。"
                 f"\n用户输入：{str(user_context or '')}"
                 f"\n本轮从材料需求抽象到的具体化学式为：{fs}"
             )
@@ -2126,6 +2153,7 @@ class Coding(Action):
                 "严格要求：表格只保留上述5个维度，不要额外添加“结论”行到表格里。"
                 "结论要求：表格结束后单独一行写：结论：仿真模拟阶段优先微观数据库，宏观数据库用于后验校核与工程修正。"
                 "语气严肃、客观，不使用比喻。"
+                "涉及货币或成本单位时，禁止使用 $ 符号；美元写 USD，人民币写 CNY。"
                 f"\n用户输入：{str(user_context or '')}"
             )
             try:
@@ -2164,6 +2192,7 @@ class Coding(Action):
                 "内容需要非常简短，说明：MP是开放材料数据库、规模较大、基于高通量第一性原理计算。"
                 "语言尽量通俗但要严肃，补一句这些字段和后续制备可行性、应用场景判断有什么关系，不要使用比喻，是面向成年人专家的解释。"
                 "最后一行说明本轮将提取的字段类型：结构（对称性/位点数）、热力学（E_above_hull/E_form）、电子结构（band_gap）。"
+                "涉及货币或成本单位时，禁止使用 $ 符号；美元写 USD，人民币写 CNY。"
                 f"当前材料：{str(formula_ or '')}。"
             )
             try:
