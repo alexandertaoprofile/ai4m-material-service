@@ -12,7 +12,7 @@ RUN pip config set global.index-url http://www.scien42.tech:20162 && \
       pip install --no-cache-dir -r requirements.txt --timeout 60 --trusted-host www.scien42.tech
 
 # 设置环境变量
-ENV PORT=20160
+ENV PORT=20161
 ENV base_url=
 # Expose port
 EXPOSE $PORT

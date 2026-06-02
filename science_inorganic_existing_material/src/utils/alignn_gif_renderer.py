@@ -9,10 +9,8 @@ from typing import Any
 
 from PIL import Image, ImageDraw, ImageFont
 
-ROOT = Path(
-    "/data/se42/alpha_project/alpha_material_sync/inorganic_existing_material/"
-    "src/MNS_CaseHub/cases/material_discovery_demo"
-)
+REPO_ROOT = Path(__file__).resolve().parents[2]
+ROOT = REPO_ROOT / "src/MNS_CaseHub/cases/material_discovery_demo"
 TEMPLATE = ROOT / "public/gif_templates/alignn_template.png"
 DEFAULT_JSON = (
     ROOT

@@ -1,4 +1,4 @@
-# inorganic_existing_material
+# science_inorganic_existing_material
 
 无机已有材料服务，面向“已有化学式 / 候选材料体系”的快速筛选、性质补全、结果解释与前端资产下发。
 

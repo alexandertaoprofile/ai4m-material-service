@@ -1,7 +1,7 @@
 docker run -d \
-       --name gang_team \
-       -e PORT=20160 \
-       -p 20160:20160 \
+       --name science_inorganic_existing_material \
+       -e PORT=20161 \
+       -p 20161:20161 \
        -e base_url=http://host.docker.internal:20166 \
        --add-host host.docker.internal:host-gateway \
-       gang_team:v1.0
+       science_inorganic_existing_material:v1.0

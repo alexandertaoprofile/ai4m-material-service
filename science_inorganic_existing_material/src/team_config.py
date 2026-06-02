@@ -2026,12 +2026,6 @@ class Coding(Action):
             # 以四级标题挂在前一块内容下，避免形成独立高层分块
             await websocket.send_text("\n\n#### 材料数据库检索说明\n\n")
 
-            # 检索说明下先展示 MP 数据库示意图（左侧）
-            mp_abs = _resolve_database_pic_path_external(_repo_root(), "mp.png")
-            mp_url = await _upload_database_pic_for_markdown(mp_abs, "mp.png")
-            if mp_url:
-                await websocket.send_text(f"![Materials Project 数据库示意图]({mp_url})\n\n")
-
             intro_prompt = (
                 "请输出3~5条中文分条内容，采用工程过程播报语气，不要表格、不要标题。"
                 "必须使用阿拉伯数字编号（1. 2. 3. ...）。"

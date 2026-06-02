@@ -77,7 +77,8 @@ class Config:
 
 
 def load_config() -> Config:
-    ai4m_root = Path(os.environ.get("AI4M_ROOT", "/home/ubuntu/se42/ai4m_tqm")).resolve()
+    default_root = Path(__file__).resolve().parents[4]
+    ai4m_root = Path(os.environ.get("AI4M_ROOT", str(default_root))).resolve()
     results_base = (ai4m_root / "src/MNS_CaseHub/cases/material_discovery_demo/results").resolve()
 
     inbox = results_base / "in-LS"
