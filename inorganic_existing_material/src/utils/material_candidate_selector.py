@@ -100,6 +100,7 @@ async def build_candidate_lists(
     }
     EXCLUDE_GAS_TOKENS = {"O2", "CO2", "N2", "H2", "H2O", "CO"}
     EXCLUDE_TECH_TOKENS = {"GC-MS", "GCMS", "XRD", "XPS", "SEM", "TEM", "EDS", "AFM", "FTIR", "RAMAN", "ALD", "CVD", "PVD", "PLD", "SPS"}
+    EXCLUDE_DOMAIN_TOKENS = {"PCB", "DBC", "LTCC", "HTCC", "IC", "IGBT", "CMP", "CTE", "DK", "DF", "RA", "TG"}
 
     def _norm_tok(t: str) -> str:
         return str(t or "").strip().replace("＋", "+")
@@ -115,7 +116,7 @@ async def build_candidate_lists(
         return bool(re.fullmatch(r"[A-Z]{2,8}", s))
 
     def _is_system_token(t: str) -> bool:
-        if not t or looks_like_formula(t) or not any(x in t for x in ["-", "+", "·", "/"]):
+        if not t or not any(x in t for x in ["-", "+", "·", "/"]):
             return False
         parts = [p.strip().strip("()").strip("（）").strip() for p in re.split(r"[\-\+·/]", str(t)) if str(p).strip()]
         if len(parts) < 2:
@@ -188,7 +189,7 @@ async def build_candidate_lists(
             v = str(summary.get(k) or "").strip()
             if not v:
                 continue
-            parts = [p.strip() for p in re.split(r"[\s,/+;，、]+", v) if p.strip()]
+            parts = [p.strip() for p in re.split(r"[\s,/+;；，、]+", v) if p.strip()]
             for p in parts:
                 p2 = to_ascii_formula(p)
                 if p2:
@@ -204,7 +205,7 @@ async def build_candidate_lists(
         if re.fullmatch(r"\d{1,2}:\d{2}(?::\d{2})?", s):
             return True
         s_up = s.upper()
-        if s_up in EXCLUDE_GAS_TOKENS or s_up in EXCLUDE_TECH_TOKENS:
+        if s_up in EXCLUDE_GAS_TOKENS or s_up in EXCLUDE_TECH_TOKENS or s_up in EXCLUDE_DOMAIN_TOKENS:
             return True
         if re.fullmatch(r"[A-Z]{2,}(?:-[A-Z0-9]{2,}){1,}", s):
             return True
@@ -219,6 +220,8 @@ async def build_candidate_lists(
         if "-" in s and len(s) >= 10:
             parts = [p for p in s.split("-") if p]
             if len(parts) >= 2:
+                if all(_is_chem_piece(p.strip()) for p in parts):
+                    return False
                 def _id_like_part(p: str) -> bool:
                     has_alpha = bool(re.search(r"[A-Za-z]", p))
                     has_digit = bool(re.search(r"\d", p))
@@ -272,14 +275,6 @@ async def build_candidate_lists(
                 dropped_tokens.append((t, f"abbr_mapped_non_mp_formula:{mapped}"))
             non_mp_notes.append(f"`{t}` 识别为材料缩写，仅在映射后参与 MP 检索。")
             continue
-        if looks_like_formula(t):
-            mp_formula = normalize_formula_for_mp(t) or t
-            if mp_formula not in mp_seen:
-                mp_tokens.append(mp_formula)
-                mp_seen.add(mp_formula)
-            if mp_formula != t:
-                non_mp_notes.append(f"`{t}` 已归一为 `{mp_formula}` 后参与 MP 检索。")
-            continue
         if _is_system_token(t):
             non_mp_notes.append(f"`{t}` 为体系/复合表达，仅用于展示，不直接参与 MP 检索。")
             exploded = _explode_system_to_mp_tokens(t)
@@ -289,6 +284,14 @@ async def build_candidate_lists(
                     mp_seen.add(_mp)
             if exploded:
                 non_mp_notes.append(f"`{t}` 已拆解为 {exploded} 参与 MP 检索。")
+            continue
+        if looks_like_formula(t):
+            mp_formula = normalize_formula_for_mp(t) or t
+            if mp_formula not in mp_seen:
+                mp_tokens.append(mp_formula)
+                mp_seen.add(mp_formula)
+            if mp_formula != t:
+                non_mp_notes.append(f"`{t}` 已归一为 `{mp_formula}` 后参与 MP 检索。")
             continue
         if _looks_like_hybrid_formula_notation(t):
             non_mp_notes.append(f"`{t}` 识别为混合有机-无机化学式记法，已保留展示并尝试提取无机骨架参与 MP。")
@@ -365,7 +368,7 @@ async def build_candidate_lists(
     mp_seen_strict = set()
     for _t in (mp_tokens or []):
         _tt = to_ascii_formula(str(_t or "")).strip()
-        if not looks_like_formula(_tt):
+        if _is_noise_token(_tt) or _is_system_token(_tt) or not looks_like_formula(_tt):
             continue
         _nf = normalize_formula_for_mp(_tt) or _tt
         if _nf not in mp_seen_strict:

@@ -1777,6 +1777,33 @@ class Coding(Action):
                 elements_set=_ELEMENTS,
             )
 
+        def _extract_inline_formula_tokens(text: str) -> list:
+            """
+            补充抽取：处理中文连续文本中夹带的化学式（如 SiC/AlN/BN）。
+            避免仅依赖 \\b 导致边界识别失败。
+            """
+            s = _to_ascii_formula(text or "")
+            if not s:
+                return []
+            out, seen = [], set()
+            for m in re.finditer(r"[A-Za-z][A-Za-z0-9₀₁₂₃₄₅₆₇₈₉]{1,24}", s):
+                tok = _to_ascii_formula(m.group(0)).strip()
+                if not tok:
+                    continue
+                if _is_primary_formula_token(tok) and tok not in seen:
+                    out.append(tok)
+                    seen.add(tok)
+            return out
+
+        def _is_primary_formula_token(tok: str) -> bool:
+            t = _to_ascii_formula(tok).strip()
+            if not t:
+                return False
+            domain_tokens = {"PCB", "DBC", "LTCC", "HTCC", "IC", "IGBT", "CMP", "CTE", "DK", "DF", "RA", "TG"}
+            if t.upper() in domain_tokens:
+                return False
+            return _looks_like_formula(t)
+
         def _extract_formulas_from_in_ls(repo_root: str) -> tuple:
             return _extract_formulas_from_in_ls_external(
                 repo_root=repo_root,
@@ -2361,10 +2388,20 @@ class Coding(Action):
         # =========================
         if True:
             raw_tokens = _extract_formulas_from_targets(formula_extract_text)
+            inline_tokens = _extract_inline_formula_tokens(formula_extract_text)
+            if inline_tokens:
+                raw_tokens = list(dict.fromkeys((raw_tokens or []) + inline_tokens))
+
+            has_primary_formula = any(_is_primary_formula_token(t) for t in (raw_tokens or []))
             in_ls_tokens, in_ls_summary = _extract_formulas_from_in_ls(_repo_root())
-            if in_ls_tokens:
-                # 合并第三来源，去重保持顺序
+            if has_primary_formula:
+                # 当前输入已包含明确化学式时，避免被历史 in-LS 结果“劫持”。
+                in_ls_tokens, in_ls_summary = [], {}
+                logger.info("[ROUTER] skip in-LS merge because primary formulas exist in current input")
+            elif in_ls_tokens:
+                # 仅在正文未抽到有效化学式时，回退使用 in-LS 结果
                 raw_tokens = list(dict.fromkeys((raw_tokens or []) + in_ls_tokens))
+                logger.info(f"[ROUTER] merged in-LS fallback tokens={in_ls_tokens}")
             formulas, mp_formulas, non_mp_notes, dropped_tokens = await _build_candidate_lists(
                 raw_tokens,
                 user_context=norm,

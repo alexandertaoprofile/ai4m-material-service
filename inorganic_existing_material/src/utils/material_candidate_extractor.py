@@ -11,6 +11,7 @@ def extract_formulas_from_targets(text: str, to_ascii_formula, looks_like_formul
     ABBR_HINT_TOKENS = {"LLZO", "LATP", "LAGP", "LPSCL", "LIPON", "NCM811", "LNMO", "LCO", "NCA"}
     EXCLUDE_GAS_TOKENS = {"O2", "CO2", "N2", "H2", "H2O", "CO"}
     EXCLUDE_TECH_TOKENS = {"GC-MS", "GCMS", "XRD", "XPS", "SEM", "TEM", "EDS", "AFM", "FTIR", "Raman", "ALD", "CVD", "PVD", "PLD", "SPS"}
+    EXCLUDE_DOMAIN_TOKENS = {"PCB", "DBC", "LTCC", "HTCC", "IC", "IGBT", "CMP", "CTE", "DK", "DF", "RA", "TG"}
 
     def _is_spacegroup_like(t: str) -> bool:
         return bool(re.fullmatch(r"[A-Z][a-z]?(?:-[0-9][a-z]?)?(?:/[a-z0-9]+)?", str(t or "").strip()))
@@ -30,7 +31,7 @@ def extract_formulas_from_targets(text: str, to_ascii_formula, looks_like_formul
         if re.fullmatch(r"\d{1,2}:\d{2}(?::\d{2})?", t):
             return True
         t_up = t.upper()
-        if t_up in EXCLUDE_GAS_TOKENS or t_up in EXCLUDE_TECH_TOKENS:
+        if t_up in EXCLUDE_GAS_TOKENS or t_up in EXCLUDE_TECH_TOKENS or t_up in EXCLUDE_DOMAIN_TOKENS:
             return True
         if re.fullmatch(r"[A-Z]{2,}(?:-[A-Z0-9]{2,}){1,}", t):
             return True
@@ -105,9 +106,23 @@ def extract_formulas_from_in_ls(repo_root: str, to_ascii_formula, looks_like_for
         if not s:
             return []
         out, seen_local = [], set()
+
+        def _looks_like_material_system(tok: str) -> bool:
+            t = to_ascii_formula(tok).strip()
+            if not t or not any(sep in t for sep in ("-", "+", "·", "/")):
+                return False
+            parts = [p.strip().strip("()（）[]{}") for p in re.split(r"[\-\+·/]", t) if p.strip()]
+            return len(parts) >= 2 and all(looks_like_formula(p) for p in parts)
+
         def _try_add(tok: str):
             t = to_ascii_formula(tok).strip().strip("()（）[]{}")
             if not t:
+                return
+            if _looks_like_material_system(t):
+                if t not in seen_local:
+                    out.append(t); seen_local.add(t)
+                for part in re.split(r"[\-\+·/]", t):
+                    _try_add(part)
                 return
             if looks_like_formula(t):
                 t2 = normalize_formula_for_mp(t) or t
@@ -117,6 +132,7 @@ def extract_formulas_from_in_ls(repo_root: str, to_ascii_formula, looks_like_for
             if re.search(r"(?i)(?:\bMA\b|\bFA\b|MA\d|FA\d)", t) and re.search(r"Pb", t):
                 if t not in seen_local:
                     out.append(t); seen_local.add(t)
+        _try_add(s)
         for m in re.finditer(r"[\(（]([^\)）]{1,200})[\)）]", s):
             for part in re.split(r"[\s,/+;，、]+", m.group(1)):
                 _try_add(part)
@@ -141,17 +157,49 @@ def extract_formulas_from_in_ls(repo_root: str, to_ascii_formula, looks_like_for
     try:
         root_obj = obj if isinstance(obj, dict) else {}
         st = root_obj.get("simulation_task") if isinstance(root_obj.get("simulation_task"), dict) else {}
-        for src in (root_obj, st):
+        scenario_tasks = []
+        for holder in (root_obj, st):
+            items = holder.get("scenario_tasks") if isinstance(holder, dict) else None
+            if isinstance(items, list):
+                scenario_tasks.extend([x for x in items if isinstance(x, dict)])
+
+        sources = [root_obj, st] + scenario_tasks
+        material_keys = (
+            "baseline_formula", "advanced_formula",
+            "baseline_material", "advanced_material",
+            "baseline_reason", "advanced_reason",
+        )
+        summary_lists = {
+            "baseline_material": [],
+            "advanced_material": [],
+            "baseline_reason": [],
+            "advanced_reason": [],
+        }
+
+        for src in sources:
             if isinstance(src, dict):
-                for k in ("baseline_material", "advanced_material", "baseline_reason", "advanced_reason"):
+                for k in material_keys:
                     v = src.get(k)
                     if isinstance(v, str) and v.strip():
                         tokens.extend(_extract_formula_candidates_from_material_label(v))
+                for k in summary_lists:
+                    v = src.get(k)
+                    if isinstance(v, str) and v.strip():
+                        summary_lists[k].append(v.strip())
+
+        def _first_or_join(root_key: str, st_key: str = None) -> str:
+            st_key = st_key or root_key
+            direct = str(root_obj.get(root_key) or st.get(st_key) or "").strip()
+            if direct:
+                return direct
+            vals = list(dict.fromkeys(summary_lists.get(root_key) or []))
+            return "；".join(vals)
+
         summary = {
-            "baseline_material": str(root_obj.get("baseline_material") or st.get("baseline_material") or "").strip(),
-            "advanced_material": str(root_obj.get("advanced_material") or st.get("advanced_material") or "").strip(),
-            "baseline_reason": str(root_obj.get("baseline_reason") or st.get("baseline_reason") or "").strip(),
-            "advanced_reason": str(root_obj.get("advanced_reason") or st.get("advanced_reason") or "").strip(),
+            "baseline_material": _first_or_join("baseline_material"),
+            "advanced_material": _first_or_join("advanced_material"),
+            "baseline_reason": _first_or_join("baseline_reason"),
+            "advanced_reason": _first_or_join("advanced_reason"),
         }
     except Exception as e:
         logger.warning(f"[IN_LS] parse json failed: {e!s}")
