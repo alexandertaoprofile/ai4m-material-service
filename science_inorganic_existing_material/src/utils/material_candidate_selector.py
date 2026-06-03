@@ -99,7 +99,7 @@ async def build_candidate_lists(
         "NCA": "NCA",
     }
     EXCLUDE_GAS_TOKENS = {"O2", "CO2", "N2", "H2", "H2O", "CO"}
-    EXCLUDE_TECH_TOKENS = {"GC-MS", "GCMS", "XRD", "XPS", "SEM", "TEM", "EDS", "AFM", "FTIR", "RAMAN", "ALD", "CVD", "PVD", "PLD", "SPS"}
+    EXCLUDE_TECH_TOKENS = {"GC-MS", "GCMS", "XRD", "XPS", "SEM", "TEM", "EDS", "AFM", "FTIR", "RAMAN", "ALD", "CVD", "PVD", "PLD", "SPS", "CNC"}
     EXCLUDE_DOMAIN_TOKENS = {"PCB", "DBC", "LTCC", "HTCC", "IC", "IGBT", "CMP", "CTE", "DK", "DF", "RA", "TG"}
 
     def _norm_tok(t: str) -> str:
@@ -192,7 +192,7 @@ async def build_candidate_lists(
             parts = [p.strip() for p in re.split(r"[\s,/+;；，、]+", v) if p.strip()]
             for p in parts:
                 p2 = to_ascii_formula(p)
-                if p2:
+                if p2 and (_is_system_token(p2) or looks_like_formula(p2)):
                     cands.append(p2)
         return list(dict.fromkeys(cands))
 

@@ -1432,137 +1432,6 @@ class Coding(Action):
                 logger=logger,
             )
 
-        def _render_performance_bar_png(metric_rows: list, out_png_path: str):
-            """绘制预期值 vs 当前值对比图（matplotlib 优先，PIL 兜底）。"""
-            labels = [str(r.get("label", "")).strip() for r in (metric_rows or [])]
-            expected_scores = [int(r.get("expected", 0) or 0) for r in (metric_rows or [])]
-            current_scores = [int(r.get("current", 0) or 0) for r in (metric_rows or [])]
-            states = [str(r.get("state", "Pending")) for r in (metric_rows or [])]
-
-            n = len(labels)
-            if n <= 0:
-                return
-
-            # 1) 首选 matplotlib
-            try:
-                import matplotlib
-                matplotlib.use("Agg")
-                import matplotlib.pyplot as plt
-                try:
-                    plt.rcParams["font.sans-serif"] = ["Noto Sans CJK SC", "Microsoft YaHei", "SimHei", "WenQuanYi Zen Hei", "DejaVu Sans"]
-                    plt.rcParams["axes.unicode_minus"] = False
-                except Exception:
-                    pass
-
-                fig_h = max(2.6, 0.8 * n + 1.6)
-                fig, ax = plt.subplots(figsize=(8.8, fig_h), dpi=160)
-                fig.patch.set_facecolor("#F8FAFD")
-                ax.set_facecolor("#F8FAFD")
-
-                x_pos = list(range(n))
-                w = 0.34
-                for i, x in enumerate(x_pos):
-                    exp_v = max(0, min(100, int(expected_scores[i])))
-                    cur_v = max(0, min(100, int(current_scores[i])))
-                    st = states[i]
-
-                    # Expected（基线）
-                    ax.bar(x - w / 2, exp_v, color="#D7DEED", edgecolor="#C8D2E6", width=w, label="Expected" if i == 0 else "")
-
-                    # Current（当前）
-                    if st == "Met":
-                        ax.bar(x + w / 2, cur_v, color="#5B6CFF", edgecolor="#4B5CF0", width=w, label="Current" if i == 0 else "")
-                    elif st == "Partially Met":
-                        ax.bar(x + w / 2, cur_v, color="#8A96FF", edgecolor="#5B6CFF", hatch="///", linewidth=0.8, width=w, label="Current" if i == 0 else "")
-                    else:
-                        ax.bar(x + w / 2, cur_v, color="#C3CBD9", edgecolor="#AEB7C7", width=w, label="Current" if i == 0 else "")
-
-                    ax.text(x + w / 2, min(cur_v + 2.5, 99.0), f"{st}\nE:{exp_v}% / C:{cur_v}%", va="bottom", ha="center", fontsize=8, color="#4B5568")
-
-                ax.set_xticks(x_pos)
-                ax.set_xticklabels(labels, fontsize=9, color="#3E4A5A", rotation=10, ha="right")
-                ax.set_ylim(0, 100)
-                ax.set_yticks([0, 20, 40, 60, 80, 100])
-                ax.tick_params(axis="y", labelsize=8, colors="#6A7382")
-                ax.grid(axis="y", color="#DEE5F0", linestyle="--", linewidth=0.6, alpha=0.8)
-                for sp in ["top", "right", "left", "bottom"]:
-                    ax.spines[sp].set_visible(False)
-
-                ax.set_title("Expected vs Current Performance Comparison", fontsize=11, color="#2F6FEF", pad=10, loc="left")
-                ax.legend(loc="upper right", frameon=False, fontsize=8)
-                plt.tight_layout()
-                fig.savefig(out_png_path, dpi=160)
-                plt.close(fig)
-                return
-            except Exception as e:
-                logger.warning(f"[PERF_BAR] matplotlib unavailable, fallback to PIL: {e!s}")
-
-            # 2) 回退 PIL
-            try:
-                from PIL import Image, ImageDraw, ImageFont
-
-                W = 1280
-                H = max(300, 110 + n * 90)
-                img = Image.new("RGB", (W, H), "#F8FAFD")
-                draw = ImageDraw.Draw(img)
-
-                try:
-                    font_title = ImageFont.truetype("DejaVuSans.ttf", 28)
-                    font_label = ImageFont.truetype("DejaVuSans.ttf", 22)
-                    font_text = ImageFont.truetype("DejaVuSans.ttf", 20)
-                except Exception:
-                    font_title = ImageFont.load_default()
-                    font_label = ImageFont.load_default()
-                    font_text = ImageFont.load_default()
-
-                draw.text((36, 24), "Expected vs Current Performance Comparison", fill="#2F6FEF", font=font_title)
-
-                # legend
-                draw.rectangle((900, 24, 930, 42), fill="#D7DEED", outline="#C8D2E6", width=1)
-                draw.text((938, 22), "Expected", fill="#4B5568", font=font_text)
-                draw.rectangle((1070, 24, 1100, 42), fill="#5B6CFF", outline="#4B5CF0", width=1)
-                draw.text((1108, 22), "Current", fill="#4B5568", font=font_text)
-
-                x_label = 36
-                x_bar = 430
-                bar_w = 700
-                y0 = 90
-                bar_h = 20
-
-                for i in range(n):
-                    y = y0 + i * 86
-                    label = labels[i]
-                    exp_v = max(0, min(100, int(expected_scores[i])))
-                    cur_v = max(0, min(100, int(current_scores[i])))
-                    state = states[i]
-
-                    draw.text((x_label, y + 2), label, fill="#3E4A5A", font=font_label)
-
-                    # Expected bar
-                    exp_w = int(bar_w * exp_v / 100)
-                    draw.rounded_rectangle((x_bar, y, x_bar + exp_w, y + bar_h), radius=10, fill="#D7DEED", outline="#C8D2E6", width=1)
-
-                    # Current bar
-                    cur_y = y + 28
-                    cur_w = int(bar_w * cur_v / 100)
-                    if cur_w > 0:
-                        if state == "Met":
-                            draw.rounded_rectangle((x_bar, cur_y, x_bar + cur_w, cur_y + bar_h), radius=10, fill="#5B6CFF", outline="#4B5CF0", width=1)
-                        elif state == "Partially Met":
-                            draw.rounded_rectangle((x_bar, cur_y, x_bar + cur_w, cur_y + bar_h), radius=10, fill="#8A96FF", outline="#5B6CFF", width=1)
-                            step = 8
-                            for xx in range(x_bar - bar_h, x_bar + cur_w + bar_h, step):
-                                draw.line((xx, cur_y + bar_h, xx + bar_h, cur_y), fill="#EDF0FF", width=2)
-                        else:
-                            draw.rounded_rectangle((x_bar, cur_y, x_bar + cur_w, cur_y + bar_h), radius=10, fill="#C3CBD9", outline="#AEB7C7", width=1)
-
-                    draw.text((x_bar + bar_w + 16, y + 12), f"{state}  E:{exp_v}% / C:{cur_v}%", fill="#4B5568", font=font_text)
-
-                img.save(out_png_path)
-            except Exception as e:
-                logger.exception(f"[PERF_BAR] PIL fallback failed: {e!s}")
-                raise
-
         # =========================
         # 1) 调试：入口日志
         # =========================
@@ -2072,10 +1941,59 @@ class Coding(Action):
                     "3. 结果用于候选排序与工艺方向参考，不替代最终实验标定。\n\n"
                 )
 
-        async def _stream_final_requirement_summary(formulas_: list, mp_ready_: list, user_context: str = "", final_metrics: dict = None):
-            """目标-结果对照收敛：基于真实计算值输出，不使用泛化项。"""
-            await _open_material_block("MATERIAL_SCREENING")
-            await websocket.send_text("\n\n### 材料性能目标结果对比\n\n")
+        def _infer_requirement_focus(user_context: str) -> list:
+            """从上游需求文本中抽取本轮需要优先解释的工程关注点。"""
+            txt = str(user_context or "").lower()
+            checks = [
+                (
+                    "thermal",
+                    "散热/热管理",
+                    ["导热", "散热", "热管理", "热流", "thermal", "heat", "cooling"],
+                    "本轮未直接得到热导率/界面热阻，需补充热导率、热扩散率和界面热阻测试。",
+                ),
+                (
+                    "cte",
+                    "热膨胀匹配",
+                    ["热膨胀", "cte", "热应力", "界面开裂", "热失配"],
+                    "本轮未直接得到 CTE，需补充热膨胀系数和热循环界面可靠性验证。",
+                ),
+                (
+                    "mechanical",
+                    "力学可靠性",
+                    ["力学", "强度", "应力", "应变", "疲劳", "刚度", "硬度", "可靠性", "mechanical"],
+                    "需补充疲劳寿命、断裂韧性和实际结构件循环载荷测试。",
+                ),
+                (
+                    "electronic",
+                    "绝缘/电子窗口",
+                    ["绝缘", "介电", "击穿", "带隙", "电压", "漏电", "band", "dielectric"],
+                    "需结合工作电压窗口、界面反应和击穿强度做联合评估。",
+                ),
+                (
+                    "manufacturing",
+                    "成本/加工集成",
+                    ["成本", "量产", "加工", "成型", "集成", "装配", "公差", "制造"],
+                    "成本、良率和加工窗口不属于本轮 MP/ALIGNN 直接输出，需工艺与供应链侧补充。",
+                ),
+                (
+                    "transport",
+                    "传输/扩散潜力",
+                    ["电导", "扩散", "迁移", "离子", "输运", "transport", "diffusion"],
+                    "导电/扩散代理值仅能排序，需 EIS、迁移数或扩散系数实测闭环。",
+                ),
+            ]
+            focus = []
+            for code, label, keys, gap in checks:
+                if any(k in txt for k in keys):
+                    focus.append({"code": code, "label": label, "gap": gap})
+            if not focus:
+                focus = [
+                    {"code": "stability", "label": "稳定性初筛", "gap": "需结合应用温度、气氛和化学势边界做二次验证。"},
+                    {"code": "mechanical", "label": "基础力学支撑", "gap": "需补充实际工况下的力学可靠性测试。"},
+                ]
+            return focus
+
+        def _build_metric_rows(final_metrics: dict) -> list:
             m = final_metrics if isinstance(final_metrics, dict) else {}
             eh = m.get("e_above_hull")
             fe = m.get("formation_energy")
@@ -2103,63 +2021,168 @@ class Coding(Action):
             )
             sat_trans = _sat(isinstance(cond, float) and cond >= 0.2, partial=isinstance(cond, float))
 
-            def _score_label(sat: str):
-                if sat == "满足":
-                    return "Met"
-                if sat == "部分满足":
-                    return "Partially Met"
-                return "Pending"
+            return [
+                {
+                    "code": "stability",
+                    "label": "热力学稳定性窗口",
+                    "proxy": "E_above_hull / 形成能",
+                    "result": f"E_hull={_sf(eh)} eV/atom；E_form={_sf(fe)} eV/atom",
+                    "sat": sat_stab,
+                    "next": "需结合应用温度、气氛和化学势边界做二次验证",
+                    "chart": "Thermodynamic Stability",
+                    "detail": f"E_hull={_sf(eh)} eV/atom，E_form={_sf(fe)} eV/atom",
+                },
+                {
+                    "code": "electronic",
+                    "label": "电子绝缘与窗口边界",
+                    "proxy": "带隙 band_gap",
+                    "result": f"band_gap={_sf(bg)} eV",
+                    "sat": sat_bg,
+                    "next": "需与工作电压窗口、击穿强度和界面副反应联合评估",
+                    "chart": "Electronic Window",
+                    "detail": f"band_gap={_sf(bg)} eV",
+                },
+                {
+                    "code": "mechanical",
+                    "label": "机械支撑与成形风险",
+                    "proxy": "体积模量/剪切模量/硬度估算",
+                    "result": f"K={_sf(bulk)} GPa；G={_sf(shear)} GPa；Hv≈{_sf(hard)} GPa",
+                    "sat": sat_mech,
+                    "next": "需补充致密化、断裂韧性、疲劳寿命和循环后裂纹演化测试",
+                    "chart": "Mechanical Reliability",
+                    "detail": f"K={_sf(bulk)} GPa，G={_sf(shear)} GPa，Hv≈{_sf(hard)} GPa",
+                },
+                {
+                    "code": "transport",
+                    "label": "传输潜力代理",
+                    "proxy": "导电/扩散相关量（粗略）",
+                    "result": f"proxy={_sf(cond)}（无量纲）",
+                    "sat": sat_trans,
+                    "next": "仅用于排序，需 EIS、迁移测试或扩散系数实测给出定量值",
+                    "chart": "Transport Potential",
+                    "detail": f"transport proxy={_sf(cond)}",
+                },
+            ]
 
-            def _expected_current_pair(sat: str):
-                # 预期值固定基准，当前值按满足度做相对高低
-                base_expected = 72
-                if sat == "满足":
-                    return base_expected, min(100, base_expected + 10)
-                if sat == "部分满足":
-                    return base_expected, base_expected + 1
-                return base_expected, max(0, base_expected - 12)
+        def _ordered_metric_rows(rows: list, focus: list) -> list:
+            priority = []
+            focus_codes = [f.get("code") for f in focus if isinstance(f, dict)]
+            if "thermal" in focus_codes or "cte" in focus_codes:
+                priority.extend(["stability", "mechanical"])
+            for code in focus_codes:
+                if code in {"stability", "electronic", "mechanical", "transport"}:
+                    priority.append(code)
+            priority.extend(["stability", "electronic", "mechanical", "transport"])
+            rank = {code: idx for idx, code in enumerate(dict.fromkeys(priority))}
+            return sorted(rows, key=lambda r: rank.get(r.get("code"), 999))
 
-            l_stab = _score_label(sat_stab)
-            l_bg = _score_label(sat_bg)
-            l_mech = _score_label(sat_mech)
-            l_trans = _score_label(sat_trans)
+        def _build_final_decision_summary(formulas_: list, mp_ready_: list, user_context: str, final_metrics: dict, rows: list, focus: list) -> str:
+            selected = (mp_ready_ or formulas_ or [""])[0] if isinstance((mp_ready_ or formulas_ or [""]), list) else ""
+            selected = str(selected or "当前候选材料")
+            m = final_metrics if isinstance(final_metrics, dict) else {}
+            try:
+                pf = self._formula_profile(selected)
+                selected_name = pf.get("中文名称") or selected
+            except Exception:
+                selected_name = selected
 
-            e_stab, c_stab = _expected_current_pair(sat_stab)
-            e_bg, c_bg = _expected_current_pair(sat_bg)
-            e_mech, c_mech = _expected_current_pair(sat_mech)
-            e_trans, c_trans = _expected_current_pair(sat_trans)
+            focus_labels = [f.get("label") for f in focus if isinstance(f, dict) and f.get("label")]
+            focus_text = "、".join(dict.fromkeys(focus_labels)) if focus_labels else "材料稳定性与工程可行性"
 
+            row_by_code = {r.get("code"): r for r in rows if isinstance(r, dict)}
+
+            def _row_result(code: str) -> str:
+                r = row_by_code.get(code) or {}
+                return str(r.get("result") or "本轮未直接计算")
+
+            def _row_sat(code: str) -> str:
+                r = row_by_code.get(code) or {}
+                return str(r.get("sat") or "待补充")
+
+            def _coverage_for_focus(item: dict) -> tuple:
+                code = item.get("code")
+                gap = item.get("gap") or "需补充应用工况下的验证数据。"
+                if code == "thermal":
+                    return ("间接覆盖", _row_result("stability") + "；" + _row_result("mechanical"), gap)
+                if code == "cte":
+                    return ("未直接覆盖", "本轮未输出 CTE；可参考稳定性与机械刚度作为先验风险判断", gap)
+                if code == "mechanical":
+                    return (_row_sat("mechanical"), _row_result("mechanical"), gap)
+                if code == "electronic":
+                    return (_row_sat("electronic"), _row_result("electronic"), gap)
+                if code == "manufacturing":
+                    return ("未直接覆盖", "本轮不计算成本、良率、加工窗口或装配公差", gap)
+                if code == "transport":
+                    return (_row_sat("transport"), _row_result("transport"), gap)
+                return ("部分覆盖", _row_result("stability"), gap)
+
+            lines = [
+                "### 本轮验证与计算结果",
+                "",
+                f"候选材料：`{selected}`（{selected_name}）",
+                "",
+                f"上游重点需求：**{focus_text}**",
+                "",
+                "#### 1. 本轮已经验证/计算了什么",
+                "",
+                "| 项目 | 状态 | 本轮证据 | 作用 |",
+                "|---|---|---|---|",
+            ]
+            mid = m.get("material_id")
+            if mid:
+                lines.append(f"| 数据库结构命中 | 已完成 | Materials Project 候选ID：`{mid}` | 说明该候选有可用于性质补全的已有结构 |")
+            for row in rows:
+                lines.append(
+                    f"| {row.get('label')} | {row.get('sat')} | {row.get('result')} | {row.get('next')} |"
+                )
+
+            lines.append("")
+            lines.append("#### 2. 上游需求覆盖情况")
+            lines.append("")
+            lines.append("| 上游需求 | 本轮覆盖程度 | 已有证据 | 还需要补什么 |")
+            lines.append("|---|---|---|---|")
+            for item in focus:
+                if not isinstance(item, dict):
+                    continue
+                status, evidence, gap = _coverage_for_focus(item)
+                lines.append(f"| {item.get('label')} | {status} | {evidence} | {gap} |")
+
+            lines.append("")
+            lines.append("#### 3. 补充建议")
+            lines.append("")
+            advice = []
+            focus_codes = {f.get("code") for f in focus if isinstance(f, dict)}
+            if "thermal" in focus_codes or "cte" in focus_codes:
+                advice.append("优先补充热导率、热扩散率、CTE、界面热阻和热循环后界面完整性数据。")
+            if "mechanical" in focus_codes:
+                advice.append("补充断裂韧性、疲劳寿命和实际结构件循环载荷测试，避免仅凭模量判断服役可靠性。")
+            if "electronic" in focus_codes:
+                advice.append("补充击穿强度、介电损耗和工作电压窗口，确认绝缘边界是否满足目标工况。")
+            if "manufacturing" in focus_codes:
+                advice.append("补充加工路线、成型良率、连接方式和成本区间，判断该候选是否能进入量产方案。")
+            if not advice:
+                advice.append("保留该候选进入下一轮验证，并补充应用工况下的关键实验指标。")
+            for idx, text in enumerate(advice, start=1):
+                lines.append(f"{idx}. {text}")
+
+            lines.append("")
+            lines.append("本轮结论：该候选已经完成已有数据库命中与基础性质补全，可作为下一轮验证对象；最终选型应以后续补充的应用性能数据为准。")
+            return "\n".join(lines) + "\n\n"
+
+        async def _stream_final_requirement_summary(formulas_: list, mp_ready_: list, user_context: str = "", final_metrics: dict = None):
+            """目标-结果对照收敛：基于真实计算值输出，并结合上游需求生成结论。"""
+            await _open_material_block("MATERIAL_SCREENING")
+            await websocket.send_text("\n\n### 材料性能目标结果对比\n\n")
+            focus = _infer_requirement_focus(user_context)
+            rows = _ordered_metric_rows(_build_metric_rows(final_metrics), focus)
             await websocket.send_text("| 宏观目标项 | 对应微观代理指标 | 本轮结果 | 满足度 | 不确定性与下一步 |\n")
             await websocket.send_text("|---|---|---|---|---|\n")
-            await websocket.send_text(
-                f"| 热力学稳定性窗口 | E_above_hull / 形成能 | E_hull={_sf(eh)} eV/atom；E_form={_sf(fe)} eV/atom | {sat_stab} | 需结合温度/化学势边界做二次验证 |\n"
-            )
-            await websocket.send_text(
-                f"| 电子绝缘与窗口边界 | 带隙 band_gap | band_gap={_sf(bg)} eV | {sat_bg} | 需与工作电压窗口和界面副反应联合评估 |\n"
-            )
-            await websocket.send_text(
-                f"| 机械支撑与成形风险 | 体积模量/剪切模量/硬度估算 | K={_sf(bulk)} GPa；G={_sf(shear)} GPa；Hv≈{_sf(hard)} GPa | {sat_mech} | 需压片致密化与循环后裂纹演化测试 |\n"
-            )
-            await websocket.send_text(
-                f"| 传输潜力代理 | 导电/扩散相关量（粗略） | proxy={_sf(cond)}（无量纲） | {sat_trans} | 仅用于排序，需EIS/迁移测试给出实测值 |\n\n"
-            )
-
-            # 画英文PNG柱状图，避免HTML直出与中文字体乱码
-            try:
-                perf_rows = [
-                    {"label": "Thermodynamic Stability", "expected": e_stab, "current": c_stab, "state": l_stab},
-                    {"label": "Electronic Window", "expected": e_bg, "current": c_bg, "state": l_bg},
-                    {"label": "Mechanical Reliability", "expected": e_mech, "current": c_mech, "state": l_mech},
-                    {"label": "Transport Potential", "expected": e_trans, "current": c_trans, "state": l_trans},
-                ]
-                perf_abs = f"/tmp/perf_satisfaction_{str(taskid).replace('/', '_')}.png"
-                _render_performance_bar_png(perf_rows, perf_abs)
-                perf_url = await _upload_database_pic_for_markdown(perf_abs, "performance_satisfaction.png")
-                if perf_url:
-                    await websocket.send_text("#### 性能满足度对比\n\n")
-                    await websocket.send_text(f"![性能满足度对比]({perf_url})\n\n")
-            except Exception as e:
-                logger.exception(f"[PERF_BAR] render/upload failed: {e!s}")
+            for row in rows:
+                await websocket.send_text(
+                    f"| {row['label']} | {row['proxy']} | {row['result']} | {row['sat']} | {row['next']} |\n"
+                )
+            await websocket.send_text("\n")
+            await websocket.send_text(_build_final_decision_summary(formulas_, mp_ready_, user_context, final_metrics, rows, focus))
             await _close_material_block("MATERIAL_SCREENING")
 
         async def _stream_final_li6ps5cl_bridge(formulas_: list):
@@ -2472,8 +2495,8 @@ class Coding(Action):
                 # 最终需求对照总结（右侧）
                 await _stream_final_requirement_summary(formulas, mp_ready_formulas, user_context=norm, final_metrics=selected_metrics)
 
-                # 左侧：流程完成播报
-                await websocket.send_text("\n材料模拟与计算模块完成，本服务已结束，正在接入下一流程。\n")
+                # 左侧：流程完成播报，具体选型结论已在右侧结果区输出
+                await websocket.send_text("\n本轮材料模拟与需求对照已完成，具体初筛结论和待补充验证项已写入右侧结果区，正在接入下一流程。\n")
                 return
 
             await _ensure_material_progress_started()
@@ -2502,9 +2525,7 @@ class XIMUAlpha_MNS(Role):
     profile: str = (
     "无机已有材料检索与性质补全专用智能体。"
     "定位：面向无机晶体/陶瓷/玻璃类材料的已有材料检索、性质补全与工程化解释。"
-    "输入前提：必须已完成文献筛选，并提供候选化学式或候选材料列表。"
     "职责边界：仅执行已有无机材料数据库检索、结构与性质补全、候选排序与结果整理；"
-    "不负责文献再筛选、不负责材料制备流程、不负责实验执行。"
     "完成判据：当候选材料表、关键性质参数与可视化资源索引已输出时，本服务即结束。"
     "路由建议：本服务结束后应优先转入“材料制备模块”或“性能检测与结果对比模块”；"
     "除非上游重新提供新的候选化学式，否则不应再次调用本服务。"

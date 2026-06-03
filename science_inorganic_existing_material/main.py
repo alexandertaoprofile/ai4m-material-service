@@ -16,10 +16,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi import FastAPI, WebSocket, HTTPException, WebSocketDisconnect, File, UploadFile, Form
 
-# 加载 .env 文件
-load_dotenv()
-# 读取环境变量
-PORT = os.getenv('PORT')
+BASE_DIR = Path(__file__).resolve().parent
+
+# Always load the service-local .env, even when launched from another cwd/tmux.
+load_dotenv(BASE_DIR / ".env")
+PORT = int(os.getenv("PORT", "1111"))
 # 设置静态文件目录
 def setup_science_backend_logger():
     """Set up science_backend logger with automatic log rotation"""
@@ -248,4 +249,4 @@ def read_root():
 
 
 if __name__ == "__main__":
-    uvicorn.run(app='main:app', host="0.0.0.0", port=int(PORT), reload=False)
+    uvicorn.run(app='main:app', host="0.0.0.0", port=PORT, reload=False)

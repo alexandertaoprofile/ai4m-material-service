@@ -10,7 +10,7 @@ def extract_formulas_from_targets(text: str, to_ascii_formula, looks_like_formul
 
     ABBR_HINT_TOKENS = {"LLZO", "LATP", "LAGP", "LPSCL", "LIPON", "NCM811", "LNMO", "LCO", "NCA"}
     EXCLUDE_GAS_TOKENS = {"O2", "CO2", "N2", "H2", "H2O", "CO"}
-    EXCLUDE_TECH_TOKENS = {"GC-MS", "GCMS", "XRD", "XPS", "SEM", "TEM", "EDS", "AFM", "FTIR", "Raman", "ALD", "CVD", "PVD", "PLD", "SPS"}
+    EXCLUDE_TECH_TOKENS = {"GC-MS", "GCMS", "XRD", "XPS", "SEM", "TEM", "EDS", "AFM", "FTIR", "Raman", "ALD", "CVD", "PVD", "PLD", "SPS", "CNC"}
     EXCLUDE_DOMAIN_TOKENS = {"PCB", "DBC", "LTCC", "HTCC", "IC", "IGBT", "CMP", "CTE", "DK", "DF", "RA", "TG"}
 
     def _is_spacegroup_like(t: str) -> bool:
@@ -100,6 +100,7 @@ def extract_formulas_from_in_ls(repo_root: str, to_ascii_formula, looks_like_for
     in_ls_dir = os.path.join(repo_root, "src", "MNS_CaseHub", "cases", "material_discovery_demo", "results", "in-LS")
     if not os.path.isdir(in_ls_dir):
         return [], {}
+    exclude_inls_tokens = {"CNC", "PCB", "DBC", "LTCC", "HTCC", "IC", "IGBT", "CMP", "CTE", "DK", "DF", "RA", "TG"}
 
     def _extract_formula_candidates_from_material_label(label: str) -> list:
         s = to_ascii_formula(str(label or "")).strip()
@@ -117,6 +118,8 @@ def extract_formulas_from_in_ls(repo_root: str, to_ascii_formula, looks_like_for
         def _try_add(tok: str):
             t = to_ascii_formula(tok).strip().strip("()（）[]{}")
             if not t:
+                return
+            if t.upper() in exclude_inls_tokens:
                 return
             if _looks_like_material_system(t):
                 if t not in seen_local:
