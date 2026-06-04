@@ -101,12 +101,33 @@ def extract_formulas_from_in_ls(repo_root: str, to_ascii_formula, looks_like_for
     if not os.path.isdir(in_ls_dir):
         return [], {}
     exclude_inls_tokens = {"CNC", "PCB", "DBC", "LTCC", "HTCC", "IC", "IGBT", "CMP", "CTE", "DK", "DF", "RA", "TG"}
+    polymer_composite_hints = {
+        "PA", "PA6", "PA12", "PLA", "ABS", "PETG", "TPU", "PEEK", "PEKK", "PEI", "PC", "PPS", "PPSU",
+        "CF", "SCF", "LCF", "CFRP", "GFRP", "GF", "CNT", "CARBON", "NYLON",
+    }
 
     def _extract_formula_candidates_from_material_label(label: str) -> list:
         s = to_ascii_formula(str(label or "")).strip()
         if not s:
             return []
         out, seen_local = [], set()
+
+        def _looks_like_polymer_composite_label(tok: str) -> bool:
+            up = re.sub(r"\s+", "", str(tok or "").upper())
+            if not up:
+                return False
+            if not any(sep in up for sep in ("-", "/", "+")):
+                return up in polymer_composite_hints or bool(re.fullmatch(r"(?:SCF|LCF|CF|GF)?PA\d{1,2}", up))
+            parts = [p for p in re.split(r"[\-/+·]", up) if p]
+            if len(parts) < 2:
+                return False
+            hits = 0
+            for p in parts:
+                if p in polymer_composite_hints or re.fullmatch(r"(?:SCF|LCF|CF|GF)?PA\d{1,2}", p):
+                    hits += 1
+                elif re.fullmatch(r"(?:[A-Z]{1,4})?CF", p) or p in {"C", "CARBONFIBER", "CARBONFIBRE"}:
+                    hits += 1
+            return hits >= 1 and any(p in polymer_composite_hints or re.fullmatch(r"(?:SCF|LCF|CF|GF)?PA\d{1,2}", p) for p in parts)
 
         def _looks_like_material_system(tok: str) -> bool:
             t = to_ascii_formula(tok).strip()
@@ -120,6 +141,10 @@ def extract_formulas_from_in_ls(repo_root: str, to_ascii_formula, looks_like_for
             if not t:
                 return
             if t.upper() in exclude_inls_tokens:
+                return
+            if _looks_like_polymer_composite_label(t):
+                if t not in seen_local:
+                    out.append(t); seen_local.add(t)
                 return
             if _looks_like_material_system(t):
                 if t not in seen_local:

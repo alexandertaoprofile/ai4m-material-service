@@ -101,6 +101,10 @@ async def build_candidate_lists(
     EXCLUDE_GAS_TOKENS = {"O2", "CO2", "N2", "H2", "H2O", "CO"}
     EXCLUDE_TECH_TOKENS = {"GC-MS", "GCMS", "XRD", "XPS", "SEM", "TEM", "EDS", "AFM", "FTIR", "RAMAN", "ALD", "CVD", "PVD", "PLD", "SPS", "CNC"}
     EXCLUDE_DOMAIN_TOKENS = {"PCB", "DBC", "LTCC", "HTCC", "IC", "IGBT", "CMP", "CTE", "DK", "DF", "RA", "TG"}
+    POLYMER_COMPOSITE_HINTS = {
+        "PA", "PA6", "PA12", "PLA", "ABS", "PETG", "TPU", "PEEK", "PEKK", "PEI", "PC", "PPS", "PPSU",
+        "CF", "SCF", "LCF", "CFRP", "GFRP", "GF", "CNT", "CARBON", "NYLON",
+    }
 
     def _norm_tok(t: str) -> str:
         return str(t or "").strip().replace("＋", "+")
@@ -123,6 +127,24 @@ async def build_candidate_lists(
             return False
         chem_hits = sum(1 for p in parts if _is_chem_piece(p))
         return chem_hits >= 2
+
+    def _is_polymer_composite_token(t: str) -> bool:
+        s = str(t or "").strip()
+        if not s:
+            return False
+        up = re.sub(r"\s+", "", s.upper())
+        if not any(sep in up for sep in ("-", "/", "+")):
+            return up in POLYMER_COMPOSITE_HINTS or bool(re.fullmatch(r"(?:SCF|LCF|CF|GF)?PA\d{1,2}", up))
+        parts = [p for p in re.split(r"[\-/+·]", up) if p]
+        if len(parts) < 2:
+            return False
+        hits = 0
+        for p in parts:
+            if p in POLYMER_COMPOSITE_HINTS or re.fullmatch(r"(?:SCF|LCF|CF|GF)?PA\d{1,2}", p):
+                hits += 1
+            elif re.fullmatch(r"(?:[A-Z]{1,4})?CF", p) or p in {"C", "CARBONFIBER", "CARBONFIBRE"}:
+                hits += 1
+        return hits >= 1 and any(p in POLYMER_COMPOSITE_HINTS or re.fullmatch(r"(?:SCF|LCF|CF|GF)?PA\d{1,2}", p) for p in parts)
 
     def _looks_like_hybrid_formula_notation(t: str) -> bool:
         s = to_ascii_formula(str(t or "").strip())
@@ -248,6 +270,11 @@ async def build_candidate_lists(
         nt = _norm_tok(t)
         if not nt:
             continue
+        if _is_polymer_composite_token(nt):
+            if nt not in seen:
+                display_tokens.append(nt)
+                seen.add(nt)
+            continue
         if _is_noise_token(nt):
             dropped_tokens.append((nt, "noise_token"))
             continue
@@ -274,6 +301,9 @@ async def build_candidate_lists(
             elif mapped not in mp_seen:
                 dropped_tokens.append((t, f"abbr_mapped_non_mp_formula:{mapped}"))
             non_mp_notes.append(f"`{t}` 识别为材料缩写，仅在映射后参与 MP 检索。")
+            continue
+        if _is_polymer_composite_token(t):
+            non_mp_notes.append(f"`{t}` 识别为聚合物/纤维增强复合耗材体系，仅用于工程筛选，不进入 MP/ALIGNN。")
             continue
         if _is_system_token(t):
             non_mp_notes.append(f"`{t}` 为体系/复合表达，仅用于展示，不直接参与 MP 检索。")
@@ -339,6 +369,8 @@ async def build_candidate_lists(
         except Exception:
             pass
         for lt in locked_tokens:
+            if _is_polymer_composite_token(lt):
+                continue
             if looks_like_formula(lt):
                 nlt = normalize_formula_for_mp(lt) or lt
                 if nlt not in mp_tokens:
@@ -352,6 +384,8 @@ async def build_candidate_lists(
         rebuilt_mp = []
         rebuilt_seen = set()
         for _d in (display_tokens or []):
+            if _is_polymer_composite_token(_d):
+                continue
             for _m in _explode_system_to_mp_tokens(_d):
                 if _m not in rebuilt_seen:
                     rebuilt_mp.append(_m)
@@ -368,7 +402,7 @@ async def build_candidate_lists(
     mp_seen_strict = set()
     for _t in (mp_tokens or []):
         _tt = to_ascii_formula(str(_t or "")).strip()
-        if _is_noise_token(_tt) or _is_system_token(_tt) or not looks_like_formula(_tt):
+        if _is_polymer_composite_token(_tt) or _is_noise_token(_tt) or _is_system_token(_tt) or not looks_like_formula(_tt):
             continue
         _nf = normalize_formula_for_mp(_tt) or _tt
         if _nf not in mp_seen_strict:

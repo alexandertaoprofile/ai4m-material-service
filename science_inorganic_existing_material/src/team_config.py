@@ -4,7 +4,9 @@ import re
 import sys
 import asyncio
 import glob
+import html
 import json
+import math
 import uuid
 import datetime
 from typing import Optional
@@ -452,54 +454,42 @@ class Coding(Action):
             "应用角色": "待筛选候选相",
         }
 
-    async def _material_alignn_placeholder_stage(self, websocket, formula: str, llm=None):
+    async def _material_alignn_placeholder_stage(self, websocket, formula: str, llm=None, user_context: str = ""):
         """兼容旧调用名，实际已接入 ALIGNN 补全。"""
-        return await self._material_alignn_completion_stage(websocket, formula, llm=llm)
+        return await self._material_alignn_completion_stage(websocket, formula, llm=llm, user_context=user_context)
 
 
-    async def _material_alignn_completion_stage(self, websocket, formula: str, llm=None):
+    async def _material_alignn_completion_stage(self, websocket, formula: str, llm=None, user_context: str = ""):
         """
         MP-first + ALIGNN completion + proxy ranking
         - 优先使用 MP 字段
         - 缺失时用 ALIGNN 补 formation_energy / band_gap / bulk / shear
-        - 生成 hardness proxy、conductivity/diffusion proxy 和候选排序
+        - 按上文需求生成 hardness / thermal / dielectric / transport proxies
         """
         async def _stream_table_header_once():
             await websocket.send_text("\n")
-            await websocket.send_text("| 性质项 | 数值 | 单位 | 来源 | 可信度 | 应用解读 |\n")
-            await websocket.send_text("|---|---:|---|---|---|---|\n")
+            await websocket.send_text("| 项目 | 状态 | 本轮证据 | 来源 | 可信度 | 作用 |\n")
+            await websocket.send_text("|---|---|---|---|---|---|\n")
 
-        async def _stream_property_row(name: str, value, unit: str, source: str, confidence: str, hint: str, nd: int = 4, confidence_note: str = ""):
+        async def _stream_property_row(name: str, status: str, evidence: str, source_confidence: str, role: str):
+            source_text = str(source_confidence or "").strip()
+            confidence_text = ""
+            if "；" in source_text:
+                source_text, confidence_text = [x.strip() for x in source_text.rsplit("；", 1)]
+            elif ";" in source_text:
+                source_text, confidence_text = [x.strip() for x in source_text.rsplit(";", 1)]
+            if not confidence_text:
+                confidence_text = "待补充"
+            await websocket.send_text(f"| {name} | {status} | {evidence} | {source_text} | {confidence_text} | {role} |\n")
+
+        def _fmt_value(value, unit: str = "", nd: int = 4):
             if isinstance(value, float):
-                value_text = f"{value:.{nd}f}"
+                text = f"{value:.{nd}f}"
             elif value is None:
-                value_text = "待计算"
+                text = "待补充"
             else:
-                value_text = str(value)
-
-            hint_text = str(hint or "").strip()
-            conf_text = str(confidence_note or "").strip()
-            if conf_text:
-                hint_text = f"{hint_text}（{conf_text}）" if hint_text else conf_text
-
-            row_text = f"| {name} | {value_text} | {unit} | {source} | {confidence} | {hint_text} |"
-
-            # 使用现有 LLM 流式链路输出表格行（不直接 send_text）
-            # 说明：此处以“效果优先”为目标，先不做严格格式兜底
-            if llm is not None:
-                row_prompt = (
-                    "请原样输出以下这一行 Markdown 表格内容，不要添加任何解释或额外字符。\n"
-                    f"{row_text}"
-                )
-                await self._stream_llm_response(
-                    llm,
-                    [llm._default_system_msg(), llm._user_msg(row_prompt)],
-                    websocket,
-                )
-                await websocket.send_text("\n")
-            else:
-                # 兜底：无 llm 时回退原有直发
-                await websocket.send_text(row_text + "\n")
+                text = str(value)
+            return f"{text} {unit}".strip()
 
         def _source_confidence(raw_source: str, fallback_source: str = "模型预测/数据库值", fallback_conf: str = "中") -> tuple:
             src_v = str(raw_source or "")
@@ -509,12 +499,181 @@ class Coding(Action):
                 return "MP数据库第一性原理结果", "高"
             return fallback_source, fallback_conf
 
+        def _invalidate_nonpositive_physical_value(value, src_name: str, prop_name: str):
+            if isinstance(value, float) and value <= 0:
+                return None, "", f"{prop_name}模型输出为非正值({value:.4f})，已判为越界并转为待补充"
+            return value, src_name, ""
+
         def _resolve_symmetry_text(item: dict) -> str:
             crystal = str(item.get("crystal_system") or item.get("crystal") or "").strip()
             spg = str(item.get("spacegroup_symbol") or item.get("space_group") or item.get("symmetry") or "").strip()
             if crystal and spg:
                 return f"{crystal}/{spg}"
             return crystal or spg or "待计算"
+
+        def _infer_property_needs(text: str) -> dict:
+            txt = str(text or "").lower()
+            def has(keys):
+                return any(k in txt for k in keys)
+            return {
+                "thermal": has(["导热", "散热", "热管理", "热流", "热导", "thermal", "heat", "cooling"]),
+                "cte": has(["热膨胀", "cte", "热应力", "热失配", "界面开裂"]),
+                "mechanical": has(["力学", "强度", "应力", "应变", "疲劳", "刚度", "硬度", "可靠性", "mechanical"]),
+                "dielectric": has(["绝缘", "介电", "击穿", "雷达", "高频", "毫米波", "低损耗", "band", "dielectric"]),
+                "piezo": has(["压电", "致动", "传感", "机电耦合", "piezo"]),
+                "transport": has(["电导", "扩散", "迁移", "离子", "输运", "seebeck", "功率因子", "transport", "diffusion"]),
+            }
+
+        def _alignn_zip_ready(model_name: str) -> bool:
+            try:
+                import zipfile
+                alignn_env = os.getenv("ALIGNN_ENV", "alignn-gpu-test")
+                py = f"/home/ubuntu/.local/share/mamba/envs/{alignn_env}/bin/python"
+                site_root = os.path.dirname(os.path.dirname(py))
+                zip_path = os.path.join(site_root, "lib", "python3.10", "site-packages", "alignn", f"{model_name}.zip")
+                if not os.path.exists(zip_path) or os.path.getsize(zip_path) <= 0:
+                    return False
+                with zipfile.ZipFile(zip_path) as zp:
+                    names = zp.namelist()
+                return any(name.endswith("config.json") for name in names) and any(name.endswith(".pt") for name in names)
+            except Exception:
+                return False
+
+        def _avg_atomic_mass_from_formula(formula_: str):
+            masses = {
+                "H": 1.008, "B": 10.81, "C": 12.011, "N": 14.007, "O": 15.999, "F": 18.998,
+                "Na": 22.990, "Mg": 24.305, "Al": 26.982, "Si": 28.085, "P": 30.974, "S": 32.06,
+                "Cl": 35.45, "K": 39.098, "Ca": 40.078, "Ti": 47.867, "Cr": 51.996, "Mn": 54.938,
+                "Fe": 55.845, "Co": 58.933, "Ni": 58.693, "Cu": 63.546, "Zn": 65.38, "Ga": 69.723,
+                "Ge": 72.630, "As": 74.922, "Se": 78.971, "Br": 79.904, "Sr": 87.62, "Zr": 91.224,
+                "Mo": 95.95, "Ag": 107.868, "Cd": 112.414, "In": 114.818, "Sn": 118.710,
+                "I": 126.904, "Ba": 137.327, "La": 138.905, "Ce": 140.116, "W": 183.84,
+                "Pb": 207.2,
+            }
+            s = _utils_to_ascii_formula(str(formula_ or ""))
+            # 对 AlN-SiC 这类系统做快速平均；括号/水合物等复杂式只作为 proxy 输入。
+            tokens = re.findall(r"([A-Z][a-z]?)(\d*\.?\d*)", s)
+            total_n = 0.0
+            total_m = 0.0
+            for el, n_s in tokens:
+                if el not in masses:
+                    continue
+                try:
+                    n = float(n_s) if n_s else 1.0
+                except Exception:
+                    n = 1.0
+                total_n += n
+                total_m += masses[el] * n
+            if total_n <= 0:
+                return None
+            return total_m / total_n
+
+        def _level_from_score(score):
+            if not isinstance(score, float):
+                return "待补充"
+            if score >= 0.72:
+                return "高"
+            if score >= 0.45:
+                return "中"
+            return "低"
+
+        def _thermal_proxy(formula_: str, density_, bulk_, shear_, e_hull_, formation_energy_):
+            """
+            秒级热导潜力估算：用弹性模量/密度估声速趋势，再叠加轻元素、稳定性和键强信号。
+            输出仅用于快速排序，不给 W/mK 绝对值。
+            """
+            out = {
+                "score": None,
+                "level": "待补充",
+                "mean_sound_velocity": None,
+                "debye_proxy": None,
+                "avg_atomic_mass": _avg_atomic_mass_from_formula(formula_),
+                "confidence": "中",
+                "source": "弹性模量/密度声速proxy + 稳定性/键强经验估算",
+            }
+            if not (isinstance(density_, float) and density_ > 0 and isinstance(bulk_, float) and bulk_ > 0 and isinstance(shear_, float) and shear_ > 0):
+                out["confidence"] = "低"
+                return out
+            try:
+                rho = density_ * 1000.0  # g/cm3 -> kg/m3
+                k_pa = bulk_ * 1e9
+                g_pa = shear_ * 1e9
+                vt = math.sqrt(g_pa / rho)
+                vl = math.sqrt((k_pa + 4.0 * g_pa / 3.0) / rho)
+                vm = ((1.0 / 3.0) * ((2.0 / (vt ** 3)) + (1.0 / (vl ** 3)))) ** (-1.0 / 3.0)
+                mass = out["avg_atomic_mass"]
+                sound_score = max(0.0, min(1.0, (vm - 1800.0) / 5200.0))
+                stiffness_score = max(0.0, min(1.0, ((bulk_ / 220.0) * 0.45 + (shear_ / 140.0) * 0.55)))
+                light_score = 0.55
+                if isinstance(mass, float):
+                    light_score = max(0.0, min(1.0, (90.0 - mass) / 75.0))
+                stability_score = 0.55
+                if isinstance(e_hull_, float):
+                    if e_hull_ <= 0.02:
+                        stability_score = 1.0
+                    elif e_hull_ <= 0.08:
+                        stability_score = 0.65
+                    else:
+                        stability_score = 0.25
+                bond_score = 0.5
+                if isinstance(formation_energy_, float):
+                    bond_score = max(0.0, min(1.0, abs(formation_energy_) / 2.5))
+                score = 0.34 * sound_score + 0.24 * stiffness_score + 0.18 * light_score + 0.16 * stability_score + 0.08 * bond_score
+                out["score"] = float(score)
+                out["level"] = _level_from_score(float(score))
+                out["mean_sound_velocity"] = float(vm)
+                out["debye_proxy"] = float(vm * ((1.0 / max(mass or 45.0, 1e-6)) ** (1.0 / 3.0)))
+                return out
+            except Exception:
+                out["confidence"] = "低"
+                return out
+
+        def _thermal_diffusivity_proxy(thermal_score, density_):
+            if not (isinstance(thermal_score, float) and isinstance(density_, float) and density_ > 0):
+                return None, "待补充", "低"
+            # 缺少 Cp 时只能用 density 做归一化惩罚，作为热扩散趋势 proxy。
+            score = max(0.0, min(1.0, thermal_score * (3.5 / max(density_, 1e-6)) ** 0.35))
+            return float(score), _level_from_score(float(score)), "中低"
+
+        def _thermal_expansion_risk_proxy(bulk_, shear_, formation_energy_, e_hull_):
+            if not (isinstance(bulk_, float) and bulk_ > 0):
+                return None, "待补充", "低"
+            stiffness = max(0.0, min(1.0, (bulk_ / 220.0) * 0.65 + ((shear_ or 0.0) / 140.0) * 0.35))
+            bond = 0.5
+            if isinstance(formation_energy_, float):
+                bond = max(0.0, min(1.0, abs(formation_energy_) / 2.5))
+            stable = 0.65
+            if isinstance(e_hull_, float):
+                stable = 1.0 if e_hull_ <= 0.02 else (0.55 if e_hull_ <= 0.08 else 0.25)
+            low_cte_score = 0.55 * stiffness + 0.30 * bond + 0.15 * stable
+            if low_cte_score >= 0.72:
+                risk = "低"
+            elif low_cte_score >= 0.45:
+                risk = "中"
+            else:
+                risk = "高"
+            return float(low_cte_score), risk, "低-中"
+
+        def _thermal_shock_risk_proxy(thermal_score, shear_, hardness_, density_):
+            if not isinstance(thermal_score, float):
+                return None, "待补充", "低"
+            mech = 0.5
+            if isinstance(shear_, float):
+                mech = max(0.0, min(1.0, shear_ / 140.0))
+            hard_s = 0.5
+            if isinstance(hardness_, float):
+                hard_s = max(0.0, min(1.0, hardness_ / 18.0))
+            density_penalty = 0.75
+            if isinstance(density_, float) and density_ > 0:
+                density_penalty = max(0.55, min(1.0, (4.5 / density_) ** 0.25))
+            score = max(0.0, min(1.0, (0.50 * thermal_score + 0.30 * mech + 0.20 * hard_s) * density_penalty))
+            if score >= 0.70:
+                risk = "低"
+            elif score >= 0.45:
+                risk = "中"
+            else:
+                risk = "高"
+            return float(score), risk, "中低"
 
         repo_root = _repo_root()
         root_path = f"src/MNS_CaseHub/cases/material_discovery_demo"
@@ -606,11 +765,20 @@ class Coding(Action):
             return "", "missing"
 
         FE_MODELS = ["jv_formation_energy_peratom_alignn", "mp_e_form_alignn"]
+        EHULL_MODELS = ["jv_ehull_alignn"]
         BG_MODELS = ["jv_mbj_bandgap_alignn", "jv_optb88vdw_bandgap_alignn", "mp_gappbe_alignn"]
         BULK_MODELS = ["jv_bulk_modulus_kv_alignn"]
         SHEAR_MODELS = ["jv_shear_modulus_gv_alignn"]
         ELEC_MASS_MODELS = ["jv_avg_elec_mass_alignn"]
         HOLE_MASS_MODELS = ["jv_avg_hole_mass_alignn"]
+        DIELECTRIC_MODELS = ["jv_dfpt_piezo_max_dielectric_alignn", "jv_epsx_alignn", "jv_mepsx_alignn"]
+        PIEZO_MODELS = ["jv_dfpt_piezo_max_dij_alignn"]
+        SEEBECK_MODELS = ["jv_n-Seebeck_alignn"]
+        POWER_FACTOR_MODELS = ["jv_n-powerfact_alignn"]
+        property_needs = _infer_property_needs(user_context)
+        if not any(property_needs.values()):
+            # 没有明确上文需求时，保留基础稳定/电子/力学/传输初筛。
+            property_needs.update({"mechanical": True, "dielectric": True, "transport": True})
         invalid_models = set()
         model_probe_done = False
         model_probe_msg = ""
@@ -637,10 +805,26 @@ class Coding(Action):
         elec_mass = _alignn_pick_num(top, ["avg_elec_mass", "avg_electron_mass", "electron_effective_mass", "m_e_avg"])
         hole_mass = _alignn_pick_num(top, ["avg_hole_mass", "hole_effective_mass", "m_h_avg"])
 
-        e_hull_src, fe_src, bg_src, bulk_src, shear_src = "MP", "MP", "MP", "MP", "MP"
+        e_hull_src = "MP" if isinstance(e_hull, float) else ""
+        fe_src = "MP" if isinstance(fe, float) else ""
+        bg_src = "MP" if isinstance(bg, float) else ""
+        bulk_src = "MP" if isinstance(bulk, float) else ""
+        shear_src = "MP" if isinstance(shear, float) else ""
         density_src = "MP" if isinstance(density, float) else "NA"
         elec_mass_src = "MP" if isinstance(elec_mass, float) else "NA"
         hole_mass_src = "MP" if isinstance(hole_mass, float) else "NA"
+        dielectric = None
+        dielectric_src = ""
+        piezo = None
+        piezo_src = ""
+        seebeck = None
+        seebeck_src = ""
+        power_factor = None
+        power_factor_src = ""
+        dielectric_err = ""
+        piezo_err = ""
+        seebeck_err = ""
+        power_factor_err = ""
         bulk_err = ""
         shear_err = ""
         em_err = ""
@@ -655,8 +839,8 @@ class Coding(Action):
         lines = [
             f"### 材料性质计算 - {formula}（{p_formula['中文名称']}）",
             "",
-            f"#### 材料性质计算结果（候选ID：{mid or '-'}）",
-            f"- 本轮仅针对最优候选亚型进行性质补全：`{mid or formula}`",
+            f"- 已命中候选结构：`{mid or formula}`，正在按上游需求补全关键性质与代理指标。",
+            "- 下方流式表将合并展示计算证据、满足状态、来源可信度和下一步验证口径。",
             "",
         ]
         if model_probe_msg:
@@ -671,6 +855,16 @@ class Coding(Action):
         await _stream_lines(lines, delay_s=0.02)
         await _stream_table_header_once()
 
+        if (e_hull is None) and cif_path and os.path.exists(cif_path):
+            eh_pred, mn, _ = _alignn_try_alignn_models(cif_path, EHULL_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
+            if eh_pred is not None:
+                e_hull, e_hull_src = eh_pred, f"ALIGNN:{mn}"
+
+        if (fe is None) and cif_path and os.path.exists(cif_path):
+            fe_pred, mn, _ = _alignn_try_alignn_models(cif_path, FE_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
+            if fe_pred is not None:
+                fe, fe_src = fe_pred, f"ALIGNN:{mn}"
+
         stability_class = "待计算"
         if isinstance(e_hull, float):
             if abs(e_hull) < 1e-12:
@@ -683,32 +877,26 @@ class Coding(Action):
         src_ehull, conf_ehull = _source_confidence(e_hull_src, "MP数据库第一性原理结果", "高")
         await _stream_property_row(
             "距稳定相包络能量差",
-            e_hull,
-            "eV/atom",
-            src_ehull,
-            conf_ehull,
-            f"用于热力学稳定性快速筛选，当前字段判读：{stability_class}",
-            confidence_note="适合用于初筛与相对比较",
+            "满足" if isinstance(e_hull, float) and e_hull <= 0.02 else ("部分满足" if isinstance(e_hull, float) else "待补充"),
+            _fmt_value(e_hull, "eV/atom"),
+            f"{src_ehull}；{conf_ehull}",
+            f"热力学稳定性快速筛选，当前判读：{stability_class}",
         )
         src_fe, conf_fe = _source_confidence(fe_src, "MP数据库第一性原理结果", "高")
         await _stream_property_row(
             "形成能",
-            fe,
-            "eV/atom",
-            src_fe,
-            conf_fe,
-            "数值越负通常仅表示形成倾向更强，可作为候选排序参考",
-            confidence_note="适合用于候选排序，最终结论建议结合后续验证",
+            "已计算" if isinstance(fe, float) else "待补充",
+            _fmt_value(fe, "eV/atom"),
+            f"{src_fe}；{conf_fe}",
+            "用于候选排序，数值越负通常表示形成倾向更强",
         )
         src_density, conf_density = _source_confidence(density_src, "MP数据库第一性原理结果", "高")
         await _stream_property_row(
             "密度",
-            density,
-            "g/cm3",
-            src_density,
-            conf_density,
-            "用于判断压实、堆叠与宏观结构设计的体积负载趋势",
-            confidence_note="可用于工程估算，建议与实测密度交叉核对",
+            "已计算" if isinstance(density, float) else "待补充",
+            _fmt_value(density, "g/cm3"),
+            f"{src_density}；{conf_density}",
+            "判断压实、堆叠与宏观结构设计的体积负载趋势",
         )
 
         if (bg is None) and cif_path and os.path.exists(cif_path):
@@ -718,13 +906,58 @@ class Coding(Action):
         src_bg, conf_bg = _source_confidence(bg_src, "ALIGNN图神经网络预测补全", "较高")
         await _stream_property_row(
             "带隙",
-            bg,
-            "eV",
-            src_bg,
-            conf_bg,
-            "过小可能提升电子泄漏风险，影响电化学应用边界",
-            confidence_note="用于趋势判断，关键设计阶段建议复核",
+            "满足" if isinstance(bg, float) and bg >= 1.5 else ("部分满足" if isinstance(bg, float) and bg > 0 else "待补充"),
+            _fmt_value(bg, "eV"),
+            f"{src_bg}；{conf_bg}",
+            "电子绝缘/窗口边界判断，需结合工作电压和击穿强度复核",
         )
+
+        if property_needs.get("dielectric") and cif_path and os.path.exists(cif_path):
+            ready_models = [m for m in DIELECTRIC_MODELS if _alignn_zip_ready(m)]
+            if ready_models:
+                dielectric_pred, mn, dielectric_err = _alignn_try_alignn_models(
+                    cif_path,
+                    ready_models,
+                    invalid_models=invalid_models,
+                    pred_cache=pred_cache,
+                    timeout_sec=timeout_sec,
+                )
+                if dielectric_pred is not None:
+                    dielectric, dielectric_src = dielectric_pred, f"ALIGNN:{mn}"
+            else:
+                dielectric_err = "介电相关ALIGNN模型权重未缓存或zip不可用"
+        if property_needs.get("dielectric"):
+            src_dielectric, conf_dielectric = _source_confidence(dielectric_src, "ALIGNN预训练模型预测", "中")
+            await _stream_property_row(
+                "介电常数代理",
+                "满足" if isinstance(dielectric, float) and dielectric > 0 else "待补充",
+                _fmt_value(dielectric),
+                f"{src_dielectric if dielectric is not None else '模型权重待补充'}；{conf_dielectric if dielectric is not None else '待补充'}",
+                dielectric_err or "用于绝缘/介电/高频趋势判断，不等同于频率相关介电损耗tanδ",
+            )
+
+        if property_needs.get("piezo") and cif_path and os.path.exists(cif_path):
+            ready_models = [m for m in PIEZO_MODELS if _alignn_zip_ready(m)]
+            if ready_models:
+                piezo_pred, mn, piezo_err = _alignn_try_alignn_models(
+                    cif_path,
+                    ready_models,
+                    invalid_models=invalid_models,
+                    pred_cache=pred_cache,
+                    timeout_sec=timeout_sec,
+                )
+                if piezo_pred is not None:
+                    piezo, piezo_src = piezo_pred, f"ALIGNN:{mn}"
+            else:
+                piezo_err = "压电相关ALIGNN模型权重未缓存或zip不可用"
+            src_piezo, conf_piezo = _source_confidence(piezo_src, "ALIGNN预训练模型预测", "中")
+            await _stream_property_row(
+                "压电响应代理",
+                "已计算" if isinstance(piezo, float) else "待补充",
+                _fmt_value(piezo),
+                f"{src_piezo if piezo is not None else '模型权重待补充'}；{conf_piezo if piezo is not None else '待补充'}",
+                piezo_err or "用于压电/传感/致动趋势判断，需结合晶向和实验压电系数验证",
+            )
 
         if (bulk is None) and cif_path and os.path.exists(cif_path):
             bulk_pred, mn, _ = _alignn_try_alignn_models(cif_path, BULK_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
@@ -734,15 +967,16 @@ class Coding(Action):
                 _, _, bulk_err = _alignn_try_alignn_models(cif_path, BULK_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
         elif (bulk is None) and (not cif_path or not os.path.exists(cif_path)):
             bulk_err = f"cif缺失或路径无效({cif_source})"
+        bulk, bulk_src, bulk_invalid_err = _invalidate_nonpositive_physical_value(bulk, bulk_src, "体积模量")
+        if bulk_invalid_err:
+            bulk_err = bulk_invalid_err
         src_bulk, conf_bulk = _source_confidence(bulk_src, "ALIGNN图神经网络预测补全", "较高")
         await _stream_property_row(
             "体积模量",
-            bulk,
-            "GPa",
-            src_bulk,
-            conf_bulk,
-            "更高通常更抗压，更利于压片与堆叠稳定",
-            confidence_note="若为模型补全值，建议后续以高精度计算或实验复核",
+            "满足" if isinstance(bulk, float) and bulk >= 15 else ("部分满足" if isinstance(bulk, float) else "待补充"),
+            _fmt_value(bulk, "GPa"),
+            f"{src_bulk if bulk is not None else '模型越界/待补充'}；{conf_bulk if bulk is not None else '待补充'}",
+            bulk_err or "抗压与成形支撑判断，模型补全值建议后续复核",
         )
 
         if (shear is None) and cif_path and os.path.exists(cif_path):
@@ -753,15 +987,16 @@ class Coding(Action):
                 _, _, shear_err = _alignn_try_alignn_models(cif_path, SHEAR_MODELS, invalid_models=invalid_models, pred_cache=pred_cache, timeout_sec=timeout_sec)
         elif (shear is None) and (not cif_path or not os.path.exists(cif_path)):
             shear_err = f"cif缺失或路径无效({cif_source})"
+        shear, shear_src, shear_invalid_err = _invalidate_nonpositive_physical_value(shear, shear_src, "剪切模量")
+        if shear_invalid_err:
+            shear_err = shear_invalid_err
         src_shear, conf_shear = _source_confidence(shear_src, "ALIGNN图神经网络预测补全", "较高")
         await _stream_property_row(
             "剪切模量",
-            shear,
-            "GPa",
-            src_shear,
-            conf_shear,
-            "更高通常更抗剪切形变，降低使用中开裂风险",
-            confidence_note="若为模型补全值，建议后续以高精度计算或实验复核",
+            "满足" if isinstance(shear, float) and shear >= 8 else ("部分满足" if isinstance(shear, float) else "待补充"),
+            _fmt_value(shear, "GPa"),
+            f"{src_shear if shear is not None else '模型越界/待补充'}；{conf_shear if shear is not None else '待补充'}",
+            shear_err or "抗剪切形变和开裂风险判断，模型补全值建议后续复核",
         )
 
         if (elec_mass is None) and cif_path and os.path.exists(cif_path):
@@ -775,12 +1010,10 @@ class Coding(Action):
         src_em, conf_em = _source_confidence(elec_mass_src, "ALIGNN图神经网络预测补全", "较高")
         await _stream_property_row(
             "电子有效质量",
-            elec_mass,
-            "m0",
-            src_em,
-            conf_em,
-            "关联电子输运趋势，影响宏观导电特征",
-            confidence_note="主要用于趋势判断",
+            "已计算" if isinstance(elec_mass, float) else "待补充",
+            _fmt_value(elec_mass, "m0"),
+            f"{src_em}；{conf_em}",
+            "电子输运趋势参考，主要用于快速排序",
         )
 
         if (hole_mass is None) and cif_path and os.path.exists(cif_path):
@@ -794,12 +1027,10 @@ class Coding(Action):
         src_hm, conf_hm = _source_confidence(hole_mass_src, "ALIGNN图神经网络预测补全", "较高")
         await _stream_property_row(
             "空穴有效质量",
-            hole_mass,
-            "m0",
-            src_hm,
-            conf_hm,
-            "关联空穴输运趋势，影响界面极化表现",
-            confidence_note="主要用于趋势判断",
+            "已计算" if isinstance(hole_mass, float) else "待补充",
+            _fmt_value(hole_mass, "m0"),
+            f"{src_hm}；{conf_hm}",
+            "空穴输运和界面极化趋势参考，主要用于快速排序",
         )
 
         hardness_est = None
@@ -808,22 +1039,78 @@ class Coding(Action):
             try:
                 k_ratio = shear / bulk
                 hv_chen = 2.0 * ((k_ratio * k_ratio * shear) ** 0.585) - 3.0
-                hardness_est = float(hv_chen)
-                hardness_formula = "Chen经验公式 Hv=2(k^2G)^0.585-3"
+                if hv_chen > 0:
+                    hardness_est = float(hv_chen)
+                    hardness_formula = "Chen经验公式 Hv=2(k^2G)^0.585-3"
             except Exception:
                 hardness_est = None
-        if hardness_est is None and isinstance(shear, float):
-            hardness_est = (0.151 * shear)
-            hardness_formula = "Teter近似 Hv≈0.151G"
+        if (hardness_est is None or hardness_est <= 0) and isinstance(shear, float) and shear > 0:
+            hardness_est = max(0.0, 0.151 * shear)
+            hardness_formula = "Teter近似 Hv≈0.151G（Chen公式为非正值时回退）"
+        if isinstance(hardness_est, float) and hardness_est <= 0:
+            hardness_est = None
+            hardness_formula = "待补充"
         await _stream_property_row(
             "硬度（估算）",
-            hardness_est,
-            "GPa",
-            "经验公式估算结果",
-            "中高",
-            "可用于粗略判断抗压痕与耐磨趋势，数值越高通常机械支撑更强",
-            confidence_note="用于快速比较，不等同于标准硬度测试结果",
+            "已估算" if isinstance(hardness_est, float) else "待补充",
+            _fmt_value(hardness_est, "GPa"),
+            f"{hardness_formula}；中高" if isinstance(hardness_est, float) else "经验公式越界；待补充",
+            "抗压痕/耐磨趋势快速比较，不等同于标准硬度测试",
         )
+
+        thermal_proxy = _thermal_proxy(formula, density, bulk, shear, e_hull, fe)
+        thermal_diffusivity_proxy = None
+        thermal_diffusivity_level = "待补充"
+        thermal_diffusivity_confidence = "低"
+        thermal_expansion_proxy = None
+        thermal_expansion_risk = "待补充"
+        thermal_expansion_confidence = "低"
+        thermal_shock_proxy = None
+        thermal_shock_risk = "待补充"
+        thermal_shock_confidence = "低"
+
+        if property_needs.get("thermal"):
+            await _stream_property_row(
+                "热导潜力（估算）",
+                "满足" if thermal_proxy.get("level") in {"高", "中"} else ("部分满足" if isinstance(thermal_proxy.get("score"), float) else "待补充"),
+                f"level={thermal_proxy.get('level')}；score={_fmt_value(thermal_proxy.get('score'))}；v_m≈{_fmt_value(thermal_proxy.get('mean_sound_velocity'), 'm/s', nd=1)}",
+                f"{thermal_proxy.get('source')}；{thermal_proxy.get('confidence')}",
+                "仅用于快速排序，不等同于实验热导率或声子/MD深算结果",
+            )
+            thermal_diffusivity_proxy, thermal_diffusivity_level, thermal_diffusivity_confidence = _thermal_diffusivity_proxy(
+                thermal_proxy.get("score"),
+                density,
+            )
+            await _stream_property_row(
+                "热扩散潜力（估算）",
+                "满足" if thermal_diffusivity_level in {"高", "中"} else ("部分满足" if isinstance(thermal_diffusivity_proxy, float) else "待补充"),
+                f"level={thermal_diffusivity_level}；score={_fmt_value(thermal_diffusivity_proxy)}",
+                f"热导潜力proxy/密度惩罚估算；{thermal_diffusivity_confidence}",
+                "缺少定量热容Cp，不能作为热扩散率实测值",
+            )
+
+        if property_needs.get("cte"):
+            thermal_expansion_proxy, thermal_expansion_risk, thermal_expansion_confidence = _thermal_expansion_risk_proxy(bulk, shear, fe, e_hull)
+            await _stream_property_row(
+                "热膨胀风险（估算）",
+                "满足" if thermal_expansion_risk in {"低", "中"} else ("部分满足" if isinstance(thermal_expansion_proxy, float) else "待补充"),
+                f"risk={thermal_expansion_risk}；score={_fmt_value(thermal_expansion_proxy)}",
+                f"弹性刚度/键强/稳定性经验估算；{thermal_expansion_confidence}",
+                "不直接输出CTE，需热膨胀系数或热循环实验闭环",
+            )
+            thermal_shock_proxy, thermal_shock_risk, thermal_shock_confidence = _thermal_shock_risk_proxy(
+                thermal_proxy.get("score"),
+                shear,
+                hardness_est,
+                density,
+            )
+            await _stream_property_row(
+                "热震/热循环风险（估算）",
+                "满足" if thermal_shock_risk in {"低", "中"} else ("部分满足" if isinstance(thermal_shock_proxy, float) else "待补充"),
+                f"risk={thermal_shock_risk}；score={_fmt_value(thermal_shock_proxy)}",
+                f"热导潜力proxy + 剪切模量/硬度/密度经验估算；{thermal_shock_confidence}",
+                "不能替代热循环、热冲击或界面可靠性测试",
+            )
 
         cond_diff_proxy = None
         if isinstance(bg, float) and isinstance(fe, float):
@@ -834,13 +1121,56 @@ class Coding(Action):
             cond_diff_proxy = (cond_diff_proxy or 1.0) * (1.0 / (1.0 + hole_mass))
         await _stream_property_row(
             "导电/扩散相关量（粗略）",
-            cond_diff_proxy,
-            "无量纲",
-            "综合排序参考指标",
-            "中",
-            "仅用于候选排序的趋势参考，不等同于实验电导率或扩散系数",
-            confidence_note="不作为定量性能结论，仅用于优先级筛选",
+            "满足" if isinstance(cond_diff_proxy, float) and cond_diff_proxy >= 0.2 else ("部分满足" if isinstance(cond_diff_proxy, float) else "待补充"),
+            f"proxy={_fmt_value(cond_diff_proxy)}",
+            "带隙/形成能/有效质量组合proxy；中",
+            "仅用于候选排序，不等同于实验电导率或扩散系数",
         )
+
+        if property_needs.get("transport") and cif_path and os.path.exists(cif_path):
+            ready_seebeck = [m for m in SEEBECK_MODELS if _alignn_zip_ready(m)]
+            if ready_seebeck:
+                seebeck_pred, mn, seebeck_err = _alignn_try_alignn_models(
+                    cif_path,
+                    ready_seebeck,
+                    invalid_models=invalid_models,
+                    pred_cache=pred_cache,
+                    timeout_sec=timeout_sec,
+                )
+                if seebeck_pred is not None:
+                    seebeck, seebeck_src = seebeck_pred, f"ALIGNN:{mn}"
+            else:
+                seebeck_err = "Seebeck相关ALIGNN模型权重未缓存或zip不可用"
+            ready_pf = [m for m in POWER_FACTOR_MODELS if _alignn_zip_ready(m)]
+            if ready_pf:
+                pf_pred, mn, power_factor_err = _alignn_try_alignn_models(
+                    cif_path,
+                    ready_pf,
+                    invalid_models=invalid_models,
+                    pred_cache=pred_cache,
+                    timeout_sec=timeout_sec,
+                )
+                if pf_pred is not None:
+                    power_factor, power_factor_src = pf_pred, f"ALIGNN:{mn}"
+            else:
+                power_factor_err = "功率因子相关ALIGNN模型权重未缓存或zip不可用"
+
+            src_seebeck, conf_seebeck = _source_confidence(seebeck_src, "ALIGNN预训练模型预测", "中")
+            await _stream_property_row(
+                "Seebeck系数代理",
+                "已计算" if isinstance(seebeck, float) else "待补充",
+                _fmt_value(seebeck),
+                f"{src_seebeck if seebeck is not None else '模型权重待补充'}；{conf_seebeck if seebeck is not None else '待补充'}",
+                seebeck_err or "热电/输运趋势判断；正负号代表响应方向或载流子类型倾向，需结合温度和载流子浓度解释",
+            )
+            src_pf, conf_pf = _source_confidence(power_factor_src, "ALIGNN预训练模型预测", "中")
+            await _stream_property_row(
+                "功率因子代理",
+                "已计算" if isinstance(power_factor, float) else "待补充",
+                _fmt_value(power_factor),
+                f"{src_pf if power_factor is not None else '模型权重待补充'}；{conf_pf if power_factor is not None else '待补充'}",
+                power_factor_err or "热电候选快速排序，不等同于完整ZT评估",
+            )
 
         top = {
             "material_id": mid,
@@ -857,6 +1187,25 @@ class Coding(Action):
             "elec_mass": elec_mass,
             "hole_mass": hole_mass,
             "cond_diff_proxy": cond_diff_proxy,
+            "dielectric_proxy": dielectric,
+            "piezo_proxy": piezo,
+            "seebeck_proxy": seebeck,
+            "power_factor_proxy": power_factor,
+            "thermal_conductivity_proxy": thermal_proxy.get("score"),
+            "thermal_conductivity_level": thermal_proxy.get("level"),
+            "thermal_mean_sound_velocity": thermal_proxy.get("mean_sound_velocity"),
+            "thermal_debye_proxy": thermal_proxy.get("debye_proxy"),
+            "thermal_proxy_confidence": thermal_proxy.get("confidence"),
+            "thermal_diffusivity_proxy": thermal_diffusivity_proxy,
+            "thermal_diffusivity_level": thermal_diffusivity_level,
+            "thermal_diffusivity_confidence": thermal_diffusivity_confidence,
+            "thermal_expansion_proxy": thermal_expansion_proxy,
+            "thermal_expansion_risk": thermal_expansion_risk,
+            "thermal_expansion_confidence": thermal_expansion_confidence,
+            "thermal_shock_proxy": thermal_shock_proxy,
+            "thermal_shock_risk": thermal_shock_risk,
+            "thermal_shock_confidence": thermal_shock_confidence,
+            "property_needs": property_needs,
             "src_ehull": e_hull_src,
             "src_density": density_src,
             "src_fe": fe_src,
@@ -865,10 +1214,18 @@ class Coding(Action):
             "src_shear": shear_src,
             "src_elec_mass": elec_mass_src,
             "src_hole_mass": hole_mass_src,
+            "src_dielectric": dielectric_src,
+            "src_piezo": piezo_src,
+            "src_seebeck": seebeck_src,
+            "src_power_factor": power_factor_src,
             "err_bulk": bulk_err,
             "err_shear": shear_err,
             "err_elec_mass": em_err,
             "err_hole_mass": hm_err,
+            "err_dielectric": dielectric_err,
+            "err_piezo": piezo_err,
+            "err_seebeck": seebeck_err,
+            "err_power_factor": power_factor_err,
             "mp_all_keys": mp_all_keys,
             "cif_source": cif_source,
         }
@@ -1930,7 +2287,7 @@ class Coding(Action):
                 if alignn_url:
                     await websocket.send_text(f"![ALIGNN 图神经网络分析示意]({alignn_url})\n\n")
                 await websocket.send_text(
-                    f"1. 正在使用 ALIGNN 对 {formula_} 的晶体结构进行图神经网络分析，快速估算其离子电导率与结构稳定性等关键性质。\n\n"
+                    f"1. 正在使用 ALIGNN 对 {formula_} 的晶体结构进行图神经网络分析，快速补全关键性质与应用相关代理指标。\n\n"
                     "2. 模型基于原子位置与化学键关系自动提取结构特征，实现毫秒级性质预测。\n\n"
                     "3. 这些结果用于快速筛选与工艺方向判断，不替代最终实验标定。\n\n"
                 )
@@ -1945,6 +2302,12 @@ class Coding(Action):
             """从上游需求文本中抽取本轮需要优先解释的工程关注点。"""
             txt = str(user_context or "").lower()
             checks = [
+                (
+                    "stability",
+                    "稳定性/环境窗口",
+                    ["稳定", "空气", "水分", "分解", "h2s", "氧化", "还原", "热力学", "stability", "stable"],
+                    "需结合空气/水分暴露、应用温度、气氛和化学势边界做二次验证。",
+                ),
                 (
                     "thermal",
                     "散热/热管理",
@@ -1966,8 +2329,14 @@ class Coding(Action):
                 (
                     "electronic",
                     "绝缘/电子窗口",
-                    ["绝缘", "介电", "击穿", "带隙", "电压", "漏电", "band", "dielectric"],
+                    ["绝缘", "介电", "击穿", "带隙", "电压", "漏电", "雷达", "高频", "毫米波", "低损耗", "band", "dielectric"],
                     "需结合工作电压窗口、界面反应和击穿强度做联合评估。",
+                ),
+                (
+                    "piezo",
+                    "压电/机电耦合",
+                    ["压电", "致动", "传感", "机电耦合", "piezo"],
+                    "需结合晶向、器件结构和实验压电系数验证。",
                 ),
                 (
                     "manufacturing",
@@ -1978,7 +2347,7 @@ class Coding(Action):
                 (
                     "transport",
                     "传输/扩散潜力",
-                    ["电导", "扩散", "迁移", "离子", "输运", "transport", "diffusion"],
+                    ["电导", "扩散", "迁移", "离子", "输运", "seebeck", "功率因子", "transport", "diffusion"],
                     "导电/扩散代理值仅能排序，需 EIS、迁移数或扩散系数实测闭环。",
                 ),
             ]
@@ -2002,6 +2371,20 @@ class Coding(Action):
             shear = m.get("shear_modulus")
             hard = m.get("hardness_est")
             cond = m.get("cond_diff_proxy")
+            dielectric = m.get("dielectric_proxy")
+            piezo = m.get("piezo_proxy")
+            thermal_score = m.get("thermal_conductivity_proxy")
+            thermal_level = m.get("thermal_conductivity_level")
+            thermal_vm = m.get("thermal_mean_sound_velocity")
+            thermal_diff = m.get("thermal_diffusivity_proxy")
+            thermal_diff_level = m.get("thermal_diffusivity_level")
+            cte_proxy = m.get("thermal_expansion_proxy")
+            cte_risk = m.get("thermal_expansion_risk")
+            shock_proxy = m.get("thermal_shock_proxy")
+            shock_risk = m.get("thermal_shock_risk")
+            seebeck = m.get("seebeck_proxy")
+            power_factor = m.get("power_factor_proxy")
+            needs = m.get("property_needs") if isinstance(m.get("property_needs"), dict) else {}
 
             def _sf(v, nd=4):
                 return f"{v:.{nd}f}" if isinstance(v, float) else "待补充"
@@ -2020,8 +2403,16 @@ class Coding(Action):
                 partial=isinstance(bulk, float) or isinstance(shear, float),
             )
             sat_trans = _sat(isinstance(cond, float) and cond >= 0.2, partial=isinstance(cond, float))
+            sat_dielectric = _sat(isinstance(dielectric, float) and dielectric > 0, partial=bool(m.get("err_dielectric")))
+            sat_piezo = _sat(isinstance(piezo, float), partial=bool(m.get("err_piezo")))
+            sat_thermal = _sat(isinstance(thermal_score, float) and thermal_score >= 0.45, partial=isinstance(thermal_score, float))
+            sat_diff = _sat(isinstance(thermal_diff, float) and thermal_diff >= 0.45, partial=isinstance(thermal_diff, float))
+            sat_cte = _sat(str(cte_risk) in {"低", "中"}, partial=isinstance(cte_proxy, float))
+            sat_shock = _sat(str(shock_risk) in {"低", "中"}, partial=isinstance(shock_proxy, float))
+            sat_seebeck = _sat(isinstance(seebeck, float), partial=bool(m.get("err_seebeck")))
+            sat_power = _sat(isinstance(power_factor, float), partial=bool(m.get("err_power_factor")))
 
-            return [
+            rows = [
                 {
                     "code": "stability",
                     "label": "热力学稳定性窗口",
@@ -2029,6 +2420,7 @@ class Coding(Action):
                     "result": f"E_hull={_sf(eh)} eV/atom；E_form={_sf(fe)} eV/atom",
                     "sat": sat_stab,
                     "next": "需结合应用温度、气氛和化学势边界做二次验证",
+                    "source_confidence": "MP数据库/ALIGNN补全；高-较高",
                     "chart": "Thermodynamic Stability",
                     "detail": f"E_hull={_sf(eh)} eV/atom，E_form={_sf(fe)} eV/atom",
                 },
@@ -2039,47 +2431,279 @@ class Coding(Action):
                     "result": f"band_gap={_sf(bg)} eV",
                     "sat": sat_bg,
                     "next": "需与工作电压窗口、击穿强度和界面副反应联合评估",
+                    "source_confidence": "MP数据库/ALIGNN补全；高-较高",
                     "chart": "Electronic Window",
                     "detail": f"band_gap={_sf(bg)} eV",
                 },
+            ]
+            if needs.get("dielectric"):
+                rows.append(
+                    {
+                        "code": "dielectric",
+                        "label": "介电/绝缘性能代理",
+                        "proxy": "ALIGNN dielectric / eps proxy",
+                        "result": f"dielectric_proxy={_sf(dielectric)}",
+                        "sat": sat_dielectric,
+                        "next": "需补充目标频率下介电损耗tanδ、击穿强度和界面介电测试",
+                        "source_confidence": "ALIGNN介电预训练模型；中",
+                        "chart": "Dielectric Proxy",
+                        "detail": f"dielectric_proxy={_sf(dielectric)}",
+                    }
+                )
+            if needs.get("piezo"):
+                rows.append(
+                    {
+                        "code": "piezo",
+                        "label": "压电/机电耦合代理",
+                        "proxy": "ALIGNN piezo max_dij proxy",
+                        "result": f"piezo_proxy={_sf(piezo)}",
+                        "sat": sat_piezo,
+                        "next": "需结合晶向、器件结构和实验压电系数验证",
+                        "source_confidence": "ALIGNN压电预训练模型；中",
+                        "chart": "Piezo Proxy",
+                        "detail": f"piezo_proxy={_sf(piezo)}",
+                    }
+                )
+            mech_conf = "MP数据库/ALIGNN补全 + Chen/Teter经验硬度；中高"
+            mech_next = "需补充致密化、断裂韧性、疲劳寿命和循环后裂纹演化测试"
+            if not isinstance(shear, float) or not isinstance(hard, float):
+                mech_conf = "部分力学模型越界或缺失；低-中"
+                mech_next = "剪切模量/硬度证据不完整，需先用实验或更高精度计算复核，再判断抗裂和成形可靠性"
+            rows.append(
                 {
                     "code": "mechanical",
                     "label": "机械支撑与成形风险",
                     "proxy": "体积模量/剪切模量/硬度估算",
                     "result": f"K={_sf(bulk)} GPa；G={_sf(shear)} GPa；Hv≈{_sf(hard)} GPa",
                     "sat": sat_mech,
-                    "next": "需补充致密化、断裂韧性、疲劳寿命和循环后裂纹演化测试",
+                    "next": mech_next,
+                    "source_confidence": mech_conf,
                     "chart": "Mechanical Reliability",
                     "detail": f"K={_sf(bulk)} GPa，G={_sf(shear)} GPa，Hv≈{_sf(hard)} GPa",
-                },
+                }
+            )
+            if needs.get("thermal"):
+                rows.extend(
+                    [
+                        {
+                            "code": "thermal",
+                            "label": "热导潜力估算",
+                            "proxy": "声速/键强/稳定性 proxy",
+                            "result": f"level={thermal_level or '待补充'}；score={_sf(thermal_score)}；v_m≈{_sf(thermal_vm, 1)} m/s",
+                            "sat": sat_thermal,
+                            "next": "该值仅用于快速排序，需热导率实测或声子/MD深算给出 W/mK",
+                            "source_confidence": "弹性模量/密度声速proxy + 稳定性/键强经验估算；中",
+                            "chart": "Thermal Conductivity Proxy",
+                            "detail": f"thermal level={thermal_level or '待补充'}，score={_sf(thermal_score)}",
+                        },
+                        {
+                            "code": "thermal_diffusivity",
+                            "label": "热扩散潜力估算",
+                            "proxy": "热导潜力/密度惩罚 proxy",
+                            "result": f"level={thermal_diff_level or '待补充'}；score={_sf(thermal_diff)}",
+                            "sat": sat_diff,
+                            "next": "缺少定量热容Cp，需热扩散率或瞬态热测试验证",
+                            "source_confidence": "热导潜力proxy/密度惩罚估算；中低",
+                            "chart": "Thermal Diffusivity Proxy",
+                            "detail": f"thermal diffusivity level={thermal_diff_level or '待补充'}，score={_sf(thermal_diff)}",
+                        },
+                    ]
+                )
+            if needs.get("cte"):
+                rows.extend(
+                    [
+                        {
+                            "code": "cte",
+                            "label": "热膨胀风险估算",
+                            "proxy": "刚度/键强/稳定性 proxy",
+                            "result": f"risk={cte_risk or '待补充'}；score={_sf(cte_proxy)}",
+                            "sat": sat_cte,
+                            "next": "不直接输出 CTE，需热膨胀系数和热循环界面可靠性验证",
+                            "source_confidence": "弹性刚度/键强/稳定性经验估算；低-中",
+                            "chart": "CTE Risk Proxy",
+                            "detail": f"CTE risk={cte_risk or '待补充'}，score={_sf(cte_proxy)}",
+                        },
+                        {
+                            "code": "thermal_shock",
+                            "label": "热震/热循环风险估算",
+                            "proxy": "热导潜力/力学支撑 proxy",
+                            "result": f"risk={shock_risk or '待补充'}；score={_sf(shock_proxy)}",
+                            "sat": sat_shock,
+                            "next": "需热冲击、热循环和界面开裂测试闭环",
+                            "source_confidence": "热导潜力proxy + 剪切模量/硬度/密度经验估算；中低",
+                            "chart": "Thermal Shock Risk Proxy",
+                            "detail": f"thermal shock risk={shock_risk or '待补充'}，score={_sf(shock_proxy)}",
+                        },
+                    ]
+                )
+            rows.append(
                 {
                     "code": "transport",
                     "label": "传输潜力代理",
                     "proxy": "导电/扩散相关量（粗略）",
                     "result": f"proxy={_sf(cond)}（无量纲）",
                     "sat": sat_trans,
-                    "next": "仅用于排序，需 EIS、迁移测试或扩散系数实测给出定量值",
+                    "next": "仅用于排序，需 EIS/迁移测试给出实测值",
+                    "source_confidence": "带隙/形成能/有效质量组合proxy；中",
                     "chart": "Transport Potential",
                     "detail": f"transport proxy={_sf(cond)}",
-                },
-            ]
+                }
+            )
+            if needs.get("transport"):
+                rows.extend(
+                    [
+                        {
+                            "code": "seebeck",
+                            "label": "Seebeck系数代理",
+                            "proxy": "ALIGNN thermoelectric proxy",
+                            "result": f"Seebeck_proxy={_sf(seebeck)}",
+                            "sat": sat_seebeck,
+                            "next": "正负号代表响应方向或载流子类型倾向，需结合温度、载流子浓度和实验输运测试解释",
+                            "source_confidence": "ALIGNN热电预训练模型；中",
+                            "chart": "Seebeck Proxy",
+                            "detail": f"Seebeck_proxy={_sf(seebeck)}",
+                        },
+                        {
+                            "code": "power_factor",
+                            "label": "功率因子代理",
+                            "proxy": "ALIGNN thermoelectric proxy",
+                            "result": f"power_factor_proxy={_sf(power_factor)}",
+                            "sat": sat_power,
+                            "next": "不等同于完整 ZT，仍需热导率和温度依赖输运数据",
+                            "source_confidence": "ALIGNN热电预训练模型；中",
+                            "chart": "Power Factor Proxy",
+                            "detail": f"power_factor_proxy={_sf(power_factor)}",
+                        },
+                    ]
+                )
+            return rows
 
         def _ordered_metric_rows(rows: list, focus: list) -> list:
             priority = []
             focus_codes = [f.get("code") for f in focus if isinstance(f, dict)]
-            if "thermal" in focus_codes or "cte" in focus_codes:
-                priority.extend(["stability", "mechanical"])
+            if "thermal" in focus_codes:
+                priority.extend(["thermal", "thermal_diffusivity", "stability", "mechanical"])
+            if "cte" in focus_codes:
+                priority.extend(["cte", "thermal_shock", "stability", "mechanical"])
             for code in focus_codes:
-                if code in {"stability", "electronic", "mechanical", "transport"}:
+                if code in {"stability", "electronic", "dielectric", "piezo", "mechanical", "transport", "seebeck", "power_factor"}:
                     priority.append(code)
-            priority.extend(["stability", "electronic", "mechanical", "transport"])
+                if code == "electronic":
+                    priority.append("dielectric")
+                if code == "transport":
+                    priority.extend(["seebeck", "power_factor"])
+            priority.extend(["stability", "electronic", "dielectric", "piezo", "mechanical", "thermal", "thermal_diffusivity", "cte", "thermal_shock", "transport", "seebeck", "power_factor"])
             rank = {code: idx for idx, code in enumerate(dict.fromkeys(priority))}
             return sorted(rows, key=lambda r: rank.get(r.get("code"), 999))
+
+        def _render_requirement_radar_svg(rows: list, focus: list, out_svg_path: str):
+            row_by_code = {r.get("code"): r for r in rows if isinstance(r, dict)}
+            focus_codes = [f.get("code") for f in focus if isinstance(f, dict) and f.get("code")]
+
+            def _sat_score(sat: str) -> int:
+                if sat == "满足":
+                    return 7
+                if sat == "部分满足":
+                    return 4
+                return 2
+
+            def _score_for(code: str) -> int:
+                if code == "thermal":
+                    return max(_sat_score((row_by_code.get("thermal") or {}).get("sat")), _sat_score((row_by_code.get("thermal_diffusivity") or {}).get("sat")))
+                if code == "cte":
+                    return max(_sat_score((row_by_code.get("cte") or {}).get("sat")), _sat_score((row_by_code.get("thermal_shock") or {}).get("sat")))
+                if code == "electronic":
+                    return max(_sat_score((row_by_code.get("electronic") or {}).get("sat")), _sat_score((row_by_code.get("dielectric") or {}).get("sat")))
+                if code == "manufacturing":
+                    return 2
+                return _sat_score((row_by_code.get(code) or {}).get("sat"))
+
+            label_map = {
+                "stability": "稳定性",
+                "thermal": "热管理",
+                "cte": "热匹配",
+                "mechanical": "力学支撑",
+                "electronic": "电化学窗口",
+                "dielectric": "绝缘介电",
+                "piezo": "压电响应",
+                "transport": "离子传输",
+                "manufacturing": "工艺成本",
+            }
+            preferred = []
+            for code in focus_codes:
+                mapped = "electronic" if code == "dielectric" else code
+                if mapped not in preferred and mapped in label_map:
+                    preferred.append(mapped)
+            for code in ["transport", "electronic", "mechanical", "stability", "manufacturing", "thermal", "cte", "piezo"]:
+                if code not in preferred:
+                    preferred.append(code)
+            axes = preferred[:5]
+            if len(axes) < 3:
+                return
+
+            width, height = 360, 250
+            cx, cy, radius = 180.0, 125.0, 68.0
+            n = len(axes)
+
+            def _point(idx: int, score: float):
+                ang = -math.pi / 2 + 2 * math.pi * idx / n
+                rr = radius * (float(score) / 7.0)
+                return cx + rr * math.cos(ang), cy + rr * math.sin(ang)
+
+            def _poly(score: float) -> str:
+                return " ".join(f"{_point(i, score)[0]:.1f},{_point(i, score)[1]:.1f}" for i in range(n))
+
+            data_points = []
+            label_nodes = []
+            bubble_nodes = []
+            axis_nodes = []
+            for idx, code in enumerate(axes):
+                score = _score_for(code)
+                data_points.append(_point(idx, score))
+                outer_x, outer_y = _point(idx, 7)
+                axis_nodes.append(f'<line x1="{cx:.1f}" y1="{cy:.1f}" x2="{outer_x:.1f}" y2="{outer_y:.1f}" stroke="#E6ECF3" stroke-width="1"/>')
+
+                ang = -math.pi / 2 + 2 * math.pi * idx / n
+                lx = cx + (radius + 31) * math.cos(ang)
+                ly = cy + (radius + 31) * math.sin(ang)
+                anchor = "middle"
+                if math.cos(ang) > 0.35:
+                    anchor = "start"
+                elif math.cos(ang) < -0.35:
+                    anchor = "end"
+                label_nodes.append(
+                    f'<text x="{lx:.1f}" y="{ly:.1f}" text-anchor="{anchor}" dominant-baseline="middle" '
+                    f'font-size="15" fill="#374151">{html.escape(label_map.get(code, code))}</text>'
+                )
+
+                bx = cx + (radius + 8) * math.cos(ang)
+                by = cy + (radius + 8) * math.sin(ang)
+                bubble_nodes.append(
+                    f'<circle cx="{bx:.1f}" cy="{by:.1f}" r="12" fill="#050505"/>'
+                    f'<text x="{bx:.1f}" y="{by + 0.8:.1f}" text-anchor="middle" dominant-baseline="middle" '
+                    f'font-size="14" font-weight="700" fill="#FFFFFF">{score}</text>'
+                )
+
+            data_poly = " ".join(f"{x:.1f},{y:.1f}" for x, y in data_points)
+            svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
+<rect width="100%" height="100%" fill="#F8FAFC"/>
+<g font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans CJK SC','Microsoft YaHei','PingFang SC',Arial,sans-serif">
+  <polygon points="{_poly(7)}" fill="#F3F6FA" stroke="#DCE5EE" stroke-width="1.4"/>
+  <polygon points="{_poly(5)}" fill="none" stroke="#E4EAF1" stroke-width="1"/>
+  <polygon points="{_poly(3)}" fill="none" stroke="#E4EAF1" stroke-width="1"/>
+  <polygon points="{_poly(1)}" fill="none" stroke="#E4EAF1" stroke-width="1"/>
+  {''.join(axis_nodes)}
+  <polygon points="{data_poly}" fill="#333333" fill-opacity="0.34" stroke="#2F2F2F" stroke-width="3" stroke-linejoin="round"/>
+  {''.join(label_nodes)}
+  {''.join(bubble_nodes)}
+</g>
+</svg>'''
+            with open(out_svg_path, "w", encoding="utf-8") as f:
+                f.write(svg)
 
         def _build_final_decision_summary(formulas_: list, mp_ready_: list, user_context: str, final_metrics: dict, rows: list, focus: list) -> str:
             selected = (mp_ready_ or formulas_ or [""])[0] if isinstance((mp_ready_ or formulas_ or [""]), list) else ""
             selected = str(selected or "当前候选材料")
-            m = final_metrics if isinstance(final_metrics, dict) else {}
             try:
                 pf = self._formula_profile(selected)
                 selected_name = pf.get("中文名称") or selected
@@ -2091,6 +2715,9 @@ class Coding(Action):
 
             row_by_code = {r.get("code"): r for r in rows if isinstance(r, dict)}
 
+            def _row(code: str) -> dict:
+                return row_by_code.get(code) or {}
+
             def _row_result(code: str) -> str:
                 r = row_by_code.get(code) or {}
                 return str(r.get("result") or "本轮未直接计算")
@@ -2099,95 +2726,252 @@ class Coding(Action):
                 r = row_by_code.get(code) or {}
                 return str(r.get("sat") or "待补充")
 
-            def _coverage_for_focus(item: dict) -> tuple:
+            def _evidence_short(code: str) -> str:
+                r = _row(code)
+                result = str(r.get("result") or "").strip()
+                if not result or "待补充" in result:
+                    return "本轮没有形成可用数值"
+                return result
+
+            friendly_label = {
+                "thermal": "导热/散热能力",
+                "cte": "冷热变化下的尺寸稳定性",
+                "mechanical": "强度和抗开裂能力",
+                "electronic": "绝缘和电压承受能力",
+                "dielectric": "绝缘/介电表现",
+                "piezo": "受力发电或传感响应",
+                "transport": "导电或离子通过能力",
+                "stability": "材料本身稳定性",
+                "manufacturing": "成本和加工难度",
+            }
+
+            def _judge_focus(item: dict) -> dict:
                 code = item.get("code")
+                label = friendly_label.get(code) or item.get("label") or code or "需求项"
                 gap = item.get("gap") or "需补充应用工况下的验证数据。"
-                if code == "thermal":
-                    return ("间接覆盖", _row_result("stability") + "；" + _row_result("mechanical"), gap)
-                if code == "cte":
-                    return ("未直接覆盖", "本轮未输出 CTE；可参考稳定性与机械刚度作为先验风险判断", gap)
-                if code == "mechanical":
-                    return (_row_sat("mechanical"), _row_result("mechanical"), gap)
-                if code == "electronic":
-                    return (_row_sat("electronic"), _row_result("electronic"), gap)
                 if code == "manufacturing":
-                    return ("未直接覆盖", "本轮不计算成本、良率、加工窗口或装配公差", gap)
+                    return {
+                        "bucket": "boundary",
+                        "label": label,
+                        "text": "是否便宜、好加工、适合量产，还需要结合供应链、制备工艺和良率数据再判断。",
+                    }
+                if code == "thermal":
+                    sat = _row_sat("thermal")
+                    if sat == "满足":
+                        return {"bucket": "support", "label": label, "text": "初步看起来有较好的散热潜力，可以继续比较。"}
+                    if sat == "部分满足":
+                        return {"bucket": "risk", "label": label, "text": "散热能力只有初步迹象，还不能说明它真的能满足高散热场景。"}
+                    return {"bucket": "missing", "label": label, "text": "这轮没有拿到能判断散热能力的结果。"}
+                if code == "cte":
+                    sat = _row_sat("cte")
+                    if sat == "满足":
+                        return {"bucket": "support", "label": label, "text": "冷热变化带来的变形风险暂时没有明显警讯，可以继续验证。"}
+                    if sat == "部分满足":
+                        return {"bucket": "risk", "label": label, "text": "尺寸稳定性还只是初步判断，不能说明它在冷热循环中一定可靠。"}
+                    return {"bucket": "missing", "label": label, "text": "这轮还不能判断冷热变化下是否容易变形或开裂。"}
+                if code == "mechanical":
+                    sat = _row_sat("mechanical")
+                    if sat == "满足":
+                        return {"bucket": "support", "label": label, "text": "基础力学表现较好，说明它有继续作为承载材料评估的价值。"}
+                    if sat == "部分满足":
+                        return {"bucket": "risk", "label": label, "text": "强度和抗开裂能力还没有被充分证明，不能只凭当前结果判断它能长期承受载荷。"}
+                    return {"bucket": "missing", "label": label, "text": "这轮还不能判断它是否足够结实、抗裂或耐疲劳。"}
+                if code == "electronic":
+                    sat = _row_sat("electronic")
+                    if sat == "满足":
+                        return {"bucket": "support", "label": label, "text": "初步看起来绝缘性较好，适合继续评估电压相关应用。"}
+                    if sat == "部分满足":
+                        return {"bucket": "risk", "label": label, "text": "绝缘和耐电压能力还没有完全说清楚，关键电压场景需要再验证。"}
+                    return {"bucket": "missing", "label": label, "text": "这轮还不能判断它是否适合绝缘或高电压环境。"}
+                if code == "piezo":
+                    sat = _row_sat("piezo")
+                    if sat == "满足":
+                        return {"bucket": "support", "label": label, "text": "它可能具有受力产生电响应的潜力，可以继续作为传感/致动方向候选。"}
+                    return {"bucket": "missing", "label": label, "text": "这轮还不能判断它是否适合压电、传感或致动应用。"}
                 if code == "transport":
-                    return (_row_sat("transport"), _row_result("transport"), gap)
-                return ("部分覆盖", _row_result("stability"), gap)
+                    sat = _row_sat("transport")
+                    if sat == "满足":
+                        return {"bucket": "support", "label": label, "text": "初步看起来有让电荷或离子通过的潜力，可以继续作为电池/导电相关候选。"}
+                    if sat == "部分满足":
+                        return {"bucket": "risk", "label": label, "text": "导电或离子通过能力只有弱信号，不能说明它已经满足电池或导电应用。"}
+                    return {"bucket": "missing", "label": label, "text": "这轮还不能判断它的导电或离子通过能力。"}
+                if code == "stability":
+                    sat = _row_sat("stability")
+                    if sat == "满足":
+                        return {"bucket": "support", "label": label, "text": "数据库结果显示它本身比较稳定，这是继续评估的基础。"}
+                    if sat == "部分满足":
+                        return {"bucket": "risk", "label": label, "text": "材料稳定性接近可用，但还需要看它在空气、水分或实际环境中会不会变差。"}
+                    return {"bucket": "missing", "label": label, "text": "这轮还不能判断材料本身是否稳定。"}
+                return {"bucket": "missing", "label": label, "text": gap}
 
-            lines = [
-                "### 本轮验证与计算结果",
-                "",
-                f"候选材料：`{selected}`（{selected_name}）",
-                "",
-                f"上游重点需求：**{focus_text}**",
-                "",
-                "#### 1. 本轮已经验证/计算了什么",
-                "",
-                "| 项目 | 状态 | 本轮证据 | 作用 |",
-                "|---|---|---|---|",
-            ]
-            mid = m.get("material_id")
-            if mid:
-                lines.append(f"| 数据库结构命中 | 已完成 | Materials Project 候选ID：`{mid}` | 说明该候选有可用于性质补全的已有结构 |")
-            for row in rows:
-                lines.append(
-                    f"| {row.get('label')} | {row.get('sat')} | {row.get('result')} | {row.get('next')} |"
-                )
-
-            lines.append("")
-            lines.append("#### 2. 上游需求覆盖情况")
-            lines.append("")
-            lines.append("| 上游需求 | 本轮覆盖程度 | 已有证据 | 还需要补什么 |")
-            lines.append("|---|---|---|---|")
+            judgements = []
+            seen_focus = set()
             for item in focus:
                 if not isinstance(item, dict):
                     continue
-                status, evidence, gap = _coverage_for_focus(item)
-                lines.append(f"| {item.get('label')} | {status} | {evidence} | {gap} |")
+                code = item.get("code")
+                if code in seen_focus:
+                    continue
+                seen_focus.add(code)
+                judgements.append(_judge_focus(item))
 
-            lines.append("")
-            lines.append("#### 3. 补充建议")
-            lines.append("")
-            advice = []
+            support = [j for j in judgements if j.get("bucket") == "support"]
+            risk = [j for j in judgements if j.get("bucket") == "risk"]
+            missing = [j for j in judgements if j.get("bucket") == "missing"]
+            boundary = [j for j in judgements if j.get("bucket") == "boundary"]
+
+            stable_ok = _row_sat("stability") == "满足"
+            if stable_ok and not any("稳定" in str(j.get("label") or "") for j in support):
+                support.insert(0, {"label": "材料本身稳定性", "text": "数据库里能找到这个结构，而且初步看起来稳定，说明它不是凭空假设的材料。"})
+
+            critical_risk = bool(risk or missing)
+            if critical_risk:
+                decision = f"`{selected}` 有继续评估价值，但目前还不能说它已经满足全部需求。"
+                confidence_line = "当前结论偏保守：可以保留为候选，但需要补关键验证后再比较。"
+            else:
+                decision = f"`{selected}` 的初步表现比较正向，可以进入下一轮应用验证。"
+                confidence_line = "当前结论相对积极：可以安排样品或场景测试，但最终仍要看实际测试结果。"
+
+            lines = [
+                "### 本轮结论与建议",
+                "",
+                f"**总体结论**：{decision}",
+                "",
+                f"**结论可信度**：{confidence_line}",
+                "",
+            ]
+
+            if support:
+                lines.append("**已经看到的积极信号**")
+                lines.append("")
+                seen_labels = set()
+                for item in support:
+                    label = str(item.get("label") or "")
+                    if label in seen_labels:
+                        continue
+                    seen_labels.add(label)
+                    lines.append(f"- {item.get('label')}：{item.get('text')}")
+                    lines.append("")
+                    if len(seen_labels) >= 3:
+                        break
+
+            if risk:
+                lines.append("**还需要小心的地方**")
+                lines.append("")
+                seen_labels = set()
+                for item in risk:
+                    label = str(item.get("label") or "")
+                    if label in seen_labels:
+                        continue
+                    seen_labels.add(label)
+                    lines.append(f"- {item.get('label')}：{item.get('text')}")
+                    lines.append("")
+                    if len(seen_labels) >= 3:
+                        break
+
+            if missing:
+                lines.append("**这轮还没回答的问题**")
+                lines.append("")
+                seen_labels = set()
+                for item in missing:
+                    label = str(item.get("label") or "")
+                    if label in seen_labels:
+                        continue
+                    seen_labels.add(label)
+                    lines.append(f"- {item.get('label')}：{item.get('text')}")
+                    lines.append("")
+                    if len(seen_labels) >= 3:
+                        break
+
+            if boundary:
+                lines.append("**还需要补充的信息**")
+                lines.append("")
+                for item in boundary[:2]:
+                    lines.append(f"- {item.get('label')}：{item.get('text')}")
+                    lines.append("")
+
+            next_steps = []
             focus_codes = {f.get("code") for f in focus if isinstance(f, dict)}
-            if "thermal" in focus_codes or "cte" in focus_codes:
-                advice.append("优先补充热导率、热扩散率、CTE、界面热阻和热循环后界面完整性数据。")
-            if "mechanical" in focus_codes:
-                advice.append("补充断裂韧性、疲劳寿命和实际结构件循环载荷测试，避免仅凭模量判断服役可靠性。")
+            if "transport" in focus_codes:
+                next_steps.append("先测实际导电或离子通过能力，这是判断它能不能用于电池/导电场景的关键。")
             if "electronic" in focus_codes:
-                advice.append("补充击穿强度、介电损耗和工作电压窗口，确认绝缘边界是否满足目标工况。")
-            if "manufacturing" in focus_codes:
-                advice.append("补充加工路线、成型良率、连接方式和成本区间，判断该候选是否能进入量产方案。")
-            if not advice:
-                advice.append("保留该候选进入下一轮验证，并补充应用工况下的关键实验指标。")
-            for idx, text in enumerate(advice, start=1):
-                lines.append(f"{idx}. {text}")
+                next_steps.append("补耐电压和界面稳定性测试，确认它在实际工作电压下不会失效。")
+            if "mechanical" in focus_codes:
+                next_steps.append("补强度、抗裂和长期受力测试，确认它不是只在计算里表现好。")
+            if "stability" in focus_codes:
+                next_steps.append("补空气、水分或目标环境下的稳定性测试，确认储存和使用时不会明显劣化。")
+            if not next_steps:
+                next_steps.append("补充最贴近实际使用场景的关键测试，再决定是否继续推进。")
 
+            lines.append("**建议下一步**")
             lines.append("")
-            lines.append("本轮结论：该候选已经完成已有数据库命中与基础性质补全，可作为下一轮验证对象；最终选型应以后续补充的应用性能数据为准。")
+            for idx, text in enumerate(next_steps[:3], start=1):
+                lines.append(f"{idx}. {text}")
+                lines.append("")
+
+            if critical_risk:
+                final_text = f"{selected_name}现在更像一个“有希望但还没确认”的候选材料。是否采用它，关键取决于后续能否补上上面这些短板。"
+            else:
+                final_text = f"{selected_name}可以进入下一轮验证；最终是否采用，还要看真实使用场景测试和成本是否合适。"
+            lines.append(f"**最终判断**：{final_text}")
             return "\n".join(lines) + "\n\n"
 
         async def _stream_final_requirement_summary(formulas_: list, mp_ready_: list, user_context: str = "", final_metrics: dict = None):
             """目标-结果对照收敛：基于真实计算值输出，并结合上游需求生成结论。"""
             await _open_material_block("MATERIAL_SCREENING")
-            await websocket.send_text("\n\n### 材料性能目标结果对比\n\n")
+            await websocket.send_text("\n\n### 材料性能判读\n\n")
             focus = _infer_requirement_focus(user_context)
             rows = _ordered_metric_rows(_build_metric_rows(final_metrics), focus)
-            await websocket.send_text("| 宏观目标项 | 对应微观代理指标 | 本轮结果 | 满足度 | 不确定性与下一步 |\n")
-            await websocket.send_text("|---|---|---|---|---|\n")
-            for row in rows:
-                await websocket.send_text(
-                    f"| {row['label']} | {row['proxy']} | {row['result']} | {row['sat']} | {row['next']} |\n"
-                )
-            await websocket.send_text("\n")
+            try:
+                chart_abs = f"/tmp/requirement_radar_{str(taskid).replace('/', '_')}.svg"
+                _render_requirement_radar_svg(rows, focus, chart_abs)
+                chart_url = await _upload_database_pic_for_markdown(chart_abs, "requirement_radar.svg")
+                if chart_url:
+                    await websocket.send_text("#### 需求雷达\n\n")
+                    await websocket.send_text(f"![需求雷达]({chart_url})\n\n")
+                    await websocket.send_text("注：图中 1-7 分为快速筛选判读分，不是实验性能绝对值；低分代表本轮证据不足或不属于本轮可计算范围。\n\n")
+            except Exception as e:
+                logger.exception(f"[REQ_RADAR] render/upload failed: {e!s}")
             await websocket.send_text(_build_final_decision_summary(formulas_, mp_ready_, user_context, final_metrics, rows, focus))
             await _close_material_block("MATERIAL_SCREENING")
 
         async def _stream_final_li6ps5cl_bridge(formulas_: list):
             """ADiT/MACE 旧桥接函数已下线，保留空壳以保持接口稳定。"""
             return
+
+        async def _stream_non_mp_material_route_summary(formulas_: list, notes: list, user_context: str = "", in_ls_summary: dict = None):
+            """聚合物/复合耗材等非晶体化学式候选：不走 MP/ALIGNN，给出工程路由说明。"""
+            await _open_material_block("MATERIAL_SCREENING")
+            materials = [str(x).strip() for x in (formulas or []) if str(x).strip()]
+            material_text = "、".join(f"`{m}`" for m in materials[:5]) or "当前候选材料体系"
+            ctx = str(user_context or "")
+            is_printing = bool(re.search(r"3d打印|3D打印|增材|FDM|FFF|耗材|打印|层间|连续碳纤维|短切|纤维增强", ctx, flags=re.IGNORECASE))
+            await websocket.send_text("\n\n### 材料路线判定\n\n")
+            if is_printing:
+                await websocket.send_text(
+                    f"**一句话结论**：{material_text} 更像 3D 打印聚合物/纤维增强复合耗材体系，不适合按无机晶体化学式进入 MP/ALIGNN；"
+                    "本轮应转为工艺-结构-力学性能筛选。\n\n"
+                )
+            else:
+                await websocket.send_text(
+                    f"**一句话结论**：{material_text} 不是标准无机晶体化学式，本轮不强行进入 MP/ALIGNN，避免得到误导性结果。\n\n"
+                )
+            await websocket.send_text("**为什么不走化学式路线**\n\n")
+            await websocket.send_text("- `PA12/C`、`SCF-PA12`、`CF-PA6` 代表基体、增强相和工艺形态的组合，不是 Materials Project 可直接检索的单相晶体结构。\n\n")
+            await websocket.send_text("- 对这类材料，决定性能的核心通常是纤维长度/取向、体积分数、层间结合、打印路径、孔隙率、热历史和后处理，而不是单一化学式。\n\n")
+            await websocket.send_text("**建议路由**\n\n")
+            if is_printing:
+                await websocket.send_text("1. 走 3D 打印复合耗材/结构件筛选：PA12-CF、PA6-CF、连续碳纤维增强 PA/PEEK 等按材料体系比较。\n\n")
+                await websocket.send_text("2. 核心指标改为拉伸强度、弯曲模量、疲劳寿命、层间剪切强度、尺寸稳定性、打印窗口和成本。\n\n")
+                await websocket.send_text("3. 若后续要计算，应接复合材料/聚合物性能模型或实验数据库，而不是 MP 晶体结构检索。\n\n")
+            else:
+                await websocket.send_text("1. 若目标是已知无机晶体，请补充标准化学式，例如 `Li6PS5Cl`、`AlN`。\n\n")
+                await websocket.send_text("2. 若目标是复合材料、聚合物或工艺体系，请进入工程性能筛选路线，按宏观性能和工艺参数评估。\n\n")
+            if notes:
+                await websocket.send_text("**路由备注**\n\n")
+                for note in notes[:4]:
+                    await websocket.send_text(f"- {note}\n\n")
+            await _close_material_block("MATERIAL_SCREENING")
 
         # MP 检索耗时估计（秒）：按你给出的 8~15s 经验设置初值，并在会话内动态微调
         _mp_eta_seconds = 12.0
@@ -2436,7 +3220,8 @@ class Coding(Action):
                 await _ensure_material_progress_started()
 
                 if not mp_formulas:
-                    await websocket.send_text("未提取到可用于 MP 检索的标准化学式，已停止本轮材料检索。\n")
+                    await _stream_non_mp_material_route_summary(formulas, non_mp_notes, user_context=norm, in_ls_summary=in_ls_summary)
+                    await websocket.send_text("当前候选不适合无机晶体数据库检索，已完成材料路线判定，建议接入复合材料/3D打印工程筛选流程。\n")
                     return
 
                 # 左侧：流程说明；右侧：函数内部仅包表格/结论
@@ -2487,7 +3272,7 @@ class Coding(Action):
                     # ALIGNN阶段说明保持在左侧
                     await _stream_alignn_stage_intro(selected_formula)
                     await self._send_content_start(websocket, "MATERIAL_SCREENING")
-                    selected_metrics = await self._material_alignn_placeholder_stage(websocket, selected_formula, llm=llm)
+                    selected_metrics = await self._material_alignn_placeholder_stage(websocket, selected_formula, llm=llm, user_context=norm)
                     await self._send_content_end(websocket, "MATERIAL_SCREENING")
                 else:
                     await websocket.send_text("\n无可用于材料性质计算的候选结构，已结束本轮计算。\n")
@@ -2496,7 +3281,7 @@ class Coding(Action):
                 await _stream_final_requirement_summary(formulas, mp_ready_formulas, user_context=norm, final_metrics=selected_metrics)
 
                 # 左侧：流程完成播报，具体选型结论已在右侧结果区输出
-                await websocket.send_text("\n本轮材料模拟与需求对照已完成，具体初筛结论和待补充验证项已写入右侧结果区，正在接入下一流程。\n")
+                await websocket.send_text("\n本轮材料模拟与需求对照已完成，具体初筛结论和待补充验证项已写入，正在接入下一流程。\n")
                 return
 
             await _ensure_material_progress_started()
