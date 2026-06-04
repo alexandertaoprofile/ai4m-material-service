@@ -7,7 +7,7 @@ OpenPoly XGB inference helper.
 Usage example:
 python tools/openpoly_xgb_infer.py \
   --psmiles "[*]CC([*])" \
-  --model-dir /data/se42/alpha_project/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/models/openpoly/xgb
+  --model-dir /data/se42/alpha_project/alpha_material_sync/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/models/openpoly/xgb
 """
 
 import argparse

@@ -43,6 +43,9 @@ import uuid
 from datetime import datetime
 
 
+def _repo_root() -> str:
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
 
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:10240"
 
@@ -50,12 +53,12 @@ os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:10240"
 server_base = os.getenv('server_base')
 config = load_config("config/config.yaml")
 backend_url = config["BACKEND_URL"]
-source_path = config['SOURCE_CODE_PATH']
+source_path = os.path.join(_repo_root(), "src")
 
 minio_addr = "http://36.103.203.113:2300"
 https_vip_addr = "http://36.103.203.113:2300"
 
-base_dir = '/data/XIMUAlpha_MNS/src'
+base_dir = source_path
 ########################################
 # 工具函数
 ########################################
@@ -853,7 +856,7 @@ class Coding(Action):
 
 
         # Step 2 .构造 Prompt（暂时不填文件信息）
-        # readme_path = "/data/XIMUAlpha_MNS/src/MNS_CaseHub/cases/微悬臂梁谐振器_几何参数wtlt反演/README.md"
+        # readme_path = os.path.join(source_path, "MNS_CaseHub", "cases", "微悬臂梁谐振器_几何参数wtlt反演", "README.md")
         # readme_content = self.read_case_readme(readme_path)
         # prompt = self.XIMU_MNS_PREPROCESS_PROMPT.format(
         #     query=instruction,
@@ -880,7 +883,13 @@ class Coding(Action):
             logger.info(f"[Match] ✅ 匹配成功: {best_proj['name']} | Score={best_score:.4f}")
             print(f"[Match-Print] ✅ 匹配成功: {best_proj['name']} | Score={best_score:.4f}")
             
-            readme_path = "/data/XIMUAlpha_MNS/src/MNS_CaseHub/cases/微悬臂梁谐振器_几何参数wtlt反演/README.md"
+            readme_path = os.path.join(
+                source_path,
+                "MNS_CaseHub",
+                "cases",
+                "微悬臂梁谐振器_几何参数wtlt反演",
+                "README.md",
+            )
             readme_content = self.read_case_readme(readme_path)
             summary = self._get_code_retriever().get_summary(best_idx) or "（无案例总结）"
             parameters = self._get_code_retriever().get_parameters(best_idx) or {}

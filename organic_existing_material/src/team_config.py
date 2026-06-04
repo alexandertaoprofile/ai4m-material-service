@@ -88,7 +88,9 @@ os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:10240"
 server_base = os.getenv('server_base')
 config = load_config("config/config.yaml")
 backend_url = config["BACKEND_URL"]
-source_path = config['SOURCE_CODE_PATH']
+# Use the service-local source directory instead of the legacy deployment path
+# from config.yaml, so this repo can be moved without breaking result lookup.
+source_path = os.path.join(_repo_root(), "src")
 
 #minio_addr = "https://36.103.203.113:2300"
 #https_vip_addr = "https://36.103.203.113:2300"
@@ -108,7 +110,7 @@ picture_public_base_url = os.getenv(
 ).rstrip("/")
 
 
-base_dir = '/data/XIMUAlpha_MNS/src'
+base_dir = source_path
 ########################################
 # 工具函数
 ########################################
@@ -2706,7 +2708,16 @@ class Coding(Action):
 
             # 性质补全阶段配图（右侧资产）
             await _send_openpoly_stage_image(
-                "/data/se42/alpha_project/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/openpoly/openpolyprediction.jpg",
+                os.path.join(
+                    _repo_root(),
+                    "src",
+                    "MNS_CaseHub",
+                    "cases",
+                    "material_discovery_demo",
+                    "results",
+                    "openpoly",
+                    "openpolyprediction.jpg",
+                ),
                 docs="OpenPoly 性质补全结果图",
                 description="该图对应最优候选结构的性质补全阶段输出，可用于快速核对关键预测指标。",
             )
@@ -3464,7 +3475,16 @@ class Coding(Action):
 
                     # 数据库检索阶段配图保持左侧展示
                     await _send_openpoly_stage_image(
-                        "/data/se42/alpha_project/organic_existing_material/src/MNS_CaseHub/cases/material_discovery_demo/results/openpoly/openpoly.jpg",
+                        os.path.join(
+                            _repo_root(),
+                            "src",
+                            "MNS_CaseHub",
+                            "cases",
+                            "material_discovery_demo",
+                            "results",
+                            "openpoly",
+                            "openpoly.jpg",
+                        ),
                         docs="OpenPoly 数据库检索结果图",
                         description="该图对应 OpenPoly 数据库检索阶段的候选结果展示，用于快速查看检索命中概况。",
                     )
