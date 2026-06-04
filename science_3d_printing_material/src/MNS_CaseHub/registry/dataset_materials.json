@@ -1,0 +1,98 @@
+{
+  "version": "1.0.0",
+  "cases": [
+    {
+      "id": "mns.material.tungsten.dft_mlip_md.v1",
+      "domain": "MNS",
+      "name": "金属钨（W）DFT→MLIP→MD 高温材料仿真",
+      "tags": [
+        "tungsten",
+        "W",
+        "钨",
+        "高温材料",
+        "耐热",
+        "抗蠕变",
+        "抗烧蚀",
+        "DFT",
+        "DeepMD",
+        "MLIP",
+        "LAMMPS",
+        "NVT",
+        "NPT",
+        "弹性常数",
+        "C11",
+        "C12",
+        "C44",
+        "热容",
+        "Cv",
+        "热膨胀",
+        "材料仿真"
+      ],
+      "description": "钨（W / tungsten）是一类典型的超高熔点高温结构金属材料，广泛应用于热防护系统、火箭喷管/喷嘴、真空高温部件与抗蠕变结构。该案例展示钨材料从第一性原理到工程可用性质的跨尺度仿真流程：基于 DFT 数据训练 DeepMD 机器学习原子势（MLIP），并在 LAMMPS 中开展 NVT/NPT 分子动力学模拟，覆盖 300–900 K 高温区间。通过应变法与能量/应力拟合提取弹性常数 C11/C12/C44，并进一步派生体模量、剪切模量、杨氏模量、泊松比与声速；通过能量涨落与时间序列拟合获得定容热容 Cv；通过 NPT 平衡盒子尺寸随温度变化计算热膨胀系数。该流程用于快速评估钨在高温工程场景下的力学与热学稳定性，并可与实验数据或工程经验区间进行对标。",
+      "summary": "钨（W）材料的 DFT→DeepMD(MLIP)→LAMMPS 跨尺度仿真展示，覆盖 300–900 K，高温弹性、热容与热膨胀等工程关键性质的快速评估与对标。",
+      "root_path": "MNS_CaseHub/cases/metal_tungsten_dft_mlip_md",
+      "readme": "README.md",
+      "paths": {
+        "project_root": "MNS_CaseHub/cases/metal_tungsten_dft_mlip_md",
+        "main_entry": "MNS_CaseHub/cases/metal_tungsten_dft_mlip_md/metal_tungsten_dft_mlip_md_main.py"
+      },
+      "files": [
+        "MNS_CaseHub/cases/metal_tungsten_dft_mlip_md/metal_tungsten_dft_mlip_md_main.py",
+        "MNS_CaseHub/cases/metal_tungsten_dft_mlip_md/README.md"
+      ],
+      "parameters": {
+        "material": "W (tungsten)",
+        "crystal_structure": "BCC",
+        "temperature_range": "300–900 K",
+        "mlip_type": "DeepMD",
+        "md_engine": "LAMMPS",
+        "ensembles": ["NVT", "NPT"],
+        "key_outputs": [
+          "C11",
+          "C12",
+          "C44",
+          "Bulk modulus",
+          "Shear modulus",
+          "Young modulus",
+          "Poisson ratio",
+          "Sound velocity",
+          "Cv",
+          "Thermal expansion coefficient"
+        ]
+      }
+    },
+    {
+      "id": "mns.material.discovery.demo.v1",
+      "domain": "MNS",
+      "name": "材料发现与跨尺度模拟（Demo）",
+      "tags": [
+        "材料",
+        "material discovery",
+        "筛选",
+        "稳定性",
+        "性质计算",
+        "DFT",
+        "MLIP",
+        "LAMMPS",
+        "固态电解质",
+        "LiPS"
+      ],
+      "description": "材料发现流程的结构化展示案例，用于验证材料初筛、稳定性评估与性质计算的系统链路与前端渲染能力。",
+      "summary": "材料发现与跨尺度模拟流程 Demo，占位展示材料初筛、稳定性检测与性质计算结果。",
+      "root_path": "MNS_CaseHub/cases/material_discovery_demo",
+      "readme": "README.md",
+      "paths": {
+        "project_root": "MNS_CaseHub/cases/material_discovery_demo",
+        "main_entry": "MNS_CaseHub/cases/material_discovery_demo/material_discovery_demo_main.py"
+      },
+      "files": [
+        "MNS_CaseHub/cases/material_discovery_demo/material_discovery_demo_main.py",
+        "MNS_CaseHub/cases/material_discovery_demo/README.md"
+      ],
+      "parameters": {
+        "stage": "demo",
+        "notes": "static showcase"
+      }
+    }
+  ]
+}
