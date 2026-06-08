@@ -9,6 +9,8 @@ import io
 import logging
 import asyncio
 import hashlib
+import random
+import time
 from typing import Union, List, Optional, Dict, Any, BinaryIO, Callable
 from datetime import datetime, timedelta
 from dataclasses import dataclass, asdict
@@ -17,7 +19,14 @@ from concurrent.futures import ThreadPoolExecutor
 import json
 
 import boto3
-from botocore.exceptions import ClientError, NoCredentialsError
+from botocore.exceptions import (
+    ClientError,
+    ConnectionClosedError,
+    ConnectTimeoutError,
+    EndpointConnectionError,
+    NoCredentialsError,
+    ReadTimeoutError,
+)
 from botocore.config import Config
 from dotenv import load_dotenv
 
@@ -80,6 +89,8 @@ class StorageConfig:
     timeout: int = 60
     max_retries: int = 3
     max_concurrent_uploads: int = 5
+    app_upload_retries: int = 5
+    app_upload_backoff: float = 1.5
     
     @classmethod
     def from_env(cls) -> 'StorageConfig':
@@ -99,7 +110,9 @@ class StorageConfig:
             secure=os.getenv("MINIO_SECURE", "true").lower() == "true",
             timeout=int(os.getenv("MINIO_TIMEOUT", "60")),
             max_retries=int(os.getenv("MINIO_MAX_RETRIES", "3")),
-            max_concurrent_uploads=int(os.getenv("MINIO_MAX_CONCURRENT", "5"))
+            max_concurrent_uploads=int(os.getenv("MINIO_MAX_CONCURRENT", "5")),
+            app_upload_retries=int(os.getenv("MINIO_APP_UPLOAD_RETRIES", "5")),
+            app_upload_backoff=float(os.getenv("MINIO_APP_UPLOAD_BACKOFF", "1.5")),
         )
 
 
@@ -145,7 +158,7 @@ class StorageClient:
         """创建S3客户端"""
         try:
             boto_config = Config(
-                retries={'max_attempts': self.config.max_retries},
+                retries={'max_attempts': self.config.max_retries, 'mode': 'standard'},
                 read_timeout=self.config.timeout,
                 connect_timeout=self.config.timeout,
                 region_name=self.config.region,
@@ -198,6 +211,36 @@ class StorageClient:
             '.svg': 'image/svg+xml'
         }
         return content_type_map.get(ext, 'application/octet-stream')
+
+    @staticmethod
+    def _is_retryable_upload_error(exc: Exception) -> bool:
+        """Return True for transient storage gateway/network failures."""
+        if isinstance(exc, (EndpointConnectionError, ConnectTimeoutError, ReadTimeoutError, ConnectionClosedError)):
+            return True
+        if isinstance(exc, ClientError):
+            error = exc.response.get('Error', {})
+            code = str(error.get('Code', ''))
+            status = int(exc.response.get('ResponseMetadata', {}).get('HTTPStatusCode') or 0)
+            return status in {500, 502, 503, 504} or code in {
+                'RequestTimeout',
+                'RequestTimeoutException',
+                'SlowDown',
+                'InternalError',
+                'ServiceUnavailable',
+                'Throttling',
+                'ThrottlingException',
+                'TimeoutError',
+                '504',
+            }
+        return False
+
+    @staticmethod
+    def _rewind_fileobj(data: Any) -> None:
+        if hasattr(data, 'seek'):
+            try:
+                data.seek(0)
+            except Exception:
+                pass
     
     # =============== 同步方法 ===============
     
@@ -229,20 +272,41 @@ class StorageClient:
             if metadata:
                 extra_args['Metadata'] = metadata
 
-            self._client.upload_fileobj(
-                Fileobj=data,
-                Bucket=bucket,
-                Key=key,
-                ExtraArgs=extra_args if extra_args else None
-            )
+            attempts = max(1, self.config.app_upload_retries)
+            last_exc: Optional[Exception] = None
+            for attempt in range(1, attempts + 1):
+                try:
+                    self._rewind_fileobj(data)
+                    self._client.upload_fileobj(
+                        Fileobj=data,
+                        Bucket=bucket,
+                        Key=key,
+                        ExtraArgs=extra_args if extra_args else None
+                    )
 
-            logger.info(f"[put_object] uploaded: {bucket}/{key} ct={content_type} cd={content_disposition}")
-            return {
-                'bucket': bucket,
-                'key': key,
-                'status': 'success',
-                'timestamp': datetime.now().isoformat(),
-            }
+                    logger.info(
+                        f"[put_object] uploaded: {bucket}/{key} ct={content_type} "
+                        f"cd={content_disposition} attempt={attempt}/{attempts}"
+                    )
+                    return {
+                        'bucket': bucket,
+                        'key': key,
+                        'status': 'success',
+                        'timestamp': datetime.now().isoformat(),
+                    }
+                except Exception as e:
+                    last_exc = e
+                    if attempt >= attempts or not self._is_retryable_upload_error(e):
+                        raise
+                    sleep_s = min(20.0, self.config.app_upload_backoff * (2 ** (attempt - 1)))
+                    sleep_s += random.uniform(0.0, 0.5)
+                    logger.warning(
+                        f"[put_object] transient upload error, retrying "
+                        f"{attempt}/{attempts}: {bucket}/{key}: {e}"
+                    )
+                    time.sleep(sleep_s)
+
+            raise StorageError(f"Failed to upload object {bucket}/{key}: {last_exc}")
 
         except ClientError as e:
             error_code = e.response.get('Error', {}).get('Code', '')

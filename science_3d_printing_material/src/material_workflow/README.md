@@ -13,6 +13,8 @@ stage transitions, and calls into these helpers.
 - `alignn_completion.py`: runs ALIGNN property completion and formats the result section.
 - `llm_streaming.py`: streams LLM output and normalizes frontend-safe text.
 - `frontend_assets.py`: uploads result assets and emits frontend payloads.
+- `filament_profiles.py`: stores starter 3D-printing filament profiles and process windows.
+- `filament_selector.py`: maps 3D-printing requirements to filament properties, ranks existing filaments, and writes the selection manifest.
 - `payloads.py`: builds websocket payload envelopes.
 - `prompts.py`: stores prompt templates shared by orchestration stages.
 - `schemas.py`, `ranking.py`, `validation.py`, `generation.py`, `pipeline.py`: reserved workflow primitives for future MatterGen/validation expansion.

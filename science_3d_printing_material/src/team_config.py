@@ -22,6 +22,12 @@ from src.material_workflow.llm_streaming import stream_llm_response
 from src.material_workflow.frontend_assets import send_results_to_frontend
 from src.material_workflow.database_pics import resolve_public_pic_path, upload_database_pic_for_markdown
 from src.material_workflow.alignn_completion import run_alignn_completion_stage
+from src.material_workflow.filament_selector import (
+    build_markdown_report,
+    build_selection_from_latest,
+    detect_filament_task,
+    latest_in_ls_payload,
+)
 from src.material_workflow.formula_router import (
     build_candidate_lists,
     build_formula_extraction_text,
@@ -55,7 +61,7 @@ os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:10240"
 
 ########################################
 # Coding Action 模块
-# - 功能：组织材料初筛、MP 产物下发、ALIGNN 性质补全与前端流式输出
+# - 功能：组织 3D 打印耗材需求解析、已有耗材排序、缺口分析与改性建议
 ########################################
 
 class Coding(Action):
@@ -63,10 +69,10 @@ class Coding(Action):
     name: str = "XIMUAlpha_MNS"
     # 智能体简要描述
     desc: str = (
-        "XIMUAlpha工业平台·材料发现与跨尺度计算Agent："
-        "基于上游的材料文献获得结构，面向材料体系与化学式输入，执行材料初筛、结构与热力学稳定性评估，"
-        "以结构化 JSON 为唯一输出载体，负责计算任务调度、产物组织与结果解释，"
-        "输出可供前端展示与下游计算使用的 JSON 与可视化资产路径，不进行闲聊式解释。"
+        "XIMUAlpha工业平台·3D打印耗材工程筛选Agent："
+        "基于上游文献筛选与耗材数据表，面向应用场景、性能指标和打印工艺约束，"
+        "执行已有耗材推荐、需求满足度排序、缺口分析与后续改性方向建议。"
+        "输出可供前端展示和下游优化使用的结构化 JSON、候选排序和工程说明。"
     )
 
     def __init__(self, **kwargs):
@@ -148,8 +154,8 @@ class Coding(Action):
             await _mark_completed(
                 "MATERIAL_SCREENING",
                 "🎯",
-                "材料模拟与计算",
-                "基于机器学习模型进行材料性能快速预测与初步筛选"
+                "3D打印耗材筛选",
+                "基于耗材性质、工艺窗口与应用需求进行工程选型和缺口分析"
             )
             progress_sent = True
 
@@ -561,6 +567,53 @@ class Coding(Action):
 
         logger.info(f"[Coding-LOG] user={user_name} taskid={taskid} route={route} content={content}")
 
+        latest_payload, _latest_payload_path = latest_in_ls_payload(_repo_root())
+
+        # =========================
+        # 9.5) 3D 打印耗材路径：需求-性质映射 + 已有耗材推荐
+        # =========================
+        if route != "mp" and detect_filament_task(norm, latest_payload):
+            await _open_material_block("MATERIAL_SCREENING")
+            try:
+                await _ensure_material_progress_started()
+                await websocket.send_text(
+                    "本轮识别为 3D 打印耗材工程筛选任务，将先按已有耗材性质与工艺窗口做需求匹配，"
+                    "不进入 Materials Project/ALIGNN 晶体材料计算流程。\n\n"
+                )
+                result, manifest_path = build_selection_from_latest(
+                    repo_root=_repo_root(),
+                    taskid=str(taskid),
+                    text=norm,
+                )
+                await websocket.send_text(build_markdown_report(result))
+                await websocket.send_text(f"\n已生成耗材筛选结构化结果：`{manifest_path}`\n")
+                logger.info(f"[FILAMENT] routed taskid={taskid} manifest={manifest_path}")
+            except Exception as e:
+                logger.exception(f"[FILAMENT] selection failed: {e!s}")
+                await websocket.send_text(
+                    "3D 打印耗材筛选框架已触发，但本轮解析或打分失败。"
+                    "请检查最新 in-LS JSON 是否为合法 JSON，并确认候选材料/需求字段格式。\n"
+                )
+            finally:
+                await _close_material_block("MATERIAL_SCREENING")
+            return
+
+        # This service is now scoped to 3D-printing filament selection. Keep the
+        # legacy MP/ALIGNN code below unreachable until it is physically removed.
+        await _open_material_block("MATERIAL_SCREENING")
+        try:
+            await _ensure_material_progress_started()
+            await websocket.send_text(
+                "当前服务已收敛为 3D 打印耗材选型与优化服务。"
+                "本轮输入没有识别到耗材、3D 打印工艺或候选材料数据，"
+                "因此不会进入 Materials Project/ALIGNN 晶体材料计算流程。\n\n"
+                "请让上游传入 `domain: 3d_printing_filament`、`scenario_tasks`、"
+                "`requirements` 和 `candidate_materials`，或在问题中明确 3D 打印耗材/工艺约束。\n"
+            )
+        finally:
+            await _close_material_block("MATERIAL_SCREENING")
+        return
+
         # =========================
         # 10) /mp：强制单个（只跑 MP）
         # 约定：开始这一步就发 completed（不管实际含义）
@@ -666,20 +719,18 @@ class Coding(Action):
 
 class XIMUAlpha_MNS(Role):
     """
-    工业平台 · 微纳米系统（MNS）领域智能体。
-    定位：面向微纳米器件的设计 / 仿真 / 加工 / 质控与产线优化等工业场景，
-    以“结构化 JSON”为唯一对接载体，侧重“检索模型/算子 → 调度运行 → 拼装可渲染数据”。
+    工业平台 · 3D 打印耗材工程筛选智能体。
+    定位：面向 3D 打印结构件、复合耗材、打印工艺窗口和改性方向，
+    以结构化 JSON 为主要对接载体，侧重“文献/数据表性质抽取 → 需求映射 → 候选排序 → 改性建议”。
     """
     # 对外展示名（前端/日志可见）
-    name: str = "XIMUAlpha_inoragnic_existing_materials"
+    name: str = "XIMUAlpha_3d_printing_materials"
     # 简要画像（供框架/上游作为 system profile 使用）
     profile: str = (
-        "材料发现与跨尺度仿真专用智能体。"
-        "能力覆盖材料初筛、结构与稳定性评估、"
-        "以及基于上游文献筛选的 DFT、机器学习势（MLIP）和 LAMMPS 的材料性质计算与验证。"
-        "擅长从已有计算产物（manifest / report / JSON）中组织工程化材料计算说明，"
-        "并以结构化 JSON 形式输出结果与可视化资源索引，"
-        "适用于固态电解质、功能材料与工程材料的计算评估场景。"
+        "3D打印耗材选型与优化专用智能体。"
+        "能力覆盖耗材数据表解析、应用需求拆解、性能指标映射、已有耗材满足度排序、"
+        "打印工艺窗口建议、缺口分析和复合填料/基体/后处理改性方向建议。"
+        "适用于机器人关节结构件、热管理组件、轻量化结构件和功能复合耗材等场景。"
     )
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
