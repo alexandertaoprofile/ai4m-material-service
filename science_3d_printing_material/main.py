@@ -3,12 +3,15 @@ import json
 import uvicorn
 import asyncio
 import traceback
+import sys
+import logging
 
 from alpha.team import Team
 from alpha.schema import Message
 from team_config import *
 from pathlib import Path
 from dotenv import load_dotenv
+from logging.handlers import RotatingFileHandler
 
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles

@@ -24,10 +24,12 @@ from src.material_workflow.database_pics import resolve_public_pic_path, upload_
 from src.material_workflow.alignn_completion import run_alignn_completion_stage
 from src.material_workflow.filament_selector import (
     build_markdown_report,
-    build_selection_from_latest,
     detect_filament_task,
     latest_in_ls_payload,
+    rank_filaments,
+    write_selection_manifest,
 )
+from src.material_workflow.filament_visuals import send_filament_visual_assets
 from src.material_workflow.formula_router import (
     build_candidate_lists,
     build_formula_extraction_text,
@@ -94,6 +96,30 @@ class Coding(Action):
             mirror_step_id=mirror_step_id,
             logger_obj=logger,
         )
+
+    async def _safe_send_text(self, websocket, content: str) -> None:
+        if not websocket or content is None:
+            return
+        try:
+            await websocket.send_text(str(content))
+        except Exception:
+            logger.exception("[WS] send_text failed")
+
+    async def _stream_markdown_text(
+        self,
+        websocket,
+        text: str,
+        char_delay: float = 0.006,
+    ) -> None:
+        """
+        Stream deterministic markdown character by character through the same
+        websocket text channel used by LLM chunks, matching the "typing" feel
+        of the existing material service.
+        """
+        for ch in str(text or ""):
+            await self._safe_send_text(websocket, ch)
+            if ch.strip():
+                await asyncio.sleep(char_delay)
 
     async def _material_mp_explain_stage(self, llm, websocket, query: str, parameters: dict, taskid: str):
         # parameters 建议是你 _build_material_parameters 的输出
@@ -165,14 +191,14 @@ class Coding(Action):
             nonlocal material_block_opened
             if material_block_opened:
                 return
-            await websocket.send_text(f"<<<CONTENT_START:{step_id}>>>")
+            await self._safe_send_text(websocket, f"<<<CONTENT_START:{step_id}>>>")
             material_block_opened = True
 
         async def _close_material_block(step_id: str = "MATERIAL_SCREENING"):
             nonlocal material_block_opened
             if not material_block_opened:
                 return
-            await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
+            await self._safe_send_text(websocket, f"<<<CONTENT_END:{step_id}>>>")
             material_block_opened = False
 
         # =========================
@@ -576,21 +602,43 @@ class Coding(Action):
             await _open_material_block("MATERIAL_SCREENING")
             try:
                 await _ensure_material_progress_started()
-                await websocket.send_text(
-                    "本轮识别为 3D 打印耗材工程筛选任务，将先按已有耗材性质与工艺窗口做需求匹配，"
-                    "不进入 Materials Project/ALIGNN 晶体材料计算流程。\n\n"
-                )
-                result, manifest_path = build_selection_from_latest(
-                    repo_root=_repo_root(),
+                result = rank_filaments(
                     taskid=str(taskid),
                     text=norm,
+                    payload=latest_payload,
+                    payload_path=_latest_payload_path,
                 )
-                await websocket.send_text(build_markdown_report(result))
-                await websocket.send_text(f"\n已生成耗材筛选结构化结果：`{manifest_path}`\n")
+                manifest_path = write_selection_manifest(_repo_root(), result)
+                await self._stream_markdown_text(websocket, build_markdown_report(result))
+                await self._stream_markdown_text(websocket, "\n正在生成材料性能判读图。\n\n")
+                visual_assets = await send_filament_visual_assets(
+                    websocket=websocket,
+                    repo_root=_repo_root(),
+                    taskid=str(taskid),
+                    result=result,
+                )
+                radar_url = visual_assets.get("radar_url") if isinstance(visual_assets, dict) else ""
+                if radar_url:
+                    top_candidate = ""
+                    if result.ranked:
+                        top = result.ranked[0].candidate
+                        top_candidate = str(top.get("display_name") or top.get("name") or "").strip()
+                    if top_candidate:
+                        await self._stream_markdown_text(
+                            websocket,
+                            f"图中对象：{top_candidate}。评分为 0-10 的相对工程判读，代理证据只用于预判，不等同于直接实测闭合。\n\n",
+                        )
+                    else:
+                        await self._stream_markdown_text(
+                            websocket,
+                            "评分为 0-10 的相对工程判读，代理证据只用于预判，不等同于直接实测闭合。\n\n",
+                        )
+                    await self._stream_markdown_text(websocket, f"![材料性能判读图]({radar_url})\n\n")
                 logger.info(f"[FILAMENT] routed taskid={taskid} manifest={manifest_path}")
             except Exception as e:
                 logger.exception(f"[FILAMENT] selection failed: {e!s}")
-                await websocket.send_text(
+                await self._stream_markdown_text(
+                    websocket,
                     "3D 打印耗材筛选框架已触发，但本轮解析或打分失败。"
                     "请检查最新 in-LS JSON 是否为合法 JSON，并确认候选材料/需求字段格式。\n"
                 )
