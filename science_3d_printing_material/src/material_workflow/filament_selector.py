@@ -739,25 +739,41 @@ def write_selection_manifest(repo_root: str, result: FilamentSelectionResult) ->
 
 
 def build_optimization_plan(result: FilamentSelectionResult) -> List[JsonDict]:
-    """Build material modification suggestions from unmet or uncertain indicators."""
+    """Build modification suggestions from the top candidate's unmet indicators."""
 
     if not result.ranked:
         return []
 
     top = result.ranked[0]
+    top_name = str(top.candidate.get("display_name") or top.candidate.get("name") or "基准耗材").strip()
     status = top.hard_constraint_status or {}
-    requirements = set(result.requirements or [])
     rows: List[JsonDict] = []
 
-    def add(issue: str, strategy: str, materials: str, caution: str, priority: int) -> None:
-        if any(row.get("issue") == issue for row in rows):
+    def add(
+        prop: str,
+        current: str,
+        strategy: str,
+        materials: str,
+        expected: str,
+        interaction: str,
+        verification: str,
+        priority: int,
+    ) -> None:
+        if any(row.get("property") == prop for row in rows):
             return
         rows.append({
-            "issue": issue,
+            "base_material": top_name,
+            "property": prop,
+            "current": current,
             "strategy": strategy,
             "materials": materials,
-            "caution": caution,
+            "expected": expected,
+            "interaction": interaction,
+            "verification": verification,
             "priority": priority,
+            # Kept for older visual helpers; the current report uses the fields above.
+            "issue": prop,
+            "caution": verification,
         })
 
     unresolved = {
@@ -774,92 +790,155 @@ def build_optimization_plan(result: FilamentSelectionResult) -> List[JsonDict]:
         except Exception:
             return False
 
+    def target_text(label: str, target: Any) -> str:
+        if target in (None, ""):
+            return ""
+        if target == "required":
+            return "需要"
+        units = {
+            "导热系数": "W/(m·K)",
+            "HDT": "C",
+            "层间剪切强度": "MPa",
+            "断裂伸长率": "%",
+            "密度": "g/cm3",
+            "拉伸强度": "MPa",
+            "弯曲强度": "MPa",
+            "连续使用温度": "C",
+            "CTE": "um/(m·C)",
+            "体积电阻率": "ohm·cm",
+        }
+        op = "≤" if label in {"密度", "CTE"} else "≥"
+        if isinstance(target, (int, float)):
+            return f"{op} {target:g} {units.get(label, '')}".strip()
+        return str(target)
+
+    def current_for(label: str, req: str = "") -> str:
+        item = status.get(label) or {}
+        if item:
+            state = _status_label(item.get("status"))
+            value = item.get("value")
+            target = item.get("target")
+            basis = str(item.get("basis") or "").strip()
+            parts = [state]
+            if value is not None:
+                parts.append(f"当前 {value:g}" if isinstance(value, (int, float)) else f"当前 {value}")
+            if target not in (None, ""):
+                parts.append(f"目标 {target_text(label, target)}")
+            if basis:
+                parts.append(basis)
+            return "；".join(parts)
+        if req and req in scores:
+            try:
+                return f"相对评分 {float(scores[req]) * 10:.1f}/10，低于建议阈值"
+            except Exception:
+                pass
+        return "当前证据不足"
+
+    insulation_risky = status.get("电绝缘", {}).get("status") in {"risk", "unknown", "proxy"} or weak("electrical_insulation")
+    thermal_insulation_combined = False
+
     if "导热系数" in unresolved or weak("thermal"):
-        if status.get("电绝缘", {}).get("status") in {"risk", "unknown", "proxy"} or weak("electrical_insulation"):
+        if insulation_risky:
+            thermal_insulation_combined = True
             add(
-                "导热与绝缘同时不足",
-                "优先构建绝缘导热网络",
-                "BN、AlN、Al2O3、表面包覆 SiC",
-                "少用未包覆碳系填料，避免形成导电通路",
+                "导热/电绝缘协同",
+                current_for("导热系数", "thermal"),
+                "在保持绝缘的前提下建立连续导热网络，优先做面内与厚向双向导热设计",
+                "BN、AlN、Al2O3、表面绝缘包覆 SiC，必要时少量包覆碳纤维",
+                "提高导热通路连续性，同时降低形成导电网络的风险",
+                "导热填料加多后可能抬高黏度、降低层间韧性；若使用碳系填料，还可能削弱电绝缘",
+                "导热系数 XY/Z、体积/表面电阻率、击穿强度",
                 1,
             )
         else:
             add(
-                "导热不足",
-                "提高面内/厚向导热通路连续性",
-                "石墨、石墨烯、CNT、短切碳纤维、BN/AlN",
-                "碳系填料提升导热快，但会提高导电风险",
+                "导热系数",
+                current_for("导热系数", "thermal"),
+                "提高填料连通度和取向，让热通路沿主要散热方向连续",
+                "石墨、石墨烯、CNT、短切碳纤维、BN、AlN",
+                "提升面内或厚向导热能力，优先逼近用户设定的导热目标",
+                "高导热填料通常会牺牲韧性和加工窗口；碳系方案还需额外确认绝缘风险",
+                "导热系数 XY/Z、热循环后导热保持率",
                 1,
             )
 
-    if "电绝缘" in unresolved or weak("electrical_insulation"):
+    if not thermal_insulation_combined and ("电绝缘" in unresolved or weak("electrical_insulation")):
         add(
-            "电绝缘风险",
-            "用绝缘填料替代或包覆导电填料",
-            "BN、AlN、Al2O3、硅烷包覆碳纤维",
-            "需要补体积/表面电阻率和击穿强度",
+            "电绝缘",
+            current_for("电绝缘", "electrical_insulation"),
+            "减少导电连续相，或对导电增强相做绝缘包覆/界面隔离",
+            "BN、AlN、Al2O3、硅烷包覆碳纤维、绝缘陶瓷填料",
+            "降低漏电和击穿风险，让热管理方案不破坏电安全边界",
+            "绝缘填料的导热提升通常低于碳系填料；包覆处理也可能降低界面传热效率",
+            "体积/表面电阻率、击穿强度、介电损耗",
             2,
         )
 
     if "层间剪切强度" in unresolved or weak("layer_adhesion"):
         add(
-            "层间结合不足",
-            "提升基体韧性和纤维/基体界面结合",
+            "层间结合",
+            current_for("层间剪切强度", "layer_adhesion"),
+            "提升基体韧性和纤维/基体界面结合，避免只堆高刚性填料",
             "PA12/PA6 共混、增韧剂、马来酸酐接枝相容剂、硅烷偶联剂",
-            "不建议只增加刚性填料，否则层间可能更脆",
+            "提高 Z 向承载和冲击韧性，降低层间剥离风险",
+            "增韧会改善层间和疲劳，但可能降低模量、HDT 或尺寸稳定；需要控制添加量",
+            "层间剪切强度、Z 向冲击、热循环后层间强度保持率",
             3,
         )
 
     if any(key in unresolved for key in ("拉伸强度", "弯曲强度")) or weak("strength"):
         add(
-            "强度承载不足",
-            "增强承载骨架并控制纤维取向",
-            "短切碳纤维、玻纤、连续纤维局部增强",
-            "碳纤维增强可能牺牲绝缘和层间韧性",
+            "强度",
+            current_for("拉伸强度", "strength") if "拉伸强度" in unresolved else current_for("弯曲强度", "strength"),
+            "增强承载骨架并控制增强相取向，优先保证受力方向连续",
+            "短切碳纤维、玻纤、连续纤维局部增强、界面偶联剂",
+            "提高拉伸/弯曲承载能力，但需同步观察韧性和绝缘变化",
+            "纤维增强会提高强度和刚度，但可能让材料更各向异性，并增加层间开裂风险",
+            "拉伸强度、弯曲强度、断裂伸长率、动态载荷保持率",
             4,
         )
 
     if "CTE" in unresolved or "密度" in unresolved or weak("dimensional_stability", 0.7):
         add(
-            "尺寸稳定性不足",
-            "降低吸水率和热膨胀，优先选低吸湿基体",
-            "PA12、PPS、PEEK、玻纤、低吸湿矿物填料",
-            "尼龙体系需重点关注吸湿后的尺寸和强度保持率",
+            "尺寸稳定",
+            current_for("CTE", "dimensional_stability") if "CTE" in unresolved else current_for("密度", "dimensional_stability"),
+            "降低吸水和热膨胀，优先选择低吸湿基体并加入低 CTE 增强相",
+            "PA12、PPS、PEEK、玻纤、矿物填料、低吸湿陶瓷填料",
+            "降低湿热环境下的尺寸漂移，并改善热循环后的强度保持",
+            "低吸湿/高耐热基体能提升稳定性，但材料成本和打印门槛通常会上升",
+            "CTE、吸水率、湿热后尺寸变化、热循环后强度保持率",
             5,
         )
 
     if "HDT" in unresolved or "连续使用温度" in unresolved or weak("heat_resistance"):
         add(
-            "耐热边界不足",
-            "提高基体 Tg/HDT 或引入耐热增强体系",
-            "PC、PPS、PEEK、PEI、PPA",
-            "耐热基体通常提高成本和打印门槛",
+            "耐热边界",
+            current_for("HDT", "heat_resistance") if "HDT" in unresolved else current_for("连续使用温度", "heat_resistance"),
+            "提高基体 Tg/HDT，或切换到更高耐温工程塑料体系",
+            "PC、PPS、PEEK、PEI、PPA、耐热增强填料",
+            "提高连续热载荷下的形变边界和热循环稳定性",
+            "耐热体系通常更难打印，层间融合和残余应力需要同步关注",
+            "HDT、Tg、连续使用温度、热循环后强度保持率",
             6,
         )
 
     if "疲劳" in unresolved:
         add(
-            "疲劳寿命未知",
-            "提高韧性并降低应力集中",
-            "增韧 PA12、弹性体增韧剂、界面偶联剂",
-            "需要用循环载荷和热循环后的强度保持率验证",
+            "疲劳寿命",
+            current_for("疲劳"),
+            "提高韧性并降低界面和填料端部应力集中",
+            "增韧 PA12、弹性体增韧剂、界面偶联剂、低缺陷纤维体系",
+            "提升循环载荷下的裂纹扩展抗力和寿命稳定性",
+            "疲劳优化常和强度、刚度存在取舍，需要避免过度增韧导致承载能力下降",
+            "疲劳寿命、循环后拉伸/弯曲强度、热循环后保持率",
             7,
-        )
-
-    if not rows:
-        add(
-            "指标基本匹配",
-            "保持当前体系，进入参数和结构优化",
-            "同基体微调填料比例、纤维取向和热通路布局",
-            "仍建议用实测数据确认关键边界",
-            9,
         )
 
     rows.sort(key=lambda row: int(row.get("priority", 99)))
     return rows[:5]
 
 
-def build_markdown_report(result: FilamentSelectionResult, top_n: int = 5) -> str:
+def build_markdown_report(result: FilamentSelectionResult, top_n: int = 5, include_conclusion: bool = True) -> str:
     ranked = result.ranked[:top_n]
     top = ranked[0] if ranked else None
     scenario = result.scenario or {}
@@ -981,17 +1060,134 @@ def build_markdown_report(result: FilamentSelectionResult, top_n: int = 5) -> st
     optimization_rows = build_optimization_plan(result)
     lines.append("### 后续优化建议")
     lines.append("")
-    lines.append("| 待优化项 | 改性方向 | 可选材料/填料 | 注意事项 |")
-    lines.append("|---|---|---|---|")
-    for row in optimization_rows:
-        lines.append(f"| {row['issue']} | {row['strategy']} | {row['materials']} | {row['caution']} |")
-    lines.append("")
-    lines.append("建议先用排名靠前的耗材做基准样条，再围绕上表选择填料体系、填料比例、界面偶联和取向结构；每轮改性后优先复测导热 XY/Z、CTE、层间剪切、电阻率和热循环后强度保持率。")
+    if optimization_rows:
+        lines.append("| 基准耗材 | 待优化性质 | 当前判断 | 优化做法 | 预期提升 | 可能影响 | 验证指标 |")
+        lines.append("|---|---|---|---|---|---|---|")
+        for row in optimization_rows:
+            lines.append(
+                f"| {row['base_material']} | {row['property']} | {row['current']} | "
+                f"{row['strategy']}；可选：{row['materials']} | {row['expected']} | {row['interaction']} | {row['verification']} |"
+            )
+        lines.append("")
+        lines.append("建议先用第一名耗材做基准样条，再只针对上表未闭合的性质做小步改性。这里不建议把所有填料一次性叠加，因为导热、强度、层间结合、绝缘和尺寸稳定之间会互相牵制；每一轮只改一到两个变量，再复测对应验证指标。")
+    else:
+        lines.append("当前第一名耗材没有暴露出需要通过材料改性处理的未满足项，建议先进入样条验证和应用结构匹配；若后续实测出现偏差，再按具体失效项补充改性方案。")
     lines.append("")
     lines.append("### 材料性能判读")
     lines.append("")
     lines.append("下图给出基准候选在各项材料维度上的相对表现，用于快速观察优势和短板。")
+    if include_conclusion:
+        conclusion = build_final_conclusion(result, optimization_rows)
+        if conclusion:
+            lines.append("")
+            lines.append("### 结论")
+            lines.append("")
+            lines.append(conclusion)
     return "\n".join(lines) + "\n"
+
+
+def build_final_conclusion(result: FilamentSelectionResult, optimization_rows: Optional[List[JsonDict]] = None) -> str:
+    if not result.ranked:
+        return ""
+
+    top = result.ranked[0]
+    name = str(top.candidate.get("display_name") or top.candidate.get("name") or "当前第一候选").strip()
+    status = top.hard_constraint_status or {}
+    scores = top.requirement_scores or {}
+    optimization_rows = optimization_rows if optimization_rows is not None else build_optimization_plan(result)
+
+    passed = [name_ for name_, item in status.items() if item.get("status") == "pass"]
+    proxy = [name_ for name_, item in status.items() if item.get("status") == "proxy"]
+    unknown = [name_ for name_, item in status.items() if item.get("status") == "unknown"]
+    risk = [name_ for name_, item in status.items() if item.get("status") == "risk"]
+    failed = [name_ for name_, item in status.items() if item.get("status") == "fail"]
+
+    score_supported: List[str] = []
+    for req, score in scores.items():
+        if req == "printability":
+            continue
+        try:
+            if float(score) >= 0.75:
+                label = _requirement_label(req)
+                if label not in score_supported:
+                    score_supported.append(label)
+        except Exception:
+            continue
+
+    supported = _dedupe_conclusion_labels(passed + score_supported)
+    uncertain = list(dict.fromkeys(proxy + unknown + risk))
+    unmet = list(dict.fromkeys(failed))
+
+    paragraphs: List[str] = []
+    if supported:
+        paragraphs.append(
+            f"**现有耗材选择**\n\n建议先以 **{name}** 作为第一轮基准。它在 "
+            f"{'、'.join(supported[:4])} 这些方面已经有较好的直接数据或相近证据支撑，适合作为样条验证的起点。"
+        )
+    else:
+        paragraphs.append(
+            f"**现有耗材选择**\n\n现有耗材里，**{name}** 是当前相对最合适的第一候选，但它更像是优先验证对象，还不能直接当作完全达标材料。"
+        )
+
+    if uncertain:
+        paragraphs.append(
+            f"**还需要确认**\n\n{'、'.join(uncertain[:5])} 仍需要补直接数据。这些项目目前多是间接证据、风险判断或数据缺口，不能直接等同于已经满足应用要求。"
+        )
+    if unmet:
+        paragraphs.append(
+            f"**当前不能闭合**\n\n{'、'.join(unmet[:5])} 目前还不能闭合。这部分不建议用文字判断替代实测，需要先补数据再决定是否继续推进。"
+        )
+    elif uncertain:
+        paragraphs.append(
+            f"**当前不能证明达标**\n\n还不能证明 {'、'.join(uncertain[:4])} 已经达标。它们不是一定不满足，而是还缺少能让结论站住的直接数据。"
+        )
+
+    if optimization_rows:
+        focus = "、".join(str(row.get("property") or "") for row in optimization_rows[:3] if row.get("property"))
+        difficulty = _optimization_difficulty(optimization_rows)
+        paragraphs.append(
+            f"**后续优化方向**\n\n建议围绕 {focus} 展开。整体难度判断为 **{difficulty}**：核心不是简单加填料，而是在导热、绝缘、层间韧性和尺寸稳定之间找平衡。"
+        )
+    else:
+        paragraphs.append(
+            "**后续优化方向**\n\n可以先不做材料改性，优先进入样条制备和应用结构匹配。只有当实测暴露出短板时，再针对具体失效项做小范围配方调整。"
+        )
+
+    return "\n\n".join(paragraphs)
+
+
+def _dedupe_conclusion_labels(labels: Iterable[Any]) -> List[str]:
+    out: List[str] = []
+    seen: set[str] = set()
+    aliases = {
+        "拉伸强度": "强度",
+        "弯曲强度": "强度",
+        "HDT": "耐热/热循环",
+        "连续使用温度": "耐热/热循环",
+        "CTE": "尺寸稳定",
+        "密度": "尺寸稳定",
+        "体积电阻率": "电绝缘",
+    }
+    for raw in labels:
+        label = aliases.get(str(raw), str(raw))
+        if label in seen:
+            continue
+        seen.add(label)
+        out.append(label)
+    return out
+
+
+def _optimization_difficulty(rows: List[JsonDict]) -> str:
+    props = {str(row.get("property") or "") for row in rows}
+    if any("协同" in prop for prop in props) or (("电绝缘" in props or "导热系数" in props) and len(props) >= 3):
+        return "中高"
+    if len(props) >= 4:
+        return "中高"
+    if props.intersection({"层间结合", "疲劳寿命", "耐热边界"}):
+        return "中"
+    if len(props) <= 1:
+        return "中低"
+    return "中"
 
 
 def _evidence_rows(item: FilamentScore) -> List[JsonDict]:

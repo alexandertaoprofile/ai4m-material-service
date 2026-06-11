@@ -23,6 +23,7 @@ from src.material_workflow.frontend_assets import send_results_to_frontend
 from src.material_workflow.database_pics import resolve_public_pic_path, upload_database_pic_for_markdown
 from src.material_workflow.alignn_completion import run_alignn_completion_stage
 from src.material_workflow.filament_selector import (
+    build_final_conclusion,
     build_markdown_report,
     detect_filament_task,
     latest_in_ls_payload,
@@ -609,7 +610,7 @@ class Coding(Action):
                     payload_path=_latest_payload_path,
                 )
                 manifest_path = write_selection_manifest(_repo_root(), result)
-                await self._stream_markdown_text(websocket, build_markdown_report(result))
+                await self._stream_markdown_text(websocket, build_markdown_report(result, include_conclusion=False))
                 await self._stream_markdown_text(websocket, "\n正在生成材料性能判读图。\n\n")
                 visual_assets = await send_filament_visual_assets(
                     websocket=websocket,
@@ -634,6 +635,9 @@ class Coding(Action):
                             "评分为 0-10 的相对工程判读，代理证据只用于预判，不等同于直接实测闭合。\n\n",
                         )
                     await self._stream_markdown_text(websocket, f"![材料性能判读图]({radar_url})\n\n")
+                conclusion = build_final_conclusion(result)
+                if conclusion:
+                    await self._stream_markdown_text(websocket, f"### 结论\n\n{conclusion}\n\n")
                 logger.info(f"[FILAMENT] routed taskid={taskid} manifest={manifest_path}")
             except Exception as e:
                 logger.exception(f"[FILAMENT] selection failed: {e!s}")
