@@ -1351,15 +1351,15 @@ class Coding(Action):
             await self._ws_right(websocket, step_id, text)
 
         # =========================
-        # 0.5) progress helper：只发 completed，且每次都带全字段
+        # 0.5) progress helper：开始时发送 in_progress，且每次都带全字段
         # =========================
-        async def _mark_completed(step_id: str, icon: str, title: str, description: str):
+        async def _mark_in_progress(step_id: str, icon: str, title: str, description: str):
             await websocket.send_json(build_payload(
                 data={
                     "id": step_id,
                     "icon": icon,
                     "title": title,
-                    "status": "completed",
+                    "status": "in_progress",
                     "description": description
                 },
                 type_="progress",
@@ -1371,7 +1371,7 @@ class Coding(Action):
             nonlocal progress_sent
             if progress_sent:
                 return
-            await _mark_completed(
+            await _mark_in_progress(
                 "MATERIAL_SCREENING",
                 "🎯",
                 "材料模拟与计算",

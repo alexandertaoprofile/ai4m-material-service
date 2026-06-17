@@ -55,6 +55,7 @@ class FilamentSelectionResult:
             "requirements": list(self.requirements),
             "constraints": dict(self.constraints),
             "ranked": [item.to_dict() for item in self.ranked],
+            "thermal_simulation_inputs": build_thermal_simulation_inputs(self),
             "source_payload_path": self.source_payload_path,
             "notes": list(self.notes),
         }
@@ -376,6 +377,8 @@ def _score_requirement(candidate: JsonDict, requirement: str, constraints: Optio
 
 def _coverage_for_requirements(candidate: JsonDict, requirements: List[str]) -> float:
     props = candidate.get("properties") or {}
+    proxy = _proxy_evidence(candidate)
+    tags = set(_normalize_tags(candidate.get("tags") or []))
     needed = {
         "thermal": ["thermal_conductivity_w_mk"],
         "strength": ["flexural_strength_mpa", "tensile_strength_mpa"],
@@ -390,19 +393,78 @@ def _coverage_for_requirements(candidate: JsonDict, requirements: List[str]) -> 
         keys = needed.get(req)
         if not keys:
             continue
-        checks.append(any(_numeric(props, key) is not None for key in keys))
+        if any(_numeric(props, key) is not None for key in keys):
+            checks.append(1.0)
+            continue
+        proxy_item = proxy.get(req) or {}
+        if proxy_item:
+            status = str(proxy_item.get("status") or "proxy")
+            confidence = _safe_float(proxy_item.get("confidence"), 0.35)
+            if status == "risk":
+                checks.append(min(0.3, max(0.15, confidence)))
+            else:
+                checks.append(min(0.55, max(0.25, confidence)))
+            continue
+        checks.append(_tag_proxy_coverage(req, tags))
     if not checks:
         return 0.0
-    return sum(1 for ok in checks if ok) / len(checks)
+    return sum(checks) / len(checks)
+
+
+def _proxy_evidence(candidate: JsonDict) -> JsonDict:
+    raw = candidate.get("proxy_evidence")
+    return raw if isinstance(raw, dict) else {}
+
+
+def _safe_float(value: Any, default: float = 0.0) -> float:
+    try:
+        return float(value)
+    except Exception:
+        return default
+
+
+def _tag_proxy_coverage(req: str, tags: set[str]) -> float:
+    if req == "thermal" and tags.intersection({"thermal_path_candidate", "thermal_filler", "ceramic_filler", "bn_filled", "aln_filled", "carbon_fiber"}):
+        return 0.35
+    if req in {"strength", "stiffness"} and tags.intersection({"carbon_fiber", "glass_fiber", "engineering", "stiff"}):
+        return 0.35
+    if req == "heat_resistance" and tags.intersection({"heat_resistant", "engineering"}):
+        return 0.4
+    if req == "dimensional_stability" and tags.intersection({"lower_moisture_than_pa6", "low_warp", "engineering"}):
+        return 0.25
+    if req == "electrical_insulation":
+        if tags.intersection({"insulating", "electrical_insulating", "dielectric", "ceramic_filler", "bn_filled", "aln_filled"}):
+            return 0.4
+        if tags.intersection({"carbon_fiber", "carbon_nanotube", "cnt"}):
+            return 0.2
+    if req == "fatigue" and tags.intersection({"carbon_fiber", "glass_fiber", "tough", "moderate_toughness"}):
+        return 0.25
+    return 0.0
 
 
 def _hard_constraint_status(candidate: JsonDict, constraints: JsonDict) -> JsonDict:
     props = candidate.get("properties") or {}
     tags = set(_normalize_tags(candidate.get("tags") or []))
+    proxy = _proxy_evidence(candidate)
     status: JsonDict = {}
 
     def _proxy(label: str, target: Any, basis: str, value: Any = None):
         status[label] = {"status": "proxy", "target": target, "value": value, "basis": basis}
+
+    def _proxy_from_req(label: str, req: str, target: Any) -> bool:
+        item = proxy.get(req)
+        if not isinstance(item, dict):
+            return False
+        basis = str(item.get("basis") or "").strip()
+        if not basis:
+            return False
+        status[label] = {
+            "status": "risk" if item.get("status") == "risk" else "proxy",
+            "target": target,
+            "value": None,
+            "basis": basis,
+        }
+        return True
 
     def _cmp_min(key: str, prop_keys: Iterable[str], label: str, proxy_keys: Iterable[str] = (), proxy_basis: str = ""):
         target = constraints.get(key)
@@ -438,24 +500,34 @@ def _hard_constraint_status(candidate: JsonDict, constraints: JsonDict) -> JsonD
 
     _cmp_min("thermal_conductivity_min_w_mk", ["thermal_conductivity_w_mk", "thermal_conductivity_xy_w_mk", "thermal_conductivity_z_w_mk"], "导热系数")
     if "导热系数" in status and status["导热系数"].get("status") == "unknown":
-        if tags.intersection({"thermal_conductive", "thermal_filler", "thermal_path_candidate", "ceramic_filler", "ceramic_filled", "bn_filled", "aln_filled"}):
+        if _proxy_from_req("导热系数", "thermal", constraints.get("thermal_conductivity_min_w_mk")):
+            pass
+        elif tags.intersection({"thermal_conductive", "thermal_filler", "thermal_path_candidate", "ceramic_filler", "ceramic_filled", "bn_filled", "aln_filled"}):
             _proxy("导热系数", constraints.get("thermal_conductivity_min_w_mk"), "填料/体系标签支持导热路径，但缺少牌号实测导热系数")
         elif tags.intersection({"carbon_fiber", "carbon_nanotube", "cnt"}):
             _proxy("导热系数", constraints.get("thermal_conductivity_min_w_mk"), "碳基增强相可作为导热路径线索，但不能等同于体积导热率达标")
     _cmp_min("hdt_min_c", ["hdt_045_mpa_c", "hdt_18_mpa_c"], "HDT")
+    if "HDT" in status and status["HDT"].get("status") == "unknown":
+        _proxy_from_req("HDT", "heat_resistance", constraints.get("hdt_min_c"))
     _cmp_min("layer_shear_min_mpa", ["interlayer_shear_strength_mpa"], "层间剪切强度", ["z_impact_kj_m2"], "Z向冲击强度可作为层间结合韧性的代理线索")
     _cmp_min("elongation_min_pct", ["elongation_break_pct"], "断裂伸长率")
     _cmp_max("density_max_g_cm3", ["density_g_cm3"], "密度")
     _cmp_min("tensile_strength_min_mpa", ["tensile_strength_mpa"], "拉伸强度", ["flexural_strength_mpa"], "弯曲强度可作为结构承载能力代理，但不能替代拉伸实测")
+    if "拉伸强度" in status and status["拉伸强度"].get("status") == "unknown":
+        _proxy_from_req("拉伸强度", "strength", constraints.get("tensile_strength_min_mpa"))
     _cmp_min("flexural_strength_min_mpa", ["flexural_strength_mpa"], "弯曲强度")
     _cmp_min("continuous_use_temp_min_c", ["continuous_use_temp_c"], "连续使用温度")
+    if "连续使用温度" in status and status["连续使用温度"].get("status") == "unknown":
+        _proxy_from_req("连续使用温度", "heat_resistance", constraints.get("continuous_use_temp_min_c"))
     _cmp_max("cte_max_um_m_c", ["cte_um_m_c", "ctE_um_m_c"], "CTE", ["water_absorption_pct"], "吸水率可辅助判断尺寸稳定风险，但不能替代 CTE")
     _cmp_min("volume_resistivity_min_ohm_cm", ["volume_resistivity_ohm_cm"], "体积电阻率")
     if constraints.get("electrical_insulation_required"):
         vr = _numeric(props, "volume_resistivity_ohm_cm")
         target = float(constraints.get("volume_resistivity_min_ohm_cm") or 1e8)
         if vr is None:
-            if tags.intersection({"insulating", "electrical_insulating", "dielectric", "ceramic_filler", "bn_filled", "aln_filled"}):
+            if _proxy_from_req("电绝缘", "electrical_insulation", "required"):
+                pass
+            elif tags.intersection({"insulating", "electrical_insulating", "dielectric", "ceramic_filler", "bn_filled", "aln_filled"}):
                 _proxy("电绝缘", "required", "绝缘填料/聚合物体系提供电绝缘线索，但仍需体积电阻率或击穿强度闭合")
             elif tags.intersection({"carbon_fiber", "carbon_nanotube", "cnt"}):
                 status["电绝缘"] = {
@@ -474,6 +546,8 @@ def _hard_constraint_status(candidate: JsonDict, constraints: JsonDict) -> JsonD
             proxy_val = _first_numeric(props, ["z_impact_kj_m2", "impact_xy_kj_m2", "flexural_strength_mpa"])
             if proxy_val is not None:
                 _proxy("疲劳", "required", "冲击/弯曲数据可辅助判断韧性和承载潜力，但不能替代疲劳寿命", proxy_val)
+            elif _proxy_from_req("疲劳", "fatigue", "required"):
+                pass
             else:
                 status["疲劳"] = {"status": "unknown", "target": "required", "value": None}
     return status
@@ -491,6 +565,9 @@ def _candidate_from_upstream(raw: JsonDict) -> Optional[JsonDict]:
     name = raw.get("name") or raw.get("material") or raw.get("material_name") or raw.get("display_name")
     if not isinstance(name, str) or not name.strip():
         return None
+    display_name = str(raw.get("display_name") or name).strip()
+    if _is_invalid_candidate_name(str(name), display_name):
+        return None
     props = _normalize_property_keys(_merge_dict_fields(
         raw,
         ["properties", "mechanical_properties", "thermal_properties", "physical_properties", "耗材特性", "物理性能", "机械性能"],
@@ -499,18 +576,145 @@ def _candidate_from_upstream(raw: JsonDict) -> Optional[JsonDict]:
         raw,
         ["process", "print_settings", "printing_settings", "recommended_print_settings", "打印设置", "推荐打印设置", "打印前准备"],
     ))
+    evidence = raw.get("evidence") or raw.get("source") or "upstream_payload"
+    evidence_text = ""
+    if isinstance(evidence, dict):
+        evidence_text = str(evidence.get("quote") or evidence.get("basis") or evidence.get("source") or "")
+    else:
+        evidence_text = str(evidence or "")
+    proxy = raw.get("proxy_evidence") if isinstance(raw.get("proxy_evidence"), dict) else {}
+    inferred = _infer_proxy_from_candidate_text(
+        "；".join([
+            str(name),
+            str(raw.get("display_name") or ""),
+            evidence_text,
+            "；".join(str(x) for x in raw.get("advantages") or [] if isinstance(raw.get("advantages"), list)),
+            "；".join(str(x) for x in raw.get("limitations") or [] if isinstance(raw.get("limitations"), list)),
+        ])
+    )
+    merged_proxy = {**inferred.get("proxy_evidence", {}), **proxy}
+    tags = []
+    if isinstance(raw.get("tags"), list):
+        tags.extend(raw.get("tags") or [])
+    tags.extend(inferred.get("tags", []))
+    tags = list(dict.fromkeys(str(t) for t in tags if t))
+    props = _sanitize_upstream_properties(props, str(name), display_name, str(raw.get("family") or ""), tags, evidence_text)
     return {
         "name": name.strip(),
-        "display_name": str(raw.get("display_name") or name).strip(),
+        "display_name": display_name,
         "family": raw.get("family") or "",
-        "tags": raw.get("tags") if isinstance(raw.get("tags"), list) else [],
+        "tags": tags,
         "_source": "upstream_payload",
         "properties": dict(props),
         "process": dict(process),
         "advantages": raw.get("advantages") if isinstance(raw.get("advantages"), list) else [],
         "limitations": raw.get("limitations") if isinstance(raw.get("limitations"), list) else [],
-        "evidence": raw.get("evidence") or raw.get("source") or "upstream_payload",
+        "proxy_evidence": merged_proxy,
+        "evidence": evidence,
     }
+
+
+def _is_invalid_candidate_name(name: str, display_name: str = "") -> bool:
+    text = (display_name or name or "").strip()
+    compact = re.sub(r"\s+", "", text).lower()
+    invalid_exact = {
+        "共用",
+        "通用",
+        "共同",
+        "共享",
+        "场景共用",
+        "场景通用",
+        "共用材料",
+        "通用材料",
+        "共用材料体系",
+        "通用材料体系",
+        "baseline",
+        "advanced",
+        "candidate",
+    }
+    if compact in invalid_exact:
+        return True
+    if len(compact) <= 2 and not re.search(r"[a-z0-9]|碳|氮|氧|硼|铝|尼龙|peek|pa|pc|abs|pla", compact, flags=re.IGNORECASE):
+        return True
+    return False
+
+
+def _sanitize_upstream_properties(props: JsonDict, name: str, display_name: str, family: str, tags: Iterable[str], evidence_text: str) -> JsonDict:
+    cleaned = dict(props or {})
+    k = _numeric(cleaned, "thermal_conductivity_w_mk")
+    if k is None:
+        return cleaned
+
+    candidate = {"name": name, "display_name": display_name, "family": family, "tags": list(tags or [])}
+    if not _is_unusually_high_polymer_conductivity(k, family or name, tags, candidate):
+        return cleaned
+
+    if _evidence_supports_thermal_conductivity(evidence_text, k):
+        return cleaned
+
+    cleaned["thermal_conductivity_w_mk"] = None
+    cleaned.setdefault("_discarded_properties", {})["thermal_conductivity_w_mk"] = {
+        "value": k,
+        "reason": "上游高导热值缺少证据文本支撑，疑似把需求阈值写入材料属性",
+    }
+    return cleaned
+
+
+def _evidence_supports_thermal_conductivity(text: str, value: float) -> bool:
+    evidence = str(text or "")
+    if not evidence:
+        return False
+    thermal_hit = re.search(r"导热|热导|thermal\s*conduct", evidence, flags=re.IGNORECASE)
+    if not thermal_hit:
+        return False
+    value_text = f"{float(value):g}"
+    pattern = rf"(导热|热导|thermal\s*conduct)[^。；;\n]{{0,80}}{re.escape(value_text)}|{re.escape(value_text)}[^。；;\n]{{0,80}}(导热|热导|thermal\s*conduct)"
+    return bool(re.search(pattern, evidence, flags=re.IGNORECASE))
+
+
+def _infer_proxy_from_candidate_text(text: str) -> JsonDict:
+    text = str(text or "").lower()
+    tags: List[str] = []
+    proxy: JsonDict = {}
+
+    def add_tag(*values: str):
+        for value in values:
+            if value and value not in tags:
+                tags.append(value)
+
+    def add_proxy(key: str, basis: str, confidence: float = 0.35, status: str = "proxy"):
+        proxy.setdefault(key, {"status": status, "basis": basis, "confidence": confidence})
+
+    if re.search(r"(碳纤|碳纤维|carbon\s*fiber|\bcf\b|cfrp)", text, flags=re.IGNORECASE):
+        add_tag("carbon_fiber", "stiff", "thermal_path_candidate")
+        add_proxy("strength", "碳纤维增强体系可作为强度/承载潜力线索，但不能替代牌号拉伸实测", 0.45)
+        add_proxy("stiffness", "碳纤维增强体系可作为刚度潜力线索，但仍需模量实测", 0.45)
+        add_proxy("thermal", "碳基增强相可形成导热路径，但不能等同于体积导热率达标", 0.35)
+        add_proxy("electrical_insulation", "碳基增强相可能引入导电网络，需要体积/表面电阻率确认", 0.25, "risk")
+    if re.search(r"(玻纤|玻璃纤维|glass\s*fiber|\bgf\b)", text, flags=re.IGNORECASE):
+        add_tag("glass_fiber", "stiff")
+        add_proxy("strength", "玻纤增强体系可作为承载潜力线索，但不能替代牌号强度实测", 0.42)
+        add_proxy("stiffness", "玻纤增强体系可作为刚度潜力线索，但仍需模量实测", 0.42)
+    if re.search(r"(peek|聚醚醚酮|pps|聚苯硫醚|pei|ppa)", text, flags=re.IGNORECASE):
+        add_tag("engineering", "heat_resistant")
+        add_proxy("heat_resistance", "高温工程塑料基体具备耐热潜力，但仍需具体牌号 HDT/Tg/连续使用温度", 0.5)
+        add_proxy("dimensional_stability", "高温工程塑料体系可作为尺寸稳定线索，但仍需 CTE/吸水率/热循环数据", 0.35)
+    if re.search(r"(pa12|尼龙\s*12|尼龙12)", text, flags=re.IGNORECASE):
+        add_tag("engineering", "lower_moisture_than_pa6")
+        add_proxy("dimensional_stability", "PA12 体系通常较 PA6 吸湿风险低，但仍需牌号吸水率和 CTE 数据", 0.38)
+    if re.search(r"(bn|氮化硼|aln|氮化铝|al2o3|氧化铝|陶瓷|ceramic|sic)", text, flags=re.IGNORECASE):
+        add_tag("thermal_filler", "ceramic_filler", "insulating")
+        add_proxy("thermal", "陶瓷导热填料/体系可作为导热路径线索，但仍需复合材料实测导热系数", 0.45)
+        add_proxy("electrical_insulation", "BN/AlN/Al2O3 等陶瓷填料通常具备绝缘潜力，但仍需电阻率和击穿强度闭合", 0.45)
+    if re.search(r"(取向|定向|oriented|流场)", text, flags=re.IGNORECASE):
+        add_tag("oriented_structure", "thermal_path_candidate")
+        add_proxy("thermal", "取向结构可提升定向导热通路连续性，但仍需 XY/Z 导热实测", 0.48)
+    if re.search(r"(冲击|疲劳|循环|动态载荷|韧性)", text, flags=re.IGNORECASE):
+        add_proxy("fatigue", "冲击/韧性/动态载荷描述可辅助判断疲劳风险，但不能替代疲劳寿命", 0.3)
+    elif "carbon_fiber" in tags or "glass_fiber" in tags:
+        add_proxy("fatigue", "纤维增强体系可作为承载潜力线索，但疲劳寿命仍需循环载荷实测", 0.25)
+
+    return {"tags": tags, "proxy_evidence": proxy}
 
 
 def _merge_dict_fields(raw: JsonDict, field_names: Iterable[str]) -> JsonDict:
@@ -533,6 +737,7 @@ def _normalize_property_keys(props: JsonDict) -> JsonDict:
         "thermal_conductivity_w_mk": ["thermal_conductivity_w_mk", "导热系数", "热导率", "thermal_conductivity"],
         "thermal_conductivity_xy_w_mk": ["thermal_conductivity_xy_w_mk", "面内导热系数", "XY导热系数"],
         "thermal_conductivity_z_w_mk": ["thermal_conductivity_z_w_mk", "Z向导热系数", "through_plane_thermal_conductivity"],
+        "specific_heat_j_kg_k": ["specific_heat_j_kg_k", "比热容", "定压比热", "specific_heat", "heat_capacity", "cp"],
         "density_g_cm3": ["density_g_cm3", "密度", "density"],
         "cte_um_m_c": ["cte_um_m_c", "ctE_um_m_c", "CTE", "线膨胀系数", "热膨胀系数"],
         "ctE_um_m_c": ["ctE_um_m_c", "cte_um_m_c", "CTE", "线膨胀系数", "热膨胀系数"],
@@ -598,6 +803,33 @@ def _normalize_tags(tags: Iterable[Any]) -> List[str]:
         out.append(tag)
         out.extend(aliases.get(tag, []))
     return list(dict.fromkeys(out))
+
+
+def _candidate_context_text(candidate: JsonDict, family: str = "") -> str:
+    parts = [
+        family,
+        str(candidate.get("family") or ""),
+        str(candidate.get("name") or ""),
+        str(candidate.get("display_name") or ""),
+    ]
+    return " ".join(part for part in parts if part).lower()
+
+
+def _is_unusually_high_polymer_conductivity(value: Any, family: str, tags: Iterable[str], candidate: Optional[JsonDict] = None) -> bool:
+    try:
+        k = float(value)
+    except Exception:
+        return False
+    if k < 2.0:
+        return False
+
+    normalized_tags = set(_normalize_tags(tags or []))
+    if normalized_tags.intersection({"thermal_filler", "ceramic_filler", "bn_filled", "aln_filled", "oriented_structure"}):
+        return False
+
+    context = _candidate_context_text(candidate or {}, family)
+    polymer_hint = re.search(r"\b(pa6|pa12|pa|pc|abs|asa|petg|pla|nylon|peek|pei|pps|ppa)\b|尼龙|聚酰胺|碳纤维", context, flags=re.IGNORECASE)
+    return bool(polymer_hint or normalized_tags.intersection({"carbon_fiber", "glass_fiber", "engineering", "thermal_path_candidate"}))
 
 
 def collect_candidates(payload: Optional[JsonDict]) -> List[JsonDict]:
@@ -1154,6 +1386,285 @@ def build_final_conclusion(result: FilamentSelectionResult, optimization_rows: O
         )
 
     return "\n\n".join(paragraphs)
+
+
+def build_material_property_summary(result: FilamentSelectionResult) -> str:
+    """Summarize measured, proxy and calculated material properties for the top candidate."""
+    if not result.ranked:
+        return ""
+
+    top = result.ranked[0]
+    candidate = top.candidate or {}
+    name = str(candidate.get("display_name") or candidate.get("name") or "当前第一候选").strip()
+    props = candidate.get("properties") if isinstance(candidate.get("properties"), dict) else {}
+    process = candidate.get("process") if isinstance(candidate.get("process"), dict) else {}
+
+    lines: List[str] = []
+    lines.append("### 材料参数与性质汇总")
+    lines.append("")
+    lines.append(f"对象：**{name}**")
+    lines.append("")
+    lines.append("| 参数/性质 | 数值 | 状态 | 来源 |")
+    lines.append("|---|---:|---|---|")
+
+    used_labels: set[str] = set()
+    for row in _evidence_rows(top):
+        label = str(row.get("项目") or "").strip()
+        if not label:
+            continue
+        status_item = (top.hard_constraint_status or {}).get(label, {})
+        if status_item.get("status") not in {"pass", "fail"}:
+            continue
+        value_raw = status_item.get("value") if status_item else None
+        if not isinstance(value_raw, (int, float)):
+            continue
+        value = _format_summary_numeric_value(label, value_raw)
+        status_text = str(row.get("状态") or "待判断").strip()
+        source = str(row.get("来源") or "候选材料数据").strip()
+        lines.append(f"| {label} | {value} | {status_text} | {source} |")
+        used_labels.add(label)
+
+    for key, meta in _material_property_meta().items():
+        if key not in props:
+            continue
+        value = props.get(key)
+        if value in (None, "", []):
+            continue
+        label = str(meta.get("label") or key)
+        if label in used_labels:
+            continue
+        unit = str(meta.get("unit") or "")
+        formatted = _format_property_value(value, unit)
+        lines.append(f"| {label} | {formatted} | 数据已给出 | 候选材料 properties 字段 |")
+        used_labels.add(label)
+
+    for req, score in (top.requirement_scores or {}).items():
+        if req == "printability":
+            continue
+        try:
+            score_value = float(score) * 10.0
+        except Exception:
+            continue
+        label = f"{_requirement_label(req)}相对评分"
+        lines.append(f"| {label} | {score_value:.1f}/10 | 计算得到 | 雷达图评分计算 |")
+
+    numeric_process_rows = (
+        ("nozzle_diameter_mm", "喷嘴直径", "mm"),
+        ("bed_temp_c", "热床温度", "C"),
+        ("nozzle_temp_c", "喷嘴温度", "C"),
+        ("print_speed_mm_s", "打印速度", "mm/s"),
+        ("drying_temp_c", "干燥温度", "C"),
+        ("drying_time_h", "干燥时间", "h"),
+    )
+    for key, label, unit in numeric_process_rows:
+        val = process.get(key)
+        if not isinstance(val, (int, float)):
+            continue
+        lines.append(f"| {label} | {_format_property_value(val, unit)} | 工艺参数 | 候选材料 process 字段 |")
+
+    lines.append("")
+    lines.append("说明：本表只展示本轮已拿到或计算得到的数值型参数；没有数值的文字判断和工艺描述不在这里展开。")
+    return "\n".join(lines) + "\n"
+
+
+def build_thermal_simulation_inputs(result: FilamentSelectionResult) -> JsonDict:
+    """Return mandatory thermal-field inputs with measured values or conservative estimates."""
+    if not result.ranked:
+        return {}
+
+    top = result.ranked[0]
+    candidate = top.candidate or {}
+    props = candidate.get("properties") if isinstance(candidate.get("properties"), dict) else {}
+    tags = set(_normalize_tags(candidate.get("tags") or []))
+    family = str(candidate.get("family") or candidate.get("name") or "").lower()
+    name = str(candidate.get("display_name") or candidate.get("name") or "当前第一候选").strip()
+
+    density = _thermal_density_input(props, family, tags)
+    conductivity = _thermal_conductivity_input(props, family, tags)
+    specific_heat = _thermal_specific_heat_input(props, family, tags)
+
+    return {
+        "material_name": name,
+        "thermal_conductivity_w_mk": conductivity,
+        "specific_heat_j_kg_k": specific_heat,
+        "density_kg_m3": density,
+        "usage_note": "下游热场仿真优先使用 recommended；range_min/range_max 用于敏感性分析。estimated 表示本轮未拿到牌号实测值。",
+    }
+
+
+def build_thermal_simulation_input_markdown(result: FilamentSelectionResult) -> str:
+    data = build_thermal_simulation_inputs(result)
+    if not data:
+        return ""
+
+    lines = []
+    lines.append("### 热场仿真输入参数")
+    lines.append("")
+    lines.append(f"对象：**{data.get('material_name', '当前第一候选')}**")
+    lines.append("")
+    lines.append("| 参数 | 推荐值 | 估算/取值区间 | 单位 | 来源 | 置信度 |")
+    lines.append("|---|---:|---:|---|---|---|")
+    for key, label, unit in (
+        ("thermal_conductivity_w_mk", "导热系数 k", "W/(m·K)"),
+        ("specific_heat_j_kg_k", "比热容 cp", "J/(kg·K)"),
+        ("density_kg_m3", "密度 rho", "kg/m3"),
+    ):
+        item = data.get(key) or {}
+        if not item:
+            continue
+        rec = _format_property_value(item.get("recommended"), "")
+        range_text = f"{_format_property_value(item.get('range_min'), '')} 至 {_format_property_value(item.get('range_max'), '')}"
+        lines.append(
+            f"| {label} | {rec} | {range_text} | {unit} | "
+            f"{item.get('source', '')} | {item.get('confidence', '')} |"
+        )
+    lines.append("")
+    lines.append("说明：若来源为工程估算，推荐值用于保证下游仿真可执行；正式设计前应以牌号 TDS 或样条实测替换，并用区间做敏感性分析。")
+    return "\n".join(lines) + "\n"
+
+
+def _thermal_value(recommended: float, range_min: float, range_max: float, source: str, confidence: str, estimated: bool) -> JsonDict:
+    return {
+        "recommended": round(float(recommended), 4),
+        "range_min": round(float(range_min), 4),
+        "range_max": round(float(range_max), 4),
+        "source": source,
+        "confidence": confidence,
+        "estimated": bool(estimated),
+    }
+
+
+def _thermal_density_input(props: JsonDict, family: str, tags: set[str]) -> JsonDict:
+    rho_g = _numeric(props, "density_g_cm3")
+    if rho_g is not None:
+        rho = rho_g * 1000.0
+        return _thermal_value(rho, rho * 0.97, rho * 1.03, "候选材料 properties 字段", "高", False)
+
+    if "carbon_fiber" in tags:
+        return _thermal_value(1150.0, 1050.0, 1350.0, "碳纤维增强热塑性复合材料工程估算", "中", True)
+    if "glass_fiber" in tags or "ceramic_filler" in tags or "thermal_filler" in tags:
+        return _thermal_value(1300.0, 1150.0, 1700.0, "玻纤/陶瓷填料增强聚合物工程估算", "中", True)
+    if "pa" in family:
+        return _thermal_value(1080.0, 1010.0, 1160.0, "尼龙类热塑性材料工程估算", "中", True)
+    if "peek" in family or "pps" in family or "pei" in family:
+        return _thermal_value(1320.0, 1250.0, 1450.0, "高温工程塑料工程估算", "中", True)
+    return _thermal_value(1200.0, 950.0, 1500.0, "聚合物复合材料通用工程估算", "低", True)
+
+
+def _thermal_conductivity_input(props: JsonDict, family: str, tags: set[str]) -> JsonDict:
+    k = _first_numeric(props, ["thermal_conductivity_w_mk", "thermal_conductivity_z_w_mk", "thermal_conductivity_xy_w_mk"])
+    if k is not None:
+        return _thermal_value(k, k * 0.85, k * 1.15, "候选材料 properties 字段", "高", False)
+
+    if "oriented_structure" in tags and ("thermal_filler" in tags or "ceramic_filler" in tags):
+        return _thermal_value(10.0, 3.0, 25.0, "取向导热填料复合材料工程估算", "中低", True)
+    if "thermal_filler" in tags or "ceramic_filler" in tags or "bn_filled" in tags or "aln_filled" in tags:
+        return _thermal_value(3.0, 1.0, 8.0, "陶瓷导热填料复合材料工程估算", "中低", True)
+    if "carbon_fiber" in tags:
+        return _thermal_value(0.8, 0.4, 1.5, "碳纤维增强热塑性材料工程估算", "低", True)
+    if "glass_fiber" in tags:
+        return _thermal_value(0.35, 0.25, 0.6, "玻纤增强热塑性材料工程估算", "低", True)
+    return _thermal_value(0.25, 0.15, 0.45, "普通热塑性聚合物工程估算", "低", True)
+
+
+def _thermal_specific_heat_input(props: JsonDict, family: str, tags: set[str]) -> JsonDict:
+    cp = _numeric(props, "specific_heat_j_kg_k")
+    if cp is not None:
+        return _thermal_value(cp, cp * 0.95, cp * 1.05, "候选材料 properties 字段", "高", False)
+
+    if "carbon_fiber" in tags or "glass_fiber" in tags or "ceramic_filler" in tags or "thermal_filler" in tags:
+        return _thermal_value(1200.0, 900.0, 1600.0, "纤维/陶瓷填料增强聚合物工程估算", "中低", True)
+    if "pa" in family:
+        return _thermal_value(1700.0, 1500.0, 1900.0, "尼龙类热塑性材料工程估算", "中", True)
+    if "peek" in family or "pps" in family or "pei" in family:
+        return _thermal_value(1300.0, 1000.0, 1500.0, "高温工程塑料工程估算", "中", True)
+    return _thermal_value(1500.0, 1000.0, 1900.0, "聚合物材料通用工程估算", "低", True)
+
+
+def _material_property_meta() -> JsonDict:
+    return {
+        "thermal_conductivity_w_mk": {"label": "导热系数", "unit": "W/(m·K)"},
+        "thermal_conductivity_xy_w_mk": {"label": "面内导热系数", "unit": "W/(m·K)"},
+        "thermal_conductivity_z_w_mk": {"label": "Z向导热系数", "unit": "W/(m·K)"},
+        "specific_heat_j_kg_k": {"label": "比热容", "unit": "J/(kg·K)"},
+        "tensile_strength_mpa": {"label": "拉伸强度", "unit": "MPa"},
+        "flexural_strength_mpa": {"label": "弯曲强度", "unit": "MPa"},
+        "flexural_modulus_mpa": {"label": "弯曲模量", "unit": "MPa"},
+        "interlayer_shear_strength_mpa": {"label": "层间剪切强度", "unit": "MPa"},
+        "elongation_break_pct": {"label": "断裂伸长率", "unit": "%"},
+        "impact_xy_kj_m2": {"label": "XY向冲击强度", "unit": "kJ/m2"},
+        "z_impact_kj_m2": {"label": "Z向冲击强度", "unit": "kJ/m2"},
+        "hdt_045_mpa_c": {"label": "HDT(0.45MPa)", "unit": "C"},
+        "hdt_18_mpa_c": {"label": "HDT(1.8MPa)", "unit": "C"},
+        "continuous_use_temp_c": {"label": "连续使用温度", "unit": "C"},
+        "water_absorption_pct": {"label": "吸水率", "unit": "%"},
+        "density_g_cm3": {"label": "密度", "unit": "g/cm3"},
+        "cte_um_m_c": {"label": "CTE", "unit": "um/(m·C)"},
+        "ctE_um_m_c": {"label": "CTE", "unit": "um/(m·C)"},
+        "volume_resistivity_ohm_cm": {"label": "体积电阻率", "unit": "ohm·cm"},
+        "fatigue_life_cycles": {"label": "疲劳寿命", "unit": "cycles"},
+        "fatigue_strength_mpa": {"label": "疲劳强度", "unit": "MPa"},
+    }
+
+
+def _format_property_value(value: Any, unit: str = "") -> str:
+    if isinstance(value, (int, float)):
+        text = f"{value:g}"
+    else:
+        text = str(value)
+    return f"{text} {unit}".strip()
+
+
+def _format_summary_numeric_value(label: str, value: float) -> str:
+    units = {
+        "导热系数": "W/(m·K)",
+        "HDT": "C",
+        "层间剪切强度": "MPa",
+        "断裂伸长率": "%",
+        "密度": "g/cm3",
+        "拉伸强度": "MPa",
+        "弯曲强度": "MPa",
+        "连续使用温度": "C",
+        "CTE": "um/(m·C)",
+        "体积电阻率": "ohm·cm",
+        "疲劳": "kJ/m2",
+    }
+    return _format_property_value(value, units.get(label, ""))
+
+
+def _summary_target_text(label: str, status_item: JsonDict) -> str:
+    target = status_item.get("target")
+    if target in (None, ""):
+        return "本轮未设硬阈值"
+    if target == "required":
+        return "需要"
+    if isinstance(target, str):
+        return target
+    units = {
+        "导热系数": "W/(m·K)",
+        "HDT": "C",
+        "层间剪切强度": "MPa",
+        "断裂伸长率": "%",
+        "密度": "g/cm3",
+        "拉伸强度": "MPa",
+        "弯曲强度": "MPa",
+        "连续使用温度": "C",
+        "CTE": "um/(m·C)",
+        "体积电阻率": "ohm·cm",
+    }
+    op = "≤" if label in {"密度", "CTE"} else "≥"
+    if isinstance(target, (int, float)):
+        return f"{op} {target:g} {units.get(label, '')}".strip()
+    return _target_label(target)
+
+
+def _reason_for_requirement(reasons: Iterable[Any], req: str) -> str:
+    prefix = f"{_requirement_label(req)}:"
+    for reason in reasons or []:
+        text = str(reason or "").strip()
+        if text.startswith(prefix):
+            return text.split(":", 1)[1].strip()
+    return ""
 
 
 def _dedupe_conclusion_labels(labels: Iterable[Any]) -> List[str]:

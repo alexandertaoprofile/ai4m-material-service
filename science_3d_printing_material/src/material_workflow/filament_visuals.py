@@ -171,7 +171,8 @@ async def send_filament_visual_assets(websocket, repo_root: str, taskid: str, re
         return {}
 
     try:
-        from src.storage_utils import get_image_url, oss_upload
+        from src.storage_utils import oss_upload
+        from src.material_workflow.database_pics import PICTURE_PUBLIC_BASE_URL
 
         result_payload: Dict[str, Any] = {}
         for local_path, docs, key_name in (
@@ -180,16 +181,17 @@ async def send_filament_visual_assets(websocket, repo_root: str, taskid: str, re
             if not local_path:
                 continue
             payload = Path(local_path).read_bytes()
-            oss_key = f"XIMUAlpha_MNS/{taskid_s}/filament_selection/assets/{Path(local_path).name}"
+            name = Path(local_path).name
+            oss_key = f"materials/modelfiles/image/{taskid_s}/filament_selection/assets/{name}"
             resp = await oss_upload("alpha", oss_key, payload)
             if resp.get("status") != 200:
                 logger.warning(f"[FILAMENT_VISUAL] upload failed resp={resp}")
                 result_payload[f"{key_name}_svg"] = local_path
                 continue
-            url = get_image_url("alpha", oss_key)
+            url = f"{PICTURE_PUBLIC_BASE_URL}/{taskid_s}/filament_selection/assets/{name}"
             await websocket.send_json({
                 "step_id": "MATERIAL_SCREENING",
-                "name": Path(local_path).name,
+                "name": name,
                 "docs": docs,
                 "url": url,
                 "type": "MaterialsSVG",

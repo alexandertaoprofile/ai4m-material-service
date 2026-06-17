@@ -96,7 +96,7 @@ def extract_formulas_from_targets(text: str, to_ascii_formula, looks_like_formul
     return out
 
 
-def extract_formulas_from_in_ls(repo_root: str, to_ascii_formula, looks_like_formula, normalize_formula_for_mp, logger) -> tuple:
+def extract_formulas_from_in_ls(repo_root: str, to_ascii_formula, looks_like_formula, normalize_formula_for_mp, logger, elements_set=None) -> tuple:
     in_ls_dir = os.path.join(repo_root, "src", "MNS_CaseHub", "cases", "material_discovery_demo", "results", "in-LS")
     if not os.path.isdir(in_ls_dir):
         return [], {}
@@ -106,7 +106,12 @@ def extract_formulas_from_in_ls(repo_root: str, to_ascii_formula, looks_like_for
         "CF", "SCF", "LCF", "CFRP", "GFRP", "GF", "CNT", "CARBON", "NYLON",
     }
 
-    def _extract_formula_candidates_from_material_label(label: str) -> list:
+    elements_set = elements_set or set()
+
+    def _is_structured_element(tok: str) -> bool:
+        return bool(to_ascii_formula(str(tok or "").strip()) in elements_set)
+
+    def _extract_formula_candidates_from_material_label(label: str, allow_single_elements: bool = False) -> list:
         s = to_ascii_formula(str(label or "")).strip()
         if not s:
             return []
@@ -134,13 +139,17 @@ def extract_formulas_from_in_ls(repo_root: str, to_ascii_formula, looks_like_for
             if not t or not any(sep in t for sep in ("-", "+", "·", "/")):
                 return False
             parts = [p.strip().strip("()（）[]{}") for p in re.split(r"[\-\+·/]", t) if p.strip()]
-            return len(parts) >= 2 and all(looks_like_formula(p) for p in parts)
+            return len(parts) >= 2 and all(looks_like_formula(p) or (allow_single_elements and _is_structured_element(p)) for p in parts)
 
         def _try_add(tok: str):
             t = to_ascii_formula(tok).strip().strip("()（）[]{}")
             if not t:
                 return
             if t.upper() in exclude_inls_tokens:
+                return
+            if allow_single_elements and _is_structured_element(t):
+                if t not in seen_local:
+                    out.append(t); seen_local.add(t)
                 return
             if _looks_like_polymer_composite_label(t):
                 if t not in seen_local:
@@ -195,11 +204,16 @@ def extract_formulas_from_in_ls(repo_root: str, to_ascii_formula, looks_like_for
         material_keys = (
             "baseline_formula", "advanced_formula",
             "baseline_material", "advanced_material",
+            "baseline_material_name", "advanced_material_name",
             "baseline_reason", "advanced_reason",
         )
         summary_lists = {
+            "baseline_formula": [],
+            "advanced_formula": [],
             "baseline_material": [],
             "advanced_material": [],
+            "baseline_material_name": [],
+            "advanced_material_name": [],
             "baseline_reason": [],
             "advanced_reason": [],
         }
@@ -209,7 +223,13 @@ def extract_formulas_from_in_ls(repo_root: str, to_ascii_formula, looks_like_for
                 for k in material_keys:
                     v = src.get(k)
                     if isinstance(v, str) and v.strip():
-                        tokens.extend(_extract_formula_candidates_from_material_label(v))
+                        tokens.extend(_extract_formula_candidates_from_material_label(
+                            v,
+                            allow_single_elements=k in {
+                                "baseline_formula", "advanced_formula",
+                                "baseline_material", "advanced_material",
+                            },
+                        ))
                 for k in summary_lists:
                     v = src.get(k)
                     if isinstance(v, str) and v.strip():
@@ -224,8 +244,12 @@ def extract_formulas_from_in_ls(repo_root: str, to_ascii_formula, looks_like_for
             return "；".join(vals)
 
         summary = {
+            "baseline_formula": _first_or_join("baseline_formula"),
+            "advanced_formula": _first_or_join("advanced_formula"),
             "baseline_material": _first_or_join("baseline_material"),
             "advanced_material": _first_or_join("advanced_material"),
+            "baseline_material_name": _first_or_join("baseline_material_name"),
+            "advanced_material_name": _first_or_join("advanced_material_name"),
             "baseline_reason": _first_or_join("baseline_reason"),
             "advanced_reason": _first_or_join("advanced_reason"),
         }

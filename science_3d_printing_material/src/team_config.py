@@ -25,6 +25,8 @@ from src.material_workflow.alignn_completion import run_alignn_completion_stage
 from src.material_workflow.filament_selector import (
     build_final_conclusion,
     build_markdown_report,
+    build_material_property_summary,
+    build_thermal_simulation_input_markdown,
     detect_filament_task,
     latest_in_ls_payload,
     rank_filaments,
@@ -181,7 +183,7 @@ class Coding(Action):
             await _mark_completed(
                 "MATERIAL_SCREENING",
                 "🎯",
-                "3D打印耗材筛选",
+                "耗材选型和计算优化",
                 "基于耗材性质、工艺窗口与应用需求进行工程选型和缺口分析"
             )
             progress_sent = True
@@ -635,6 +637,12 @@ class Coding(Action):
                             "评分为 0-10 的相对工程判读，代理证据只用于预判，不等同于直接实测闭合。\n\n",
                         )
                     await self._stream_markdown_text(websocket, f"![材料性能判读图]({radar_url})\n\n")
+                property_summary = build_material_property_summary(result)
+                if property_summary:
+                    await self._stream_markdown_text(websocket, property_summary)
+                thermal_inputs = build_thermal_simulation_input_markdown(result)
+                if thermal_inputs:
+                    await self._stream_markdown_text(websocket, thermal_inputs)
                 conclusion = build_final_conclusion(result)
                 if conclusion:
                     await self._stream_markdown_text(websocket, f"### 结论\n\n{conclusion}\n\n")

@@ -119,6 +119,10 @@ async def build_candidate_lists(
             return True
         return bool(re.fullmatch(r"[A-Z]{2,8}", s))
 
+    def _is_element_symbol(t: str) -> bool:
+        s = to_ascii_formula(str(t or "").strip())
+        return bool(s in elements_set)
+
     def _is_system_token(t: str) -> bool:
         if not t or not any(x in t for x in ["-", "+", "·", "/"]):
             return False
@@ -196,8 +200,8 @@ async def build_candidate_lists(
             p2 = re.sub(r"^(?:[nNxXyYzZmMkK])+", "", p).strip()
             if not p2:
                 continue
-            if looks_like_formula(p2):
-                nf = normalize_formula_for_mp(p2) or p2
+            if looks_like_formula(p2) or _is_element_symbol(p2):
+                nf = (normalize_formula_for_mp(p2) or p2) if looks_like_formula(p2) else p2
                 if nf not in seen_local:
                     out.append(nf)
                     seen_local.add(nf)
@@ -207,14 +211,16 @@ async def build_candidate_lists(
         if not isinstance(summary, dict):
             return []
         cands = []
-        for k in ("baseline_material", "advanced_material"):
+        # 结构化 formula/material 字段来自上游 LS 的明确候选；这里允许
+        # Al/C/Cu 等单元素组成相进入 MP，普通正文里的单元素仍由噪声规则拦截。
+        for k in ("baseline_formula", "advanced_formula", "baseline_material", "advanced_material"):
             v = str(summary.get(k) or "").strip()
             if not v:
                 continue
             parts = [p.strip() for p in re.split(r"[\s,/+;；，、]+", v) if p.strip()]
             for p in parts:
                 p2 = to_ascii_formula(p)
-                if p2 and (_is_system_token(p2) or looks_like_formula(p2)):
+                if p2 and (_is_system_token(p2) or looks_like_formula(p2) or _is_element_symbol(p2)):
                     cands.append(p2)
         return list(dict.fromkeys(cands))
 
@@ -283,6 +289,22 @@ async def build_candidate_lists(
             seen.add(nt)
 
     locked_tokens = _extract_locked_tokens_from_inls_summary(in_ls_summary)
+    locked_mp_order = []
+    locked_mp_seen = set()
+    for lt in locked_tokens:
+        if _is_polymer_composite_token(lt):
+            continue
+        pieces = [lt]
+        if _is_system_token(lt):
+            pieces = _explode_system_to_mp_tokens(lt)
+        for piece in pieces:
+            pp = to_ascii_formula(str(piece or "")).strip()
+            if not pp or not (looks_like_formula(pp) or _is_element_symbol(pp)):
+                continue
+            nf = (normalize_formula_for_mp(pp) or pp) if looks_like_formula(pp) else pp
+            if nf not in locked_mp_seen:
+                locked_mp_order.append(nf)
+                locked_mp_seen.add(nf)
     for lt in locked_tokens:
         if lt not in seen:
             display_tokens.append(lt)
@@ -371,14 +393,35 @@ async def build_candidate_lists(
         for lt in locked_tokens:
             if _is_polymer_composite_token(lt):
                 continue
-            if looks_like_formula(lt):
-                nlt = normalize_formula_for_mp(lt) or lt
+            if looks_like_formula(lt) or _is_element_symbol(lt):
+                nlt = (normalize_formula_for_mp(lt) or lt) if looks_like_formula(lt) else lt
                 if nlt not in mp_tokens:
                     mp_tokens.append(nlt)
             elif _is_system_token(lt):
                 for _m in _explode_system_to_mp_tokens(lt):
                     if _m not in mp_tokens:
                         mp_tokens.append(_m)
+        locked_display_order = []
+        locked_display_seen = set()
+        for lt in locked_tokens:
+            pieces = _explode_system_to_mp_tokens(lt) if _is_system_token(lt) else [lt]
+            for piece in pieces:
+                pp = to_ascii_formula(str(piece or "")).strip()
+                if pp and pp not in locked_display_seen:
+                    locked_display_order.append(pp)
+                    locked_display_seen.add(pp)
+        if locked_display_order:
+            ordered_display = []
+            ordered_display_seen = set()
+            for _t in locked_display_order + display_tokens:
+                if _t in display_tokens and _t not in ordered_display_seen:
+                    ordered_display.append(_t)
+                    ordered_display_seen.add(_t)
+            display_tokens = ordered_display
+            dropped_tokens = [
+                item for item in (dropped_tokens or [])
+                if not (item and to_ascii_formula(str(item[0] or "").strip()) in locked_display_seen)
+            ]
 
     if len(mp_tokens or []) == 0 and len(display_tokens or []) > 0:
         rebuilt_mp = []
@@ -402,12 +445,24 @@ async def build_candidate_lists(
     mp_seen_strict = set()
     for _t in (mp_tokens or []):
         _tt = to_ascii_formula(str(_t or "")).strip()
-        if _is_polymer_composite_token(_tt) or _is_noise_token(_tt) or _is_system_token(_tt) or not looks_like_formula(_tt):
+        locked_single_element = _tt in locked_mp_seen and _is_element_symbol(_tt)
+        if _is_polymer_composite_token(_tt) or _is_system_token(_tt) or not (looks_like_formula(_tt) or locked_single_element):
             continue
-        _nf = normalize_formula_for_mp(_tt) or _tt
+        if _is_noise_token(_tt) and not locked_single_element:
+            continue
+        _nf = (normalize_formula_for_mp(_tt) or _tt) if looks_like_formula(_tt) else _tt
         if _nf not in mp_seen_strict:
             mp_tokens_strict.append(_nf)
             mp_seen_strict.add(_nf)
-    mp_tokens = mp_tokens_strict
+    if locked_mp_order:
+        ordered = []
+        ordered_seen = set()
+        for _t in locked_mp_order + mp_tokens_strict:
+            if _t not in ordered_seen and _t in mp_seen_strict:
+                ordered.append(_t)
+                ordered_seen.add(_t)
+        mp_tokens = ordered
+    else:
+        mp_tokens = mp_tokens_strict
 
     return display_tokens, mp_tokens, non_mp_notes, dropped_tokens

@@ -2036,8 +2036,55 @@ class Coding(Action):
                 to_ascii_formula=_to_ascii_formula,
                 looks_like_formula=_looks_like_formula,
                 normalize_formula_for_mp=_normalize_formula_for_mp,
+                elements_set=_ELEMENTS,
                 logger=logger,
             )
+
+        def _extract_structured_candidates_from_current_input(text: str) -> tuple:
+            """
+            当前请求若直接携带 LS JSON，优先从这份 payload 的结构化字段锁定候选。
+            这样 baseline_formula=Al、advanced_formula=Al/SiC/C/Cu 这类主相/组成相
+            不会被普通正文里的 SiC 命中抢走优先级。
+            """
+            try:
+                obj = json.loads(str(text or ""))
+            except Exception:
+                return [], {}
+            if not isinstance(obj, dict):
+                return [], {}
+
+            st = obj.get("simulation_task") if isinstance(obj.get("simulation_task"), dict) else {}
+            scenario_tasks = []
+            for holder in (obj, st):
+                items = holder.get("scenario_tasks") if isinstance(holder, dict) else None
+                if isinstance(items, list):
+                    scenario_tasks.extend([x for x in items if isinstance(x, dict)])
+
+            sources = [obj, st] + scenario_tasks
+            keys = ("baseline_formula", "advanced_formula", "baseline_material", "advanced_material")
+            summary_lists = {k: [] for k in keys}
+            tokens = []
+            for src in sources:
+                if not isinstance(src, dict):
+                    continue
+                for k in keys:
+                    v = str(src.get(k) or "").strip()
+                    if not v:
+                        continue
+                    summary_lists[k].append(v)
+                    tokens.append(v)
+                    for part in re.split(r"[\s,/+;；，、]+", v):
+                        p = _to_ascii_formula(part).strip().strip("()（）[]{}")
+                        if p:
+                            tokens.append(p)
+
+            def _first(k: str) -> str:
+                vals = list(dict.fromkeys([x for x in summary_lists.get(k, []) if x]))
+                return vals[0] if vals else ""
+
+            summary = {k: _first(k) for k in keys}
+            out = list(dict.fromkeys([_to_ascii_formula(x).strip() for x in tokens if str(x).strip()]))
+            return out, summary
 
         async def _llm_select_material_candidates(raw_tokens: list, user_context: str = "", in_ls_summary: dict = None) -> tuple:
             return await _llm_select_material_candidates_external(
@@ -3193,12 +3240,49 @@ class Coding(Action):
             if inline_tokens:
                 raw_tokens = list(dict.fromkeys((raw_tokens or []) + inline_tokens))
 
+            current_struct_tokens, current_struct_summary = _extract_structured_candidates_from_current_input(formula_extract_text)
+            if current_struct_tokens:
+                raw_tokens = list(dict.fromkeys((current_struct_tokens or []) + (raw_tokens or [])))
+                logger.info(f"[ROUTER] current_structured_tokens={current_struct_tokens}")
+
             has_primary_formula = any(_is_primary_formula_token(t) for t in (raw_tokens or []))
             in_ls_tokens, in_ls_summary = _extract_formulas_from_in_ls(_repo_root())
+            if current_struct_summary:
+                in_ls_tokens, in_ls_summary = current_struct_tokens, current_struct_summary
+                logger.info(f"[ROUTER] current_structured_summary={current_struct_summary}")
             if has_primary_formula:
                 # 当前输入已包含明确化学式时，避免被历史 in-LS 结果“劫持”。
-                in_ls_tokens, in_ls_summary = [], {}
-                logger.info("[ROUTER] skip in-LS merge because primary formulas exist in current input")
+                # 但若当前输入本身就是结构化 LS payload，保留其 baseline/advanced
+                # formula/material 摘要，用于锁定主相/组成相的优先级。
+                def _summary_matches_current_input(summary_: dict, text_: str) -> bool:
+                    if not isinstance(summary_, dict):
+                        return False
+                    text_s = str(text_ or "")
+                    if any(k in text_s for k in ("baseline_formula", "advanced_formula", "baseline_material", "advanced_material")):
+                        return True
+                    for k in (
+                        "baseline_formula", "advanced_formula",
+                        "baseline_material", "advanced_material",
+                        "baseline_material_name", "advanced_material_name",
+                    ):
+                        v = str(summary_.get(k) or "").strip()
+                        if len(v) >= 3 and v in text_s:
+                            return True
+                    formula_text = " / ".join(str(summary_.get(k) or "") for k in ("baseline_formula", "advanced_formula", "baseline_material", "advanced_material"))
+                    name_text = " / ".join(str(summary_.get(k) or "") for k in ("baseline_material_name", "advanced_material_name"))
+                    if re.search(r"606[13]|铝合金|铝基", text_s) and ("Al" in formula_text or "铝" in name_text):
+                        return True
+                    if re.search(r"(?i)SiC|碳化硅", text_s) and ("SiC" in formula_text or "碳化硅" in name_text):
+                        return True
+                    if re.search(r"石墨烯|碳基|碳材料", text_s) and re.search(r"(?:^|[/+\-])C(?:$|[/+\-])", formula_text):
+                        return True
+                    return False
+
+                if not _summary_matches_current_input(in_ls_summary, formula_extract_text):
+                    in_ls_tokens, in_ls_summary = [], {}
+                    logger.info("[ROUTER] skip in-LS merge because primary formulas exist in current input")
+                else:
+                    logger.info("[ROUTER] keep structured in-LS summary for locked candidate ordering")
             elif in_ls_tokens:
                 # 仅在正文未抽到有效化学式时，回退使用 in-LS 结果
                 raw_tokens = list(dict.fromkeys((raw_tokens or []) + in_ls_tokens))
