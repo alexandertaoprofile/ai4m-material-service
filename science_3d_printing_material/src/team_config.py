@@ -8,11 +8,13 @@ import json
 import datetime
 
 from dotenv import load_dotenv
+from starlette.websockets import WebSocketState
 
 from alpha.roles import Role
 from alpha.logs import logger
 from alpha.actions import Action, UserRequirement
 
+from src.asset_context import build_asset_context_prompt
 from src.llm_utils import SeLLM, load_config
 from src.material_workflow.prompts import MATERIAL_MP_EXPLAIN_PROMPT
 from src.material_workflow.material_profiles import formula_profile
@@ -74,10 +76,11 @@ class Coding(Action):
     name: str = "XIMUAlpha_MNS"
     # 智能体简要描述
     desc: str = (
-        "XIMUAlpha工业平台·3D打印耗材工程筛选Agent："
-        "基于上游文献筛选与耗材数据表，面向应用场景、性能指标和打印工艺约束，"
-        "执行已有耗材推荐、需求满足度排序、缺口分析与后续改性方向建议。"
-        "输出可供前端展示和下游优化使用的结构化 JSON、候选排序和工程说明。"
+        "子流程：耗材选型和计算优化。"
+        "用于接收候选耗材、STL/结构约束和应用需求，"
+        "结合3D打印耗材数据表、性能指标和打印工艺窗口，执行已有耗材推荐、满足度排序、"
+        "缺口分析、计算验证和改性/优化建议。"
+        "适用于3D打印耗材排序、工艺窗口建议、性能缺口分析、计算验证和复合改性优化。"
     )
 
     def __init__(self, **kwargs):
@@ -100,13 +103,31 @@ class Coding(Action):
             logger_obj=logger,
         )
 
-    async def _safe_send_text(self, websocket, content: str) -> None:
+    def _websocket_is_open(self, websocket) -> bool:
+        if not websocket:
+            return False
+        return (
+            getattr(websocket, "client_state", None) == WebSocketState.CONNECTED
+            and getattr(websocket, "application_state", None) == WebSocketState.CONNECTED
+        )
+
+    async def _safe_send_text(self, websocket, content: str) -> bool:
         if not websocket or content is None:
-            return
+            return False
+        if not self._websocket_is_open(websocket):
+            return False
         try:
             await websocket.send_text(str(content))
+            return True
+        except RuntimeError as exc:
+            if "close message has been sent" in str(exc):
+                logger.warning("[WS] send_text skipped because websocket is already closed")
+                return False
+            logger.exception("[WS] send_text failed")
+            return False
         except Exception:
             logger.exception("[WS] send_text failed")
+            return False
 
     async def _stream_markdown_text(
         self,
@@ -119,8 +140,10 @@ class Coding(Action):
         websocket text channel used by LLM chunks, matching the "typing" feel
         of the existing material service.
         """
-        for ch in str(text or ""):
-            await self._safe_send_text(websocket, ch)
+        content = str(text or "")
+        for ch in content:
+            if not await self._safe_send_text(websocket, ch):
+                break
             if ch.strip():
                 await asyncio.sleep(char_delay)
 
@@ -228,6 +251,11 @@ class Coding(Action):
                 logger.info(f"[ROUTER] file_metadata_keys={list(file_metadata.keys())[:50]}")
         except Exception as _e:
             logger.exception(f"[ROUTER] entry_debug_failed: {_e!s}")
+
+        asset_context = build_asset_context_prompt(file_metadata if isinstance(file_metadata, list) else [])
+        if asset_context:
+            logger.info(f"[ASSET_CONTEXT] taskid={taskid!r} has_asset_context=True preview={asset_context[:180]!r}")
+            instruction = f"{normalize_user_text(instruction)}\n\n{asset_context}"
 
         # Formula routing helpers are implemented in material_workflow.formula_router.
 
@@ -636,7 +664,13 @@ class Coding(Action):
                             websocket,
                             "评分为 0-10 的相对工程判读，代理证据只用于预判，不等同于直接实测闭合。\n\n",
                         )
-                    await self._stream_markdown_text(websocket, f"![材料性能判读图]({radar_url})\n\n")
+                    await self._stream_markdown_text(
+                        websocket,
+                        (
+                            f'<img src="{radar_url}" alt="材料性能判读图" '
+                            'style="max-width:720px;width:70%;height:auto;display:block;margin:8px auto 16px;" />\n\n'
+                        ),
+                    )
                 property_summary = build_material_property_summary(result)
                 if property_summary:
                     await self._stream_markdown_text(websocket, property_summary)
@@ -784,13 +818,14 @@ class XIMUAlpha_MNS(Role):
     以结构化 JSON 为主要对接载体，侧重“文献/数据表性质抽取 → 需求映射 → 候选排序 → 改性建议”。
     """
     # 对外展示名（前端/日志可见）
-    name: str = "XIMUAlpha_3d_printing_materials"
+    name: str = "耗材选型和计算优化"
     # 简要画像（供框架/上游作为 system profile 使用）
     profile: str = (
-        "3D打印耗材选型与优化专用智能体。"
-        "能力覆盖耗材数据表解析、应用需求拆解、性能指标映射、已有耗材满足度排序、"
-        "打印工艺窗口建议、缺口分析和复合填料/基体/后处理改性方向建议。"
+        "子流程：耗材选型和计算优化。"
+        "当母服务需要面向3D打印结构件或功能复合耗材做耗材推荐、候选排序、打印工艺窗口建议、"
+        "性能缺口分析、计算验证和改性优化方向时，调用本服务。"
         "适用于机器人关节结构件、热管理组件、轻量化结构件和功能复合耗材等场景。"
+        "典型关键词：耗材选型、计算优化、3D打印耗材、STL模型、候选排序、工艺窗口、改性优化。"
     )
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

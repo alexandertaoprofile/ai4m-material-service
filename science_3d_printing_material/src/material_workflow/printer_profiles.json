@@ -1,0 +1,581 @@
+{
+  "schema_version": "0.2",
+  "profile_type": "printer_capability_profiles",
+  "units": {
+    "temperature": "C",
+    "length": "mm"
+  },
+  "compatibility_policy": {
+    "hard_constraints": [
+      "process",
+      "filament_diameter_mm",
+      "nozzle_max_temp_c",
+      "bed_max_temp_c"
+    ],
+    "conditional_constraints": [
+      "enclosure",
+      "actively_heated_chamber",
+      "hardened_nozzle",
+      "abrasive_filament_support",
+      "drying"
+    ],
+    "result_levels": [
+      "compatible",
+      "conditional",
+      "incompatible",
+      "unknown"
+    ]
+  },
+  "printers": [
+    {
+      "id": "bambu_a1_mini_default",
+      "name": "Bambu Lab A1 mini",
+      "aliases": [
+        "拓竹A1 mini",
+        "拓竹 A1 mini",
+        "拓竹A1 Mini",
+        "Bambu A1 mini",
+        "Bambu Lab A1 mini",
+        "A1 mini"
+      ],
+      "process": [
+        "FDM/FFF"
+      ],
+      "capabilities": {
+        "filament_diameter_mm": [
+          1.75
+        ],
+        "nozzle": {
+          "max_temp_c": 300,
+          "diameter_mm": [
+            0.2,
+            0.4,
+            0.6,
+            0.8
+          ],
+          "material": "stainless_steel",
+          "hardened": false,
+          "replaceable": true
+        },
+        "bed": {
+          "max_temp_c": 80,
+          "surface": [
+            "PEI"
+          ]
+        },
+        "chamber": {
+          "enclosed": false,
+          "actively_heated": false,
+          "max_temp_c": null
+        },
+        "build_volume_mm": [
+          180,
+          180,
+          180
+        ]
+      },
+      "risk_policy": {
+        "abrasive_filaments": "conditional_requires_hardened_nozzle",
+        "enclosure_required_filaments": "conditional_or_incompatible",
+        "heated_chamber_required_filaments": "incompatible"
+      },
+      "data_confidence": "public_standard_spec",
+      "notes": "A1 mini 为开放式桌面机型；复合磨蚀耗材通常需更换硬化喷嘴，ABS/ASA/PA 等对封箱敏感材料需降级为风险项。"
+    },
+    {
+      "id": "bambu_a1_default",
+      "name": "Bambu Lab A1",
+      "aliases": [
+        "拓竹A1",
+        "拓竹 A1",
+        "Bambu A1",
+        "Bambu Lab A1",
+        "A1"
+      ],
+      "process": [
+        "FDM/FFF"
+      ],
+      "capabilities": {
+        "filament_diameter_mm": [
+          1.75
+        ],
+        "nozzle": {
+          "max_temp_c": 300,
+          "diameter_mm": [
+            0.2,
+            0.4,
+            0.6,
+            0.8
+          ],
+          "material": "stainless_steel",
+          "hardened": false,
+          "replaceable": true
+        },
+        "bed": {
+          "max_temp_c": 100,
+          "surface": [
+            "PEI"
+          ]
+        },
+        "chamber": {
+          "enclosed": false,
+          "actively_heated": false,
+          "max_temp_c": null
+        },
+        "build_volume_mm": [
+          256,
+          256,
+          256
+        ]
+      },
+      "risk_policy": {
+        "abrasive_filaments": "conditional_requires_hardened_nozzle",
+        "enclosure_required_filaments": "conditional_or_incompatible",
+        "heated_chamber_required_filaments": "incompatible"
+      },
+      "data_confidence": "public_standard_spec",
+      "notes": "默认按开放式 A1、非硬化喷嘴记录；实际喷嘴材质、热床上限和封闭腔体状态可由上游覆盖。"
+    },
+    {
+      "id": "bambu_p1p_default",
+      "name": "Bambu Lab P1P",
+      "aliases": [
+        "拓竹P1P",
+        "拓竹 P1P",
+        "Bambu P1P",
+        "Bambu Lab P1P",
+        "P1P"
+      ],
+      "process": [
+        "FDM/FFF"
+      ],
+      "capabilities": {
+        "filament_diameter_mm": [
+          1.75
+        ],
+        "nozzle": {
+          "max_temp_c": 300,
+          "diameter_mm": [
+            0.2,
+            0.4,
+            0.6,
+            0.8
+          ],
+          "material": "stainless_steel",
+          "hardened": false,
+          "replaceable": true
+        },
+        "bed": {
+          "max_temp_c": 100,
+          "surface": [
+            "PEI",
+            "engineering_plate"
+          ]
+        },
+        "chamber": {
+          "enclosed": false,
+          "actively_heated": false,
+          "max_temp_c": null
+        },
+        "build_volume_mm": [
+          256,
+          256,
+          256
+        ]
+      },
+      "risk_policy": {
+        "abrasive_filaments": "conditional_requires_hardened_nozzle",
+        "enclosure_required_filaments": "conditional_or_incompatible",
+        "heated_chamber_required_filaments": "incompatible"
+      },
+      "data_confidence": "public_standard_spec",
+      "notes": "P1P 默认按非封闭版本记录；加装封箱套件后应创建 site_override profile。"
+    },
+    {
+      "id": "bambu_p1s_default",
+      "name": "Bambu Lab P1S",
+      "aliases": [
+        "拓竹P1S",
+        "拓竹 P1S",
+        "Bambu P1S",
+        "Bambu Lab P1S",
+        "P1S"
+      ],
+      "process": [
+        "FDM/FFF"
+      ],
+      "capabilities": {
+        "filament_diameter_mm": [
+          1.75
+        ],
+        "nozzle": {
+          "max_temp_c": 300,
+          "diameter_mm": [
+            0.2,
+            0.4,
+            0.6,
+            0.8
+          ],
+          "material": "stainless_steel",
+          "hardened": false,
+          "replaceable": true
+        },
+        "bed": {
+          "max_temp_c": 100,
+          "surface": [
+            "PEI",
+            "engineering_plate"
+          ]
+        },
+        "chamber": {
+          "enclosed": true,
+          "actively_heated": false,
+          "max_temp_c": null
+        },
+        "build_volume_mm": [
+          256,
+          256,
+          256
+        ]
+      },
+      "risk_policy": {
+        "abrasive_filaments": "conditional_requires_hardened_nozzle",
+        "enclosure_required_filaments": "compatible",
+        "heated_chamber_required_filaments": "incompatible"
+      },
+      "data_confidence": "public_standard_spec",
+      "notes": "P1S 为封闭腔体但非主动加热；碳纤/玻纤等磨蚀耗材仍按需硬化喷嘴处理。"
+    },
+    {
+      "id": "bambu_p2s_default",
+      "name": "Bambu Lab P2S",
+      "aliases": [
+        "拓竹P2S",
+        "拓竹 P2S",
+        "Bambu P2S",
+        "Bambu Lab P2S",
+        "P2S"
+      ],
+      "process": [
+        "FDM/FFF"
+      ],
+      "capabilities": {
+        "filament_diameter_mm": [
+          1.75
+        ],
+        "nozzle": {
+          "max_temp_c": 300,
+          "diameter_mm": [
+            0.2,
+            0.4,
+            0.6,
+            0.8
+          ],
+          "material": "stainless_steel",
+          "hardened": false,
+          "replaceable": true
+        },
+        "bed": {
+          "max_temp_c": 110,
+          "surface": [
+            "PEI",
+            "engineering_plate"
+          ]
+        },
+        "chamber": {
+          "enclosed": true,
+          "actively_heated": false,
+          "max_temp_c": null
+        },
+        "build_volume_mm": [
+          256,
+          256,
+          256
+        ]
+      },
+      "risk_policy": {
+        "abrasive_filaments": "conditional_requires_hardened_nozzle",
+        "enclosure_required_filaments": "compatible",
+        "heated_chamber_required_filaments": "incompatible"
+      },
+      "data_confidence": "public_secondary_source",
+      "notes": "P2S 作为 P1S 后继机型记录，公开信息显示热床能力提升；上线前建议用官网规格或实机配置复核。"
+    },
+    {
+      "id": "bambu_x1c_default",
+      "name": "Bambu Lab X1 Carbon",
+      "aliases": [
+        "拓竹X1C",
+        "拓竹 X1C",
+        "拓竹X1 Carbon",
+        "Bambu X1C",
+        "Bambu Lab X1C",
+        "Bambu Lab X1 Carbon",
+        "X1C",
+        "X1 Carbon"
+      ],
+      "process": [
+        "FDM/FFF"
+      ],
+      "capabilities": {
+        "filament_diameter_mm": [
+          1.75
+        ],
+        "nozzle": {
+          "max_temp_c": 300,
+          "diameter_mm": [
+            0.2,
+            0.4,
+            0.6,
+            0.8
+          ],
+          "material": "hardened_steel",
+          "hardened": true,
+          "replaceable": true
+        },
+        "bed": {
+          "max_temp_c": 120,
+          "surface": [
+            "cool_plate",
+            "engineering_plate",
+            "textured_pei"
+          ]
+        },
+        "chamber": {
+          "enclosed": true,
+          "actively_heated": false,
+          "max_temp_c": null
+        },
+        "build_volume_mm": [
+          256,
+          256,
+          256
+        ]
+      },
+      "risk_policy": {
+        "abrasive_filaments": "compatible",
+        "enclosure_required_filaments": "compatible",
+        "heated_chamber_required_filaments": "incompatible"
+      },
+      "data_confidence": "public_standard_spec",
+      "notes": "X1 Carbon 默认记录为硬化喷嘴/硬化挤出齿轮和封闭腔体；没有主动加热腔体。"
+    },
+    {
+      "id": "bambu_x1e_default",
+      "name": "Bambu Lab X1E",
+      "aliases": [
+        "拓竹X1E",
+        "拓竹 X1E",
+        "Bambu X1E",
+        "Bambu Lab X1E",
+        "X1E"
+      ],
+      "process": [
+        "FDM/FFF"
+      ],
+      "capabilities": {
+        "filament_diameter_mm": [
+          1.75
+        ],
+        "nozzle": {
+          "max_temp_c": 320,
+          "diameter_mm": [
+            0.2,
+            0.4,
+            0.6,
+            0.8
+          ],
+          "material": "hardened_steel",
+          "hardened": true,
+          "replaceable": true
+        },
+        "bed": {
+          "max_temp_c": 110,
+          "surface": [
+            "engineering_plate",
+            "textured_pei"
+          ]
+        },
+        "chamber": {
+          "enclosed": true,
+          "actively_heated": true,
+          "max_temp_c": 60
+        },
+        "build_volume_mm": [
+          256,
+          256,
+          256
+        ]
+      },
+      "risk_policy": {
+        "abrasive_filaments": "compatible",
+        "enclosure_required_filaments": "compatible",
+        "heated_chamber_required_filaments": "compatible_up_to_chamber_max_temp"
+      },
+      "data_confidence": "public_standard_spec",
+      "notes": "X1E 按企业版主动加热腔体记录；适合比 X1C 更高门槛的工程材料，但仍需按材料 TDS 校核。"
+    },
+    {
+      "id": "bambu_h2d_default",
+      "name": "Bambu Lab H2D",
+      "aliases": [
+        "拓竹H2D",
+        "拓竹 H2D",
+        "Bambu H2D",
+        "Bambu Lab H2D",
+        "H2D"
+      ],
+      "process": [
+        "FDM/FFF"
+      ],
+      "capabilities": {
+        "filament_diameter_mm": [
+          1.75
+        ],
+        "nozzle": {
+          "max_temp_c": 350,
+          "diameter_mm": [
+            0.2,
+            0.4,
+            0.6,
+            0.8
+          ],
+          "material": "hardened_steel",
+          "hardened": true,
+          "replaceable": true
+        },
+        "bed": {
+          "max_temp_c": 120,
+          "surface": [
+            "textured_pei",
+            "engineering_plate"
+          ]
+        },
+        "chamber": {
+          "enclosed": true,
+          "actively_heated": true,
+          "max_temp_c": 65
+        },
+        "build_volume_mm": [
+          350,
+          320,
+          325
+        ]
+      },
+      "risk_policy": {
+        "abrasive_filaments": "compatible",
+        "enclosure_required_filaments": "compatible",
+        "heated_chamber_required_filaments": "compatible_up_to_chamber_max_temp"
+      },
+      "data_confidence": "public_secondary_source",
+      "notes": "H2D 为较新机型；350 ℃ 热端和 65 ℃ 主动加热腔体来自公开评测/产品信息，正式上线前建议复核官网规格和实机配置。"
+    },
+    {
+      "id": "bambu_h2s_default",
+      "name": "Bambu Lab H2S",
+      "aliases": [
+        "拓竹H2S",
+        "拓竹 H2S",
+        "Bambu H2S",
+        "Bambu Lab H2S",
+        "H2S"
+      ],
+      "process": [
+        "FDM/FFF"
+      ],
+      "capabilities": {
+        "filament_diameter_mm": [
+          1.75
+        ],
+        "nozzle": {
+          "max_temp_c": 350,
+          "diameter_mm": [
+            0.2,
+            0.4,
+            0.6,
+            0.8
+          ],
+          "material": "hardened_steel",
+          "hardened": true,
+          "replaceable": true
+        },
+        "bed": {
+          "max_temp_c": 120,
+          "surface": [
+            "textured_pei",
+            "engineering_plate"
+          ]
+        },
+        "chamber": {
+          "enclosed": true,
+          "actively_heated": true,
+          "max_temp_c": 65
+        },
+        "build_volume_mm": [
+          340,
+          320,
+          340
+        ]
+      },
+      "risk_policy": {
+        "abrasive_filaments": "compatible",
+        "enclosure_required_filaments": "compatible",
+        "heated_chamber_required_filaments": "compatible_up_to_chamber_max_temp"
+      },
+      "data_confidence": "public_secondary_source",
+      "notes": "H2S 按 H2 系列单喷头公开信息记录；正式上线前建议复核官网规格和实机配置。"
+    },
+    {
+      "id": "bambu_h2c_default",
+      "name": "Bambu Lab H2C",
+      "aliases": [
+        "拓竹H2C",
+        "拓竹 H2C",
+        "Bambu H2C",
+        "Bambu Lab H2C",
+        "H2C"
+      ],
+      "process": [
+        "FDM/FFF"
+      ],
+      "capabilities": {
+        "filament_diameter_mm": [
+          1.75
+        ],
+        "nozzle": {
+          "max_temp_c": 350,
+          "diameter_mm": [
+            0.4
+          ],
+          "material": "hardened_steel",
+          "hardened": true,
+          "replaceable": true
+        },
+        "bed": {
+          "max_temp_c": 120,
+          "surface": [
+            "textured_pei",
+            "engineering_plate"
+          ]
+        },
+        "chamber": {
+          "enclosed": true,
+          "actively_heated": true,
+          "max_temp_c": 65
+        },
+        "build_volume_mm": [
+          305,
+          320,
+          325
+        ]
+      },
+      "risk_policy": {
+        "abrasive_filaments": "compatible",
+        "enclosure_required_filaments": "compatible",
+        "heated_chamber_required_filaments": "compatible_up_to_chamber_max_temp"
+      },
+      "data_confidence": "public_secondary_source",
+      "notes": "H2C 为多热端/换热端机型；当前只记录材料适配相关的温度、封闭腔体和硬化喷嘴能力，不展开多材料换头策略。"
+    }
+  ]
+}

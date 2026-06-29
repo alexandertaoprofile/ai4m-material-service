@@ -99,6 +99,31 @@ def latest_in_ls_payload(repo_root: str) -> Tuple[Optional[JsonDict], Optional[s
         return None, None
 
 
+def _load_printer_profiles() -> List[JsonDict]:
+    path = Path(__file__).with_name("printer_profiles.json")
+    if not path.is_file():
+        return []
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        logger.warning(f"[FILAMENT] failed to read printer profiles: {exc!s}")
+        return []
+    printers = data.get("printers") if isinstance(data, dict) else None
+    return [item for item in printers or [] if isinstance(item, dict)]
+
+
+def _match_printer_profile(text: str) -> Optional[JsonDict]:
+    hay = str(text or "")
+    for profile in _load_printer_profiles():
+        names = [profile.get("name"), profile.get("id")]
+        names.extend(profile.get("aliases") or [])
+        for name in names:
+            alias = str(name or "").strip()
+            if alias and re.search(re.escape(alias), hay, flags=re.IGNORECASE):
+                return profile
+    return None
+
+
 def _payload_sort_key(path: Path) -> Tuple[int, float]:
     m = re.search(r"simulation_task_(\d{4})_(\d{6})", path.name)
     if m:
@@ -122,6 +147,53 @@ def _first_scenario(payload: Optional[JsonDict]) -> JsonDict:
     if isinstance(st, dict):
         return st
     return {}
+
+
+def _scenario_dicts(payload: Optional[JsonDict]) -> List[JsonDict]:
+    if not isinstance(payload, dict):
+        return []
+    scenarios = payload.get("scenario_tasks")
+    if isinstance(scenarios, list):
+        return [item for item in scenarios if isinstance(item, dict)]
+    st = payload.get("simulation_task")
+    if isinstance(st, dict):
+        return [st]
+    return []
+
+
+def _scenario_from_asset_context(text: str) -> JsonDict:
+    text = str(text or "")
+    if "已选择 STL 模型资产" not in text and "初步零件语义" not in text:
+        return {}
+
+    def pick(label: str) -> str:
+        pattern = rf"{re.escape(label)}[：:]\s*([^\n\r]+)"
+        match = re.search(pattern, text)
+        return match.group(1).strip() if match else ""
+
+    part_name = pick("初步零件语义")
+    category = pick("零件类别")
+    focus = pick("推断关注点")
+    filename = ""
+    match = re.search(r"文件名[：:]\s*([^\n\r]+)", text)
+    if match:
+        filename = match.group(1).strip()
+
+    if not any([part_name, category, focus, filename]):
+        return {}
+
+    scenario_name = part_name or Path(filename).stem or "已选STL零件"
+    if category and category != "结构件" and category not in scenario_name:
+        scenario_name = f"{scenario_name}（{category}）"
+
+    requirements = focus or "尺寸稳定、装配可靠性、刚度、轻量化、疲劳、层间结合"
+    return {
+        "scenario_name": scenario_name,
+        "application": part_name or category or Path(filename).stem,
+        "requirements": requirements,
+        "asset_filename": filename,
+        "asset_context_source": "stl_filename_metadata",
+    }
 
 
 def _payload_texts(payload: Optional[JsonDict]) -> List[str]:
@@ -170,6 +242,8 @@ def parse_requirements(text: str, payload: Optional[JsonDict]) -> List[str]:
     for canonical, keywords, _weight in REQUIREMENT_MAP:
         if any(k.lower() in joined.lower() for k in keywords):
             found.append(canonical)
+    if _looks_like_motor_assembly(joined):
+        found.extend(["strength", "stiffness", "heat_resistance", "dimensional_stability", "thermal", "printability"])
     if not found:
         found = ["strength", "stiffness", "printability"]
     return list(dict.fromkeys(found))
@@ -177,9 +251,8 @@ def parse_requirements(text: str, payload: Optional[JsonDict]) -> List[str]:
 
 def parse_constraints(text: str, payload: Optional[JsonDict]) -> JsonDict:
     joined = "；".join([str(text or "")] + _payload_texts(payload))
-    scenario = _first_scenario(payload)
     constraints: JsonDict = {}
-    for holder in (payload or {}, scenario):
+    for holder in [payload or {}, *_scenario_dicts(payload)]:
         if not isinstance(holder, dict):
             continue
         for key in ("target_constraints", "constraints", "hard_constraints"):
@@ -212,6 +285,45 @@ def parse_constraints(text: str, payload: Optional[JsonDict]) -> JsonDict:
     ]))
     if "electrical_insulation_required" not in constraints:
         constraints["electrical_insulation_required"] = bool(re.search(r"电绝缘|绝缘|介电", joined, flags=re.IGNORECASE))
+
+    printability = constraints.get("printability_constraints")
+    printability = dict(printability) if isinstance(printability, dict) else {}
+    default_printed_stl = bool(re.search(r"默认制造方式.*FDM|默认制造方式.*FFF|待\s*FDM/FFF\s*丝材\s*3D\s*打印|商用\s*3D\s*打印耗材", joined, flags=re.IGNORECASE))
+    if re.search(r"FDM|FFF|丝材打印|熔融沉积", joined, flags=re.IGNORECASE) or default_printed_stl:
+        printability.setdefault("process", "FDM/FFF 丝材打印")
+    matched_printer = _match_printer_profile(joined)
+    if matched_printer:
+        printability.setdefault("printer", str(matched_printer.get("name") or matched_printer.get("id") or "已识别打印机"))
+        printability.setdefault("printer_profile_id", matched_printer.get("id"))
+        printability.setdefault("printer_capabilities", matched_printer.get("capabilities") or {})
+    elif re.search(r"拓竹\s*A1|Bambu\s*(?:Lab\s*)?A1", joined, flags=re.IGNORECASE):
+        printability.setdefault("printer", "拓竹 A1 / Bambu Lab A1")
+    if re.search(r"现有喷嘴|喷嘴", joined, flags=re.IGNORECASE) or default_printed_stl:
+        printability.setdefault("nozzle", "按现有喷嘴条件约束")
+    if re.search(r"现有.*热床|热床", joined, flags=re.IGNORECASE) or default_printed_stl:
+        printability.setdefault("bed", "按现有热床条件约束")
+    if re.search(r"封闭腔体|封箱|腔体", joined, flags=re.IGNORECASE) or default_printed_stl:
+        printability.setdefault("chamber", "按现有封闭腔体/封箱条件约束")
+    if printability:
+        constraints["printability_constraints"] = printability
+
+    material_boundary: List[str] = []
+    if re.search(r"商用耗材优先|商业耗材优先|商用\s*3D\s*打印耗材", joined) or default_printed_stl:
+        material_boundary.append("商用耗材优先")
+    if re.search(r"允许.*复合改性|复合改性|可打印复合耗材", joined) or default_printed_stl:
+        material_boundary.append("允许复合改性")
+    if re.search(r"允许.*定向增强|定向增强", joined):
+        material_boundary.append("允许定向增强")
+    if material_boundary:
+        constraints["material_boundary"] = list(dict.fromkeys(material_boundary))
+    if _looks_like_motor_assembly(joined):
+        constraints["component_model"] = {
+            "type": "printed_shell_plus_metal_core",
+            "shell_volume_fraction": 0.30,
+            "core_volume_fraction": 0.70,
+            "core_template": "servo_joint_motor_core",
+            "note": "关节电机/舵机按外部可打印壳体加内部金属/机电核心的等效热模型处理",
+        }
     return {k: v for k, v in constraints.items() if v not in (None, False)}
 
 
@@ -230,6 +342,7 @@ def _normalize_constraint_keys(raw: JsonDict) -> JsonDict:
         "electrical_insulation_required": ["electrical_insulation_required", "电绝缘要求"],
         "fatigue_required": ["fatigue_required", "疲劳要求"],
         "printability_constraints": ["printability_constraints", "打印约束"],
+        "material_boundary": ["material_boundary", "材料边界"],
     }
     out = _normalize_aliases(raw, aliases)
     normalized: JsonDict = {}
@@ -238,6 +351,10 @@ def _normalize_constraint_keys(raw: JsonDict) -> JsonDict:
         if val is not None:
             normalized[key] = val
     return normalized
+
+
+def _looks_like_motor_assembly(text: str) -> bool:
+    return bool(re.search(r"HS-?225BB|hitec|舵机|关节电机|电机壳体|电机外壳|关节驱动|伺服电机|servo", str(text or ""), flags=re.IGNORECASE))
 
 
 def _numeric(props: JsonDict, key: str) -> Optional[float]:
@@ -706,6 +823,10 @@ def _infer_proxy_from_candidate_text(text: str) -> JsonDict:
         add_tag("thermal_filler", "ceramic_filler", "insulating")
         add_proxy("thermal", "陶瓷导热填料/体系可作为导热路径线索，但仍需复合材料实测导热系数", 0.45)
         add_proxy("electrical_insulation", "BN/AlN/Al2O3 等陶瓷填料通常具备绝缘潜力，但仍需电阻率和击穿强度闭合", 0.45)
+    if re.search(r"(alsi10mg|铝合金|金属|metal|铸造|selective\s*laser|slm|lpbf|粉末床)", text, flags=re.IGNORECASE):
+        add_tag("metal", "non_filament_material")
+        add_proxy("printability", "金属/铸造/粉末床材料不是 FDM/FFF 丝材耗材，需要金属增材或铸造工艺", 0.7, "risk")
+        add_proxy("electrical_insulation", "金属体系与电绝缘要求冲突", 0.8, "risk")
     if re.search(r"(取向|定向|oriented|流场)", text, flags=re.IGNORECASE):
         add_tag("oriented_structure", "thermal_path_candidate")
         add_proxy("thermal", "取向结构可提升定向导热通路连续性，但仍需 XY/Z 导热实测", 0.48)
@@ -834,9 +955,8 @@ def _is_unusually_high_polymer_conductivity(value: Any, family: str, tags: Itera
 
 def collect_candidates(payload: Optional[JsonDict]) -> List[JsonDict]:
     candidates = starter_profiles()
-    scenario = _first_scenario(payload)
     upstream_candidates: List[JsonDict] = []
-    for holder in (payload or {}, scenario):
+    for holder in [payload or {}, *_scenario_dicts(payload)]:
         if not isinstance(holder, dict):
             continue
         for field in ("candidate_materials", "candidate_filaments", "filaments", "materials", "material_candidates"):
@@ -867,7 +987,10 @@ def rank_filaments(taskid: str, text: str, payload: Optional[JsonDict], payload_
     requirements = parse_requirements(text, payload)
     constraints = parse_constraints(text, payload)
     requirements = _requirements_from_constraints(requirements, constraints)
-    scenario = _first_scenario(payload)
+    scenario = dict(_first_scenario(payload))
+    asset_scenario = _scenario_from_asset_context(text)
+    if asset_scenario:
+        scenario.update(asset_scenario)
     candidates = collect_candidates(payload)
 
     weights = {name: weight for name, _keywords, weight in REQUIREMENT_MAP}
@@ -1170,26 +1293,210 @@ def build_optimization_plan(result: FilamentSelectionResult) -> List[JsonDict]:
     return rows[:5]
 
 
+def _device_material_limit_rows(result: FilamentSelectionResult) -> List[Tuple[str, str]]:
+    constraints = result.constraints or {}
+    printability = constraints.get("printability_constraints")
+    printability = printability if isinstance(printability, dict) else {}
+    material_boundary = constraints.get("material_boundary")
+    rows: List[Tuple[str, str]] = []
+
+    def add(category: str, value: Any) -> None:
+        if value in (None, "", [], {}):
+            return
+        if isinstance(value, list):
+            text = "；".join(str(item) for item in value if str(item).strip())
+        else:
+            text = str(value).strip()
+        if text:
+            rows.append((category, text))
+
+    printer_name = str(printability.get("printer") or "")
+    is_bambu_a1 = bool(re.search(r"拓竹\s*A1|Bambu\s*(?:Lab\s*)?A1", printer_name, flags=re.IGNORECASE))
+    nozzle_value = "现有喷嘴条件"
+    bed_value = "现有热床条件"
+    chamber_value = "现有封闭腔体/封箱条件"
+    if is_bambu_a1:
+        nozzle_value = "默认喷嘴最高约 300 ℃，默认非硬化喷嘴"
+        bed_value = "默认热床最高约 100 ℃"
+        chamber_value = "默认无主动加热腔体，封闭环境需现场确认"
+
+    add("打印工艺", printability.get("process"))
+    add("打印设备", printability.get("printer"))
+    add("喷嘴条件", nozzle_value if printability.get("nozzle") else None)
+    add("热床条件", bed_value if printability.get("bed") else None)
+    add("腔体条件", chamber_value if printability.get("chamber") else None)
+    add("材料边界", material_boundary)
+    return rows
+
+
+def _md_cell(value: Any) -> str:
+    text = str(value).replace("\n", " ").strip()
+    return text.replace("|", "\\|")
+
+
+def _temperature_max_from_text(text: str) -> Optional[float]:
+    values = []
+    for match in re.finditer(r"(\d+(?:\.\d+)?)\s*(?:℃|C|°C)", str(text or ""), flags=re.IGNORECASE):
+        try:
+            values.append(float(match.group(1)))
+        except Exception:
+            continue
+    return max(values) if values else None
+
+
+def _temperature_max_near_label(text: str, labels: Iterable[str]) -> Optional[float]:
+    src = str(text or "")
+    values = []
+    for label in labels:
+        pattern = rf"{re.escape(label)}[^0-9]{{0,80}}(\d+(?:\.\d+)?)\s*(?:-|~|至|到)?\s*(\d+(?:\.\d+)?)?\s*(?:℃|C|°C)"
+        for match in re.finditer(pattern, src, flags=re.IGNORECASE):
+            for group in match.groups():
+                if not group:
+                    continue
+                try:
+                    values.append(float(group))
+                except Exception:
+                    continue
+    return max(values) if values else None
+
+
+def _printability_summary(item: FilamentScore, constraints: Optional[JsonDict] = None) -> str:
+    candidate = item.candidate or {}
+    process = candidate.get("process") if isinstance(candidate.get("process"), dict) else {}
+    constraints = constraints or {}
+    printability = constraints.get("printability_constraints")
+    printability = printability if isinstance(printability, dict) else {}
+    capabilities = printability.get("printer_capabilities")
+    capabilities = capabilities if isinstance(capabilities, dict) else {}
+    tags = set(_normalize_tags(candidate.get("tags") or []))
+    candidate_text = " ".join(str(candidate.get(key) or "") for key in ("name", "display_name", "family"))
+    process_name = str(printability.get("process") or "")
+    if (
+        ("FDM" in process_name.upper() or "FFF" in process_name.upper() or "丝材" in process_name)
+        and (
+            tags.intersection({"metal", "non_filament_material"})
+            or re.search(r"AlSi10Mg|铝合金|金属|铸造|粉末床|SLM|LPBF", candidate_text, flags=re.IGNORECASE)
+        )
+    ):
+        return "非FDM丝材耗材"
+    text = " ".join(str(process.get(key) or "") for key in ("nozzle", "bed", "nozzle_temp", "enclosure"))
+    notes: List[str] = []
+
+    nozzle_caps = capabilities.get("nozzle") if isinstance(capabilities.get("nozzle"), dict) else {}
+    bed_caps = capabilities.get("bed") if isinstance(capabilities.get("bed"), dict) else {}
+    chamber_caps = capabilities.get("chamber") if isinstance(capabilities.get("chamber"), dict) else {}
+    nozzle_text = " ".join(str(process.get(key) or "") for key in ("nozzle_temp", "nozzle"))
+    bed_text = str(process.get("bed") or "")
+    nozzle_temp_need = _temperature_max_near_label(nozzle_text, ["打印喷嘴温度", "喷嘴温度", "打印温度"]) or _temperature_max_from_text(str(process.get("nozzle_temp") or ""))
+    bed_temp_need = _temperature_max_near_label(bed_text, ["打印面板温度", "热床温度", "热床", "床温"])
+    nozzle_temp_max = nozzle_caps.get("max_temp_c")
+    bed_temp_max = bed_caps.get("max_temp_c")
+    if isinstance(nozzle_temp_need, (int, float)) and isinstance(nozzle_temp_max, (int, float)) and nozzle_temp_need > float(nozzle_temp_max):
+        notes.append("喷嘴温度超限")
+    if isinstance(bed_temp_need, (int, float)) and isinstance(bed_temp_max, (int, float)) and bed_temp_need > float(bed_temp_max):
+        notes.append("热床温度超限")
+
+    needs_hardened_nozzle = (
+        "硬化钢" in text
+        or bool(tags.intersection({"carbon_fiber", "glass_fiber", "abrasive", "ceramic_filler", "thermal_filler"}))
+    )
+    nozzle_hardened = nozzle_caps.get("hardened")
+    if needs_hardened_nozzle and nozzle_hardened is not True:
+        notes.append("需硬化喷嘴")
+
+    enclosure = str(process.get("enclosure") or "")
+    chamber_enclosed = chamber_caps.get("enclosed")
+    if "必需" in enclosure and chamber_enclosed is not True:
+        notes.append("需封箱")
+    elif "推荐" in enclosure and chamber_enclosed is not True:
+        notes.append("建议封箱")
+
+    bed = str(process.get("bed") or "")
+    if "高温热床" in bed:
+        notes.append("热床待确认")
+
+    if "按供应商 TDS" in text or not process:
+        notes.append("工艺待确认")
+
+    if not notes:
+        return "当前设备直接适配"
+    return "；".join(notes[:2])
+
+
+def _is_directly_printable(item: FilamentScore, constraints: Optional[JsonDict] = None) -> bool:
+    return _printability_summary(item, constraints=constraints) == "当前设备直接适配"
+
+
+def _ranked_for_report(ranked: List[FilamentScore], top_n: int, constraints: Optional[JsonDict] = None) -> List[FilamentScore]:
+    displayed = list(ranked[:top_n])
+    if not displayed or any(_is_directly_printable(item, constraints=constraints) for item in displayed):
+        return displayed
+
+    printable = next((item for item in ranked[top_n:] if _is_directly_printable(item, constraints=constraints)), None)
+    if printable is None:
+        return displayed
+    if len(displayed) < top_n:
+        displayed.append(printable)
+    else:
+        displayed[-1] = printable
+    return displayed
+
+
+def _constraint_display_note(key: str, value: Any) -> str:
+    if key == "thermal_conductivity_min_w_mk":
+        try:
+            target = float(value)
+        except Exception:
+            target = 0.0
+        if target >= 50:
+            return "该数值远高于常见 FDM 聚合物耗材，当前按上游目标保留，并作为数据缺口/改性方向校核。"
+        return "按牌号导热系数或实测导热数据校核。"
+    if key == "density_max_g_cm3":
+        return "用于轻量化边界判断，缺少牌号密度时不默认满足。"
+    if key == "electrical_insulation_required":
+        return "需要体积电阻率、表面电阻率或击穿强度数据闭合。"
+    if key == "fatigue_required":
+        return "需要循环载荷或热循环后的强度保持数据验证。"
+    if key in {"hdt_min_c", "continuous_use_temp_min_c"}:
+        return "用于判断热载荷下的形变边界。"
+    if key in {"layer_shear_min_mpa", "elongation_min_pct", "tensile_strength_min_mpa", "flexural_strength_min_mpa"}:
+        return "用于结构承载和层间可靠性校核。"
+    if key == "cte_max_um_m_c":
+        return "用于热循环尺寸稳定性校核。"
+    return "按上游输入保留，需结合牌号数据或实测确认。"
+
+
 def build_markdown_report(result: FilamentSelectionResult, top_n: int = 5, include_conclusion: bool = True) -> str:
-    ranked = result.ranked[:top_n]
-    top = ranked[0] if ranked else None
+    ranked = _ranked_for_report(result.ranked, top_n, constraints=result.constraints)
+    top = result.ranked[0] if result.ranked else None
     scenario = result.scenario or {}
     lines: List[str] = []
     visible_requirements = [r for r in result.requirements if r != "printability"]
-    lines.append("### 应用场景和性质需求")
+    lines.append("### 耗材选型和计算优化")
     lines.append("")
     if scenario:
-        lines.append(f"应用场景：{scenario.get('scenario_name') or scenario.get('application') or '未指定'}")
+        lines.append(f"- **应用场景**：{scenario.get('scenario_name') or scenario.get('application') or '未指定'}")
         if scenario.get("application"):
-            lines.append(f"使用位置：{scenario.get('application')}")
+            lines.append("")
+            lines.append(f"- **使用位置**：{scenario.get('application')}")
         lines.append("")
     if visible_requirements:
-        lines.append("性质需求：" + "、".join(_requirement_label(r) for r in visible_requirements))
+        lines.append("- **关注性能**：" + "、".join(_requirement_label(r) for r in visible_requirements))
         lines.append("")
-        lines.append("以下排序会同时参考直接数据和相近性质线索；间接线索只用于选型预判，最终仍以实测为准。")
+        lines.append("> 判读说明：直接数据优先；相近性质线索仅用于选型预判，最终以牌号 TDS、试样实测和打印验证为准。")
     else:
-        lines.append("以下排序会同时参考直接数据和相近性质线索；间接线索只用于选型预判，最终仍以实测为准。")
+        lines.append("> 判读说明：直接数据优先；相近性质线索仅用于选型预判，最终以牌号 TDS、试样实测和打印验证为准。")
     lines.append("")
+
+    limit_rows = _device_material_limit_rows(result)
+    if limit_rows:
+        lines.append("### 设备与材料限制")
+        lines.append("")
+        lines.append("| 限制条件 | 当前条件 |")
+        lines.append("|---|---|")
+        for category, value in limit_rows:
+            lines.append(f"| {_md_cell(category)} | {_md_cell(value)} |")
+        lines.append("")
 
     if result.constraints:
         constraint_labels = {
@@ -1208,48 +1515,56 @@ def build_markdown_report(result: FilamentSelectionResult, top_n: int = 5, inclu
         }
         units = {
             "thermal_conductivity_min_w_mk": "W/(m·K)",
-            "hdt_min_c": "C",
+            "hdt_min_c": "℃",
             "layer_shear_min_mpa": "MPa",
             "elongation_min_pct": "%",
             "density_max_g_cm3": "g/cm3",
             "tensile_strength_min_mpa": "MPa",
             "flexural_strength_min_mpa": "MPa",
-            "continuous_use_temp_min_c": "C",
-            "cte_max_um_m_c": "um/(m·C)",
+            "continuous_use_temp_min_c": "℃",
+            "cte_max_um_m_c": "um/(m·℃)",
             "volume_resistivity_min_ohm_cm": "ohm·cm",
             "electrical_insulation_required": "",
             "fatigue_required": "",
         }
         max_keys = {"density_max_g_cm3", "cte_max_um_m_c"}
-        lines.append("#### 材料需求目标")
+        lines.append("#### 量化目标与校核口径")
         lines.append("")
-        lines.append("| 需求项 | 目标 |")
-        lines.append("|---|---|")
+        lines.append("| 需求项 | 上游目标 | 校核说明 |")
+        lines.append("|---|---|---|")
         for key, val in result.constraints.items():
-            if key == "printability_constraints":
+            if key in {"printability_constraints", "material_boundary", "component_model"}:
                 continue
             label = constraint_labels.get(key, key)
             if isinstance(val, bool):
                 target = "需要" if val else "不要求"
             elif isinstance(val, list):
                 target = "；".join(str(x) for x in val)
+            elif isinstance(val, dict):
+                target = "；".join(f"{k}: {v}" for k, v in val.items())
             else:
                 op = "≤" if key in max_keys else "≥"
-                target = f"{op} {val:g} {units.get(key, '')}".strip()
-            lines.append(f"| {label} | {target} |")
+                try:
+                    target = f"{op} {float(val):g} {units.get(key, '')}".strip()
+                except (TypeError, ValueError):
+                    target = str(val)
+            note = _constraint_display_note(key, val)
+            lines.append(f"| {_md_cell(label)} | {_md_cell(target)} | {_md_cell(note)} |")
         lines.append("")
 
     lines.append("### 候选耗材排序")
     lines.append("")
-    lines.append("| 排名 | 候选耗材 | 匹配度 | 证据覆盖 | 主要优势 | 待补数据 |")
-    lines.append("|---|---|---:|---:|---|---|")
+    lines.append("> 说明：下表是当前约束下的优先验证顺序，不代表候选耗材已经完全满足所有材料指标；`当前设备直接适配` 只表示当前打印条件可先做样条验证。")
+    lines.append("")
+    lines.append("| 排名 | 候选耗材 | 匹配度 | 打印适配 | 证据覆盖 | 主要优势 |")
+    lines.append("|---|---|---:|---|---:|---|")
     for idx, item in enumerate(ranked, start=1):
         c = item.candidate
-        advantages = "；".join(_visible_material_phrases(c.get("advantages") or [], limit=2)) or "待补充"
-        gaps = "；".join(_short_gap_phrases(item.gaps, limit=2)) or "暂无明显缺口"
+        advantages = "；".join(_candidate_advantage_phrases(item, limit=2)) or "待补充"
         lines.append(
-            f"| {idx} | {c.get('display_name') or c.get('name')} | {item.score * 100:.0f}/100 | "
-            f"{item.data_coverage:.0%} | {advantages} | {gaps} |"
+            f"| {idx} | {_md_cell(c.get('display_name') or c.get('name'))} | {item.score * 100:.0f}% | "
+            f"{_md_cell(_printability_summary(item, constraints=result.constraints))} | {item.data_coverage:.0%} | "
+            f"{_md_cell(advantages)} |"
         )
     lines.append("")
 
@@ -1324,6 +1639,10 @@ def build_final_conclusion(result: FilamentSelectionResult, optimization_rows: O
 
     top = result.ranked[0]
     name = str(top.candidate.get("display_name") or top.candidate.get("name") or "当前第一候选").strip()
+    printable = next((item for item in result.ranked if _is_directly_printable(item, constraints=result.constraints)), None)
+    printable_name = ""
+    if printable is not None:
+        printable_name = str(printable.candidate.get("display_name") or printable.candidate.get("name") or "").strip()
     status = top.hard_constraint_status or {}
     scores = top.requirement_scores or {}
     optimization_rows = optimization_rows if optimization_rows is not None else build_optimization_plan(result)
@@ -1353,39 +1672,49 @@ def build_final_conclusion(result: FilamentSelectionResult, optimization_rows: O
     paragraphs: List[str] = []
     if supported:
         paragraphs.append(
-            f"**现有耗材选择**\n\n建议先以 **{name}** 作为第一轮基准。它在 "
-            f"{'、'.join(supported[:4])} 这些方面已经有较好的直接数据或相近证据支撑，适合作为样条验证的起点。"
+            f"- **性能优先候选**：建议先以 **{name}** 作为材料性能方向的第一候选。它在 "
+            f"{'、'.join(supported[:4])} 方面有较好的直接数据或相近证据支撑，适合作为性能验证起点。"
         )
     else:
         paragraphs.append(
-            f"**现有耗材选择**\n\n现有耗材里，**{name}** 是当前相对最合适的第一候选，但它更像是优先验证对象，还不能直接当作完全达标材料。"
+            f"- **性能优先候选**：现有耗材里，**{name}** 是当前相对最合适的第一候选，但它更像是优先验证对象，还不能直接当作完全达标材料。"
         )
+
+    if printable_name:
+        if printable_name == name:
+            paragraphs.append(
+                f"- **打印验证基准**：**{printable_name}** 同时具备 `当前设备直接适配` 条件，可优先用于现有设备的样条打印与工艺验证。"
+            )
+        else:
+            paragraphs.append(
+                f"- **打印验证基准**：如果要先验证当前打印机、默认喷嘴和热床流程，建议加入 **{printable_name}** 作为可直接打印的对照样条；它不代表性能最优，但能帮助区分“材料性能不足”和“打印工艺不可达”。"
+            )
 
     if uncertain:
         paragraphs.append(
-            f"**还需要确认**\n\n{'、'.join(uncertain[:5])} 仍需要补直接数据。这些项目目前多是间接证据、风险判断或数据缺口，不能直接等同于已经满足应用要求。"
+            f"- **需要补证据**：{'、'.join(uncertain[:5])} 仍需要牌号 TDS、试样实测或打印验证闭合；这些项目目前不能直接等同于已经满足应用要求。"
         )
     if unmet:
         paragraphs.append(
-            f"**当前不能闭合**\n\n{'、'.join(unmet[:5])} 目前还不能闭合。这部分不建议用文字判断替代实测，需要先补数据再决定是否继续推进。"
+            f"- **当前不能闭合**：{'、'.join(unmet[:5])} 还不能闭合，不建议用文字判断替代实测，需要先补数据再决定是否继续推进。"
         )
     elif uncertain:
         paragraphs.append(
-            f"**当前不能证明达标**\n\n还不能证明 {'、'.join(uncertain[:4])} 已经达标。它们不是一定不满足，而是还缺少能让结论站住的直接数据。"
+            f"- **当前不能证明达标**：还不能证明 {'、'.join(uncertain[:4])} 已经达标。它们不是一定不满足，而是还缺少能让结论站住的直接数据。"
         )
 
     if optimization_rows:
         focus = "、".join(str(row.get("property") or "") for row in optimization_rows[:3] if row.get("property"))
         difficulty = _optimization_difficulty(optimization_rows)
         paragraphs.append(
-            f"**后续优化方向**\n\n建议围绕 {focus} 展开。整体难度判断为 **{difficulty}**：核心不是简单加填料，而是在导热、绝缘、层间韧性和尺寸稳定之间找平衡。"
+            f"- **后续优化方向**：建议围绕 {focus} 展开。整体难度判断为 **{difficulty}**：核心不是简单加填料，而是在导热、绝缘、层间韧性和尺寸稳定之间找平衡。"
         )
     else:
         paragraphs.append(
-            "**后续优化方向**\n\n可以先不做材料改性，优先进入样条制备和应用结构匹配。只有当实测暴露出短板时，再针对具体失效项做小范围配方调整。"
+            "- **后续优化方向**：可以先不做材料改性，优先进入样条制备和应用结构匹配。只有当实测暴露出短板时，再针对具体失效项做小范围配方调整。"
         )
 
-    return "\n\n".join(paragraphs)
+    return "\n".join(paragraphs)
 
 
 def build_material_property_summary(result: FilamentSelectionResult) -> str:
@@ -1482,14 +1811,27 @@ def build_thermal_simulation_inputs(result: FilamentSelectionResult) -> JsonDict
     density = _thermal_density_input(props, family, tags)
     conductivity = _thermal_conductivity_input(props, family, tags)
     specific_heat = _thermal_specific_heat_input(props, family, tags)
+    component_model = result.constraints.get("component_model") if isinstance(result.constraints, dict) else None
+    component_model = component_model if isinstance(component_model, dict) else {}
 
-    return {
+    data = {
         "material_name": name,
         "thermal_conductivity_w_mk": conductivity,
         "specific_heat_j_kg_k": specific_heat,
         "density_kg_m3": density,
         "usage_note": "下游热场仿真优先使用 recommended；range_min/range_max 用于敏感性分析。estimated 表示本轮未拿到牌号实测值。",
     }
+
+    if component_model.get("type") == "printed_shell_plus_metal_core":
+        data["component_model"] = _motor_component_thermal_model(
+            shell_name=name,
+            shell_k=conductivity,
+            shell_cp=specific_heat,
+            shell_rho=density,
+            shell_vf=float(component_model.get("shell_volume_fraction") or 0.30),
+            core_vf=float(component_model.get("core_volume_fraction") or 0.70),
+        )
+    return data
 
 
 def build_thermal_simulation_input_markdown(result: FilamentSelectionResult) -> str:
@@ -1500,6 +1842,33 @@ def build_thermal_simulation_input_markdown(result: FilamentSelectionResult) -> 
     lines = []
     lines.append("### 热场仿真输入参数")
     lines.append("")
+    component_model = data.get("component_model") if isinstance(data.get("component_model"), dict) else {}
+    if component_model:
+        lines.append(f"对象：**{component_model.get('object_name', '关节电机等效热模型')}**")
+        lines.append(f"外壳耗材：**{component_model.get('shell_name', data.get('material_name', '当前第一候选'))}**")
+        lines.append(f"建模假设：外壳体积分数 {component_model.get('shell_volume_fraction', 0):.0%}，内部金属/机电核心体积分数 {component_model.get('core_volume_fraction', 0):.0%}。")
+        lines.append("")
+        lines.append("| 参数 | 等效输入 | 外壳耗材 | 内部金属/机电核心 | 单位 | 来源 |")
+        lines.append("|---|---:|---:|---:|---|---|")
+        for key, label, unit in (
+            ("thermal_conductivity_w_mk", "导热系数 k", "W/(m·K)"),
+            ("specific_heat_j_kg_k", "比热容 cp", "J/(kg·K)"),
+            ("density_kg_m3", "密度 rho", "kg/m3"),
+        ):
+            shell_item = component_model.get("printed_shell", {}).get(key, {})
+            core_item = component_model.get("metal_core", {}).get(key, {})
+            eff_item = component_model.get("effective", {}).get(key, {})
+            lines.append(
+                f"| {label} | {_format_property_value(eff_item.get('recommended'), '')} | "
+                f"{_format_property_value(shell_item.get('recommended'), '')} | "
+                f"{_format_property_value(core_item.get('recommended'), '')} | "
+                f"{unit} | "
+                f"{eff_item.get('source', '')} |"
+            )
+        lines.append("")
+        lines.append("说明：该表用于当前仿真端的单一等效电机模型。外壳耗材仍按 3D 打印件选型；内部电机、齿轮、轴承、螺丝、铜绕组和磁钢按等效金属/机电核心处理。正式仿真前建议用实测质量、外壳厚度或 CAD 体积分数替换默认体积分数。")
+        return "\n".join(lines) + "\n"
+
     lines.append(f"对象：**{data.get('material_name', '当前第一候选')}**")
     lines.append("")
     lines.append("| 参数 | 推荐值 | 估算/取值区间 | 单位 | 来源 | 置信度 |")
@@ -1521,6 +1890,63 @@ def build_thermal_simulation_input_markdown(result: FilamentSelectionResult) -> 
     lines.append("")
     lines.append("说明：若来源为工程估算，推荐值用于保证下游仿真可执行；正式设计前应以牌号 TDS 或样条实测替换，并用区间做敏感性分析。")
     return "\n".join(lines) + "\n"
+
+
+def _motor_component_thermal_model(
+    shell_name: str,
+    shell_k: JsonDict,
+    shell_cp: JsonDict,
+    shell_rho: JsonDict,
+    shell_vf: float,
+    core_vf: float,
+) -> JsonDict:
+    shell_vf = min(max(float(shell_vf or 0.30), 0.05), 0.80)
+    core_vf = min(max(float(core_vf or (1.0 - shell_vf)), 0.20), 0.95)
+    total = shell_vf + core_vf
+    shell_vf, core_vf = shell_vf / total, core_vf / total
+
+    core_k = _thermal_value(35.0, 20.0, 60.0, "HS-225BB 类小型舵机内部金属/机电核心模板", "低", True)
+    core_cp = _thermal_value(480.0, 420.0, 560.0, "钢/铜/磁钢/轴承/齿轮混合核心工程估算", "低", True)
+    core_rho = _thermal_value(7200.0, 6500.0, 7800.0, "小型舵机内部金属件等效密度工程估算", "低", True)
+
+    shell_k_rec = float(shell_k.get("recommended") or 0.25)
+    shell_cp_rec = float(shell_cp.get("recommended") or 1500.0)
+    shell_rho_rec = float(shell_rho.get("recommended") or 1200.0)
+    core_k_rec = float(core_k["recommended"])
+    core_cp_rec = float(core_cp["recommended"])
+    core_rho_rec = float(core_rho["recommended"])
+
+    rho_eff = shell_vf * shell_rho_rec + core_vf * core_rho_rec
+    cp_eff = (shell_vf * shell_rho_rec * shell_cp_rec + core_vf * core_rho_rec * core_cp_rec) / max(rho_eff, 1e-9)
+    # Geometric mean is a conservative middle-ground between series and
+    # parallel bounds for a compact motor core wrapped by a polymer shell.
+    k_eff = (shell_k_rec ** shell_vf) * (core_k_rec ** core_vf)
+
+    eff_k = _thermal_value(k_eff, max(shell_k_rec, k_eff * 0.55), min(core_k_rec, k_eff * 1.8), "外壳耗材与内部金属核心体积分数混合估算", "低", True)
+    eff_cp = _thermal_value(cp_eff, cp_eff * 0.90, cp_eff * 1.10, "质量加权等效比热估算", "低", True)
+    eff_rho = _thermal_value(rho_eff, rho_eff * 0.90, rho_eff * 1.10, "体积分数线性混合密度估算", "低", True)
+
+    return {
+        "object_name": "HS-225BB 类关节电机等效热模型",
+        "shell_name": shell_name,
+        "shell_volume_fraction": shell_vf,
+        "core_volume_fraction": core_vf,
+        "printed_shell": {
+            "thermal_conductivity_w_mk": shell_k,
+            "specific_heat_j_kg_k": shell_cp,
+            "density_kg_m3": shell_rho,
+        },
+        "metal_core": {
+            "thermal_conductivity_w_mk": core_k,
+            "specific_heat_j_kg_k": core_cp,
+            "density_kg_m3": core_rho,
+        },
+        "effective": {
+            "thermal_conductivity_w_mk": eff_k,
+            "specific_heat_j_kg_k": eff_cp,
+            "density_kg_m3": eff_rho,
+        },
+    }
 
 
 def _thermal_value(recommended: float, range_min: float, range_max: float, source: str, confidence: str, estimated: bool) -> JsonDict:
@@ -1809,6 +2235,85 @@ def _visible_material_phrases(items: Iterable[Any], limit: int) -> List[str]:
         if len(out) >= limit:
             break
     return out
+
+
+def _candidate_advantage_phrases(item: FilamentScore, limit: int) -> List[str]:
+    candidate = item.candidate or {}
+    props = candidate.get("properties") if isinstance(candidate.get("properties"), dict) else {}
+    out: List[str] = []
+    used_concepts: set[str] = set()
+
+    numeric_preferences = [
+        ("thermal_conductivity_w_mk", "导热系数", "W/(m·K)"),
+        ("flexural_strength_mpa", "弯曲强度", "MPa"),
+        ("tensile_strength_mpa", "拉伸强度", "MPa"),
+        ("flexural_modulus_mpa", "弯曲模量", "MPa"),
+        ("hdt_045_mpa_c", "HDT", "℃"),
+        ("continuous_use_temp_c", "长期耐温", "℃"),
+        ("z_impact_kj_m2", "Z向冲击", "kJ/m2"),
+        ("density_g_cm3", "密度", "g/cm3"),
+        ("water_absorption_pct", "吸水率", "%"),
+        ("volume_resistivity_ohm_cm", "体积电阻率", "ohm·cm"),
+    ]
+    for key, label, unit in numeric_preferences:
+        value = _numeric(props, key)
+        if value is None:
+            continue
+        phrase = f"{label} {value:g} {unit}".strip()
+        if phrase not in out:
+            out.append(phrase)
+            used_concepts.add(label)
+        if len(out) >= limit:
+            return out[:limit]
+
+    positive_labels = {
+        "导热系数": "导热系数",
+        "HDT": "HDT",
+        "连续使用温度": "长期耐温",
+        "密度": "密度",
+        "拉伸强度": "拉伸强度",
+        "弯曲强度": "弯曲强度",
+        "层间剪切强度": "层间剪切",
+        "断裂伸长率": "韧性",
+        "体积电阻率": "体积电阻率",
+    }
+    for label, status_item in (item.hard_constraint_status or {}).items():
+        if status_item.get("status") not in {"pass", "proxy"}:
+            continue
+        concept = positive_labels.get(str(label), str(label))
+        value = status_item.get("value")
+        if not isinstance(value, (int, float)):
+            continue
+        evidence = _evidence_text(str(label), value, str(status_item.get("basis") or ""), status_item.get("status"))
+        phrase = f"{concept} {evidence}".strip()
+        if phrase and phrase not in out:
+            out.append(phrase)
+            used_concepts.add(concept)
+        if len(out) >= limit:
+            return out[:limit]
+
+    for phrase in _visible_material_phrases(candidate.get("advantages") or [], limit=limit):
+        if phrase not in out:
+            out.append(phrase)
+        if len(out) >= limit:
+            return out[:limit]
+
+    for reason in item.reasons or []:
+        text = str(reason or "").strip()
+        if not text or "缺少" in text or "未见" in text or "待补" in text:
+            continue
+        text = re.sub(r"^[^:：]{1,12}[:：]\s*", "", text)
+        if not re.search(r"\d", text):
+            continue
+        if any(concept and concept in text for concept in used_concepts):
+            continue
+        if text and text not in out:
+            out.append(text)
+        if len(out) >= limit:
+            break
+    if not out:
+        return ["暂无直接数值"]
+    return out[:limit]
 
 
 def _short_gap_phrases(items: Iterable[Any], limit: int) -> List[str]:
