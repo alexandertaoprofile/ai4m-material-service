@@ -176,16 +176,58 @@ def extract_formulas_from_in_ls(repo_root: str, to_ascii_formula, looks_like_for
             "advanced_reason": [],
         }
 
+        typed_entity_seen = False
+        typed_tokens = []
+
+        def _collect_inorganic_entity_tokens(entity: dict):
+            if not isinstance(entity, dict):
+                return
+            entity_type = str(entity.get("entity_type") or "").strip()
+            query_mode = str(entity.get("query_mode") or "none").strip()
+            services = [str(x) for x in (entity.get("applicable_services") or [])]
+            if "inorganic_existing_material" in services:
+                if entity_type == "inorganic_compound" and query_mode == "formula":
+                    formula = str(entity.get("formula") or "").strip()
+                    if formula:
+                        typed_tokens.append(formula)
+                elif entity_type == "inorganic_material_system" and query_mode == "chemsys":
+                    elements = [str(x).strip() for x in (entity.get("chemical_system") or []) if str(x).strip()]
+                    if len(elements) >= 2:
+                        typed_tokens.append("-".join(elements))
+            # A mixture may contain both organic and inorganic components.
+            # Recurse so this service consumes only its supported components.
+            for component in (entity.get("components") or []):
+                if isinstance(component, dict):
+                    _collect_inorganic_entity_tokens(component)
+
         for src in sources:
             if isinstance(src, dict):
-                for k in material_keys:
-                    v = src.get(k)
-                    if isinstance(v, str) and v.strip():
-                        tokens.extend(_extract_formula_candidates_from_material_label(v))
+                for entity_key in ("baseline_entity", "advanced_entity"):
+                    entity = src.get(entity_key)
+                    if not isinstance(entity, dict):
+                        continue
+                    typed_entity_seen = True
+                    _collect_inorganic_entity_tokens(entity)
+
+                # Legacy payloads have no entity metadata. Only those payloads
+                # use broad text extraction; typed payloads must preserve the
+                # producer's semantic boundary.
+                if any(isinstance(src.get(k), dict) for k in ("baseline_entity", "advanced_entity")):
+                    pass
+                else:
+                    for k in material_keys:
+                        v = src.get(k)
+                        if isinstance(v, str) and v.strip():
+                            tokens.extend(_extract_formula_candidates_from_material_label(v))
                 for k in summary_lists:
                     v = src.get(k)
                     if isinstance(v, str) and v.strip():
                         summary_lists[k].append(v.strip())
+
+        if typed_entity_seen:
+            # A versioned/typed payload is authoritative: do not let prose or
+            # legacy aliases re-introduce PPS/FFF-like false formulas.
+            tokens = list(dict.fromkeys(typed_tokens))
 
         def _first_or_join(root_key: str, st_key: str = None) -> str:
             st_key = st_key or root_key

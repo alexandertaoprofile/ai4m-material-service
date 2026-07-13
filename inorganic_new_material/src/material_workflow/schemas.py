@@ -35,6 +35,7 @@ class GenerationConstraint:
     allowed_elements: List[str] = field(default_factory=list)
     excluded_elements: List[str] = field(default_factory=list)
     target_properties: JsonDict = field(default_factory=dict)
+    validation_targets: JsonDict = field(default_factory=dict)
     notes: List[str] = field(default_factory=list)
 
     def to_dict(self) -> JsonDict:

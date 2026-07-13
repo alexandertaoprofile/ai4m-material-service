@@ -6,6 +6,7 @@ import asyncio
 import subprocess
 import json
 import datetime
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -32,6 +33,9 @@ from src.material_workflow.formula_router import (
     parse_route,
     to_ascii_formula,
 )
+from src.material_workflow.upstream_api import result_summary, run_upstream_request
+from src.material_workflow.presentation import build_requirement_brief, emit_presentation_assets
+from src.material_workflow.constraints import constraint_from_payload
 
 
 def _repo_root() -> str:
@@ -664,26 +668,104 @@ class Coding(Action):
 # 定义角色：XIMUAlpha_MNS
 ########################################
 
+class MatterGenDiscovery(Action):
+    """Agent action for the repository's generative inorganic-discovery chain."""
+
+    name: str = "MatterGenDiscovery"
+    desc: str = (
+        "将上游材料设计需求规范化为 MatterGen 条件，生成候选晶体，执行 MatterSim--MP "
+        "热力学初筛，并返回可追溯阶段结论。"
+    )
+
+    @staticmethod
+    def _payload_from_instruction(instruction, taskid: str, user_name: str, file_metadata):
+        """Preserve an explicit JSON contract; otherwise use text conservatively."""
+        if isinstance(instruction, dict):
+            payload = dict(instruction)
+        else:
+            if isinstance(instruction, list):
+                chunks = []
+                for item in instruction:
+                    chunks.append(str(getattr(item, "content", item)))
+                text = "\n".join(chunk for chunk in chunks if chunk.strip())
+            else:
+                text = str(instruction or "")
+            try:
+                decoded = json.loads(text)
+                payload = decoded if isinstance(decoded, dict) else {"idea": text}
+            except (TypeError, json.JSONDecodeError):
+                payload = {"idea": text}
+        payload.setdefault("taskid", str(taskid))
+        payload.setdefault("user_name", str(user_name))
+        payload.setdefault("file_metadata", file_metadata or [])
+        return payload
+
+    async def run(self, instruction: str, *args):
+        websocket = args[0]
+        user_name, taskid, file_metadata = args[1], args[2], args[3]
+        payload = self._payload_from_instruction(instruction, taskid, user_name, file_metadata)
+        constraints = constraint_from_payload(payload)
+        await websocket.send_json(build_payload(
+            {
+                "id": "NEW_MATERIAL_DISCOVERY",
+                "icon": "🧪",
+                "title": "生成式无机新材料发现",
+                "status": "in_progress",
+                "description": "正在解析约束，执行 MatterGen → MatterSim → MP 局部相图流程",
+            },
+            type_="progress",
+            request_id=str(payload["taskid"]),
+        ))
+        await websocket.send_text("<<<CONTENT_START:NEW_MATERIAL_BRIEF>>>")
+        await websocket.send_text(build_requirement_brief(constraints) + "\n")
+        await websocket.send_text("<<<CONTENT_END:NEW_MATERIAL_BRIEF>>>")
+        result = await asyncio.to_thread(
+            run_upstream_request,
+            payload,
+            Path(__file__).resolve().parent / "MNS_CaseHub/cases/material_discovery_demo/results/new_material",
+        )
+        await websocket.send_text("<<<CONTENT_START:NEW_MATERIAL_DISCOVERY>>>")
+        await websocket.send_text(result_summary(result) + "\n")
+        await emit_presentation_assets(websocket, result, step_id="NEW_MATERIAL_DISCOVERY")
+        await websocket.send_text("<<<CONTENT_END:NEW_MATERIAL_DISCOVERY>>>")
+        await websocket.send_json(build_payload(
+            {
+                "id": "NEW_MATERIAL_DISCOVERY",
+                "icon": "🧪",
+                "title": "生成式无机新材料发现",
+                "status": "completed" if result.status == "ok" else "failed",
+                "description": result.message,
+                "result": result.to_dict(),
+            },
+            type_="progress",
+            request_id=result.taskid,
+        ))
+        return result_summary(result)
+
 class XIMUAlpha_MNS(Role):
     """
-    工业平台 · 微纳米系统（MNS）领域智能体。
-    定位：面向微纳米器件的设计 / 仿真 / 加工 / 质控与产线优化等工业场景，
-    以“结构化 JSON”为唯一对接载体，侧重“检索模型/算子 → 调度运行 → 拼装可渲染数据”。
+    生成式无机新材料发现领域智能体。
+
+    接收上游给出的材料体系、元素集合、可计算性质目标和验证需求，
+    运行 MatterGen → MatterSim → Materials Project 局部相图链路，
+    输出候选结构、热力学初筛证据和下一阶段判断。
     """
     # 对外展示名（前端/日志可见）
-    name: str = "XIMUAlpha_inoragnic_existing_materials"
+    name: str = "XIMUAlpha_inorganic_new_materials"
     # 简要画像（供框架/上游作为 system profile 使用）
     profile: str = (
-        "材料发现与跨尺度仿真专用智能体。"
-        "能力覆盖材料初筛、结构与稳定性评估、"
-        "以及基于上游文献筛选的 DFT、机器学习势（MLIP）和 LAMMPS 的材料性质计算与验证。"
-        "擅长从已有计算产物（manifest / report / JSON）中组织工程化材料计算说明，"
-        "并以结构化 JSON 形式输出结果与可视化资源索引，"
-        "适用于固态电解质、功能材料与工程材料的计算评估场景。"
+        "生成式无机新材料发现专属 Agent，可被母 Agent 复用来把材料设计需求转为可执行的晶体生成与热力学初筛任务。"
+        "适用场景：需要探索数据库之外的新无机晶体，例如合金、陶瓷、催化剂或功能材料；不用于仅查询已有材料数据库。"
+        "输入应优先提供结构化 new_material 合同：allowed_elements、target_properties（MatterGen 可条件化的数值性质）、"
+        "validation_targets、max_candidates，并可附带自然语言 idea 与文件元数据。"
+        "执行链：约束规范化 → MatterGen 条件生成 → pymatgen 结构准入 → MatterSim 松弛 → MP 同元素体系竞争相查询与局部相图。"
+        "输出：候选 CIF/松弛结构路径、MatterSim--MP 近似形成能与高于凸包能、排序、阶段判断结论及完整 manifest。"
+        "边界：结论只代表 MLFF--MP 热力学初筛；高温强度、蠕变、氧化、电导等目标性质必须由专项模型、DFT 或实验确认；"
+        "不得将生成引导目标误报为已验证性质，也不得编造缺失数值。"
     )
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # 保持不变
         self._watch([UserRequirement])
-        self.set_actions([Coding])
+        self.set_actions([MatterGenDiscovery])
     

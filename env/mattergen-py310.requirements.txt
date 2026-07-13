@@ -1,0 +1,3 @@
+# This runtime is installed from Microsoft/mattergen at tag v1.0.3 by
+# tools/setup_mattergen_env.sh. The upstream pyproject configures the CUDA 11.8
+# PyTorch/PyG wheels, which plain pip requirements cannot represent safely.

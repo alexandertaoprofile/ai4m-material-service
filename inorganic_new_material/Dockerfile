@@ -1,4 +1,3 @@
-# 使用官方的 Python 运行时作为父镜像
 FROM python:3.10
 
 # 设置工作目录
@@ -8,12 +7,12 @@ WORKDIR /app
 COPY . /app
 
 # 安装依赖包
-RUN pip config set global.index-url http://www.scien42.tech:20162 && \
-      pip install --no-cache-dir -r requirements.txt --timeout 60 --trusted-host www.scien42.tech
+RUN pip install --no-cache-dir -r requirements.minimal.txt
 
 # 设置环境变量
 ENV PORT=20160
 ENV base_url=
+ENV MATTERGEN_ENV_PREFIX=/data/mamba/envs/mattergen-py310
 # Expose port
 EXPOSE $PORT
 # 运行命令

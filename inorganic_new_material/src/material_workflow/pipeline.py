@@ -7,6 +7,7 @@ from typing import Optional
 
 from .emitters import write_pipeline_manifest
 from .generation import GenerationRunner, run_mattergen_generation
+from .mattersim import enrich_validations_with_mattersim
 from .ranking import rank_candidates
 from .schemas import GenerationConstraint, NewMaterialPipelineResult
 from .validation import ValidationRunner, run_adit_pymatgen_validation
@@ -19,12 +20,7 @@ def run_new_material_pipeline(
     generation_runner: Optional[GenerationRunner] = None,
     validation_runner: Optional[ValidationRunner] = None,
 ) -> NewMaterialPipelineResult:
-    """Run the normalized new-material pipeline boundary.
-
-    This function is safe to call before MatterGen/ADiT are connected: it records
-    explicit not-configured manifests instead of producing fake structures or
-    placeholder properties.
-    """
+    """Run MatterGen generation, structural admission checks, and ranking."""
     task_dir = results_root / constraints.taskid
     generation_dir = task_dir / "generation"
     validation_dir = task_dir / "validation"
@@ -40,6 +36,10 @@ def run_new_material_pipeline(
         run_adit_pymatgen_validation(candidate, validation_dir, runner=validation_runner)
         for candidate in generation.candidates
     ]
+    admitted_candidates = [
+        candidate for candidate, validation in zip(generation.candidates, validations) if validation.is_valid is True
+    ]
+    validations = enrich_validations_with_mattersim(validations, admitted_candidates, validation_dir)
     ranked = rank_candidates(generation.candidates, validations)
 
     status = "ok" if ranked else generation.status

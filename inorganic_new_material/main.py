@@ -14,7 +14,13 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
-from fastapi import FastAPI, WebSocket, HTTPException, WebSocketDisconnect, File, UploadFile, Form
+from fastapi import FastAPI, WebSocket, HTTPException, WebSocketDisconnect, File, UploadFile, Form, Body
+from src.material_workflow.constraints import constraint_from_payload
+from src.material_workflow.emitters import build_frontend_payload
+from src.material_workflow.pipeline import run_new_material_pipeline
+from src.material_workflow.payloads import build_payload
+from src.material_workflow.presentation import build_requirement_brief, emit_presentation_assets
+from src.material_workflow.upstream_api import response_payload, result_summary, run_upstream_request
 
 # 加载 .env 文件
 load_dotenv()
@@ -69,6 +75,7 @@ def setup_science_backend_logger():
     return science_logger
 
 UPLOAD_DIR="upload"
+NEW_MATERIAL_RESULTS_ROOT = Path(__file__).resolve().parent / "src/MNS_CaseHub/cases/material_discovery_demo/results/new_material"
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -244,6 +251,87 @@ def list_files(taskid: str = Form(...)):
 @app.get("/")
 def read_root():
     return {"message": "XIMUAlpha_MNS server running."}
+
+
+@app.post("/new-material/generate")
+async def generate_new_material(payload: dict = Body(...)):
+    """Run the real MatterGen discovery workflow and return its manifest payload.
+
+    MatterGen runs in the dedicated ``mattergen-py310`` environment by default,
+    so the web process remains isolated from CUDA/PyG dependencies.
+    """
+    try:
+        result = await asyncio.to_thread(run_upstream_request, payload, NEW_MATERIAL_RESULTS_ROOT)
+        return JSONResponse(content={"frontend": build_frontend_payload(result), "manifest": result.to_dict()})
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"new-material pipeline failed: {exc}") from exc
+
+
+@app.post("/new-material/constraints")
+async def preview_new_material_constraints(payload: dict = Body(...)):
+    """Normalize an upstream envelope without starting a GPU job."""
+    try:
+        return constraint_from_payload(payload).to_dict()
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.get("/new-material/tasks/{taskid}")
+async def get_new_material_task(taskid: str):
+    """Return the durable manifest for an upstream task ID."""
+    if not taskid or taskid in {".", ".."} or "/" in taskid or "\\" in taskid:
+        raise HTTPException(status_code=422, detail="invalid taskid")
+    manifest = NEW_MATERIAL_RESULTS_ROOT / taskid / "new_material_pipeline_manifest.json"
+    if not manifest.exists():
+        raise HTTPException(status_code=404, detail="task manifest not found")
+    return JSONResponse(content=json.loads(manifest.read_text(encoding="utf-8")))
+
+
+@app.websocket("/new-material/start")
+async def new_material_websocket_endpoint(websocket: WebSocket):
+    """WebSocket-compatible MatterGen route for existing upstream orchestrators."""
+    await websocket.accept()
+    taskid = ""
+    try:
+        payload = await websocket.receive_json()
+        taskid = str(payload.get("taskid") or "")
+        brief_constraints = constraint_from_payload(payload)
+        await websocket.send_json(build_payload({
+            "id": "MATERIAL_GENERATION",
+            "icon": "",
+            "title": "新材料生成",
+            "status": "in_progress",
+            "description": "正在解析上游约束并调用 MatterGen 生成候选结构",
+        }, type_="progress", request_id=taskid or None))
+        await websocket.send_text("<<<CONTENT_START:NEW_MATERIAL_BRIEF>>>")
+        await websocket.send_text(build_requirement_brief(brief_constraints) + "\n")
+        await websocket.send_text("<<<CONTENT_END:NEW_MATERIAL_BRIEF>>>")
+        result = await asyncio.to_thread(run_upstream_request, payload, NEW_MATERIAL_RESULTS_ROOT)
+        await websocket.send_text("<<<CONTENT_START:MATERIAL_GENERATION>>>")
+        await websocket.send_text(result_summary(result) + "\n")
+        await emit_presentation_assets(websocket, result, step_id="MATERIAL_GENERATION")
+        await websocket.send_text("<<<CONTENT_END:MATERIAL_GENERATION>>>")
+        await websocket.send_json(build_payload({
+            "id": "MATERIAL_GENERATION",
+            "icon": "",
+            "title": "新材料生成",
+            "status": "completed" if result.status == "ok" else "failed",
+            "description": result.message,
+            "result": response_payload(result),
+        }, type_="progress", request_id=result.taskid))
+    except WebSocketDisconnect:
+        return
+    except ValueError as exc:
+        await websocket.send_json(build_payload(str(exc), type_="error", request_id=taskid or None))
+    except Exception as exc:
+        await websocket.send_json(build_payload(f"new-material pipeline failed: {exc}", type_="error", request_id=taskid or None))
+    finally:
+        try:
+            await websocket.close()
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

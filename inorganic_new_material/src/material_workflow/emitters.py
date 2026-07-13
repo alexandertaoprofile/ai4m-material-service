@@ -12,6 +12,42 @@ from .schemas import NewMaterialPipelineResult
 JsonDict = Dict[str, Any]
 
 
+def build_scientific_conclusion(result: NewMaterialPipelineResult) -> JsonDict:
+    """Create a conservative, frontend-ready decision from computed evidence."""
+    top = result.ranked_candidates[0] if result.ranked_candidates else None
+    if top is None or top.validation is None:
+        return {"decision": "no_candidate", "text": "未生成可进入验证阶段的候选结构。", "evidence_level": "none"}
+    validation = top.validation
+    ehull = validation.energy_above_hull
+    formation = validation.formation_energy_per_atom
+    if ehull is None:
+        return {
+            "decision": "structure_only",
+            "text": "候选已通过基础结构准入；尚无热力学评估，不能判断可合成性。",
+            "evidence_level": "pymatgen_structure_check",
+        }
+    if ehull <= 0.05:
+        decision = "shortlist_for_dft"
+        thermal = "通过热力学初筛，建议进入 DFT 与目标性能验证。"
+    else:
+        decision = "deprioritize"
+        thermal = "未通过 0.05 eV/atom 热力学初筛阈值，建议降优先级或重新生成。"
+    formula = top.candidate.formula_pretty or validation.formula_pretty or top.candidate.candidate_id
+    formation_text = f"形成能 {formation:.4f} eV/atom，" if formation is not None else ""
+    return {
+        "decision": decision,
+        "candidate_id": top.candidate.candidate_id,
+        "formula": formula,
+        "energy_above_hull_ev_per_atom": ehull,
+        "formation_energy_per_atom_ev": formation,
+        "text": (
+            f"{formula}：{formation_text}高于凸包 {ehull:.4f} eV/atom；{thermal}"
+            "该结论来自 MatterSim--MP 混合近似，不是 DFT 结论；高温强度、蠕变与抗氧化仍须专项模型、DFT 或实验确认。"
+        ),
+        "evidence_level": "mattersim_mp_hybrid",
+    }
+
+
 def build_frontend_payload(result: NewMaterialPipelineResult) -> JsonDict:
     """Build a compact payload suitable for websocket/frontend rendering."""
     top = result.ranked_candidates[0] if result.ranked_candidates else None
@@ -23,6 +59,7 @@ def build_frontend_payload(result: NewMaterialPipelineResult) -> JsonDict:
         "top_candidate": top.to_dict() if top else None,
         "candidate_count": len(result.generation.candidates),
         "validated_count": len(result.validations),
+        "scientific_conclusion": build_scientific_conclusion(result),
         "artifacts": dict(result.artifacts),
     }
 
