@@ -1,0 +1,63 @@
+#!/bin/bash
+# SysV service wrapper for the alloy composition optimization API on port 1111.
+### BEGIN INIT INFO
+# Provides:          alloy-composition-optimization-1111
+# Required-Start:    $local_fs $network
+# Required-Stop:     $local_fs $network
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Alloy composition optimization service
+### END INIT INFO
+
+set -u
+SERVICE_NAME="alloy-composition-optimization-1111"
+SERVICE_USER="ubuntu"
+WORK_DIR="/data/se42/alpha_project/alpha_material_sync/alloy_composition_optimization"
+START_SCRIPT="${WORK_DIR}/start.sh"
+ENV_FILE="${WORK_DIR}/.env"
+PID_DIR="/var/run/${SERVICE_NAME}"
+PID_FILE="${PID_DIR}/${SERVICE_NAME}.pid"
+LOG_FILE="/data/se42/logs/alloy_composition_optimization.log"
+
+is_running() {
+    if [ -f "$PID_FILE" ] && ps -p "$(cat "$PID_FILE")" >/dev/null 2>&1; then return 0; fi
+    rm -f "$PID_FILE"
+    return 1
+}
+
+start_service() {
+    is_running && { echo "$SERVICE_NAME is already running (PID $(cat "$PID_FILE"))"; return 0; }
+    [ -x "$START_SCRIPT" ] || { echo "Missing executable: $START_SCRIPT"; return 1; }
+    mkdir -p "$PID_DIR" "$(dirname "$LOG_FILE")"
+    chown "$SERVICE_USER:$SERVICE_USER" "$PID_DIR" "$(dirname "$LOG_FILE")" 2>/dev/null || true
+    su - "$SERVICE_USER" -c "
+        cd '$WORK_DIR' || exit 1
+        if [ -f '$ENV_FILE' ]; then set -a; . '$ENV_FILE'; set +a; fi
+        nohup '$START_SCRIPT' >> '$LOG_FILE' 2>&1 &
+        echo \$! > '$PID_FILE'
+    "
+    sleep 3
+    is_running && { echo "$SERVICE_NAME started (PID $(cat "$PID_FILE"))"; return 0; }
+    echo "$SERVICE_NAME failed to start; see $LOG_FILE"
+    return 1
+}
+
+stop_service() {
+    is_running || { echo "$SERVICE_NAME is not running"; return 0; }
+    local pid
+    pid=$(cat "$PID_FILE")
+    kill "$pid" 2>/dev/null || true
+    for _ in $(seq 1 30); do ps -p "$pid" >/dev/null 2>&1 || break; sleep 1; done
+    ps -p "$pid" >/dev/null 2>&1 && kill -9 "$pid" 2>/dev/null || true
+    rm -f "$PID_FILE"
+    echo "$SERVICE_NAME stopped"
+}
+
+case "${1:-}" in
+    start) start_service ;;
+    stop) stop_service ;;
+    restart) stop_service; sleep 2; start_service ;;
+    status) is_running && echo "$SERVICE_NAME running (PID $(cat "$PID_FILE"))" || { echo "$SERVICE_NAME not running"; exit 3; } ;;
+    logs) [ "${2:-}" = "follow" ] || [ "${2:-}" = "-f" ] && tail -f "$LOG_FILE" || tail -n 80 "$LOG_FILE" ;;
+    *) echo "Usage: $0 {start|stop|restart|status|logs [follow]}"; exit 1 ;;
+esac
