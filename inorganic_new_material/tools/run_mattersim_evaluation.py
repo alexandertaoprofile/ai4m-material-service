@@ -56,16 +56,26 @@ def _patch_mattergen_lmdb_loader() -> None:
 
 
 def _install_mp_api_pymatgen_compat() -> None:
-    """Let older MP API payloads resolve their historical pymatgen module path."""
+    """Let older MP API payloads resolve historical pymatgen module paths.
+
+    Older serialized MP entries reference modules that were moved in recent
+    pymatgen releases.  ``MontyDecoder`` imports the recorded module name, so
+    aliases must be installed before ``MPRester.get_entries_in_chemsys``.
+    """
     import sys
     import types
 
     from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
+    from pymatgen.entries import compatibility as entries_compatibility
 
     module = types.ModuleType("pymatgen.core.entries")
     module.ComputedEntry = ComputedEntry
     module.ComputedStructureEntry = ComputedStructureEntry
     sys.modules.setdefault("pymatgen.core.entries", module)
+    # ``pymatgen.analysis.compatibility`` was moved to
+    # ``pymatgen.entries.compatibility``.  MP payloads created with the old
+    # path still occur in the API response.
+    sys.modules.setdefault("pymatgen.analysis.compatibility", entries_compatibility)
 
 
 def _mp_api_reference_results(structures, total_energies, original_structures):
@@ -79,6 +89,8 @@ def _mp_api_reference_results(structures, total_energies, original_structures):
     from dotenv import load_dotenv
     from mp_api.client import MPRester
     from pymatgen.analysis.phase_diagram import PhaseDiagram
+    from pymatgen.analysis.structure_matcher import StructureMatcher
+    from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
     from mattergen.evaluation.utils.metrics_structure_summary import get_metrics_structure_summaries
 
@@ -98,8 +110,68 @@ def _mp_api_reference_results(structures, total_energies, original_structures):
             elements = tuple(sorted(element.symbol for element in summary.entry.composition.elements))
             if elements not in reference_by_chemsys:
                 reference_by_chemsys[elements] = mpr.get_entries_in_chemsys(list(elements))
+    def _structure_fingerprint(structure):
+        try:
+            analyzer = SpacegroupAnalyzer(structure, symprec=0.1, angle_tolerance=5)
+            return {
+                "formula_pretty": structure.composition.reduced_formula,
+                "space_group_symbol": analyzer.get_space_group_symbol(),
+                "space_group_number": analyzer.get_space_group_number(),
+                "crystal_system": analyzer.get_crystal_system(),
+                "sites": len(structure),
+            }
+        except Exception as exc:
+            return {"formula_pretty": structure.composition.reduced_formula, "sites": len(structure), "error": str(exc)}
+
+    def _traceability(structure, phase_diagram):
+        """Return truthful preparation-oriented references, never a synthetic route."""
+        def _material_id(entry):
+            raw = getattr(entry, "entry_id", "")
+            if isinstance(raw, dict):
+                return str(raw.get("identifier") or "")
+            identifier = getattr(raw, "identifier", None)
+            return str(identifier if identifier is not None else raw or "")
+
+        fingerprint = _structure_fingerprint(structure)
+        candidate_formula = structure.composition.reduced_formula
+        matcher = StructureMatcher(ltol=0.2, stol=0.3, angle_tol=5)
+        prototype_match = None
+        for entry in phase_diagram.all_entries:
+            if entry.composition.reduced_formula != candidate_formula:
+                continue
+            reference_structure = getattr(entry, "structure", None)
+            if reference_structure is None:
+                continue
+            try:
+                if matcher.fit(structure, reference_structure):
+                    prototype_match = {
+                        "material_id": _material_id(entry),
+                        "formula_pretty": candidate_formula,
+                        "match_method": "StructureMatcher: same reduced composition and lattice/coordination match",
+                    }
+                    break
+            except Exception:
+                continue
+        stable_phases = []
+        for entry in phase_diagram.stable_entries:
+            stable_phases.append({
+                "material_id": _material_id(entry),
+                "formula_pretty": entry.composition.reduced_formula,
+                "energy_per_atom_ev": float(entry.energy_per_atom),
+            })
+        stable_phases.sort(key=lambda item: (len(item["formula_pretty"]), item["formula_pretty"], item["material_id"]))
+        return {
+            "candidate_crystallography": fingerprint,
+            "prototype_match": prototype_match,
+            "same_system_stable_phases": stable_phases[:12],
+            "scope_note": (
+                "Prototype matching uses Materials Project entries returned for the same element system. "
+                "Stable phases are thermodynamic competitors, not a proposed precursor or synthesis pathway."
+            ),
+        }
+
     result = []
-    for summary in summaries:
+    for structure, summary in zip(structures, summaries):
         elements = tuple(sorted(element.symbol for element in summary.entry.composition.elements))
         phase_diagram = PhaseDiagram(reference_by_chemsys[elements])
         result.append(
@@ -108,6 +180,7 @@ def _mp_api_reference_results(structures, total_energies, original_structures):
                 "energy_above_hull_ev": float(phase_diagram.get_e_above_hull(summary.entry, allow_negative=True)),
                 "reference_dataset": "Materials Project competing phases (scoped API query)",
                 "method": "MatterSim MLFF candidate energy + Materials Project DFT competing phases; not DFT",
+                "preparation_traceability": _traceability(structure, phase_diagram),
             }
         )
     return result
@@ -195,6 +268,7 @@ def main() -> None:
                 "is_stable_at_threshold": bool(thermo["energy_above_hull_ev"] <= args.stability_threshold),
                 "reference_dataset": thermo["reference_dataset"],
                 "method": thermo["method"],
+                "preparation_traceability": thermo.get("preparation_traceability"),
             }
         )
 

@@ -34,13 +34,14 @@ from src.material_workflow.formula_router import (
     to_ascii_formula,
 )
 from src.material_workflow.upstream_api import result_summary, run_upstream_request
-from src.material_workflow.presentation import build_requirement_brief, emit_presentation_assets
+from src.material_workflow.presentation import build_requirement_brief, emit_presentation_assets, stream_discovery_progress
 from src.material_workflow.constraints import constraint_from_payload
+from src.material_workflow.llm_constraint_inference import enrich_payload_with_llm_elements
 
 
 def _repo_root() -> str:
-    # 当前文件: .../ai4m_tqm/src/team_config.py
-    # 仓库根:   .../ai4m_tqm
+    # 当前文件: .../inorganic_new_material/src/team_config.py
+    # 仓库根:   .../inorganic_new_material
     return os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 
@@ -668,10 +669,10 @@ class Coding(Action):
 # 定义角色：XIMUAlpha_MNS
 ########################################
 
-class MatterGenDiscovery(Action):
+class InorganicNewMaterialDiscoveryAction(Action):
     """Agent action for the repository's generative inorganic-discovery chain."""
 
-    name: str = "MatterGenDiscovery"
+    name: str = "inorganic_new_material_discovery"
     desc: str = (
         "将上游材料设计需求规范化为 MatterGen 条件，生成候选晶体，执行 MatterSim--MP "
         "热力学初筛，并返回可追溯阶段结论。"
@@ -686,48 +687,138 @@ class MatterGenDiscovery(Action):
             if isinstance(instruction, list):
                 chunks = []
                 for item in instruction:
-                    chunks.append(str(getattr(item, "content", item)))
-                text = "\n".join(chunk for chunk in chunks if chunk.strip())
+                    chunk = str(getattr(item, "content", item)).strip()
+                    if chunk:
+                        chunks.append(chunk)
+                # The newest user/upstream message has priority; older messages
+                # remain available as fallback context if it says "continue above".
+                text = chunks[-1] if chunks else ""
+                conversation_context = "\n".join(chunks[:-1])
             else:
                 text = str(instruction or "")
+                conversation_context = ""
             try:
                 decoded = json.loads(text)
                 payload = decoded if isinstance(decoded, dict) else {"idea": text}
             except (TypeError, json.JSONDecodeError):
                 payload = {"idea": text}
+            if conversation_context:
+                payload.setdefault("conversation_context", conversation_context)
         payload.setdefault("taskid", str(taskid))
         payload.setdefault("user_name", str(user_name))
         payload.setdefault("file_metadata", file_metadata or [])
         return payload
 
+    async def _stream_authoritative_markdown(self, llm, websocket, step_id: str, markdown: str) -> None:
+        """Use the shared SeLLM token stream without allowing numerical rewrite."""
+        await websocket.send_text(f"<<<CONTENT_START:{step_id}>>>")
+        relay_prompt = (
+            "你是无机新材料服务的 Markdown 流式转发器。下方内容由程序根据已保存的计算结果生成。"
+            "请通过 token 流逐字输出标签内部的 Markdown，不得改写、删减、补充、翻译数值或输出标签本身。\n"
+            "<AUTHORITATIVE_MARKDOWN>\n"
+            f"{markdown}\n"
+            "</AUTHORITATIVE_MARKDOWN>"
+        )
+        try:
+            await stream_llm_response(
+                llm,
+                [llm._default_system_msg(), llm._user_msg(relay_prompt)],
+                websocket=websocket,
+                logger_obj=logger,
+            )
+        except Exception:
+            # Preserve the computational conclusion if the presentation model
+            # is temporarily unavailable; this is the only non-token fallback.
+            await websocket.send_text(markdown.rstrip() + "\n")
+        finally:
+            await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
+
     async def run(self, instruction: str, *args):
         websocket = args[0]
         user_name, taskid, file_metadata = args[1], args[2], args[3]
         payload = self._payload_from_instruction(instruction, taskid, user_name, file_metadata)
-        constraints = constraint_from_payload(payload)
+        config = load_config("config/config.yaml")
+        llm = SeLLM(base_url=config["base_url_1"], api_key=config["api_key"])
+        try:
+            constraints = constraint_from_payload(payload)
+        except ValueError as exc:
+            if "无法确定待生成的元素体系" not in str(exc):
+                raise
+            logger.info("[CONSTRAINT_LLM] deterministic extraction empty; requesting constrained LLM inference taskid=%s", taskid)
+            await websocket.send_json(build_payload(
+                {
+                    "id": "NEW_MATERIAL_CONSTRAINT_INFERENCE",
+                    "icon": "",
+                    "title": "生成条件归纳",
+                    "status": "in_progress",
+                    "description": "未检测到显式元素体系，正在结合当前任务和上游材料结论归纳可用于起始探索的元素组合。",
+                },
+                type_="progress",
+                request_id=str(payload["taskid"]),
+            ))
+            enriched_payload = await enrich_payload_with_llm_elements(payload)
+            if not enriched_payload:
+                raise
+            payload = enriched_payload
+            constraints = constraint_from_payload(payload)
         await websocket.send_json(build_payload(
             {
                 "id": "NEW_MATERIAL_DISCOVERY",
                 "icon": "🧪",
                 "title": "生成式无机新材料发现",
                 "status": "in_progress",
-                "description": "正在解析约束，执行 MatterGen → MatterSim → MP 局部相图流程",
+                "description": "正在把需求转为生成条件，并依次生成候选、评估稳定性、比较同元素体系的已知稳定相。",
             },
             type_="progress",
             request_id=str(payload["taskid"]),
         ))
-        await websocket.send_text("<<<CONTENT_START:NEW_MATERIAL_BRIEF>>>")
-        await websocket.send_text(build_requirement_brief(constraints) + "\n")
-        await websocket.send_text("<<<CONTENT_END:NEW_MATERIAL_BRIEF>>>")
-        result = await asyncio.to_thread(
-            run_upstream_request,
-            payload,
-            Path(__file__).resolve().parent / "MNS_CaseHub/cases/material_discovery_demo/results/new_material",
+        await self._stream_authoritative_markdown(
+            llm, websocket, "NEW_MATERIAL_BRIEF", build_requirement_brief(constraints)
         )
-        await websocket.send_text("<<<CONTENT_START:NEW_MATERIAL_DISCOVERY>>>")
-        await websocket.send_text(result_summary(result) + "\n")
-        await emit_presentation_assets(websocket, result, step_id="NEW_MATERIAL_DISCOVERY")
-        await websocket.send_text("<<<CONTENT_END:NEW_MATERIAL_DISCOVERY>>>")
+        results_root = Path(__file__).resolve().parent / "MNS_CaseHub/cases/material_discovery_demo/results/new_material"
+
+        async def stream_phase_note(title: str, description: str) -> None:
+            markdown = f"#### {title}\n\n{description}" if title else f"> {description}"
+            await self._stream_authoritative_markdown(
+                llm,
+                websocket,
+                "NEW_MATERIAL_DISCOVERY",
+                markdown,
+            )
+
+        progress_task = asyncio.create_task(
+            stream_discovery_progress(
+                websocket,
+                results_root / constraints.taskid,
+                constraints.taskid,
+                step_id="NEW_MATERIAL_DISCOVERY",
+                stream_phase_note=stream_phase_note,
+            )
+        )
+        try:
+            result = await asyncio.to_thread(run_upstream_request, payload, results_root)
+        finally:
+            progress_task.cancel()
+            try:
+                await progress_task
+            except asyncio.CancelledError:
+                pass
+        # Show visual evidence as soon as the presentation stage has produced
+        # it, before the longer final Markdown explanation.  Assets remain
+        # outside CONTENT markers so the browser treats their JSON as rich
+        # material content rather than as a Markdown table row.
+        presentation = (result.artifacts or {}).get("presentation") or {}
+        if presentation.get("assets"):
+            await self._stream_authoritative_markdown(
+                llm,
+                websocket,
+                "NEW_MATERIAL_DISCOVERY",
+                "#### 已生成的可视化\n\n候选结构图、旋转视图、稳定性评分卡和三维结构模型已生成，先展示计算产物；随后给出结果解读。",
+            )
+            await emit_presentation_assets(websocket, result, step_id="NEW_MATERIAL_DISCOVERY")
+        await self._stream_authoritative_markdown(
+            llm, websocket, "NEW_MATERIAL_DISCOVERY", result_summary(result)
+        )
         await websocket.send_json(build_payload(
             {
                 "id": "NEW_MATERIAL_DISCOVERY",
@@ -740,9 +831,9 @@ class MatterGenDiscovery(Action):
             type_="progress",
             request_id=result.taskid,
         ))
-        return result_summary(result)
+        return f"[[WORKFLOW_STATUS:{result.status}]]\n{result_summary(result)}"
 
-class XIMUAlpha_MNS(Role):
+class InorganicNewMaterialDiscoveryRole(Role):
     """
     生成式无机新材料发现领域智能体。
 
@@ -751,21 +842,29 @@ class XIMUAlpha_MNS(Role):
     输出候选结构、热力学初筛证据和下一阶段判断。
     """
     # 对外展示名（前端/日志可见）
-    name: str = "XIMUAlpha_inorganic_new_materials"
+    name: str = "inorganic_new_material"
     # 简要画像（供框架/上游作为 system profile 使用）
     profile: str = (
-        "生成式无机新材料发现专属 Agent，可被母 Agent 复用来把材料设计需求转为可执行的晶体生成与热力学初筛任务。"
-        "适用场景：需要探索数据库之外的新无机晶体，例如合金、陶瓷、催化剂或功能材料；不用于仅查询已有材料数据库。"
-        "输入应优先提供结构化 new_material 合同：allowed_elements、target_properties（MatterGen 可条件化的数值性质）、"
-        "validation_targets、max_candidates，并可附带自然语言 idea 与文件元数据。"
+        "生成式无机新材料发现服务：把数据库之外的全新无机晶体设计需求转为可执行的生成与热力学初筛任务。"
+        "触发前提：上游给出明确化学式或元素体系，并要求生成、发现或验证数据库外的新晶体；适用新陶瓷、催化剂和功能晶体等。"
+        "不用于仅查询已有材料数据库或商品牌号。"
+        "输入可使用结构化 new_material 合同：allowed_elements、target_properties（MatterGen 可条件化的数值性质）、"
+        "validation_targets、max_candidates；也可使用自然语言。自然语言只从当前执行指令提取元素体系和验证关注点，"
+        "不会把历史 RAG 摘要中的 PLA、PETG 等词误当成元素约束；未给稳定性阈值时默认 E_hull ≤ 0.05 eV/atom，以使用已缓存的条件模型。"
         "执行链：约束规范化 → MatterGen 条件生成 → pymatgen 结构准入 → MatterSim 松弛 → MP 同元素体系竞争相查询与局部相图。"
         "输出：候选 CIF/松弛结构路径、MatterSim--MP 近似形成能与高于凸包能、排序、阶段判断结论及完整 manifest。"
-        "边界：结论只代表 MLFF--MP 热力学初筛；高温强度、蠕变、氧化、电导等目标性质必须由专项模型、DFT 或实验确认；"
+        "边界：不处理合金或高温合金的元素配比、原子百分比与成分空间优化，此类请求应使用合金配比优化服务。"
+        "结论只代表 MLFF--MP 热力学初筛；高温强度、蠕变、氧化、电导等目标性质必须由专项模型、DFT 或实验确认；"
         "不得将生成引导目标误报为已验证性质，也不得编造缺失数值。"
     )
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # 保持不变
         self._watch([UserRequirement])
-        self.set_actions([MatterGenDiscovery])
+        self.set_actions([InorganicNewMaterialDiscoveryAction])
+
+
+# Only a source-compatibility alias.  New code and all outward-facing role
+# metadata use InorganicNewMaterialDiscoveryRole / inorganic_new_material.
+XIMUAlpha_MNS = InorganicNewMaterialDiscoveryRole
+MatterGenDiscovery = InorganicNewMaterialDiscoveryAction
     

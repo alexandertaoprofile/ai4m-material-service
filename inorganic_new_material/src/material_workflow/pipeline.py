@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Optional
 
@@ -11,6 +12,8 @@ from .mattersim import enrich_validations_with_mattersim
 from .ranking import rank_candidates
 from .schemas import GenerationConstraint, NewMaterialPipelineResult
 from .validation import ValidationRunner, run_adit_pymatgen_validation
+
+logger = logging.getLogger("mattergen_workflow")
 
 
 def run_new_material_pipeline(
@@ -31,19 +34,22 @@ def run_new_material_pipeline(
         max_candidates=max_candidates,
         runner=generation_runner,
     )
+    logger.info("[DISCOVERY][%s] MatterGen completed: status=%s candidates=%s", constraints.taskid, generation.status, len(generation.candidates))
 
     validations = [
         run_adit_pymatgen_validation(candidate, validation_dir, runner=validation_runner)
         for candidate in generation.candidates
     ]
+    logger.info("[DISCOVERY][%s] structure admission completed: admitted=%s/%s", constraints.taskid, sum(item.is_valid is True for item in validations), len(validations))
     admitted_candidates = [
         candidate for candidate, validation in zip(generation.candidates, validations) if validation.is_valid is True
     ]
     validations = enrich_validations_with_mattersim(validations, admitted_candidates, validation_dir)
+    logger.info("[DISCOVERY][%s] MatterSim/MP completed: thermodynamic_results=%s/%s", constraints.taskid, sum(item.energy_above_hull is not None for item in validations), len(admitted_candidates))
     ranked = rank_candidates(generation.candidates, validations)
 
     status = "ok" if ranked else generation.status
-    message = "New-material pipeline completed." if ranked else generation.message
+    message = "候选生成、基础结构检查与稳定性评估已完成。" if ranked else generation.message
     result = NewMaterialPipelineResult(
         taskid=constraints.taskid,
         status=status,

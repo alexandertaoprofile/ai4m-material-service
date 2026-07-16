@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import subprocess
 from pathlib import Path
@@ -10,6 +11,8 @@ from typing import Iterable
 
 from .schemas import GeneratedCandidate, ValidationResult
 from .validation import write_validation_result
+
+logger = logging.getLogger("mattergen_workflow")
 
 
 def mattersim_enabled() -> bool:
@@ -26,7 +29,10 @@ def _run(command: list[str]) -> subprocess.CompletedProcess[str]:
     temporary_root = environment.setdefault("MATTERSIM_TMPDIR", "/data/mattersim_tmp")
     Path(temporary_root).mkdir(parents=True, exist_ok=True)
     environment["TMPDIR"] = temporary_root
-    return subprocess.run(command, text=True, capture_output=True, check=False, env=environment)
+    return subprocess.run(
+        command, text=True, capture_output=True, check=False, env=environment,
+        timeout=int(environment.get("MATTERSIM_TIMEOUT_SEC", "900")),
+    )
 
 
 def run_mattersim_evaluation(
@@ -40,6 +46,7 @@ def run_mattersim_evaluation(
     """
     candidates = list(candidates)
     if not candidates or not (mattersim_enabled() if enabled is None else enabled):
+        logger.info("[DISCOVERY] MatterSim skipped: candidates=%s enabled=%s", len(candidates), mattersim_enabled() if enabled is None else enabled)
         return {}
     cif_paths = [candidate.cif_path for candidate in candidates if candidate.cif_path]
     if len(cif_paths) != len(candidates):
@@ -57,16 +64,27 @@ def run_mattersim_evaluation(
     ]
     for cif_path in cif_paths:
         command.extend(["--input", str(cif_path)])
-    completed = _run(command)
+    try:
+        completed = _run(command)
+    except subprocess.TimeoutExpired:
+        timeout = os.environ.get("MATTERSIM_TIMEOUT_SEC", "900")
+        message = f"MatterSim/MP evaluation exceeded {timeout}s."
+        (output_dir / "mattersim.log").write_text(message, encoding="utf-8")
+        logger.error("[DISCOVERY] %s (full log: %s)", message, output_dir / "mattersim.log")
+        return {}
     (output_dir / "mattersim.log").write_text(
         (completed.stdout or "") + ("\n" + completed.stderr if completed.stderr else ""),
         encoding="utf-8",
     )
     result_path = output_dir / "mattersim_results.json"
     if completed.returncode != 0 or not result_path.exists():
+        summary = (completed.stderr or completed.stdout or "no results file").strip().splitlines()[-1:]
+        logger.error("[DISCOVERY] MatterSim/MP failed rc=%s: %s (full log: %s)", completed.returncode, " ".join(summary), output_dir / "mattersim.log")
         return {}
     data = json.loads(result_path.read_text(encoding="utf-8"))
-    return {str(Path(row["source_cif"]).resolve()): row for row in data.get("candidates", [])}
+    rows = data.get("candidates", [])
+    logger.info("[DISCOVERY] MatterSim/MP produced %s thermodynamic result(s)", len(rows))
+    return {str(Path(row["source_cif"]).resolve()): row for row in rows}
 
 
 def enrich_validations_with_mattersim(

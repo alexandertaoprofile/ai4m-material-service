@@ -89,8 +89,17 @@ python main.py
 ### 上游接口约定
 
 上游可直接提交既有任务 envelope，并把可计算约束放入 `new_material`（也兼容
-`constraints` / `mattergen` / `generation_constraints`）。显式约束优先；服务只会从
-`idea` 中保守提取化学式，绝不会从自然语言猜测数值性质目标。
+`constraints` / `mattergen` / `generation_constraints`）。显式约束优先。没有 JSON 时，服务会从
+当前需求与上文中确定性提取元素体系（如 `Nb-Mo-Ta-W` 或“铌、钼、钽、钨”）、化学式、明确写出的
+`E_hull` 阈值（支持 `meV/atom`）以及高温/蠕变/抗氧化等验证关注点；提取结果会显示在“解析说明”中。
+如果用户未给出 `E_hull`，服务会使用默认值 `E_hull ≤ 0.05 eV/atom` 作为 MatterGen 生成引导，确保能够选用相应的条件模型；无法确定元素体系时仍会要求补充，而不是启动无约束生成。
+
+对于明确但未给出元素的工程方向，服务提供可见、可覆盖的领域起始模板：
+
+- “金属 3D 打印/增材制造”与“爆震/火箭发动机”同时出现时：`Ni-Co-Cr-Al-Ti`，并关注高温强度、蠕变、抗氧化、热疲劳和增材制造性；
+- “高温高熵/难熔高熵合金”出现时：`Nb-Mo-Ta-W`，并关注高温强度、蠕变与抗氧化。
+
+模板仅作为生成起点，默认 `E_hull ≤ 0.05 eV/atom`，会在前端“解析说明”和设计约束卡中标记；用户一旦明确给出元素或 JSON，模板立即失效。
 
 ```json
 {
@@ -121,7 +130,9 @@ MatterSim--MP 热力学评分卡，以及可交互的 GLB。资产通过既有 `
 
 `XIMUAlpha_MNS` 现在是“生成式无机新材料发现”专属角色，而不是已有材料 MP 检索角色。
 母 Agent 在需要探索新结构时调用 `WS /new-material/start` 并传递上游 envelope；优先提供
-`new_material.allowed_elements` 和数值化 `target_properties`，不要只给模糊的自然语言性质愿望。
+`new_material.allowed_elements` 和数值化 `target_properties`。若只有自然语言，上文中至少应包含
+元素体系；服务会自动提取明确的稳定性阈值和验证关注点，并标记其解析来源。纯对话请求默认只生成
+1 个候选，可通过 `max_candidates` 或 `MATTERGEN_DEFAULT_CANDIDATES` 调整。
 角色会返回候选结构、MatterSim--MP 热力学初筛、阶段结论和 manifest；其结论只能用于决定
 是否进入 DFT/专项性能验证，不能替代这些验证。
 
@@ -142,8 +153,8 @@ micromamba run -p /data/mamba/envs/mattergen-py310 \
 
 ## 后续演进方向
 
-1. 将 WebSocket 的自然语言需求解析接到 `GenerationConstraint`
-2. MatterSim 评估默认关闭，避免服务请求隐式下载参考相数据。完成一次参考数据准备后，
+1. 继续扩展对更多 MatterGen 可条件化性质的自然语言数值解析。
+2. MatterSim 评估默认开启；
    默认会在 MatterGen 后对通过基础结构准入的候选自动执行 MatterSim 松弛，回填
    `formation_energy_per_atom` 与 `energy_above_hull`。默认只经 MP API 查询候选元素体系的竞争相，
    避免加载全量参考库；结果明确标为 **MatterSim--MP 混合近似**，不能替代 DFT。设置

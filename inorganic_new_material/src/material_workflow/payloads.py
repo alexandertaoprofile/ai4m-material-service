@@ -19,7 +19,7 @@ def build_payload(
 
     payload: Dict[str, Any] = {
         "version": "1.0.0",
-        "agent": "XIMUAlpha_MNS",
+        "agent": "inorganic_new_material",
         "request_id": request_id,
         "time": datetime.datetime.now().isoformat(),
         "type": type_,

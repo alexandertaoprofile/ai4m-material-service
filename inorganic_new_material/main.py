@@ -1,8 +1,11 @@
 import os
 import json
+import re
 import uvicorn
 import asyncio
 import traceback
+import logging
+from logging.handlers import RotatingFileHandler
 
 from alpha.team import Team
 from alpha.schema import Message
@@ -15,17 +18,16 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi import FastAPI, WebSocket, HTTPException, WebSocketDisconnect, File, UploadFile, Form, Body
+from fastapi.encoders import jsonable_encoder
 from src.material_workflow.constraints import constraint_from_payload
+from src.material_workflow.llm_constraint_inference import enrich_payload_with_llm_elements
 from src.material_workflow.emitters import build_frontend_payload
-from src.material_workflow.pipeline import run_new_material_pipeline
-from src.material_workflow.payloads import build_payload
-from src.material_workflow.presentation import build_requirement_brief, emit_presentation_assets
-from src.material_workflow.upstream_api import response_payload, result_summary, run_upstream_request
+from src.material_workflow.upstream_api import run_upstream_request
 
-# 加载 .env 文件
-load_dotenv()
-# 读取环境变量
-PORT = os.getenv('PORT')
+# Always load this service's own configuration, independent of the tmux cwd.
+BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(BASE_DIR / ".env")
+PORT = int(os.getenv("PORT", "1107"))
 # 设置静态文件目录
 def setup_science_backend_logger():
     """Set up science_backend logger with automatic log rotation"""
@@ -56,7 +58,7 @@ def setup_science_backend_logger():
     
     # Create console handler for development
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.WARNING)  # Console只显示WARNING及以上级别
+    console_handler.setLevel(logging.INFO)
     
     # Create formatter
     formatter = logging.Formatter(
@@ -76,6 +78,13 @@ def setup_science_backend_logger():
 
 UPLOAD_DIR="upload"
 NEW_MATERIAL_RESULTS_ROOT = Path(__file__).resolve().parent / "src/MNS_CaseHub/cases/material_discovery_demo/results/new_material"
+setup_science_backend_logger()
+WORKFLOW_LOGGER = logging.getLogger("mattergen_workflow")
+WORKFLOW_LOGGER.setLevel(logging.INFO)
+WORKFLOW_LOGGER.propagate = False
+if not WORKFLOW_LOGGER.handlers:
+    for handler in logging.getLogger("science_backend").handlers:
+        WORKFLOW_LOGGER.addHandler(handler)
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -88,6 +97,7 @@ app.add_middleware(
 async def start_round(websocket: WebSocket, team, idea, n_round, user_name, taskid, file_metadata):
     team.run_project(idea)
     await websocket.send_text("【XXX 开始: xxxx】")
+    workflow_failed = False
     while n_round > 0:
         
         n_round -= 1
@@ -124,8 +134,27 @@ async def start_round(websocket: WebSocket, team, idea, n_round, user_name, task
                         # 使用traceback.print_exc()来打印异常堆栈信息
                         traceback.print_exc()
                         print(f"代码出错，请查看日志: {e}")
-                        # await websocket.send_text(f"代码出错，请查看日志: {e}")
+                        workflow_failed = True
+                        if isinstance(e, ValueError):
+                            await websocket.send_text(
+                                "### 需要补充生成条件\n\n"
+                                f"{e}\n\n"
+                                "收到元素体系后，服务将继续执行候选结构生成、稳定性初筛和已知竞争相比较。"
+                            )
+                        else:
+                            await websocket.send_text(
+                                "### 新材料生成未能启动\n\n"
+                                "服务在初始化生成流程时遇到异常，已记录详细日志；请稍后重试。"
+                            )
+                        # Balance the action's earlier ``[start]`` marker so
+                        # the frontend does not remain in a running state.
+                        await websocket.send_text("[end]")
                         break
+
+                    status_match = re.match(r"\[\[WORKFLOW_STATUS:(ok|failed|unavailable|timeout)\]\]\s*", str(full_reply_content or ""))
+                    if status_match:
+                        workflow_failed = status_match.group(1) != "ok"
+                        full_reply_content = str(full_reply_content)[status_match.end():]
 
                     await websocket.send_text("[end]")    
                     f = f'【{single_role._setting} 已经完成 : {single_role.rc.todo.desc}】'
@@ -150,29 +179,45 @@ async def start_round(websocket: WebSocket, team, idea, n_round, user_name, task
                 # Send the response message to the Environment object to have it relay the message to the subscribers.
                 single_role.publish_message(msg)
                 break
-    await websocket.send_text("【XXX 已完成: xxxx】")
+    if workflow_failed:
+        await websocket.send_text("【XXX 未完成: 新材料生成未得到可用候选，请查看失败原因与下一步建议】")
+    else:
+        await websocket.send_text("【XXX 已完成: xxxx】")
 
 @app.websocket("/start")
+@app.websocket("/new-material/start")
 async def websocket_endpoint(websocket: WebSocket):
 
     team = Team()
     team.hire(
         [
-            XIMUAlpha_MNS(),
+            InorganicNewMaterialDiscoveryRole(),
         ]
     )
     await websocket.accept()
     try:
         # 接收初始化数据
         init_data = await websocket.receive_json()
-        print(init_data)
         idea = init_data["idea"]
         n_round = int(len(team.env.roles))
         taskid = init_data["taskid"]
         user_name = init_data["user_name"]
         file_metadata = list(init_data["file_metadata"])
+        embedded_taskid = taskid
+        try:
+            embedded = json.loads(idea) if isinstance(idea, str) else {}
+            if isinstance(embedded, dict):
+                embedded_taskid = str(embedded.get("taskid") or taskid)
+        except (TypeError, json.JSONDecodeError):
+            pass
+        context_keys = [key for key in ("idea", "content", "query", "history", "messages", "conversation", "upstream_context", "previous_results") if init_data.get(key) is not None]
+        context_preview = re.sub(r"\s+", " ", json.dumps({key: init_data[key] for key in context_keys}, ensure_ascii=False))[:600]
+        print(f"[WS /new-material/start] upstream received: session_taskid={taskid} material_taskid={embedded_taskid} user={user_name} files={len(file_metadata)} keys={context_keys} preview={context_preview!r}")
 
-        await start_round(websocket, team, idea, n_round, user_name, taskid, file_metadata)
+        # Preserve the full envelope for the action's existing context parser.
+        # Passing only ``idea`` used to discard separately supplied history and
+        # upstream messages before constraint extraction.
+        await start_round(websocket, team, json.dumps(init_data, ensure_ascii=False), n_round, user_name, taskid, file_metadata)
     except WebSocketDisconnect:
         # 在这里可以添加当客户端断开连接时的处理逻辑
         print("客户端已经主动断开连接！")
@@ -191,10 +236,26 @@ async def get_teams():
     team = Team()
     team.hire(
         [
-            XIMUAlpha_MNS(),
+            InorganicNewMaterialDiscoveryRole(),
         ]
     )
-    return team.env.get_roles()
+    # ``get_roles`` returns Role instances, not dictionaries.  Convert them
+    # before enriching the API response with router metadata.
+    roles = {}
+    for role_name, role in team.env.get_roles().items():
+        metadata = jsonable_encoder(role)
+        if not isinstance(metadata, dict):
+            metadata = {"name": str(role_name)}
+        metadata["role_id"] = "inorganic_new_material_generation_v1"
+        metadata["routing"] = {
+            "service_id": "inorganic_new_material_generation",
+            "priority": 2,
+            "match_when": "请求含明确化学式或元素体系，并要求生成/发现/验证数据库外的新无机晶体。",
+            "include_keywords": ["明确化学式", "元素体系", "全新材料", "新晶体", "新无机材料", "MatterGen", "晶体生成", "化学式生成", "数据库外材料"],
+            "exclude_keywords": ["合金配比", "高熵合金", "HEA", "MPEA", "元素比例优化", "原子百分比", "已有材料查询", "商品材料", "牌号查询"],
+        }
+        roles[role_name] = metadata
+    return roles
 
 
 @app.post("/uploadFile")
@@ -250,7 +311,7 @@ def list_files(taskid: str = Form(...)):
 
 @app.get("/")
 def read_root():
-    return {"message": "XIMUAlpha_MNS server running."}
+    return {"message": "inorganic_new_material server running."}
 
 
 @app.post("/new-material/generate")
@@ -261,6 +322,15 @@ async def generate_new_material(payload: dict = Body(...)):
     so the web process remains isolated from CUDA/PyG dependencies.
     """
     try:
+        try:
+            constraint_from_payload(payload)
+        except ValueError as exc:
+            if "无法确定待生成的元素体系" not in str(exc):
+                raise
+            enriched_payload = await enrich_payload_with_llm_elements(payload)
+            if not enriched_payload:
+                raise
+            payload = enriched_payload
         result = await asyncio.to_thread(run_upstream_request, payload, NEW_MATERIAL_RESULTS_ROOT)
         return JSONResponse(content={"frontend": build_frontend_payload(result), "manifest": result.to_dict()})
     except ValueError as exc:
@@ -273,66 +343,45 @@ async def generate_new_material(payload: dict = Body(...)):
 async def preview_new_material_constraints(payload: dict = Body(...)):
     """Normalize an upstream envelope without starting a GPU job."""
     try:
-        return constraint_from_payload(payload).to_dict()
+        try:
+            return constraint_from_payload(payload).to_dict()
+        except ValueError as exc:
+            if "无法确定待生成的元素体系" not in str(exc):
+                raise
+            enriched_payload = await enrich_payload_with_llm_elements(payload)
+            if not enriched_payload:
+                raise
+            return constraint_from_payload(enriched_payload).to_dict()
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @app.get("/new-material/tasks/{taskid}")
 async def get_new_material_task(taskid: str):
-    """Return the durable manifest for an upstream task ID."""
+    """Return the final manifest, or durable in-progress state for polling clients."""
     if not taskid or taskid in {".", ".."} or "/" in taskid or "\\" in taskid:
         raise HTTPException(status_code=422, detail="invalid taskid")
     manifest = NEW_MATERIAL_RESULTS_ROOT / taskid / "new_material_pipeline_manifest.json"
-    if not manifest.exists():
-        raise HTTPException(status_code=404, detail="task manifest not found")
-    return JSONResponse(content=json.loads(manifest.read_text(encoding="utf-8")))
+    if manifest.exists():
+        return JSONResponse(content=json.loads(manifest.read_text(encoding="utf-8")))
+    progress = NEW_MATERIAL_RESULTS_ROOT / taskid / "progress.json"
+    if progress.exists():
+        return JSONResponse(content=json.loads(progress.read_text(encoding="utf-8")), status_code=202)
+    raise HTTPException(status_code=404, detail="task manifest not found")
 
 
-@app.websocket("/new-material/start")
-async def new_material_websocket_endpoint(websocket: WebSocket):
-    """WebSocket-compatible MatterGen route for existing upstream orchestrators."""
-    await websocket.accept()
-    taskid = ""
-    try:
-        payload = await websocket.receive_json()
-        taskid = str(payload.get("taskid") or "")
-        brief_constraints = constraint_from_payload(payload)
-        await websocket.send_json(build_payload({
-            "id": "MATERIAL_GENERATION",
-            "icon": "",
-            "title": "新材料生成",
-            "status": "in_progress",
-            "description": "正在解析上游约束并调用 MatterGen 生成候选结构",
-        }, type_="progress", request_id=taskid or None))
-        await websocket.send_text("<<<CONTENT_START:NEW_MATERIAL_BRIEF>>>")
-        await websocket.send_text(build_requirement_brief(brief_constraints) + "\n")
-        await websocket.send_text("<<<CONTENT_END:NEW_MATERIAL_BRIEF>>>")
-        result = await asyncio.to_thread(run_upstream_request, payload, NEW_MATERIAL_RESULTS_ROOT)
-        await websocket.send_text("<<<CONTENT_START:MATERIAL_GENERATION>>>")
-        await websocket.send_text(result_summary(result) + "\n")
-        await emit_presentation_assets(websocket, result, step_id="MATERIAL_GENERATION")
-        await websocket.send_text("<<<CONTENT_END:MATERIAL_GENERATION>>>")
-        await websocket.send_json(build_payload({
-            "id": "MATERIAL_GENERATION",
-            "icon": "",
-            "title": "新材料生成",
-            "status": "completed" if result.status == "ok" else "failed",
-            "description": result.message,
-            "result": response_payload(result),
-        }, type_="progress", request_id=result.taskid))
-    except WebSocketDisconnect:
-        return
-    except ValueError as exc:
-        await websocket.send_json(build_payload(str(exc), type_="error", request_id=taskid or None))
-    except Exception as exc:
-        await websocket.send_json(build_payload(f"new-material pipeline failed: {exc}", type_="error", request_id=taskid or None))
-    finally:
-        try:
-            await websocket.close()
-        except Exception:
-            pass
-
+@app.get("/new-material/tasks/{taskid}/assets/{asset_name}")
+async def get_new_material_asset(taskid: str, asset_name: str):
+    """Serve a rendered asset from this service to avoid browser/OSS URL failures."""
+    if (
+        not taskid or taskid in {".", ".."} or "/" in taskid or "\\" in taskid
+        or not asset_name or Path(asset_name).name != asset_name
+    ):
+        raise HTTPException(status_code=422, detail="invalid asset path")
+    asset = NEW_MATERIAL_RESULTS_ROOT / taskid / "presentation" / asset_name
+    if not asset.is_file():
+        raise HTTPException(status_code=404, detail="asset not found")
+    return FileResponse(asset, filename=asset.name, content_disposition_type="inline")
 
 if __name__ == "__main__":
     uvicorn.run(app='main:app', host="0.0.0.0", port=int(PORT), reload=False)

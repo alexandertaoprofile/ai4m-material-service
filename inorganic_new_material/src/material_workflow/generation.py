@@ -72,10 +72,33 @@ def build_mattergen_command(constraints: GenerationConstraint, output_dir: Path,
     """Create the official ``mattergen-generate`` invocation without a shell."""
     model, properties = _model_and_properties(constraints)
     executable = os.getenv("MATTERGEN_EXECUTABLE", "mattergen-generate")
-    command: List[str] = [executable, str(output_dir), f"--pretrained-name={model}", f"--batch_size={max_candidates}", "--num_batches=1"]
+    repo_root = Path(__file__).resolve().parents[2]
+    fast_sampling_path = repo_root / "configs"
+    sampling_path = os.getenv("MATTERGEN_SAMPLING_CONFIG_PATH", str(fast_sampling_path)).strip()
+    sampling_name = os.getenv("MATTERGEN_SAMPLING_CONFIG_NAME", "mattergen_fast_sampling").strip()
+    sampling_steps = int(os.getenv("MATTERGEN_SAMPLING_STEPS", "100"))
+    if sampling_steps < 1:
+        raise ValueError("MATTERGEN_SAMPLING_STEPS must be positive")
+    command: List[str] = [
+        executable,
+        str(output_dir),
+        f"--pretrained-name={model}",
+        f"--batch_size={max_candidates}",
+        "--num_batches=1",
+        f"--sampling_config_path={sampling_path}",
+        f"--sampling_config_name={sampling_name}",
+        # MatterGen requires the atomic-number D3PM schedule to use the same
+        # number of reverse steps as the sampler.  The override keeps the
+        # accelerated N=100 profile internally consistent.
+        "--config_overrides=" + json.dumps([
+            "lightning_module.diffusion_module.corruption.discrete_corruptions.atomic_numbers.d3pm.schedule.num_steps=" + str(sampling_steps)
+        ]),
+    ]
     if properties:
         command.append(f"--properties_to_condition_on={json.dumps(properties, separators=(',', ':'))}")
         command.append(f"--diffusion_guidance_factor={os.getenv('MATTERGEN_GUIDANCE_FACTOR', '2.0')}")
+    record_trajectories = os.getenv("MATTERGEN_RECORD_TRAJECTORIES", "false").strip().lower() in {"1", "true", "yes", "on"}
+    command.append(f"--record_trajectories={record_trajectories}")
     environment_prefix = os.getenv("MATTERGEN_ENV_PREFIX", "/data/mamba/envs/mattergen-py310").strip()
     environment_name = os.getenv("MATTERGEN_ENV", "mattergen-py310").strip()
     if environment_prefix:
@@ -112,20 +135,58 @@ def _formula_from_cif(cif_path: Path) -> Optional[str]:
 def _default_mattergen_runner(constraints: GenerationConstraint, output_dir: Path, max_candidates: int) -> GenerationManifest:
     output_dir.mkdir(parents=True, exist_ok=True)
     command = build_mattergen_command(constraints, output_dir, max_candidates)
+    environment = os.environ.copy()
+    # Respect a deployment-provided HF_HOME, but do not force a new empty cache
+    # here: existing MatterGen checkpoints may already be cached by the service
+    # account in Hugging Face's normal location.
+    environment.setdefault("MAMBA_ROOT_PREFIX", "/data/mamba")
+    log_path = output_dir / "mattergen.log"
+    timeout_seconds = int(os.getenv("MATTERGEN_TIMEOUT_SEC", "1800"))
     try:
-        completed = subprocess.run(command, cwd=output_dir, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False, timeout=int(os.getenv("MATTERGEN_TIMEOUT_SEC", "1800")))
+        # Stream the child output directly to the durable log.  MatterGen's
+        # tqdm lines can then be parsed by the WebSocket progress reporter
+        # while diffusion is still running, rather than only after completion.
+        with log_path.open("w", encoding="utf-8") as log_file:
+            process = subprocess.Popen(
+                command,
+                cwd=output_dir,
+                text=True,
+                stdout=log_file,
+                stderr=subprocess.STDOUT,
+                env=environment,
+            )
+            try:
+                returncode = process.wait(timeout=timeout_seconds)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait()
+                return GenerationManifest(
+                    taskid=constraints.taskid,
+                    status="timeout",
+                    message=f"MatterGen exceeded {timeout_seconds}s",
+                    metadata={"command": command, "log_path": str(log_path)},
+                )
     except FileNotFoundError as exc:
         return GenerationManifest(taskid=constraints.taskid, status="unavailable", message=str(exc), metadata={"command": command})
-    except subprocess.TimeoutExpired as exc:
-        return GenerationManifest(taskid=constraints.taskid, status="timeout", message=f"MatterGen exceeded {exc.timeout}s", metadata={"command": command})
-
-    log_path = output_dir / "mattergen.log"
-    log_path.write_text(completed.stdout or "", encoding="utf-8")
-    cifs = _extract_cifs(output_dir, max_candidates) if completed.returncode == 0 else []
+    output_text = log_path.read_text(encoding="utf-8", errors="replace") if log_path.exists() else ""
+    cifs = _extract_cifs(output_dir, max_candidates) if returncode == 0 else []
     candidates = [GeneratedCandidate(candidate_id=f"mg-{index:03d}", formula_pretty=_formula_from_cif(cif), cif_path=cif, structure_path=cif, metadata={"mattergen_cif": str(cif)}) for index, cif in enumerate(cifs, start=1)]
-    status = "ok" if candidates else "failed"
-    message = "MatterGen generated candidates." if candidates else "MatterGen completed without readable CIF candidates."
-    return GenerationManifest(taskid=constraints.taskid, status=status, candidates=candidates, message=message, metadata={"command": command, "returncode": completed.returncode, "log_path": str(log_path), "model": _model_and_properties(constraints)[0]})
+    if candidates:
+        status = "ok"
+        message = "已生成候选晶体结构。"
+    elif "Network is unreachable" in output_text and "huggingface" in output_text.lower():
+        status = "unavailable"
+        message = (
+            "MatterGen 所需的本地模型权重不可用，且当前运行环境无法连接模型仓库；"
+            "本轮尚未开始有效的候选结构生成。"
+        )
+    else:
+        status = "failed"
+        if "AssertionError" in output_text and "discrete_corruptions" in output_text:
+            message = "MatterGen 采样配置的步数不一致，生成在采样开始前中止。"
+        else:
+            message = "MatterGen 生成进程未产出可读取的候选晶体结构文件。"
+    return GenerationManifest(taskid=constraints.taskid, status=status, candidates=candidates, message=message, metadata={"command": command, "returncode": returncode, "log_path": str(log_path), "model": _model_and_properties(constraints)[0]})
 
 
 def run_mattergen_generation(constraints: GenerationConstraint, output_dir: Path, max_candidates: int = 8, runner: Optional[GenerationRunner] = None) -> GenerationManifest:

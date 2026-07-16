@@ -32,8 +32,18 @@ optional explicit `new_material` object.  Explicit constraints are preferred:
 }
 ```
 
-Natural language is used only for conservative formula extraction.  The
-service never invents a numerical property target from prose.
+When the explicit object is absent, natural language and upstream conversation
+context are a controlled fallback. The service extracts independent element
+symbols (for example `Nb-Mo-Ta-W` or `铌、钼、钽、钨`), a chemical formula,
+an explicitly stated `E_hull` ceiling (including `meV/atom` conversion), and
+qualitative validation concerns such as high-temperature strength, creep and
+oxidation resistance. Explicit fields always win. It never invents a numerical
+property target; if it cannot determine an element system, it asks for one
+instead of launching an unconstrained generator.
+
+For conversational requests without an explicit `max_candidates`, the default
+is one candidate (`MATTERGEN_DEFAULT_CANDIDATES=1`) to keep interactive runtime
+bounded. Structured callers may request 1–64 candidates.
 
 `energy_above_hull` supplied to MatterGen is a *generation condition*, not a
 validated property.  The post-generation values are labelled as

@@ -1,0 +1,10 @@
+{
+  "source": "/data/se42/backend/property datasets/alloy_material_dataset_v0.1.xlsx",
+  "tables": {
+    "Materials": 5,
+    "Composition_Long": 41,
+    "Property_Points": 13,
+    "Curve_Data": 266
+  },
+  "pdf_status": "not_ingested_pending_traceable_extraction"
+}

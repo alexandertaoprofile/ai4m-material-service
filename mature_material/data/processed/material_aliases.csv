@@ -1,0 +1,21 @@
+material_id,alias,alias_type,source
+MAT-IN718,IN718,common_abbreviation,curated_v1
+MAT-BAMBU-ASA,ASA,grade,3D打印耗材详细性能.md
+MAT-BAMBU-ASA,拓竹ASA,display_name,3D打印耗材详细性能.md
+MAT-BAMBU-PETG-BASIC,PETG,grade,3D打印耗材详细性能.md
+MAT-BAMBU-PETG-BASIC,基础PETG,display_name,3D打印耗材详细性能.md
+MAT-BAMBU-PETG-BASIC,拓竹PETG,display_name,3D打印耗材详细性能.md
+MAT-BAMBU-ABS,ABS,grade,3D打印耗材详细性能.md
+MAT-BAMBU-ABS,拓竹ABS,display_name,3D打印耗材详细性能.md
+MAT-BAMBU-PLA-PURE,PLA,grade,3D打印耗材详细性能.md
+MAT-BAMBU-PLA-PURE,纯净PLA,display_name,3D打印耗材详细性能.md
+MAT-BAMBU-PAHT-CF,PAHT-CF,grade,3D打印耗材详细性能.md
+MAT-BAMBU-PAHT-CF,PAHTCF,common_abbreviation,3D打印耗材详细性能.md
+MAT-BAMBU-PC,PC,grade,3D打印耗材详细性能.md
+MAT-BAMBU-PC,拓竹PC,display_name,3D打印耗材详细性能.md
+MAT-IN718,Inconel 718,trade_name,curated_v1
+MAT-IN718,UNS N07718,standard,curated_v1
+MAT-AL6061-T6,6061-T6,grade,curated_v1
+MAT-AL6061-T6,AA 6061-T6,standard,curated_v1
+MAT-316L-SRM1155A,316L,grade_ambiguous_state,curated_v1
+MAT-SS316-XLSX,316 stainless steel,generic_grade_ambiguous,curated_v1

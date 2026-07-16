@@ -19,7 +19,7 @@ from src.material_workflow.schemas import GenerationConstraint
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--taskid", default="demo-nb-mo-ta-w-rhea")
+    parser.add_argument("--taskid", default="demo-nb-mo-ta-w-alloy")
     parser.add_argument("--candidates", type=int, default=2)
     args = parser.parse_args()
     if not 1 <= args.candidates <= 8:
