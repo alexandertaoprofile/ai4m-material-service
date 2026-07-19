@@ -249,10 +249,10 @@ async def get_teams():
         metadata["role_id"] = "inorganic_new_material_generation_v1"
         metadata["routing"] = {
             "service_id": "inorganic_new_material_generation",
-            "priority": 2,
-            "match_when": "请求含明确化学式或元素体系，并要求生成/发现/验证数据库外的新无机晶体。",
+            "priority": 3,
+            "match_when": "请求必须同时含明确无机化学式/元素体系，并明确要求生成、发现或验证数据库外的新无机晶体。",
             "include_keywords": ["明确化学式", "元素体系", "全新材料", "新晶体", "新无机材料", "MatterGen", "晶体生成", "化学式生成", "数据库外材料"],
-            "exclude_keywords": ["合金配比", "高熵合金", "HEA", "MPEA", "元素比例优化", "原子百分比", "已有材料查询", "商品材料", "牌号查询"],
+            "exclude_keywords": ["材料筛选与计算", "材料筛选", "材料选型", "候选材料对比", "性质对比", "商用耗材", "FDM", "FFF", "丝材", "PLA", "PETG", "ASA", "ABS", "PC", "PA", "PEEK", "已有材料查询", "商品材料", "牌号查询", "合金配比", "高熵合金", "HEA", "MPEA", "元素比例优化", "原子百分比"],
         }
         roles[role_name] = metadata
     return roles

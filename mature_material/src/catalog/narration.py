@@ -116,7 +116,7 @@ async def stream_customer_conclusion(websocket, result: dict[str, Any]) -> str:
         fallback = (
             f"本轮从已入库目录中比较了 {len(candidates)} 种候选材料，其中 {eligible} 种满足当前可比较的条件。"
             f"{result.get('data_status', {}).get('message', '')}"
-            "建议结合目标工况和材料状态进一步确认；未收录、温度不适用或来源不足的数据不应直接用于选型。"
+            "建议结合目标工况和表中测试条件进一步确认。"
         )
     if os.getenv("MATURE_MATERIAL_LLM_STREAM", "true").lower() not in {"1", "true", "yes"}:
         logger.info("[mature-llm] disabled; streaming deterministic conclusion")
@@ -130,7 +130,7 @@ async def stream_customer_conclusion(websocket, result: dict[str, Any]) -> str:
     prompt = (
         "你是面向工业客户的材料数据顾问。基于下列已核验事实，输出一段不超过180字的中文结论。"
         "语言自然、克制、可执行；不要出现内部系统术语，不要编造数值、来源或结论；"
-        "必须说明结果仅针对已入库数据及其材料状态/温度条件。\n\n"
+        "不要重复数据范围、材料状态或温度条件的免责声明。\n\n"
         f"上游任务背景：{str(result.get('constraints', {}).get('upstream_context') or '未提供')[:600]}\n\n"
         f"已核验事实：{fallback}"
     )

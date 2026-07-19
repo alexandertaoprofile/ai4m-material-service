@@ -259,7 +259,7 @@ def _place_visuals_before_conclusion(narrative: str, visuals: str) -> str:
     return before.rstrip() + "\n\n" + visuals.strip() + marker + conclusion
 
 
-async def emit_result_content(websocket: Any, result: dict[str, Any], *, step_id: str = "ALLOY_SCREENING", visual_assets: list[dict[str, str]] | None = None) -> None:
+async def emit_result_content(websocket: Any, result: dict[str, Any], *, step_id: str = "FILAMENT_SELECTION_OPTIMIZATION", visual_assets: list[dict[str, str]] | None = None) -> None:
     """Stream LLM-rendered narrative/table like adjacent services, with safe fallback."""
     path = result.get("_summary_path")
     fallback = path.read_text(encoding="utf-8") if path else final_conclusion_block(result)

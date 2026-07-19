@@ -33,6 +33,9 @@ from src.catalog.narration import (
 
 load_dotenv()
 SERVICE = "mature-material"
+FRONTEND_STEP_ID = "FILAMENT_SELECTION_OPTIMIZATION"
+FRONTEND_STEP_TITLE = "耗材选型和计算优化"
+FRONTEND_TEAM_TYPE = "Robot_Materials"
 PORT = int(os.getenv("PORT", "1105"))
 RESULTS = Path(os.getenv("MATURE_MATERIAL_RESULTS_ROOT", "results/mature_material"))
 RAW_DATA_ROOT = Path(os.getenv("PROPERTY_DATA_ROOT", "/data/se42/backend/property datasets"))
@@ -40,6 +43,18 @@ CATALOG_ROOT = Path(os.getenv("MATURE_MATERIAL_CATALOG_ROOT", "data/processed"))
 app = FastAPI(title="Mature Material Service", version="0.1.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=False, allow_methods=["*"], allow_headers=["*"])
 logger = logging.getLogger("mature_material")
+
+
+def _run_log(taskid: str, event: str, **fields: Any) -> None:
+    """Emit concise task-local diagnostics to the service terminal.
+
+    Keep this comparable to the neighbouring new-material service's
+    ``[DISCOVERY][taskid]`` records, while avoiding full upstream transcripts
+    and potentially large result payloads in stdout.
+    """
+    details = " ".join(f"{key}={value!r}" for key, value in fields.items())
+    suffix = f" {details}" if details else ""
+    print(f"[MATURE][{taskid}] {event}{suffix}", flush=True)
 
 
 def _taskid(payload: dict[str, Any]) -> str:
@@ -265,10 +280,10 @@ def roles():
     """Gateway discovery metadata, without importing the legacy Alpha Team."""
     profile = (
         "子流程：已有/商品/成熟材料数据库检索与性质核验（mature_material_catalog）。"
-        "只处理已存在材料的查询、牌号/标准核对、材料选型、热物性或机械性质对比。"
+        "处理已存在材料的筛选、选型、牌号/标准核对、热物性或机械性质对比。"
         "根据材料名称、牌号、标准、材料族、服役温度和性质条件，在已清洗且可追溯的材料目录中返回候选、性质证据及来源。"
-        "触发前提：上游给出明确的商品名、牌号、标准号或供应商材料型号，例如 Inconel 718、UNS N07718、316L、AMS/MIL/ASTM/GB 标准。"
-        "仅有化学式应进入新材料生成服务；高熵合金/HEA/MPEA 的成分设计、元素比例优化、配方生成和成分空间搜索应进入合金配比优化服务。"
+        "适用于‘材料筛选与计算’、商用耗材、FDM/FFF 丝材、已有材料类别或明确牌号的查询；没有牌号时可按目录中的材料类别给出候选对比。"
+        "仅当请求同时给出元素体系/化学式且明确要求生成数据库外新晶体时，才应进入新材料服务；高熵合金/HEA/MPEA 的成分设计、元素比例优化、配方生成和成分空间搜索应进入合金配比优化服务。"
     )
     return {
         profile: {
@@ -292,11 +307,11 @@ def roles():
             "planner": {"plan": {"goal": "", "context": "", "tasks": [], "task_map": {}, "current_task_id": ""}, "working_memory": {"storage": [], "index": {}, "ignore_id": False}, "auto_run": False, "use_tools": False},
             "routing": {
                 "service_id": "mature_material_catalog",
-                "priority": 3,
-                "match_when": "请求含明确商品名、牌号、标准号或供应商型号；性质词必须附随该已有材料标识。",
-                "include_keywords": ["商品名", "牌号", "标准号", "UNS", "AMS", "MIL", "ASTM", "GB/T", "Inconel", "TIMETAL", "316L"],
+                "priority": 2,
+                "match_when": "已有材料筛选、选型、性质比较或商用 FDM/FFF 耗材计算；可含牌号/标准，也可只给材料类别、工况和性能条件。",
+                "include_keywords": ["材料筛选与计算", "材料筛选", "材料选型", "候选材料", "性质对比", "商用耗材", "丝材", "FDM", "FFF", "PLA", "PETG", "ASA", "ABS", "PC", "PA", "PEEK", "商品名", "牌号", "标准号", "UNS", "AMS", "MIL", "ASTM", "GB/T", "Inconel", "TIMETAL", "316L"],
                 "exclude_keywords": ["严格化学式", "高熵合金", "HEA", "MPEA", "合金配比", "元素比例", "成分优化", "成分空间"],
-                "route_after": ["alloy_composition_optimization", "inorganic_new_material_generation"],
+                "route_after": ["alloy_composition_optimization"],
             },
             "recovered": False,
             "latest_observed_msg": None,
@@ -368,22 +383,54 @@ async def start(websocket: WebSocket):
             f"files={len(payload.get('file_metadata') or [])} context_chars={len(constraints['upstream_context'])} "
             f"preview={upstream_preview!r}"
         )
+        _run_log(
+            constraints["taskid"],
+            "accepted catalog query",
+            material_queries=constraints["material_queries"],
+            material_families=constraints["material_families"],
+            standards=constraints["standards"],
+            property_constraints=len(constraints["property_constraints"]),
+            service_temperature_K=constraints["service_temperature_K"],
+            top_k=constraints["top_k"],
+        )
         print(f"[WS /mature-material/start] received taskid={constraints['taskid']} peer={peer}; querying catalog")
         # The existing service gateway uses these text markers to delimit one
         # subservice run.  Keep them even though this service also emits typed
         # progress/result JSON for newer clients.
         await websocket.send_text("[start]")
-        await websocket.send_json({"version": "1.0.0", "agent": SERVICE, "request_id": constraints["taskid"], "type": "progress", "data": {"id": "MATURE_CATALOG_QUERY", "title": "材料目录检索与性质核验", "status": "in_progress", "description": "正在规范化别名、核验材料状态和温度条件，并读取可追溯性质证据。"}})
+        await websocket.send_json({"version": "1.0.0", "agent": SERVICE, "request_id": constraints["taskid"], "type": "progress", "data": {"id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID, "title": FRONTEND_STEP_TITLE, "teamType": FRONTEND_TEAM_TYPE, "status": "in_progress", "description": "正在规范化别名、核验材料状态和温度条件，并读取可追溯性质证据。"}})
         result = await _manifest(constraints); _save(result)
+        resolutions = result.get("name_resolution") or []
+        resolution_counts: dict[str, int] = {}
+        for item in resolutions:
+            status = str(item.get("status") or "unknown")
+            resolution_counts[status] = resolution_counts.get(status, 0) + 1
+        candidates = result.get("results") or []
+        candidate_names = [
+            str(item.get("material", {}).get("display_name") or item.get("material", {}).get("material_id") or "-")
+            for item in candidates[:8]
+        ]
+        _run_log(
+            result["taskid"],
+            "catalog query completed",
+            status=result.get("status"),
+            candidates=len(candidates),
+            eligible=sum(bool(item.get("eligible")) for item in candidates),
+            name_resolution=resolution_counts,
+            recommendation=bool(result.get("recommendation")),
+            llm_fallback=bool(result.get("llm_fallback")),
+            candidate_names=candidate_names,
+        )
         assets = _render_assets(result)
+        _run_log(result["taskid"], "presentation prepared", assets=[item["name"] for item in assets])
         result["presentation"] = {"summary_markdown": _summary(result), "assets": assets}
         _save(result)
-        await websocket.send_json({"version": "1.0.0", "agent": SERVICE, "request_id": result["taskid"], "type": "progress", "data": {"id": "MATURE_NAME_RESOLUTION", "title": "名称与牌号核验", "status": "completed", "description": "已完成别名、牌号和标准号的精确匹配；歧义名称不会自动合并。"}})
-        await websocket.send_text("<<<CONTENT_START:MATURE_NAME_RESOLUTION>>>")
+        await websocket.send_json({"version": "1.0.0", "agent": SERVICE, "request_id": result["taskid"], "type": "progress", "data": {"id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID, "title": FRONTEND_STEP_TITLE, "teamType": FRONTEND_TEAM_TYPE, "status": "in_progress", "description": "已完成别名、牌号和标准号的精确匹配；歧义名称不会自动合并。"}})
+        await websocket.send_text(f"<<<CONTENT_START:{FRONTEND_STEP_ID}>>>")
         await stream_markdown_rows(websocket, resolution_markdown(result))
-        await websocket.send_text("<<<CONTENT_END:MATURE_NAME_RESOLUTION>>>")
-        await websocket.send_json({"version": "1.0.0", "agent": SERVICE, "request_id": result["taskid"], "type": "progress", "data": {"id": "MATURE_CATALOG_QUERY", "title": "材料目录检索与性质核验", "status": "completed", "description": result["data_status"]["message"]}})
-        await websocket.send_text("<<<CONTENT_START:MATURE_CATALOG_QUERY>>>")
+        await websocket.send_text(f"<<<CONTENT_END:{FRONTEND_STEP_ID}>>>")
+        await websocket.send_json({"version": "1.0.0", "agent": SERVICE, "request_id": result["taskid"], "type": "progress", "data": {"id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID, "title": FRONTEND_STEP_TITLE, "teamType": FRONTEND_TEAM_TYPE, "status": "in_progress", "description": result["data_status"]["message"]}})
+        await websocket.send_text(f"<<<CONTENT_START:{FRONTEND_STEP_ID}>>>")
         await stream_authoritative_markdown(websocket, comparison_markdown(result), section="catalogue_result")
         await websocket.send_text("\n")
         if assets:
@@ -396,19 +443,25 @@ async def start(websocket: WebSocket):
                     if not item["url"]:
                         continue
                     logger.info("[mature-assets] emitting asset event taskid=%s name=%s url=%s", result["taskid"], item["name"], item["url"])
-                    await websocket.send_json({"step_id": "MATURE_CATALOG_QUERY", "name": item["name"], "docs": item["description"], "url": item["url"], "type": item["type"]})
+                    await websocket.send_json({"step_id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID, "title": FRONTEND_STEP_TITLE, "teamType": FRONTEND_TEAM_TYPE, "name": item["name"], "docs": item["description"], "url": item["url"], "type": item["type"]})
                     await websocket.send_text(f"\n![{item['title']}]({item['url']})\n")
             except Exception as exc:
                 logger.exception("[mature-assets] publishing failed taskid=%s error=%s", result["taskid"], exc)
-                await websocket.send_json({"version": "1.0.0", "agent": SERVICE, "request_id": result["taskid"], "type": "progress", "data": {"id": "MATURE_ASSETS", "title": "图表发布", "status": "failed", "description": "图表已生成，但暂时无法发布；不影响材料检索结果。"}})
+                await websocket.send_json({"version": "1.0.0", "agent": SERVICE, "request_id": result["taskid"], "type": "progress", "data": {"id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID, "title": FRONTEND_STEP_TITLE, "teamType": FRONTEND_TEAM_TYPE, "status": "failed", "description": "图表已生成，但暂时无法发布；不影响材料检索结果。"}})
         await websocket.send_text("\n### 3. 本轮建议\n\n")
         narration = await stream_customer_conclusion(websocket, result)
         result["presentation"]["customer_conclusion"] = narration
         result["presentation"]["assets"] = [item for item in assets if item.get("url")]
         _save(result)
-        await websocket.send_text("<<<CONTENT_END:MATURE_CATALOG_QUERY>>>")
+        await websocket.send_text(f"<<<CONTENT_END:{FRONTEND_STEP_ID}>>>")
         await websocket.send_json({"version": "1.0.0", "agent": SERVICE, "request_id": result["taskid"], "type": "result", "data": result})
         await websocket.send_text("[end]")
+        _run_log(
+            result["taskid"],
+            "completed",
+            assets=[item["name"] for item in result["presentation"]["assets"]],
+            manifest=str(RESULTS / _task_storage_key(result["taskid"]) / "manifest.json"),
+        )
         print(f"[WS /mature-material/start] completed taskid={result['taskid']} peer={peer}")
     except (ValueError, json.JSONDecodeError, UnicodeDecodeError) as exc:
         print(f"[WS /mature-material/start] invalid initial message from peer={peer}: {exc}")
@@ -420,6 +473,8 @@ async def start(websocket: WebSocket):
         # Keep the server log useful when a gateway closes after an internal
         # failure, while returning a structured error to compatible clients.
         print(f"[WS /mature-material/start] failed: {exc!r}")
+        taskid = locals().get("constraints", {}).get("taskid", "unknown")
+        _run_log(str(taskid), "failed", error=repr(exc))
         await websocket.send_json({"version": "1.0.0", "agent": SERVICE, "type": "error", "data": {"message": "catalog query failed", "detail": str(exc)}})
     finally: await websocket.close()
 

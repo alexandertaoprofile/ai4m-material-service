@@ -11,7 +11,7 @@ import subprocess
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Awaitable, Callable
+from typing import Any
 
 from src.storage_utils import get_storage_client, oss_upload
 
@@ -358,10 +358,9 @@ async def stream_discovery_progress(
     request_id: str,
     *,
     step_id: str,
-    stream_phase_note: Callable[[str, str], Awaitable[None]] | None = None,
 ) -> None:
-    """Emit artifact-backed progress and a token-stream status every 15 seconds."""
-    last_phase = -1
+    """Stream phase updates as plain body text; step JSON is sent by the caller."""
+    last_phase: int | None = None
     last_heartbeat = 0.0
     started_at = time.monotonic()
     phase_started_at = started_at
@@ -387,63 +386,33 @@ async def stream_discovery_progress(
             f"常见耗时：{expected}。{expectation_note}"
         )
         if phase_changed or now - last_heartbeat >= 15:
-            # Explain a phase once.  Heartbeats are deliberately compact so a
-            # several-minute model load does not turn the user-facing record
-            # into repeated paragraphs.
-            compact_description = (
-                f"进度：第 {phase}/4 阶段；已等待 {total_elapsed // 60} 分 {total_elapsed % 60} 秒"
-                f"；本阶段 {phase_elapsed // 60} 分 {phase_elapsed % 60} 秒"
-                + (f"；扩散 {sampling['current']}/{sampling['total']}（{sampling['percent']}%）" if sampling else "")
+            description_for_text = full_description if phase_changed else (
+                f"进度：第 {phase}/4 阶段；已等待 {total_elapsed // 60} 分 {total_elapsed % 60} 秒；"
+                f"本阶段已进行 {phase_elapsed // 60} 分 {phase_elapsed % 60} 秒"
+                + (f"；当前扩散步数 {sampling['current']}/{sampling['total']}（{sampling['percent']}%）" if sampling else "")
                 + "。"
             )
-            description_for_event = full_description if phase_changed else compact_description
-            from .payloads import build_payload
-
             _write_progress_state(
-                task_dir, phase=phase, title=title, description=description_for_event,
+                task_dir, phase=phase, title=title, description=description_for_text,
                 total_elapsed=total_elapsed, phase_elapsed=phase_elapsed,
             )
-
-            await websocket.send_json(build_payload(
-                {
-                    "id": step_id,
-                    "icon": "",
-                    "title": title,
-                    "status": "in_progress",
-                    "description": description_for_event,
-                    "progress": {
-                        "mode": "phases",
-                        "current": phase,
-                        "total": 4,
-                        "label": f"第 {phase}/4 阶段",
-                        "elapsed_seconds": total_elapsed,
-                        "phase_elapsed_seconds": phase_elapsed,
-                        "typical_duration": expected,
-                        "sampling": sampling,
-                    },
-                },
-                type_="progress",
-                request_id=request_id,
-            ))
-            last_phase = phase
+            # Keep the former Markdown presentation: a heading for a newly
+            # entered phase and a compact quote for every heartbeat.  It is
+            # ordinary body text, deliberately without CONTENT markers and
+            # without another progress JSON.
+            if phase_changed:
+                markdown = f"\n\n#### {title}\n\n{description_for_text}\n\n"
+            else:
+                markdown = f"> {description_for_text}\n"
+            await websocket.send_text(markdown)
+            if phase_changed:
+                last_phase = phase
             last_heartbeat = now
-            # The front end may choose to render only Markdown blocks. Relay
-            # every artifact-backed status update through SeLLM's token stream
-            # too: the text is fixed by this process and is not a fabricated
-            # diffusion percentage or a rewritten scientific conclusion.
-            if stream_phase_note:
-                try:
-                    # An empty title asks the SeLLM relay to send a compact
-                    # quote-line rather than another full section heading.
-                    await stream_phase_note(title if phase_changed else "", description_for_event)
-                except Exception:
-                    # A presentation-model issue must not interrupt MatterGen.
-                    pass
         await asyncio.sleep(5)
 
 
-async def emit_presentation_assets(websocket, result, *, step_id: str = "NEW_MATERIAL_DISCOVERY") -> None:
-    """Publish and emit assets using the shared MinIO/public-URL convention."""
+async def emit_presentation_assets(websocket, result, *, step_id: str = "FILAMENT_SELECTION_OPTIMIZATION") -> None:
+    """Publish each asset once through the established frontend asset protocol."""
     presentation = (result.artifacts or {}).get("presentation") or {}
     assets = presentation.get("assets") if isinstance(presentation, dict) else []
     if not assets:
@@ -452,32 +421,16 @@ async def emit_presentation_assets(websocket, result, *, step_id: str = "NEW_MAT
     pipeline = "inorganic_new_material"
     jobid = taskid or "job"
 
-    async def _emit_inline_image(*, name: str, docs: str, url: str) -> None:
-        """Use the same in-body Markdown image convention as inorganic_existing.
-
-        MaterialsPNG JSON is useful metadata, but the web client renders the
-        actual figure reliably from a Markdown image inside a CONTENT block.
-        The neighbour service emits both, so do the same here.
-        """
-        label = str(name or "计算可视化").strip()
-        caption = str(docs or label).strip()
-        # The frontend displays plain Markdown images at natural resolution,
-        # which makes the presentation panels unnecessarily dominate a chat.
-        # An ordinary HTML image is supported by the same Markdown renderer and
-        # keeps every generated figure within a readable column width.
-        markdown = (
-            f"#### {label}\n\n"
-            f'<img src="{url}" alt="{caption}" width="620" style="max-width:100%;height:auto;" />\n\n'
-            f"*{caption}*"
-        )
-        await websocket.send_text(f"<<<CONTENT_START:{step_id}>>>")
-        await websocket.send_text(markdown + "\n")
-        await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
-
+    seen_asset_paths: set[Path] = set()
     for asset in assets:
         path = Path(asset.get("path") or "")
         if not path.exists():
             continue
+        resolved_path = path.resolve()
+        if resolved_path in seen_asset_paths:
+            logger.warning("[new-material-assets] skipped duplicate asset path=%s", resolved_path)
+            continue
+        seen_asset_paths.add(resolved_path)
         asset_type = str(asset.get("type") or "MaterialsPNG")
         if asset_type == "MaterialsGLB" or path.suffix.lower() == ".glb":
             publish_name = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{path.name}"
@@ -505,19 +458,17 @@ async def emit_presentation_assets(websocket, result, *, step_id: str = "NEW_MAT
                 logger.warning("[new-material-assets] object absent after upload: key=%s", object_key)
                 continue
 
-            payload = {
+            await websocket.send_json({
                 "step_id": step_id,
-                "name": asset.get("name") or path.stem,
-                "docs": asset.get("docs") or "新材料发现可视化资产",
+                "stepId": "FILAMENT_SELECTION_OPTIMIZATION",
+                "title": "耗材选型和计算优化",
+                "teamType": "Robot_Materials",
+                "name": str(asset.get("name") or path.stem),
+                "docs": str(asset.get("docs") or "新材料发现可视化资产"),
                 "url": public_url,
                 "type": asset_type,
-                "description": asset.get("docs") or "新材料发现可视化资产",
-            }
-            await websocket.send_json(payload)
-            if asset_type == "MaterialsPNG":
-                await _emit_inline_image(
-                    name=str(payload["name"]), docs=str(payload["docs"]), url=public_url,
-                )
+                "description": str(asset.get("docs") or "新材料发现可视化资产"),
+            })
             logger.info("[new-material-assets] emitted type=%s key=%s url=%s", asset_type, object_key, public_url)
         except Exception as exc:
             logger.exception("[new-material-assets] failed to emit asset path=%s error=%s", path, exc)

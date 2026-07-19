@@ -18,6 +18,8 @@ _CURRENT_TASK_MARKER = re.compile(
     r"(?:接下来需要进行执行的任务|接下来执行的任务|当前(?:需要)?执行任务|执行任务)\s*[：:]\s*",
     flags=re.IGNORECASE,
 )
+_USER_TURN_MARKER = re.compile(r"(?:^|\n)用户\s*[：:]\s*", flags=re.IGNORECASE)
+_ASSISTANT_TURN_MARKER = re.compile(r"(?:^|\n)助手\s*[：:]\s*", flags=re.IGNORECASE)
 _CONSTRAINT_KEYS = ("new_material", "mattergen", "generation_constraints", "constraints")
 _VALID_ELEMENTS = frozenset("""
 H He Li Be B C N O F Ne Na Mg Al Si P S Cl Ar K Ca Sc Ti V Cr Mn Fe Co Ni Cu Zn Ga Ge As Se Br Kr
@@ -98,7 +100,21 @@ def _formula_from_text(text: str) -> str | None:
         # ``XIMUAlpha_MNS``) as a formula and then silently keep only the
         # element-looking suffix (N, S).  A conversational formula is usable
         # only when *every* parsed token is a real element symbol.
-        if len(elements) >= 2 and all(element in _VALID_ELEMENTS for element in elements):
+        if not (len(elements) >= 2 and all(element in _VALID_ELEMENTS for element in elements)):
+            continue
+        # Free text contains many all-uppercase workflow and polymer acronyms:
+        # FDM/FFF, PLA, PETG, TPU, PDF, etc.  ``FFF`` is particularly harmful
+        # because every F is a valid element token, so it used to become the
+        # fictitious one-element system ``['F']``.  Accept a prose formula only
+        # when it has at least two *different* elements and either a numerical
+        # stoichiometry (Li3PS4, TiO2) or a normal mixed-case element symbol
+        # (NaCl, LiLaTiPHO3).  Explicit element systems such as Li-P-S are
+        # handled separately below.
+        if len(set(elements)) < 2:
+            continue
+        has_stoichiometry = bool(re.search(r"\d", formula))
+        has_mixed_case_symbol = bool(re.search(r"[A-Z][a-z]", formula))
+        if has_stoichiometry or has_mixed_case_symbol:
             return formula
     return None
 
@@ -147,9 +163,21 @@ def _current_task_text(text: str) -> str:
     language source when no structured ``allowed_elements`` contract exists.
     """
     matches = list(_CURRENT_TASK_MARKER.finditer(text or ""))
-    if not matches:
-        return (text or "").strip()
-    return (text or "")[matches[-1].end():].strip()
+    if matches:
+        return (text or "")[matches[-1].end():].strip()
+
+    # Some upstream callers provide a full chat transcript but omit the
+    # orchestration marker.  In that shape, only the final user turn is the
+    # request.  Do not scan the following assistant/RAG output: it may contain
+    # incidental formulas such as SiC or BN that were merely cited in evidence.
+    user_turns = list(_USER_TURN_MARKER.finditer(text or ""))
+    if user_turns:
+        current = (text or "")[user_turns[-1].end():]
+        assistant = _ASSISTANT_TURN_MARKER.search(current)
+        if assistant:
+            current = current[:assistant.start()]
+        return current.strip()
+    return (text or "").strip()
 
 
 def _elements_from_context(text: str) -> list[str]:
@@ -244,8 +272,11 @@ def _domain_default(text: str) -> tuple[str, list[str], Dict[str, float], Dict[s
             {"ionic_conductivity": None},
         )
     additive_request = any(term in text for term in ("3d打印", "3D打印", "增材制造")) or "additive manufacturing" in lower
+    filament_request = any(term in lower for term in ("fdm", "fff", "filament")) or "丝材" in text
     rocket_request = any(term in text for term in ("爆震", "火箭", "发动机")) or "detonation" in lower or "rocket engine" in lower
-    additive_rocket = additive_request and rocket_request
+    # FDM/FFF is a polymer-filament process, not a cue to silently substitute
+    # a metal superalloy system just because a use-case mentions an engine.
+    additive_rocket = additive_request and rocket_request and not filament_request
     if additive_rocket:
         return (
             "金属增材制造爆震/火箭发动机高温合金",
@@ -272,6 +303,12 @@ def _domain_default(text: str) -> tuple[str, list[str], Dict[str, float], Dict[s
             },
         )
     return None
+
+
+def _is_filament_only_request(text: str) -> bool:
+    """Identify an FDM/FFF request that supplies no inorganic composition."""
+    lower = text.lower()
+    return any(term in lower for term in ("fdm", "fff", "filament")) or "丝材" in text
 
 
 def _constraint_source(payload: Mapping[str, Any]) -> Dict[str, Any]:
@@ -344,6 +381,12 @@ def constraint_from_payload(payload: Dict[str, Any]) -> GenerationConstraint:
                 f"未指定元素体系，已采用“{template_name}”领域起始模板：{'-'.join(template_elements)}；请在生成前确认或修改。"
             )
     if not explicit_allowed:
+        if _is_filament_only_request(extraction_text):
+            raise ValueError(
+                "当前请求描述的是 FDM/FFF 丝材工艺，未提供可用于 MatterGen 的无机元素体系。"
+                "FDM、FFF、PLA、PETG、TPU 等工艺或聚合物缩写不会作为化学式；"
+                "请提供实际无机候选/填料的化学式或元素组合，例如 SiC、B4C、Al-N 或 Li-P-S。"
+            )
         raise ValueError(
             "无法确定待生成的元素体系。请提供化学式、元素组合或材料类别，例如“Li-P-S 硫化物固态电解质”、"
             "“Li-La-Zr-O 石榴石电解质”或“Ti-O 氧化物光催化剂”。"

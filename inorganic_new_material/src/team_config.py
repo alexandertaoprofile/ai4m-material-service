@@ -38,6 +38,8 @@ from src.material_workflow.presentation import build_requirement_brief, emit_pre
 from src.material_workflow.constraints import constraint_from_payload
 from src.material_workflow.llm_constraint_inference import enrich_payload_with_llm_elements
 
+FRONTEND_STEP_ID = "FILAMENT_SELECTION_OPTIMIZATION"
+
 
 def _repo_root() -> str:
     # 当前文件: .../inorganic_new_material/src/team_config.py
@@ -151,7 +153,7 @@ class Coding(Action):
             if progress_sent:
                 return
             await _mark_completed(
-                "MATERIAL_SCREENING",
+                FRONTEND_STEP_ID,
                 "🎯",
                 "材料模拟与计算",
                 "基于机器学习模型进行材料性能快速预测与初步筛选"
@@ -160,14 +162,14 @@ class Coding(Action):
 
         # 诊断模式：MATERIAL_SCREENING 全流程单一包裹（不做分段包裹）
         material_block_opened = False
-        async def _open_material_block(step_id: str = "MATERIAL_SCREENING"):
+        async def _open_material_block(step_id: str = FRONTEND_STEP_ID):
             nonlocal material_block_opened
             if material_block_opened:
                 return
             await websocket.send_text(f"<<<CONTENT_START:{step_id}>>>")
             material_block_opened = True
 
-        async def _close_material_block(step_id: str = "MATERIAL_SCREENING"):
+        async def _close_material_block(step_id: str = FRONTEND_STEP_ID):
             nonlocal material_block_opened
             if not material_block_opened:
                 return
@@ -246,7 +248,7 @@ class Coding(Action):
                     [llm._default_system_msg(), llm._user_msg(intro_prompt)],
                     websocket,
                     mirror_to_content=False,
-                    mirror_step_id="MATERIAL_SCREENING",
+                    mirror_step_id=FRONTEND_STEP_ID,
                 )
             except Exception:
                 await websocket.send_text("1. 需求拆解应先从应用场景出发，建立可计算、可验证的多指标约束，而非追求单一数值最优。\n\n")
@@ -276,7 +278,7 @@ class Coding(Action):
                 [llm._default_system_msg(), llm._user_msg(prompt)],
                 websocket,
                 mirror_to_content=False,
-                mirror_step_id="MATERIAL_SCREENING",
+                mirror_step_id=FRONTEND_STEP_ID,
             )
             if not _is_param_table_valid(out):
                 logger.warning("[PARAM_TABLE] non-strict markdown table from LLM (stream-only mode)")
@@ -309,7 +311,7 @@ class Coding(Action):
                     [llm._default_system_msg(), llm._user_msg(bridge_prompt)],
                     websocket,
                     mirror_to_content=False,
-                    mirror_step_id="MATERIAL_SCREENING",
+                    mirror_step_id=FRONTEND_STEP_ID,
                 )
             except Exception:
                 await websocket.send_text("1. 参数化提炼阶段先固定关键性能窗口与边界条件，优先排除与目标工况冲突的材料类别。\n\n")
@@ -517,7 +519,7 @@ class Coding(Action):
                 jobid=formula,
                 pipeline="mp",
                 allow_latest_job=False,
-                step_id="MATERIAL_SCREENING",
+                step_id=FRONTEND_STEP_ID,
                 emit_summary_block=False,
             )
 
@@ -576,7 +578,7 @@ class Coding(Action):
                 await websocket.send_text("⚠️ /mp 后必须是化学式，例如：/mp Li6PS5Cl\n")
                 return
 
-            await _open_material_block("MATERIAL_SCREENING")
+            await _open_material_block(FRONTEND_STEP_ID)
             try:
                 # 进入材料流程即触发 progress
                 await _ensure_material_progress_started()
@@ -586,7 +588,7 @@ class Coding(Action):
 
                 await _mp_one(formula)
             finally:
-                await _close_material_block("MATERIAL_SCREENING")
+                await _close_material_block(FRONTEND_STEP_ID)
             return
 
         # =========================
@@ -606,7 +608,7 @@ class Coding(Action):
             logger.info(f"[ROUTER] extracted_mp_tokens={mp_formulas}")
 
             if formulas:
-                await _open_material_block("MATERIAL_SCREENING")
+                await _open_material_block(FRONTEND_STEP_ID)
                 try:
                     # 进入材料流程即触发 progress
                     await _ensure_material_progress_started()
@@ -660,7 +662,7 @@ class Coding(Action):
 
                     await websocket.send_text("\n材料模拟与计算模块完成。\n")
                 finally:
-                    await _close_material_block("MATERIAL_SCREENING")
+                    await _close_material_block(FRONTEND_STEP_ID)
                 return
 
 
@@ -745,17 +747,9 @@ class InorganicNewMaterialDiscoveryAction(Action):
             if "无法确定待生成的元素体系" not in str(exc):
                 raise
             logger.info("[CONSTRAINT_LLM] deterministic extraction empty; requesting constrained LLM inference taskid=%s", taskid)
-            await websocket.send_json(build_payload(
-                {
-                    "id": "NEW_MATERIAL_CONSTRAINT_INFERENCE",
-                    "icon": "",
-                    "title": "生成条件归纳",
-                    "status": "in_progress",
-                    "description": "未检测到显式元素体系，正在结合当前任务和上游材料结论归纳可用于起始探索的元素组合。",
-                },
-                type_="progress",
-                request_id=str(payload["taskid"]),
-            ))
+            await websocket.send_text(
+                "正在归纳生成条件：未检测到显式元素体系，正结合当前任务和上游材料结论确定起始探索的元素组合。\n"
+            )
             enriched_payload = await enrich_payload_with_llm_elements(payload)
             if not enriched_payload:
                 raise
@@ -763,7 +757,7 @@ class InorganicNewMaterialDiscoveryAction(Action):
             constraints = constraint_from_payload(payload)
         await websocket.send_json(build_payload(
             {
-                "id": "NEW_MATERIAL_DISCOVERY",
+                "id": FRONTEND_STEP_ID,
                 "icon": "🧪",
                 "title": "生成式无机新材料发现",
                 "status": "in_progress",
@@ -773,26 +767,16 @@ class InorganicNewMaterialDiscoveryAction(Action):
             request_id=str(payload["taskid"]),
         ))
         await self._stream_authoritative_markdown(
-            llm, websocket, "NEW_MATERIAL_BRIEF", build_requirement_brief(constraints)
+            llm, websocket, FRONTEND_STEP_ID, build_requirement_brief(constraints)
         )
         results_root = Path(__file__).resolve().parent / "MNS_CaseHub/cases/material_discovery_demo/results/new_material"
-
-        async def stream_phase_note(title: str, description: str) -> None:
-            markdown = f"#### {title}\n\n{description}" if title else f"> {description}"
-            await self._stream_authoritative_markdown(
-                llm,
-                websocket,
-                "NEW_MATERIAL_DISCOVERY",
-                markdown,
-            )
 
         progress_task = asyncio.create_task(
             stream_discovery_progress(
                 websocket,
                 results_root / constraints.taskid,
                 constraints.taskid,
-                step_id="NEW_MATERIAL_DISCOVERY",
-                stream_phase_note=stream_phase_note,
+                step_id=FRONTEND_STEP_ID,
             )
         )
         try:
@@ -812,25 +796,13 @@ class InorganicNewMaterialDiscoveryAction(Action):
             await self._stream_authoritative_markdown(
                 llm,
                 websocket,
-                "NEW_MATERIAL_DISCOVERY",
+                FRONTEND_STEP_ID,
                 "#### 已生成的可视化\n\n候选结构图、旋转视图、稳定性评分卡和三维结构模型已生成，先展示计算产物；随后给出结果解读。",
             )
-            await emit_presentation_assets(websocket, result, step_id="NEW_MATERIAL_DISCOVERY")
+            await emit_presentation_assets(websocket, result, step_id=FRONTEND_STEP_ID)
         await self._stream_authoritative_markdown(
-            llm, websocket, "NEW_MATERIAL_DISCOVERY", result_summary(result)
+            llm, websocket, FRONTEND_STEP_ID, result_summary(result)
         )
-        await websocket.send_json(build_payload(
-            {
-                "id": "NEW_MATERIAL_DISCOVERY",
-                "icon": "🧪",
-                "title": "生成式无机新材料发现",
-                "status": "completed" if result.status == "ok" else "failed",
-                "description": result.message,
-                "result": result.to_dict(),
-            },
-            type_="progress",
-            request_id=result.taskid,
-        ))
         return f"[[WORKFLOW_STATUS:{result.status}]]\n{result_summary(result)}"
 
 class InorganicNewMaterialDiscoveryRole(Role):
@@ -846,8 +818,8 @@ class InorganicNewMaterialDiscoveryRole(Role):
     # 简要画像（供框架/上游作为 system profile 使用）
     profile: str = (
         "生成式无机新材料发现服务：把数据库之外的全新无机晶体设计需求转为可执行的生成与热力学初筛任务。"
-        "触发前提：上游给出明确化学式或元素体系，并要求生成、发现或验证数据库外的新晶体；适用新陶瓷、催化剂和功能晶体等。"
-        "不用于仅查询已有材料数据库或商品牌号。"
+        "触发前提：必须同时给出明确化学式或元素体系，并要求生成、发现或验证数据库外的新晶体；适用新陶瓷、催化剂和功能晶体等。"
+        "不用于已有材料查询、商品牌号、材料筛选与计算、材料选型、FDM/FFF 丝材或商用耗材性质对比。"
         "输入可使用结构化 new_material 合同：allowed_elements、target_properties（MatterGen 可条件化的数值性质）、"
         "validation_targets、max_candidates；也可使用自然语言。自然语言只从当前执行指令提取元素体系和验证关注点，"
         "不会把历史 RAG 摘要中的 PLA、PETG 等词误当成元素约束；未给稳定性阈值时默认 E_hull ≤ 0.05 eV/atom，以使用已缓存的条件模型。"

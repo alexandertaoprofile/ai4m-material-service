@@ -29,6 +29,9 @@ from src.alloy_workflow.assets import publish_png_assets
 
 load_dotenv()
 SERVICE = "alloy-composition-optimization"
+FRONTEND_STEP_ID = "FILAMENT_SELECTION_OPTIMIZATION"
+FRONTEND_STEP_TITLE = "耗材选型和计算优化"
+FRONTEND_TEAM_TYPE = "Robot_Materials"
 RESULTS = Path(os.getenv("ALLOY_RESULTS_ROOT", "results/alloy_composition_optimization"))
 SURROGATE_ROOT = Path(os.getenv("HEA_SURROGATE_ROOT", "/data/se42/hea_surrogate"))
 SURROGATE_ENV = Path(os.getenv("HEA_SURROGATE_ENV_PREFIX", "/data/mamba/envs/mattergen-py310"))
@@ -239,7 +242,8 @@ def roles():
         "子流程：合金与高温合金成分配比优化（alloy_composition_optimization）。"
         "仅在需要调整元素种类、原子百分比或合金成分空间时调用，用于 HEA/MPEA 或高温合金的候选排序、"
         "性能预测、不确定性与适用域评价。典型触发词：合金配比、高熵合金、HEA、MPEA、元素比例、原子百分比、成分优化。"
-        "排除：已有牌号/商品材料的性质查询或材料选型；明确化学式的全新晶体生成；只有“高温、热稳定性、导热”等性能描述但没有高熵/高温合金成分设计意图的请求。"
+        "排除：已有牌号/商品材料的性质查询或材料选型、FDM/FFF 丝材和商用耗材筛选；明确化学式的全新晶体生成；"
+        "只有“高温、热稳定性、导热”等性能描述但没有高熵/高温合金成分设计意图的请求。"
     )
     return {
         profile: {
@@ -282,7 +286,7 @@ def roles():
                 "priority": 1,
                 "match_when": "请求明确涉及 HEA/MPEA/高熵/多主元或高温合金，并且要求配比、元素比例、成分空间或优化。",
                 "include_keywords": ["高熵合金配比", "HEA", "MPEA", "多主元成分", "元素比例", "原子百分比", "成分优化", "高温合金配比"],
-                "exclude_keywords": ["已有材料查询", "商品材料", "牌号查询", "材料选型", "明确化学式的新材料生成"],
+                "exclude_keywords": ["已有材料查询", "商品材料", "牌号查询", "材料选型", "材料筛选", "FDM", "FFF", "丝材", "商用耗材", "明确化学式的新材料生成"],
             },
             "recovered": False,
             "latest_observed_msg": None,
@@ -328,7 +332,7 @@ async def prepare_public_assets(websocket: WebSocket, taskid: str, result: dict[
         public_urls=await publish_png_assets(taskid, assets_to_publish)
     except Exception as asset_exc:
         public_urls={}
-        await websocket.send_json({"version":"1.0.0", "agent":"alloy_composition_optimization", "request_id":taskid, "type":"progress", "data":{"id":"ALLOY_ASSETS", "title":"图表发布", "status":"failed", "description":str(asset_exc)}})
+        await websocket.send_json({"version":"1.0.0", "agent":"alloy_composition_optimization", "request_id":taskid, "type":"progress", "data":{"id":FRONTEND_STEP_ID, "stepId":FRONTEND_STEP_ID, "title":FRONTEND_STEP_TITLE, "teamType":FRONTEND_TEAM_TYPE, "status":"failed", "description":str(asset_exc)}})
     asset_docs={"screening_funnel":"左柱为生成的候选数，右柱为通过初筛的候选数，用于判断当前条件的筛选严格程度。","strength_hardness_tradeoff":"每个点代表一个通过初筛的候选：横轴越右表示预测屈服强度越高，纵轴越上表示预测硬度越高；蓝色为训练数据覆盖较好，橙色为训练数据边界附近。","composition_percentiles":"这张图展示保留候选中每种元素的常见含量区间：竖线下端为 P5、圆点为 P50（中位数）、上端为 P95。它用于了解下一步可继续探索的配比区域，不代表最终推荐配方。"}
     asset_titles={"screening_funnel":"候选筛选概览","strength_hardness_tradeoff":"强度与硬度的候选分布","composition_percentiles":"候选成分区间图（非最终配方）"}
     visual_assets=[{"url":public_urls[item["name"]], "title":asset_titles.get(item["name"], item["name"]), "description":asset_docs.get(item["name"], "")} for item in result["presentation"]["assets"] if item["name"] in public_urls]
@@ -339,31 +343,66 @@ async def emit_public_asset_events(websocket: WebSocket, result: dict[str, Any],
     for item in result["presentation"]["assets"]:
         asset_url=public_urls.get(item["name"])
         if asset_url:
-            await websocket.send_json({"step_id":"ALLOY_SCREENING", "name":item["name"], "docs":asset_docs.get(item["name"], item["name"]), "url":asset_url, "type":"MaterialsPNG", "description":asset_docs.get(item["name"], "")})
+            await websocket.send_json({"step_id":FRONTEND_STEP_ID, "stepId":FRONTEND_STEP_ID, "title":FRONTEND_STEP_TITLE, "teamType":FRONTEND_TEAM_TYPE, "name":item["name"], "docs":asset_docs.get(item["name"], item["name"]), "url":asset_url, "type":"MaterialsPNG", "description":asset_docs.get(item["name"], "")})
             await asyncio.sleep(0.15)
 @app.websocket("/start")
 @app.websocket("/alloy/start")
 async def start(websocket:WebSocket):
     await websocket.accept()
+    peer = f"{websocket.client.host}:{websocket.client.port}" if websocket.client else "unknown"
+    print(f"[WS /alloy/start] accepted peer={peer}; waiting for initial JSON", flush=True)
     try:
-        payload=await websocket.receive_json(); effective,plan=_requirement_plan(payload); taskid=_taskid(payload)
+        # Receive the raw ASGI event first so a client that opens then closes
+        # before sending its request is visible in logs instead of becoming a
+        # silent WebSocketDisconnect from receive_json().
+        event = await websocket.receive()
+        if event["type"] == "websocket.disconnect":
+            print(
+                f"[WS /alloy/start] peer={peer} disconnected before initial JSON "
+                f"(code={event.get('code')})",
+                flush=True,
+            )
+            return
+        raw_payload = event.get("text")
+        if raw_payload is None and event.get("bytes") is not None:
+            raw_payload = event["bytes"].decode("utf-8")
+        if raw_payload is None:
+            raise ValueError("initial WebSocket message must be JSON text")
+        payload = json.loads(raw_payload)
+        if not isinstance(payload, dict):
+            raise ValueError("initial WebSocket JSON must be an object")
+        effective,plan=_requirement_plan(payload); taskid=_taskid(payload)
         context, context_keys = _upstream_requirement(payload)
         context_preview = re.sub(r"\s+", " ", context)[:600]
-        print(f"[WS /alloy/start] upstream received taskid={taskid} keys={context_keys} context_chars={len(context)} preview={context_preview!r}")
-        await websocket.send_json({"version":"1.0.0","agent":"alloy_composition_optimization","request_id":taskid,"type":"progress","data":{"id":"ALLOY_REQUIREMENT","title":"需求解读与搜索空间","status":"completed","description":"已生成可覆盖的探索模板和待确认项。","result":plan}})
-        await websocket.send_text(f"<<<CONTENT_START:ALLOY_REQUIREMENT>>>\n### 合金设计需求解读\n- 探索方案：{_template_label(plan['template'])}\n- 适用对象：高熵合金/多主元合金。\n- 待确认：{'；'.join(plan['questions_to_confirm'])}\n<<<CONTENT_END:ALLOY_REQUIREMENT>>>")
-        await websocket.send_json({"version":"1.0.0","agent":"alloy_composition_optimization","request_id":taskid,"type":"progress","data":{"id":"ALLOY_SCREENING","title":"候选生成与代理模型初筛","status":"in_progress","description":"正在通过隔离的 HEA 专项 runner 进行采样和批量预测。"}})
+        print(f"[WS /alloy/start] upstream received taskid={taskid} peer={peer} keys={context_keys} context_chars={len(context)} preview={context_preview!r}", flush=True)
+        print(f"[ALLOY][{taskid}] accepted template={plan.get('template')!r} domain={effective.get('model_domain')!r}", flush=True)
+        await websocket.send_text("[start]")
+        await websocket.send_json({"version":"1.0.0","agent":"alloy_composition_optimization","request_id":taskid,"type":"progress","data":{"id":FRONTEND_STEP_ID,"stepId":FRONTEND_STEP_ID,"title":FRONTEND_STEP_TITLE,"teamType":FRONTEND_TEAM_TYPE,"status":"completed","description":"已生成可覆盖的探索模板和待确认项。","result":plan}})
+        await websocket.send_text(f"<<<CONTENT_START:{FRONTEND_STEP_ID}>>>\n### 合金设计需求解读\n- 探索方案：{_template_label(plan['template'])}\n- 适用对象：高熵合金/多主元合金。\n- 待确认：{'；'.join(plan['questions_to_confirm'])}\n<<<CONTENT_END:{FRONTEND_STEP_ID}>>>")
+        await websocket.send_json({"version":"1.0.0","agent":"alloy_composition_optimization","request_id":taskid,"type":"progress","data":{"id":FRONTEND_STEP_ID,"stepId":FRONTEND_STEP_ID,"title":FRONTEND_STEP_TITLE,"teamType":FRONTEND_TEAM_TYPE,"status":"in_progress","description":"正在通过隔离的 HEA 专项 runner 进行采样和批量预测。"}})
         result=await asyncio.to_thread(_proposal,payload); result["_summary_path"]=RESULTS/taskid/"presentation"/"summary.md"
         public_urls,asset_docs,_asset_titles,visual_assets=await prepare_public_assets(websocket,taskid,result)
         # Follow the neighboring 3D-material service: public image URLs are
         # embedded in the streamed Markdown *and* announced as asset events.
         # The first path works in chat renderers that do not render asset cards.
-        await emit_result_content(websocket,result,step_id="ALLOY_SCREENING",visual_assets=visual_assets)
+        await emit_result_content(websocket,result,step_id=FRONTEND_STEP_ID,visual_assets=visual_assets)
         result.pop("_summary_path",None)
         await emit_public_asset_events(websocket,result,public_urls,asset_docs)
         await websocket.send_json({"version":"1.0.0","agent":"alloy_composition_optimization","request_id":taskid,"type":"result","data":result})
-    except WebSocketDisconnect: return
-    except Exception as exc: await websocket.send_json({"version":"1.0.0","agent":"alloy_composition_optimization","type":"error","data":str(exc)})
-    finally: await websocket.close()
+        await websocket.send_text("[end]")
+        print(f"[ALLOY][{taskid}] completed candidates={len(result.get('candidates') or [])}", flush=True)
+    except WebSocketDisconnect as exc:
+        print(f"[WS /alloy/start] peer={peer} disconnected during response (code={exc.code})", flush=True)
+    except Exception as exc:
+        print(f"[WS /alloy/start] failed peer={peer} error={exc!r}", flush=True)
+        try:
+            await websocket.send_json({"version":"1.0.0","agent":"alloy_composition_optimization","type":"error","data":str(exc)})
+        except (RuntimeError, WebSocketDisconnect):
+            pass
+    finally:
+        try:
+            await websocket.close()
+        except (RuntimeError, WebSocketDisconnect):
+            pass
 
 if __name__=="__main__": uvicorn.run(app,host="0.0.0.0",port=int(os.getenv("PORT","20162")))

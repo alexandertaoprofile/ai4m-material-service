@@ -23,7 +23,7 @@ async def send_results_to_frontend(
     jobid: str = "",
     pipeline: str = "mp",
     allow_latest_job: bool = True,
-    step_id: str = "MATERIAL_SCREENING",
+    step_id: str = "FILAMENT_SELECTION_OPTIMIZATION",
     emit_summary_block: bool = True,
     upload_func: Callable[[str, str, bytes], Awaitable[dict]] = oss_upload,
     image_url_func: Callable[[str, str], str] = get_image_url,

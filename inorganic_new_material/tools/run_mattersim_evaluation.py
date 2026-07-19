@@ -8,6 +8,7 @@ environment.  The service process itself must not import MatterSim.
 from __future__ import annotations
 
 import argparse
+import itertools
 import json
 import os
 from pathlib import Path
@@ -88,28 +89,79 @@ def _mp_api_reference_results(structures, total_energies, original_structures):
     """
     from dotenv import load_dotenv
     from mp_api.client import MPRester
+    from pymatgen.core import Composition
+    from pymatgen.entries.computed_entries import ComputedEntry
+    from pymatgen.io.ase import AseAtomsAdaptor
     from pymatgen.analysis.phase_diagram import PhaseDiagram
     from pymatgen.analysis.structure_matcher import StructureMatcher
     from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
     from mattergen.evaluation.utils.metrics_structure_summary import get_metrics_structure_summaries
 
-    _install_mp_api_pymatgen_compat()
     load_dotenv(Path(__file__).resolve().parents[1] / ".env")
     api_key = os.environ.get("MP_API_KEY") or os.environ.get("MAPI_KEY") or os.environ.get("MP_API_TOKEN")
     if not api_key:
         raise RuntimeError("MP_API_KEY is required for MatterSim MP-reference evaluation.")
+    # MatterSim relaxation returns ASE Atoms, while MatterGen's metrics helper
+    # expects pymatgen Structures.  Convert here so both the phase-diagram
+    # calculation and the subsequent crystallographic traceability use the
+    # relaxed structure consistently.
+    pymatgen_structures = [
+        structure if hasattr(structure, "composition") else AseAtomsAdaptor.get_structure(structure)
+        for structure in structures
+    ]
     summaries = get_metrics_structure_summaries(
-        structures=structures,
+        structures=pymatgen_structures,
         energies=total_energies,
         original_structures=original_structures,
     )
     reference_by_chemsys = {}
-    with MPRester(api_key) as mpr:
+    # Do not use ``get_entries_in_chemsys`` here.  The deployed mp-api and
+    # pymatgen versions disagree on the serialized ``energy_adjustments``
+    # type (dict vs EnergyAdjustment), causing that convenience method to
+    # fail while decoding otherwise valid MP responses.  The thermo endpoint
+    # provides the exact fields required to construct PhaseDiagram entries.
+    with MPRester(
+        api_key,
+        monty_decode=False,
+        use_document_model=False,
+        mute_progress_bars=True,
+    ) as mpr:
         for summary in summaries:
             elements = tuple(sorted(element.symbol for element in summary.entry.composition.elements))
             if elements not in reference_by_chemsys:
-                reference_by_chemsys[elements] = mpr.get_entries_in_chemsys(list(elements))
+                records = mpr.materials.thermo.search(
+                    # ``thermo.search`` treats one chemsys string as an exact
+                    # element set.  A phase diagram needs entries from every
+                    # non-empty subset (elements and binaries included), as
+                    # ``get_entries_in_chemsys`` used to provide.
+                    chemsys=[
+                        "-".join(subset)
+                        for size in range(1, len(elements) + 1)
+                        for subset in itertools.combinations(elements, size)
+                    ],
+                    all_fields=False,
+                    fields=["material_id", "composition", "energy_per_atom"],
+                )
+                entries = []
+                for record in records:
+                    if not isinstance(record, dict):
+                        record = record.model_dump()
+                    composition = record.get("composition")
+                    energy_per_atom = record.get("energy_per_atom")
+                    if not composition or energy_per_atom is None:
+                        continue
+                    parsed_composition = Composition(composition)
+                    entries.append(ComputedEntry(
+                        composition=parsed_composition,
+                        energy=float(energy_per_atom) * parsed_composition.num_atoms,
+                        entry_id=record.get("material_id"),
+                    ))
+                if not entries:
+                    raise RuntimeError(
+                        f"Materials Project returned no usable thermo entries for {'-'.join(elements)}."
+                    )
+                reference_by_chemsys[elements] = entries
     def _structure_fingerprint(structure):
         try:
             analyzer = SpacegroupAnalyzer(structure, symprec=0.1, angle_tolerance=5)
@@ -171,7 +223,7 @@ def _mp_api_reference_results(structures, total_energies, original_structures):
         }
 
     result = []
-    for structure, summary in zip(structures, summaries):
+    for structure, summary in zip(pymatgen_structures, summaries):
         elements = tuple(sorted(element.symbol for element in summary.entry.composition.elements))
         phase_diagram = PhaseDiagram(reference_by_chemsys[elements])
         result.append(

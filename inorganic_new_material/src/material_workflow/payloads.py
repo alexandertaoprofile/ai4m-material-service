@@ -36,6 +36,16 @@ def build_payload(
     except Exception:
         pass
 
+    # The service has one frontend workflow step.  Normalize every progress
+    # payload here so lower-level emitters cannot drift from that contract.
+    if type_ == "progress" and isinstance(payload.get("data"), dict):
+        payload["data"].update({
+            "id": "FILAMENT_SELECTION_OPTIMIZATION",  # legacy client field
+            "stepId": "FILAMENT_SELECTION_OPTIMIZATION",
+            "title": "耗材选型和计算优化",
+            "teamType": "Robot_Materials",
+        })
+
     try:
         max_chars = int(payload.get("meta", {}).get("ui", {}).get("max_text_chars", 6000))
         if type_ in ("chat", "error", "progress") and isinstance(payload.get("data"), str):

@@ -216,16 +216,19 @@ def resolution_markdown(result: dict[str, Any]) -> str:
                 "这些材料不是名称匹配结果。"
             )
         return "### 1. 材料名称核对\n\n您未指定具体牌号，本轮将按材料类别和性质条件检索已入库目录。"
-    lines = ["### 1. 材料名称核对", "", "| 您提供的名称 | 目录中的对应材料 | 核对说明 |", "|---|---|---|"]
+    lines = ["### 1. 材料名称匹配", "", "| 输入名称 | 目录条目 | 匹配结果 |", "|---|---|---|"]
+    has_exact_match = False
     for row in rows:
         matched = "、".join(dict.fromkeys(
             item.get("display_name") or item.get("material_id", "")
             for item in (row.get("resolved_materials") or [])
         )) or "无"
-        status = {"matched": "已找到对应材料记录", "ambiguous": "名称可能对应多个状态，建议确认牌号/状态", "unmatched": "目录中暂未找到对应记录"}.get(row.get("status"), row.get("status"))
+        status = {"matched": "精确匹配", "ambiguous": "需确认牌号或状态", "unmatched": "目录中未找到"}.get(row.get("status"), row.get("status"))
         if row.get("status") == "matched":
-            status = "已按目录别名匹配至单一材料记录；性质仅适用于表中材料状态和测试条件"
+            has_exact_match = True
         lines.append(f"| {row.get('input')} | {matched} | {status} |")
+    if has_exact_match:
+        lines += ["", "说明：下列性质仅对应所列产品状态和测试条件，不外推至同名的其他品牌、加工方式或材料状态。"]
     return "\n".join(lines)
 
 
@@ -242,11 +245,17 @@ def comparison_markdown(result: dict[str, Any]) -> str:
     if recommendation:
         lines += ["以下条目由模型限定在当前目录内选出，供后续核验参考；不代表与用户原始名称相同，也不代表已满足性能要求。", ""]
     elif result.get("name_resolution"):
-        lines += ["提示：材料缩写仅映射到当前目录中的具体产品/状态，不能外推到同名的其他厂商、加工方式或材料状态。", ""]
-    lines += ["| 材料与状态 | 性质 | 已入库数值/范围 | 测试条件 |", "|---|---|---|---|"]
+        lines += ["以下数据按具体产品状态分组展示，便于核对数值与测试条件。", ""]
     for candidate in result.get("results", []):
-        for identity, property_name, value_text, condition in _property_table_rows(candidate):
-            lines.append(f"| {identity}<br>{candidate['material'].get('product_state') or '-'} | {property_name} | {value_text} | {condition} |")
+        material = candidate["material"]
+        identity = material.get("display_name") or material.get("material_id") or "未命名材料"
+        if material.get("grade"):
+            identity += f"（{material['grade']}）"
+        state = material.get("product_state") or "未注明"
+        lines += [f"#### {identity}", "", f"状态：{state}", "", "| 性质 | 已入库数值/范围 | 测试条件 |", "|---|---|---|"]
+        for _identity, property_name, value_text, condition in _property_table_rows(candidate):
+            lines.append(f"| {property_name} | {value_text} | {condition} |")
+        lines.append("")
     if not result.get("results", []):
         return "\n".join([
             "### 2. 检索结果", "",
@@ -278,8 +287,7 @@ def conclusion_markdown(result: dict[str, Any]) -> str:
             "上述条目仅用于帮助下一步确认材料路线。请补充目标牌号、材料状态、服役温度和性质阈值后，再进行可追溯的定量比较。",
         ])
     return "\n".join([
-        "### 3. 本轮结论与数据边界", "",
+        "### 3. 本轮结论", "",
         f"本轮在结构化目录中比较了 **{len(candidates)}** 种候选，**{eligible}** 种满足当前可比较的性质条件。",
         catalog_message,
-        "结论只基于记录的材料牌号、状态、温度和来源。缺失数据、别名歧义、单位不一致或温度超出测量范围，不会被判定为满足。",
     ])
