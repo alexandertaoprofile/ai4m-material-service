@@ -78,8 +78,8 @@ def _validate_in_mattergen_environment(candidate: GeneratedCandidate) -> Validat
         return ValidationResult(candidate_id=candidate.candidate_id, status="unavailable", formula_pretty=candidate.formula_pretty, artifacts={"cif_path": str(candidate.cif_path)}, errors=[f"Could not read MatterGen-environment validation result: {exc}"])
 
 
-def run_adit_pymatgen_validation(candidate: GeneratedCandidate, output_dir: Path, runner: Optional[ValidationRunner] = None) -> ValidationResult:
-    """Perform lightweight ADiT-compatible admission checks using pymatgen."""
+def run_pymatgen_structural_admission(candidate: GeneratedCandidate, output_dir: Path, runner: Optional[ValidationRunner] = None) -> ValidationResult:
+    """Perform lightweight structural admission checks using pymatgen."""
     result = (runner or (lambda item, _: _validate_in_mattergen_environment(item)))(candidate, output_dir)
     write_validation_result(result, output_dir)
     return result

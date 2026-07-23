@@ -1,8 +1,8 @@
 """Shared schemas for the inorganic new-material discovery pipeline.
 
 This module is intentionally dependency-light. It defines the contracts between
-future MatterGen generation, ADiT/pymatgen validation, ranking, and frontend
-emission without wiring those stages into the running service yet.
+MatterGen generation, pymatgen structural admission, ranking, and frontend
+emission.
 """
 
 from __future__ import annotations
@@ -85,7 +85,7 @@ class ValidationResult:
 
     candidate_id: str
     status: str
-    validator: str = "adit_pymatgen"
+    validator: str = "pymatgen_structural_admission"
     is_valid: Optional[bool] = None
     formula_pretty: Optional[str] = None
     space_group: Optional[str] = None

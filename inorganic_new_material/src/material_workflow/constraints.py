@@ -39,11 +39,18 @@ _VALIDATION_LABELS = {
 }
 
 
-def _safe_taskid(value: Any) -> tuple[str, str]:
-    """Return a safe local task key while retaining opaque gateway IDs in provenance."""
+def normalize_taskid(value: Any) -> tuple[str, str]:
+    """Return a safe local task key while retaining opaque gateway IDs in provenance.
+
+    All filesystem-facing endpoints must use this function rather than placing
+    a gateway-provided task ID directly in a local path. IDs that already use
+    the established URL-safe form are left unchanged.
+    """
     external_taskid = str(value or uuid.uuid4().hex).strip()
     if not external_taskid or len(external_taskid) > 512:
         raise ValueError("taskid must be a non-empty string no longer than 512 characters")
+    if external_taskid in {".", ".."}:
+        raise ValueError("taskid cannot be a path navigation segment")
     if re.fullmatch(r"[A-Za-z0-9_.-]{1,128}", external_taskid):
         return external_taskid, external_taskid
     readable = re.sub(r"[^A-Za-z0-9_.-]+", "_", external_taskid).strip("_.-")[:72]
@@ -96,8 +103,7 @@ def _text(value: Any) -> str:
 def _formula_from_text(text: str) -> str | None:
     for formula in _FORMULA.findall(text):
         elements = _ELEMENT_TOKEN.findall(re.sub(r"\d+(?:\.\d+)?", "", formula))
-        # Never treat an acronym/role name (for example ``MNS`` in
-        # ``XIMUAlpha_MNS``) as a formula and then silently keep only the
+        # Never treat an acronym/legacy role identifier as a formula and then silently keep only the
         # element-looking suffix (N, S).  A conversational formula is usable
         # only when *every* parsed token is a real element symbol.
         if not (len(elements) >= 2 and all(element in _VALID_ELEMENTS for element in elements)):
@@ -239,9 +245,9 @@ def _domain_default(text: str) -> tuple[str, list[str], Dict[str, float], Dict[s
     """Return an auditable starting template for a clearly named use case.
 
     Templates are starting points for generation, never claims of an
-    optimized engineering composition.  They cover clearly named inorganic
-    discovery domains as well as the legacy alloy cases; a generic material
-    request must still name its elements.
+    optimized engineering composition. They are limited to supported inorganic
+    crystal-discovery domains; a generic material request must still name its
+    elements.
     """
     lower = text.lower()
     solid_electrolyte = "固态电解质" in text or "solid electrolyte" in lower
@@ -271,37 +277,6 @@ def _domain_default(text: str) -> tuple[str, list[str], Dict[str, float], Dict[s
             {"energy_above_hull": 0.05},
             {"ionic_conductivity": None},
         )
-    additive_request = any(term in text for term in ("3d打印", "3D打印", "增材制造")) or "additive manufacturing" in lower
-    filament_request = any(term in lower for term in ("fdm", "fff", "filament")) or "丝材" in text
-    rocket_request = any(term in text for term in ("爆震", "火箭", "发动机")) or "detonation" in lower or "rocket engine" in lower
-    # FDM/FFF is a polymer-filament process, not a cue to silently substitute
-    # a metal superalloy system just because a use-case mentions an engine.
-    additive_rocket = additive_request and rocket_request and not filament_request
-    if additive_rocket:
-        return (
-            "金属增材制造爆震/火箭发动机高温合金",
-            ["Ni", "Co", "Cr", "Al", "Ti"],
-            {"energy_above_hull": 0.05},
-            {
-                "high_temperature_strength": None,
-                "creep_resistance": None,
-                "oxidation_resistance": None,
-                "thermal_fatigue": None,
-                "additive_manufacturability": None,
-            },
-        )
-    high_entropy = any(term in text for term in ("高温高熵", "难熔高熵", "高熵合金")) or "refractory high entropy" in lower or "high entropy alloy" in lower
-    if high_entropy:
-        return (
-            "难熔高熵合金",
-            ["Nb", "Mo", "Ta", "W"],
-            {"energy_above_hull": 0.05},
-            {
-                "high_temperature_strength": None,
-                "creep_resistance": None,
-                "oxidation_resistance": None,
-            },
-        )
     return None
 
 
@@ -309,6 +284,14 @@ def _is_filament_only_request(text: str) -> bool:
     """Identify an FDM/FFF request that supplies no inorganic composition."""
     lower = text.lower()
     return any(term in lower for term in ("fdm", "fff", "filament")) or "丝材" in text
+
+
+def _is_alloy_optimization_request(text: str) -> bool:
+    """Keep alloy composition work out of the inorganic-crystal service."""
+    lower = text.lower()
+    return any(term in text for term in ("高熵合金", "难熔高熵", "合金配比", "元素比例", "原子百分比", "成分空间")) or any(
+        term in lower for term in ("high entropy alloy", "refractory high entropy", " alloy ", "hea", "mpea")
+    )
 
 
 def _constraint_source(payload: Mapping[str, Any]) -> Dict[str, Any]:
@@ -337,7 +320,7 @@ def constraint_from_payload(payload: Dict[str, Any]) -> GenerationConstraint:
     model instead of falling back to an unconditioned checkpoint.
     """
     source = _constraint_source(payload)
-    taskid, _external_taskid = _safe_taskid(source.get("taskid") or payload.get("taskid") or uuid.uuid4().hex)
+    taskid, _external_taskid = normalize_taskid(source.get("taskid") or payload.get("taskid") or uuid.uuid4().hex)
     raw_requirement = _text(source.get("raw_requirement") or payload.get("idea") or payload.get("instruction"))
     context = "\n".join(filter(None, [raw_requirement, _context_text(payload), _text(source.get("context"))]))
     # Do not mine the full multi-round transcript for atom symbols.  Prefer the
@@ -345,6 +328,11 @@ def constraint_from_payload(payload: Dict[str, Any]) -> GenerationConstraint:
     # to become a MatterGen chemical-system constraint.
     extraction_text = _current_task_text(raw_requirement or context)
     fallback_text = _current_task_text(_fallback_context_text(payload, source))
+    if _is_alloy_optimization_request(extraction_text):
+        raise ValueError(
+            "当前请求属于合金成分/比例优化，不属于无机新晶体生成服务；"
+            "请调用 alloy_composition_optimization 处理元素比例、原子百分比或成分空间设计。"
+        )
     inferred_notes: list[str] = []
     target_formula = str(source.get("target_formula") or "").strip() or None
     candidate_formulas = source.get("candidate_formulas") or source.get("formulas") or []
@@ -378,7 +366,8 @@ def constraint_from_payload(payload: Dict[str, Any]) -> GenerationConstraint:
             template_name, template_elements, _, _ = domain_template
             explicit_allowed = template_elements
             inferred_notes.append(
-                f"未指定元素体系，已采用“{template_name}”领域起始模板：{'-'.join(template_elements)}；请在生成前确认或修改。"
+                f"已识别“{template_name}”材料方向，但任务中未给出可直接执行的精确化学式或元素集合；"
+                f"暂以领域起始模板 {'-'.join(template_elements)} 作为探索起点，后续可确认或修改。"
             )
     if not explicit_allowed:
         if _is_filament_only_request(extraction_text):

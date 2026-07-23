@@ -1,9 +1,17 @@
 import unittest
 
-from src.material_workflow.constraints import _formula_from_text, constraint_from_payload
+from src.material_workflow.constraints import _formula_from_text, constraint_from_payload, normalize_taskid
 
 
 class FormulaExtractionTests(unittest.TestCase):
+    def test_nonportable_taskid_is_mapped_to_a_safe_local_key(self):
+        safe_taskid, external_taskid = normalize_taskid("上游任务/2026-07-23")
+        self.assertEqual(external_taskid, "上游任务/2026-07-23")
+        self.assertRegex(safe_taskid, r"^[A-Za-z0-9_.-]{1,128}$")
+        self.assertNotIn("/", safe_taskid)
+        with self.assertRaisesRegex(ValueError, "navigation"):
+            normalize_taskid("..")
+
     def test_fdm_fff_is_not_a_formula(self):
         self.assertIsNone(_formula_from_text("采用 FDM/FFF 丝材打印，适配 PLA、PETG 和 TPU"))
 
@@ -16,6 +24,13 @@ class FormulaExtractionTests(unittest.TestCase):
             constraint_from_payload({
                 "taskid": "fdm-test",
                 "idea": "采用 FDM/FFF 丝材打印，优先适配拓竹 A1，评估机翼主梁和发动机短舱。",
+            })
+
+    def test_alloy_composition_request_is_rejected_by_service_boundary(self):
+        with self.assertRaisesRegex(ValueError, "alloy_composition_optimization"):
+            constraint_from_payload({
+                "taskid": "alloy-scope-test",
+                "idea": "优化 Nb-Mo-Ta-W 高熵合金的原子百分比和成分空间。",
             })
 
 

@@ -11,7 +11,7 @@ from .generation import GenerationRunner, run_mattergen_generation
 from .mattersim import enrich_validations_with_mattersim
 from .ranking import rank_candidates
 from .schemas import GenerationConstraint, NewMaterialPipelineResult
-from .validation import ValidationRunner, run_adit_pymatgen_validation
+from .validation import ValidationRunner, run_pymatgen_structural_admission
 
 logger = logging.getLogger("mattergen_workflow")
 
@@ -37,7 +37,7 @@ def run_new_material_pipeline(
     logger.info("[DISCOVERY][%s] MatterGen completed: status=%s candidates=%s", constraints.taskid, generation.status, len(generation.candidates))
 
     validations = [
-        run_adit_pymatgen_validation(candidate, validation_dir, runner=validation_runner)
+        run_pymatgen_structural_admission(candidate, validation_dir, runner=validation_runner)
         for candidate in generation.candidates
     ]
     logger.info("[DISCOVERY][%s] structure admission completed: admitted=%s/%s", constraints.taskid, sum(item.is_valid is True for item in validations), len(validations))

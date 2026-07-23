@@ -5,20 +5,20 @@
 ## 当前状态
 
 - 服务可启动（FastAPI/WebSocket 主入口存在）
-- 保留了 `handler/pipeline` 相关结构，便于后续扩展
+- 已移除退役的 `handler/pipeline` 案例执行链；主线由 `src/team_config.py` 和 `src/material_workflow/` 承担
 - 已新增 `src/material_workflow/` 作为新材料主线的规范接口层
 - `POST /new-material/generate` 已接入真实 MatterGen 子进程；每次任务保留命令、日志、CIF 与 manifest
 - `POST /new-material/constraints`：上游任务的约束预览，不占用 GPU
 - `WS /new-material/start`：兼容现有 `/start` 的 `taskid / idea / user_name / file_metadata` envelope
 - `GET /new-material/tasks/{taskid}`：查询已落盘的任务 manifest
-- 生成后使用 pymatgen 执行 ADiT 兼容的轻量结构准入（有序性、最短原子间距、密度与空间群）
+- 生成后使用 pymatgen 执行轻量结构准入（有序性、最短原子间距、密度与空间群）
 - `team_config_en.py` 暂保留，后续用于英文流程设计
 
 ## 主要入口
 
 - `main.py`：服务启动入口
 - `team_config.py`：兼容入口（桥接 `src/team_config.py`）
-- `src/`：核心业务与案例管线代码
+- `src/`：核心业务代码
 
 ## 新材料主线规划
 
@@ -26,7 +26,7 @@
 
 1. 需求解析：把用户输入整理为生成约束与验证目标
 2. 候选生成：通过 MatterGen 或兼容生成器产生候选结构
-3. 结构验证：通过 ADiT/pymatgen 或后续验证模块补全性质与稳定性信息
+3. 结构验证：通过 pymatgen 结构准入检查，再进入后续热力学评估
 4. 候选排序：基于真实验证结果和用户目标进行确定性排序
 5. 前端输出：基于 manifest 渲染摘要、动图和可追溯资源
 
@@ -51,15 +51,15 @@
 
 ## 运行方式（开发态）
 
-```bash
-python main.py
-```
-
-或：
+主服务应运行在 `ai4m-service-py310` 环境；MatterGen 仍由独立的
+`mattergen-py310` 环境执行。不要在基础 `base` 环境直接启动旧 `alpha` 外壳。
 
 ```bash
-bash start.sh
+conda run -n ai4m-service-py310 python main.py
 ```
+
+生产/联调环境由 tmux 会话直接启动和守护，不以 `start.sh` 作为标准入口。实际密钥写入本机
+`.env`，可从 `.env.example` 复制后填写；`.env` 不提交到 Git。
 
 ## 环境与调用
 
@@ -83,7 +83,8 @@ python main.py
 }
 ```
 
-生成结果写入 `src/MNS_CaseHub/cases/material_discovery_demo/results/new_material/<taskid>/`。
+生成结果位置由 `src/service_paths.py` 统一定义；当前落在历史兼容目录
+`src/MNS_CaseHub/cases/material_discovery_demo/results/new_material/<taskid>/`。
 `target_formula` 目前用于提取元素体系，而非严格化学计量 CSP；严格组分生成需要部署自训练的 CSP checkpoint。
 
 ### 上游接口约定
@@ -94,12 +95,9 @@ python main.py
 `E_hull` 阈值（支持 `meV/atom`）以及高温/蠕变/抗氧化等验证关注点；提取结果会显示在“解析说明”中。
 如果用户未给出 `E_hull`，服务会使用默认值 `E_hull ≤ 0.05 eV/atom` 作为 MatterGen 生成引导，确保能够选用相应的条件模型；无法确定元素体系时仍会要求补充，而不是启动无约束生成。
 
-对于明确但未给出元素的工程方向，服务提供可见、可覆盖的领域起始模板：
+对于明确但未给出元素的无机固态电解质方向，服务可使用可见、可覆盖的领域起始模板，并优先由受限 LLM 结合完整上游材料结论细化元素体系。模板仅作为生成起点，默认 `E_hull ≤ 0.05 eV/atom`，会在前端“解析说明”和设计约束卡中标记；用户一旦明确给出元素或 JSON，模板立即失效。
 
-- “金属 3D 打印/增材制造”与“爆震/火箭发动机”同时出现时：`Ni-Co-Cr-Al-Ti`，并关注高温强度、蠕变、抗氧化、热疲劳和增材制造性；
-- “高温高熵/难熔高熵合金”出现时：`Nb-Mo-Ta-W`，并关注高温强度、蠕变与抗氧化。
-
-模板仅作为生成起点，默认 `E_hull ≤ 0.05 eV/atom`，会在前端“解析说明”和设计约束卡中标记；用户一旦明确给出元素或 JSON，模板立即失效。
+高熵合金、难熔合金、元素比例、原子百分比与成分空间优化不属于本服务；这些请求会被明确拒绝，应进入 `alloy_composition_optimization`。
 
 ```json
 {
@@ -128,7 +126,7 @@ MatterSim--MP 热力学评分卡，以及可交互的 GLB。资产通过既有 `
 
 ### 供母 Agent 复用
 
-`XIMUAlpha_MNS` 现在是“生成式无机新材料发现”专属角色，而不是已有材料 MP 检索角色。
+`InorganicNewMaterialDiscoveryRole` 是“生成式无机新材料发现”专属角色，而不是已有材料 MP 检索角色。
 母 Agent 在需要探索新结构时调用 `WS /new-material/start` 并传递上游 envelope；优先提供
 `new_material.allowed_elements` 和数值化 `target_properties`。若只有自然语言，上文中至少应包含
 元素体系；服务会自动提取明确的稳定性阈值和验证关注点，并标记其解析来源。纯对话请求默认只生成
@@ -136,20 +134,19 @@ MatterSim--MP 热力学评分卡，以及可交互的 GLB。资产通过既有 `
 角色会返回候选结构、MatterSim--MP 热力学初筛、阶段结论和 manifest；其结论只能用于决定
 是否进入 DFT/专项性能验证，不能替代这些验证。
 
-### 可复跑案例：难熔高熵高温合金
-
-`tools/run_refractory_alloy_demo.py` 使用 Nb-Mo-Ta-W 元素体系和 0.05 eV/atom
-生成引导目标，验证 MatterGen → CIF → 基础结构准入 → 排序 → manifest 的完整链路：
-
-```bash
-micromamba run -p /data/mamba/envs/mattergen-py310 \
-  python tools/run_refractory_alloy_demo.py --candidates 2
-```
-
 ## 依赖建议
 
-- `requirements.minimal.txt`：最小运行依赖（建议优先）
+- `requirements.minimal.txt`：Web 与新材料主线的最小依赖；旧 `alpha` 通用框架仍需
+  `ai4m-service-py310` 环境中的完整运行依赖，后续解耦后再统一。
 - `pip_requirements.txt`：历史全量依赖（体积大，建议按需补装）
+
+## 无 GPU 回归测试
+
+下列测试不启动 MatterGen、MatterSim 或 MP 请求，可验证入口导入、`/roles`、约束预览和 WebSocket 事件边界：
+
+```bash
+conda run -n ai4m-service-py310 python -m unittest discover -s tests -v
+```
 
 ## 后续演进方向
 
@@ -172,5 +169,7 @@ micromamba run -p /data/mamba/envs/mattergen-py310 \
      --input src/MNS_CaseHub/cases/material_discovery_demo/results/new_material/<taskid>/generation/cifs/gen_0.cif \
      --output-dir src/MNS_CaseHub/cases/material_discovery_demo/results/new_material/<taskid>/mattersim
    ```
-3. 将 pipeline manifest 转为完整的 WebSocket 资产下发
-4. 与已有材料服务共享的公共能力逐步抽到通用层
+3. 与已有材料服务共享的公共能力逐步抽到通用层
+
+详细的交接、协议和排障说明见
+[`docs/inorganic_new_material_service_guide.md`](docs/inorganic_new_material_service_guide.md)。

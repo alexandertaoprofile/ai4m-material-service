@@ -230,14 +230,20 @@ def render_evidence_coverage(output: Path, validation: dict, constraints: dict, 
     plt.close(figure)
 
 
-def try_export_glb(cif_path: Path, output: Path) -> str | None:
+def try_export_glb(structure: Structure, output: Path) -> str | None:
     repo_root = Path(__file__).resolve().parents[1]
     if str(repo_root) not in sys.path:
         sys.path.insert(0, str(repo_root))
     try:
         from tools.structure_to_glb import export_glb_mpstyle
 
-        info = export_glb_mpstyle(Structure.from_file(cif_path), str(output), poly_mode="none")
+        info = export_glb_mpstyle(
+            structure,
+            str(output),
+            supercell=(2, 2, 2),
+            poly_mode="none",
+            draw_periodic_boundary_bonds=False,
+        )
         return str(output) if info.get("ok") else None
     except Exception:
         return None
@@ -269,14 +275,14 @@ def main() -> None:
     render_design_brief(design_brief, structure, manifest.get("constraints") or {})
     render_scorecard(scorecard, formula, validation, manifest.get("constraints") or {})
     glb_path = args.output_dir / "candidate_structure.glb"
-    glb = try_export_glb(cif_path, glb_path)
+    glb = try_export_glb(structure, glb_path)
     assets = [
         {"path": str(design_brief), "type": "MaterialsPNG", "name": "设计约束卡", "docs": "元素体系、生成引导目标与待验证的工程关注点"},
         {"path": str(rotation_gif), "type": "MaterialsPNG", "name": f"候选晶体旋转预览（{formula}）", "docs": "候选晶体结构的旋转预览"},
         {"path": str(scorecard), "type": "MaterialsPNG", "name": f"热力学初筛评分卡（{formula}）", "docs": "MatterSim--MP 热力学初筛证据" if validation.get("energy_above_hull") is not None else "热力学计算尚未完成；当前仅展示结构准入状态"},
     ]
     if glb:
-        assets.append({"path": glb, "type": "MaterialsGLB", "name": f"候选晶体三维模型（{formula}）", "docs": "可交互查看的 GLB 晶体结构"})
+        assets.append({"path": glb, "type": "MaterialsGLB", "name": f"候选晶体三维模型（{formula}）", "docs": "可交互查看的 GLB 晶体结构（2×2×2 可视化超胞）"})
     output = {"status": "ok", "formula": formula, "assets": assets, "glb_available": bool(glb)}
     (args.output_dir / "presentation_manifest.json").write_text(json.dumps(output, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(output, ensure_ascii=False))

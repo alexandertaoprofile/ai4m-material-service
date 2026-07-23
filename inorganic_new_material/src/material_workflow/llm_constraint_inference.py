@@ -1,9 +1,9 @@
-"""Conservative LLM assistance for underspecified material-discovery requests.
+"""LLM-assisted normalization for upstream material-discovery requests.
 
-The model is used only to turn the already received task/context into a small
-element-system proposal.  It is not allowed to invent a catalogue result,
-material property, or a precise composition; every returned element is
-validated locally before it is added to the normal constraint contract.
+The model converts the complete upstream envelope into a small element-system
+proposal.  It is not allowed to invent a catalogue result, material property,
+or a precise composition; every returned element is validated locally before
+it is added to the normal constraint contract.
 """
 from __future__ import annotations
 
@@ -12,9 +12,12 @@ import logging
 import os
 import re
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Awaitable, Callable, Mapping
 
 import yaml
+
+from .constraints import constraint_from_payload
+from .schemas import GenerationConstraint
 
 logger = logging.getLogger("mattergen_workflow")
 _CONFIG_PATH = Path(__file__).resolve().parents[2] / "config" / "config.yaml"
@@ -26,11 +29,27 @@ Hf Ta W Re Os Ir Pt Au Hg Tl Pb Bi Po At Rn Fr Ra Ac Th Pa U Np Pu Am Cm Bk Cf E
 """.split())
 
 
+class GenerationInputRequired(ValueError):
+    """The request is valid, but lacks a traceable material-generation start point."""
+
+
+MissingInputCallback = Callable[[], Awaitable[None]]
+
+
 def _text(value: Any) -> str:
     if isinstance(value, Mapping):
-        return "\n".join(_text(value.get(key)) for key in (
-            "idea", "content", "text", "query", "summary", "message", "requirement", "history", "messages",
-        ) if value.get(key) is not None)
+        # The gateway's envelope has changed shape over time.  Keep familiar
+        # conversational fields first, then include every remaining field so
+        # useful upstream material conclusions are not silently discarded.
+        preferred = (
+            "idea", "content", "text", "query", "summary", "message", "requirement",
+            "instruction", "raw_requirement", "context", "conversation_context", "history", "messages",
+        )
+        keys = [key for key in preferred if value.get(key) is not None]
+        keys.extend(key for key in value if key not in keys)
+        return "\n".join(
+            f"{key}: {_text(value.get(key))}" for key in keys if _text(value.get(key)).strip()
+        )
     if isinstance(value, list):
         return "\n".join(_text(item) for item in value)
     return str(value or "")
@@ -38,9 +57,9 @@ def _text(value: Any) -> str:
 
 def _context(payload: Mapping[str, Any]) -> tuple[str, str]:
     current = _text(payload.get("idea") or payload.get("instruction") or payload.get("raw_requirement"))
-    all_text = "\n".join(_text(payload.get(key)) for key in (
-        "idea", "instruction", "raw_requirement", "context", "conversation_context", "history", "messages", "previous_messages",
-    ) if payload.get(key) is not None)
+    # Do not limit evidence to a fixed field allow-list: upstream services may
+    # place their material conclusion in a nested planning/result object.
+    all_text = _text(payload)
     matches = list(_MARKER.finditer(all_text))
     if matches:
         current = all_text[matches[-1].end():].strip()
@@ -72,13 +91,13 @@ async def infer_element_system(payload: Mapping[str, Any]) -> dict[str, Any] | N
     current, evidence = _context(payload)
     prompt = (
         "你是无机新材料生成流程的约束解析器。当前请求缺少显式化学式或元素组合。"
-        "请根据当前执行任务和已接收的上游材料结论，判断能否提出一个用于‘起始探索’的元素体系。"
-        "当前执行任务优先；上游文本仅可作为与当前任务一致时的证据。\n\n"
+        "请根据当前执行任务和完整的上游材料结论，归纳一个用于‘起始探索’的元素体系。"
+        "当前执行任务优先；但所有上游字段都可作为提取材料名称、应用场景、已有材料结论和元素线索的证据。\n\n"
         "只输出 JSON：{\"allowed_elements\":[\"Li\",\"P\",\"S\"],\"material_family\":\"…\",\"reason\":\"不超过80字\",\"confidence\":\"high|medium|low\"}。\n"
         "规则：\n"
         "1. 只可输出有效元素符号，2–8 个；不能输出材料名、缩写、商品名或猜测的比例。\n"
-        "2. 若无法从文本获得有依据的体系，返回 allowed_elements 空数组。\n"
-        "3. 例如文本明确讨论硫化物固态电解质及 Li-P-S 时，可给 Li/P/S；仅有‘环保电池’不能凭空选择元素。\n"
+        "2. 若文本给出材料类别、应用场景或上游材料结论但没有显式元素，可提出低置信度的起始体系；理由必须说明依据。\n"
+        "3. 仅当完整上游信息中没有任何可追溯的材料对象或材料应用线索时，才返回 allowed_elements 空数组。\n"
         "4. 不要声称已经计算、检索数据库或验证性能。\n\n"
         f"当前执行任务：\n{current or '未提供'}\n\n"
         f"上游证据（仅供核对，不是强制约束）：\n{evidence or '未提供'}"
@@ -112,7 +131,7 @@ async def infer_element_system(payload: Mapping[str, Any]) -> dict[str, Any] | N
         if not 2 <= len(elements) <= 8:
             return None
         confidence = str(parsed.get("confidence") or "low").lower()
-        if confidence not in {"high", "medium"}:
+        if confidence not in {"high", "medium", "low"}:
             logger.info("[CONSTRAINT_LLM] no usable proposal: confidence=%s", confidence)
             return None
         result = {
@@ -144,3 +163,54 @@ async def enrich_payload_with_llm_elements(payload: Mapping[str, Any]) -> dict[s
     )]
     enriched["new_material"] = nested
     return enriched
+
+
+async def resolve_generation_request(
+    payload: Mapping[str, Any],
+    *,
+    on_missing_input_inference: MissingInputCallback | None = None,
+) -> tuple[dict[str, Any], GenerationConstraint]:
+    """Resolve one request identically for WebSocket and HTTP entry points.
+
+    Explicit constraints always win. The constrained LLM is used only when
+    deterministic parsing has no element system, or when a domain template is
+    the last fallback and fuller upstream evidence may refine it.
+    """
+    effective_payload = dict(payload)
+    try:
+        constraints = constraint_from_payload(effective_payload)
+    except ValueError as exc:
+        if "无法确定待生成的元素体系" not in str(exc):
+            raise
+        if on_missing_input_inference is not None:
+            await on_missing_input_inference()
+        enriched_payload = await enrich_payload_with_llm_elements(effective_payload)
+        if not enriched_payload:
+            raise GenerationInputRequired(missing_generation_input_message(effective_payload)) from exc
+        effective_payload = enriched_payload
+        constraints = constraint_from_payload(effective_payload)
+
+    if any("领域起始模板" in str(note) for note in constraints.notes):
+        logger.info("[CONSTRAINT_LLM] refining domain template from upstream context")
+        enriched_payload = await enrich_payload_with_llm_elements(effective_payload)
+        if enriched_payload:
+            effective_payload = enriched_payload
+            constraints = constraint_from_payload(effective_payload)
+    return effective_payload, constraints
+
+
+def missing_generation_input_message(payload: Mapping[str, Any]) -> str:
+    """Return an actionable clarification tied to the received request.
+
+    This is an expected input state, not a failed MatterGen calculation.
+    """
+    current, _evidence = _context(payload)
+    summary = " ".join(current.split())[:180]
+    received = f"已读取当前任务“{summary}”。" if summary else "已收到任务请求。"
+    return (
+        f"{received}\n\n"
+        "目前仍无法从上游信息归纳出可用于无机新材料生成的材料起点。"
+        "请补充下列任意一项即可继续：目标材料或材料类别、使用场景、已有材料结论、"
+        "候选化学式/元素组合，或希望改善的关键性质。"
+        "服务会将补充信息与已有上下文一起归纳为生成约束，再启动候选结构生成与筛选。"
+    )

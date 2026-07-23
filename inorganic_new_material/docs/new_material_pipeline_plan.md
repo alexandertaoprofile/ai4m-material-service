@@ -24,9 +24,9 @@ optional explicit `new_material` object.  Explicit constraints are preferred:
 ```json
 {
   "new_material": {
-    "allowed_elements": ["Nb", "Mo", "Ta", "W"],
+    "allowed_elements": ["Li", "P", "S", "Cl"],
     "target_properties": {"energy_above_hull": 0.05},
-    "validation_targets": {"high_temperature_strength": null},
+    "validation_targets": {"ionic_conductivity": null},
     "max_candidates": 4
   }
 }
@@ -34,7 +34,7 @@ optional explicit `new_material` object.  Explicit constraints are preferred:
 
 When the explicit object is absent, natural language and upstream conversation
 context are a controlled fallback. The service extracts independent element
-symbols (for example `Nb-Mo-Ta-W` or `铌、钼、钽、钨`), a chemical formula,
+symbols (for example `Li-P-S-Cl` or `锂、磷、硫、氯`), a chemical formula,
 an explicitly stated `E_hull` ceiling (including `meV/atom` conversion), and
 qualitative validation concerns such as high-temperature strength, creep and
 oxidation resistance. Explicit fields always win. It never invents a numerical
@@ -71,7 +71,7 @@ results/new_material/<taskid>/
 
 - `POST /new-material/generate`: synchronous HTTP API.
 - `WS /new-material/start`: upstream-agent-compatible WebSocket API.
-- `XIMUAlpha_MNS`: repository role dedicated to this chain.  Its profile tells
+- `InorganicNewMaterialDiscoveryRole`: repository role dedicated to this chain. Its profile tells
   a parent agent to supply explicit element/property constraints and describes
   the evidence and limitations of the returned conclusion.
 

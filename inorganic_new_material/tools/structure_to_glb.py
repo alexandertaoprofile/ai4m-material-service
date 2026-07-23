@@ -260,6 +260,7 @@ def export_glb_mpstyle(
     bond_radius: float = 0.07,
     draw_atoms: bool = True,
     draw_bonds: bool = True,
+    draw_periodic_boundary_bonds: bool = True,
     bond_rgb: Tuple[int, int, int] = (245, 245, 245),  # 更接近你截图的白色键
     max_bonds_per_site: Optional[int] = None,
     # polyhedra
@@ -296,6 +297,11 @@ def export_glb_mpstyle(
     if draw_bonds:
         bonds = get_crystalnn_bonds(structure, max_per_site=max_bonds_per_site)
         for i, j, img in bonds:
+            # With a visual supercell, boundary-image bonds end outside the
+            # displayed volume and look like broken rods in a browser.  They
+            # are correct periodic neighbours, but not useful visual evidence.
+            if not draw_periodic_boundary_bonds and np.any(img):
+                continue
             p0 = structure[i].coords - shift
             p1 = (structure[j].coords + img @ structure.lattice.matrix) - shift
             scene.add_geometry(make_cylinder(p0, p1, bond_radius, bond_rgb))
@@ -342,6 +348,7 @@ def export_glb_mpstyle(
         "supercell": list(sc),
         "draw_atoms": bool(draw_atoms),
         "draw_bonds": bool(draw_bonds),
+        "draw_periodic_boundary_bonds": bool(draw_periodic_boundary_bonds),
         "poly_mode": poly_mode,
         "poly_centers": centers,
         "poly_cn": sorted(list(poly_cn)),
@@ -367,6 +374,7 @@ def main():
     ap.add_argument("--bond-radius", type=float, default=0.07)
     ap.add_argument("--no-atoms", action="store_true")
     ap.add_argument("--no-bonds", action="store_true")
+    ap.add_argument("--hide-periodic-boundary-bonds", action="store_true")
     ap.add_argument("--max-bonds-per-site", type=int, default=None)
 
     ap.add_argument("--poly-mode", type=str, default="mp",
@@ -388,6 +396,7 @@ def main():
         bond_radius=args.bond_radius,
         draw_atoms=not args.no_atoms,
         draw_bonds=not args.no_bonds,
+        draw_periodic_boundary_bonds=not args.hide_periodic_boundary_bonds,
         max_bonds_per_site=args.max_bonds_per_site,
         poly_mode=args.poly_mode,
         poly_cn=poly_cn,
