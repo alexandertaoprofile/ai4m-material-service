@@ -23,7 +23,7 @@ class MatureMaterialCatalogQuery:
         )
 
 
-class XIMUAlpha_MNS:
+class MatureMaterialCatalogService:
     """已有成熟材料数据库检索与性质核验智能体。"""
 
     name: str = "MatureMaterialCatalogService"
@@ -37,3 +37,8 @@ class XIMUAlpha_MNS:
     def __init__(self, **kwargs):
         self.actions = [MatureMaterialCatalogQuery]
         self.metadata = kwargs
+
+
+# Source-compatibility alias for generic Alpha launchers that still import the
+# historical role name.  New code should use MatureMaterialCatalogService.
+XIMUAlpha_MNS = MatureMaterialCatalogService

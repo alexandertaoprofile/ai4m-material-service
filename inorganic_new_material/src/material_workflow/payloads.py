@@ -42,8 +42,7 @@ def build_payload(
         payload["data"].update({
             "id": "FILAMENT_SELECTION_OPTIMIZATION",  # legacy client field
             "stepId": "FILAMENT_SELECTION_OPTIMIZATION",
-            "title": "耗材选型和计算优化",
-            "teamType": "Robot_Materials",
+            "title": "无机新材料发现与初步验证",
         })
 
     try:

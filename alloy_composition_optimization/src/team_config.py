@@ -17,8 +17,7 @@ from main import RESULTS, _proposal, _taskid, emit_public_asset_events, prepare_
 from src.alloy_workflow.presentation import emit_result_content
 
 FRONTEND_STEP_ID = "FILAMENT_SELECTION_OPTIMIZATION"
-FRONTEND_STEP_TITLE = "耗材选型和计算优化"
-FRONTEND_TEAM_TYPE = "Robot_Materials"
+FRONTEND_STEP_TITLE = "合金成分优化与候选初筛"
 
 
 def _payload_from_instruction(
@@ -73,7 +72,7 @@ class Coding(Action):
             "request_id": request_id, "type": "progress",
             "data": {
                 "id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID,
-                "title": FRONTEND_STEP_TITLE, "teamType": FRONTEND_TEAM_TYPE,
+                "title": FRONTEND_STEP_TITLE,
                 "status": "in_progress", "description": "正在将需求映射为可确认的 HEA 探索条件。",
             },
         })

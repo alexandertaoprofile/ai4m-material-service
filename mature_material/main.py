@@ -34,8 +34,7 @@ from src.catalog.narration import (
 load_dotenv()
 SERVICE = "mature-material"
 FRONTEND_STEP_ID = "FILAMENT_SELECTION_OPTIMIZATION"
-FRONTEND_STEP_TITLE = "耗材选型和计算优化"
-FRONTEND_TEAM_TYPE = "Robot_Materials"
+FRONTEND_STEP_TITLE = "成熟材料检索与性能对比"
 PORT = int(os.getenv("PORT", "1105"))
 RESULTS = Path(os.getenv("MATURE_MATERIAL_RESULTS_ROOT", "results/mature_material"))
 RAW_DATA_ROOT = Path(os.getenv("PROPERTY_DATA_ROOT", "/data/se42/backend/property datasets"))
@@ -398,7 +397,7 @@ async def start(websocket: WebSocket):
         # subservice run.  Keep them even though this service also emits typed
         # progress/result JSON for newer clients.
         await websocket.send_text("[start]")
-        await websocket.send_json({"version": "1.0.0", "agent": SERVICE, "request_id": constraints["taskid"], "type": "progress", "data": {"id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID, "title": FRONTEND_STEP_TITLE, "teamType": FRONTEND_TEAM_TYPE, "status": "in_progress", "description": "正在规范化别名、核验材料状态和温度条件，并读取可追溯性质证据。"}})
+        await websocket.send_json({"version": "1.0.0", "agent": SERVICE, "request_id": constraints["taskid"], "type": "progress", "data": {"id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID, "title": FRONTEND_STEP_TITLE, "status": "in_progress", "description": "正在规范化别名、核验材料状态和温度条件，并读取可追溯性质证据。"}})
         result = await _manifest(constraints); _save(result)
         resolutions = result.get("name_resolution") or []
         resolution_counts: dict[str, int] = {}
@@ -425,11 +424,11 @@ async def start(websocket: WebSocket):
         _run_log(result["taskid"], "presentation prepared", assets=[item["name"] for item in assets])
         result["presentation"] = {"summary_markdown": _summary(result), "assets": assets}
         _save(result)
-        await websocket.send_json({"version": "1.0.0", "agent": SERVICE, "request_id": result["taskid"], "type": "progress", "data": {"id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID, "title": FRONTEND_STEP_TITLE, "teamType": FRONTEND_TEAM_TYPE, "status": "in_progress", "description": "已完成别名、牌号和标准号的精确匹配；歧义名称不会自动合并。"}})
+        await websocket.send_json({"version": "1.0.0", "agent": SERVICE, "request_id": result["taskid"], "type": "progress", "data": {"id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID, "title": FRONTEND_STEP_TITLE, "status": "in_progress", "description": "已完成别名、牌号和标准号的精确匹配；歧义名称不会自动合并。"}})
         await websocket.send_text(f"<<<CONTENT_START:{FRONTEND_STEP_ID}>>>")
         await stream_markdown_rows(websocket, resolution_markdown(result))
         await websocket.send_text(f"<<<CONTENT_END:{FRONTEND_STEP_ID}>>>")
-        await websocket.send_json({"version": "1.0.0", "agent": SERVICE, "request_id": result["taskid"], "type": "progress", "data": {"id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID, "title": FRONTEND_STEP_TITLE, "teamType": FRONTEND_TEAM_TYPE, "status": "in_progress", "description": result["data_status"]["message"]}})
+        await websocket.send_json({"version": "1.0.0", "agent": SERVICE, "request_id": result["taskid"], "type": "progress", "data": {"id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID, "title": FRONTEND_STEP_TITLE, "status": "in_progress", "description": result["data_status"]["message"]}})
         await websocket.send_text(f"<<<CONTENT_START:{FRONTEND_STEP_ID}>>>")
         await stream_authoritative_markdown(websocket, comparison_markdown(result), section="catalogue_result")
         await websocket.send_text("\n")
@@ -443,11 +442,11 @@ async def start(websocket: WebSocket):
                     if not item["url"]:
                         continue
                     logger.info("[mature-assets] emitting asset event taskid=%s name=%s url=%s", result["taskid"], item["name"], item["url"])
-                    await websocket.send_json({"step_id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID, "title": FRONTEND_STEP_TITLE, "teamType": FRONTEND_TEAM_TYPE, "name": item["name"], "docs": item["description"], "url": item["url"], "type": item["type"]})
+                    await websocket.send_json({"step_id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID, "title": FRONTEND_STEP_TITLE, "name": item["name"], "docs": item["description"], "url": item["url"], "type": item["type"]})
                     await websocket.send_text(f"\n![{item['title']}]({item['url']})\n")
             except Exception as exc:
                 logger.exception("[mature-assets] publishing failed taskid=%s error=%s", result["taskid"], exc)
-                await websocket.send_json({"version": "1.0.0", "agent": SERVICE, "request_id": result["taskid"], "type": "progress", "data": {"id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID, "title": FRONTEND_STEP_TITLE, "teamType": FRONTEND_TEAM_TYPE, "status": "failed", "description": "图表已生成，但暂时无法发布；不影响材料检索结果。"}})
+                await websocket.send_json({"version": "1.0.0", "agent": SERVICE, "request_id": result["taskid"], "type": "progress", "data": {"id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID, "title": FRONTEND_STEP_TITLE, "status": "failed", "description": "图表已生成，但暂时无法发布；不影响材料检索结果。"}})
         await websocket.send_text("\n### 3. 本轮建议\n\n")
         narration = await stream_customer_conclusion(websocket, result)
         result["presentation"]["customer_conclusion"] = narration

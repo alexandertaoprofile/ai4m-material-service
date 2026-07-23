@@ -416,19 +416,44 @@ async def emit_presentation_assets(websocket, result, *, step_id: str = "FILAMEN
     presentation = (result.artifacts or {}).get("presentation") or {}
     assets = presentation.get("assets") if isinstance(presentation, dict) else []
     if not assets:
+        logger.warning("[new-material-assets] no presentation assets taskid=%s", result.taskid)
         return
     taskid = str(result.taskid).replace("/", "_")
     pipeline = "inorganic_new_material"
     jobid = taskid or "job"
 
+    def _trace(path: Path, event: str, **details: Any) -> None:
+        """Persist per-asset delivery diagnostics next to the generated assets.
+
+        This trace is deliberately independent from the process logger: the
+        service may be started from different working directories, whereas the
+        task directory is retained with the calculation result for inspection.
+        """
+        record = {
+            "time": datetime.now(timezone.utc).isoformat(),
+            "taskid": taskid,
+            "event": event,
+            "path": str(path),
+            **details,
+        }
+        try:
+            trace_file = path.parent / "asset_delivery.log"
+            with trace_file.open("a", encoding="utf-8") as handle:
+                handle.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
+        except OSError as exc:
+            logger.warning("[new-material-assets] trace write failed path=%s error=%s", path, exc)
+        logger.info("[new-material-assets] trace=%s", record)
+
     seen_asset_paths: set[Path] = set()
     for asset in assets:
         path = Path(asset.get("path") or "")
         if not path.exists():
+            _trace(path, "source_missing", asset_type=asset.get("type"), asset_name=asset.get("name"))
             continue
         resolved_path = path.resolve()
         if resolved_path in seen_asset_paths:
             logger.warning("[new-material-assets] skipped duplicate asset path=%s", resolved_path)
+            _trace(path, "duplicate_skipped")
             continue
         seen_asset_paths.add(resolved_path)
         asset_type = str(asset.get("type") or "MaterialsPNG")
@@ -442,9 +467,19 @@ async def emit_presentation_assets(websocket, result, *, step_id: str = "FILAMEN
             public_url = f"{PICTURE_PUBLIC_BASE_URL}/{taskid}/{pipeline}/{jobid}/{path.name}"
             asset_type = "MaterialsPNG"
         try:
+            _trace(
+                path,
+                "upload_started",
+                asset_type=asset_type,
+                bytes=path.stat().st_size,
+                object_key=object_key,
+                public_url=public_url,
+            )
             response = await oss_upload("alpha", object_key, path.read_bytes())
+            _trace(path, "upload_finished", response=response, object_key=object_key)
             if not isinstance(response, dict) or response.get("status") != 200:
                 logger.warning("[new-material-assets] upload failed: key=%s response=%s", object_key, response)
+                _trace(path, "upload_rejected", response=response, object_key=object_key)
                 continue
             # Confirm that the S3-compatible endpoint can see the object before
             # handing its URL to the browser.  This catches a failed/minio-race
@@ -453,23 +488,29 @@ async def emit_presentation_assets(websocket, result, *, step_id: str = "FILAMEN
                 exists = await get_storage_client().aobject_exists("alpha", object_key)
             except Exception as exc:
                 logger.warning("[new-material-assets] object verification failed: key=%s error=%s", object_key, exc)
+                _trace(path, "storage_verification_error", object_key=object_key, error=repr(exc))
                 exists = False
+            _trace(path, "storage_verified", object_key=object_key, exists=exists)
             if not exists:
                 logger.warning("[new-material-assets] object absent after upload: key=%s", object_key)
+                _trace(path, "storage_absent", object_key=object_key)
                 continue
 
-            await websocket.send_json({
+            payload = {
                 "step_id": step_id,
                 "stepId": "FILAMENT_SELECTION_OPTIMIZATION",
-                "title": "耗材选型和计算优化",
-                "teamType": "Robot_Materials",
+                "title": "无机新材料发现与初步验证",
                 "name": str(asset.get("name") or path.stem),
                 "docs": str(asset.get("docs") or "新材料发现可视化资产"),
                 "url": public_url,
                 "type": asset_type,
                 "description": str(asset.get("docs") or "新材料发现可视化资产"),
-            })
+            }
+            _trace(path, "websocket_send_started", payload=payload)
+            await websocket.send_json(payload)
+            _trace(path, "websocket_send_finished", asset_type=asset_type, public_url=public_url)
             logger.info("[new-material-assets] emitted type=%s key=%s url=%s", asset_type, object_key, public_url)
         except Exception as exc:
             logger.exception("[new-material-assets] failed to emit asset path=%s error=%s", path, exc)
+            _trace(path, "delivery_error", error=repr(exc), object_key=object_key, public_url=public_url)
             continue
