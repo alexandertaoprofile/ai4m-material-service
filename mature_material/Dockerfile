@@ -1,40 +1,22 @@
 FROM python:3.10
 
-# 设置工作目录
 WORKDIR /app
 
-# 将当前目录的内容复制到容器中的 /app 中
-COPY . /app
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    MPLCONFIGDIR=/tmp/matplotlib \
+    PORT=1105
 
-# 安装依赖包
+COPY requirements.minimal.txt ./
 RUN pip install --no-cache-dir -r requirements.minimal.txt
 
-# 设置环境变量
-ENV PORT=20161
-ENV PROPERTY_DATA_ROOT="/data/se42/backend/property datasets"
-# Expose port
-EXPOSE $PORT
-# 运行命令
+COPY . ./
+RUN useradd --system --create-home material && \
+    mkdir -p /app/results/mature_material /tmp/matplotlib && \
+    chown -R material:material /app /tmp/matplotlib
+
+USER material
+
+EXPOSE 1105
+
 CMD ["python", "main.py"]
-
-
-
-
-
-
-# FROM nvcr.io/nvidia/pytorch:23.10-py3
-
-# WORKDIR /workspace/
-# COPY . /workspace/
-
-# ENV BASE_URL=
-# ENV PORT=8002
-
-# RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && \
-#    pip install -r requirements.txt
-
-# # 确保你的shell脚本是可执行模式
-# RUN chmod +x ./start.sh
-
-# # 使用CMD来调用sh脚本
-# CMD ["./start.sh"]

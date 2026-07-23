@@ -7,7 +7,9 @@
 - `POST /mature-material/constraints`：校验上游请求。
 - `POST /mature-material/query`：创建可追溯检索任务。
 - `GET /mature-material/tasks/{taskid}`：获取 manifest。
+- `WS /start`：与 `/mature-material/start` 完全相同的历史兼容入口。
 - `WS /mature-material/start`：流式入口，依次输出需求解析、名称/牌号核验、性质比较、结论与图表事件。
+- `GET /roles`：供上游/前端发现本服务能力的兼容注册信息。
 - `GET /health`：服务和数据目录状态。
 - `GET /mature-material/tasks/{taskid}/assets/{asset_name}`：查询结果图表。
 
@@ -38,7 +40,7 @@
 当前可清洗已有的结构化商品工作簿（PDF 将单独进行可追溯抽取）：
 
 ```bash
-python tools/clean_catalog.py \
+python scripts/clean_catalog.py \
   --workbook "/data/se42/backend/property datasets/alloy_material_dataset_v0.1.xlsx"
 ```
 
@@ -46,7 +48,17 @@ python tools/clean_catalog.py \
 
 ```bash
 pip install -r requirements.minimal.txt
-PORT=1105 python main.py
+bash start.sh
 ```
 
 使用 `PROPERTY_DATA_ROOT` 设置原始商品材料数据目录；使用 `MATURE_MATERIAL_RESULTS_ROOT` 设置任务结果目录。
+
+## 回归测试
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+测试覆盖目录查询编排、数据目录完整性，以及既定 WebSocket 文本边界、唯一 progress、图片事件、最终结果事件和 `/roles` 注册字段。
+
+部署、数据更新、前端事件约定和新人接入说明见 [服务手册](docs/mature_material_service_guide.md)。

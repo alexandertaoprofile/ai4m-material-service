@@ -269,6 +269,7 @@ def conclusion_markdown(result: dict[str, Any]) -> str:
     candidates = result.get("results", [])
     eligible = sum(bool(item.get("eligible")) for item in candidates)
     catalog_message = result.get("data_status", {}).get("message", "")
+    has_property_constraints = bool(result.get("constraints", {}).get("property_constraints"))
     if result.get("llm_fallback"):
         return "\n".join([
             "### 3. 本轮建议", "", catalog_message,
@@ -285,6 +286,13 @@ def conclusion_markdown(result: dict[str, Any]) -> str:
             "### 3. 本轮建议", "",
             catalog_message,
             "上述条目仅用于帮助下一步确认材料路线。请补充目标牌号、材料状态、服役温度和性质阈值后，再进行可追溯的定量比较。",
+        ])
+    if not has_property_constraints:
+        return "\n".join([
+            "### 3. 本轮结论", "",
+            f"本轮在结构化目录中匹配到 **{len(candidates)}** 种候选。",
+            "本轮未给出量化性质阈值，因此系统未声明任何候选已通过性能筛选。",
+            catalog_message,
         ])
     return "\n".join([
         "### 3. 本轮结论", "",

@@ -16,6 +16,7 @@ dist/
 # runtime dirs
 logs/
 upload/
+results/
 
 # large artifacts
 *.pt
