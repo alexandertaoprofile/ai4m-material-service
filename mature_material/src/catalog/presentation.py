@@ -12,7 +12,7 @@ from matplotlib.font_manager import FontProperties
 
 _CJK_FONT = Path(os.getenv(
     "MATURE_MATERIAL_CJK_FONT_PATH",
-    str(Path(__file__).resolve().parents[3] / "inorganic_new_material" / "assets" / "fonts" / "NotoSansCJKsc-Regular.otf"),
+    str(Path(__file__).resolve().parents[2] / "assets" / "fonts" / "NotoSansCJKsc-Regular.otf"),
 ))
 
 

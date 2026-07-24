@@ -33,7 +33,7 @@ class AlloyRuntime:
         environment_prefix = Path(os.getenv("HEA_SURROGATE_ENV_PREFIX", "/data/mamba/envs/mattergen-py310"))
         self.chart_font_path = Path(os.getenv(
             "ALLOY_CJK_FONT_PATH",
-            str(Path(__file__).resolve().parents[3] / "inorganic_new_material/assets/fonts/NotoSansCJKsc-Regular.otf"),
+            str(Path(__file__).resolve().parents[2] / "assets/fonts/NotoSansCJKsc-Regular.otf"),
         ))
         self.runner = HEASurrogateRunner(
             results_root=self.results_root,
