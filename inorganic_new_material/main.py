@@ -22,6 +22,7 @@ from src.material_workflow.llm_constraint_inference import (
 from src.material_workflow.emitters import build_frontend_payload
 from src.material_workflow.upstream_api import run_upstream_request
 from src.service_paths import NEW_MATERIAL_RESULTS_ROOT
+from src.service_identity import SERVICE_ID
 from src.team_config import InorganicNewMaterialService
 
 # Always load this service's own configuration, independent of the tmux cwd.
@@ -152,9 +153,9 @@ async def get_teams():
             canonical_address,
             *[address for address in legacy_addresses if address != canonical_address],
         ]
-        metadata["role_id"] = "inorganic_new_material_generation_v1"
+        metadata["role_id"] = f"{SERVICE_ID}_v1"
         metadata["routing"] = {
-            "service_id": "inorganic_new_material_generation",
+            "service_id": SERVICE_ID,
             "priority": 3,
             "match_when": "请求明确指向数据库外新无机晶体的生成、发现或验证；可由化学式、元素体系、无机材料类别、应用场景或可追溯上游材料结论提供生成起点。",
             "include_keywords": ["明确化学式", "元素体系", "材料类别", "材料结论", "全新材料", "新晶体", "新无机材料", "MatterGen", "晶体生成", "化学式生成", "数据库外材料"],

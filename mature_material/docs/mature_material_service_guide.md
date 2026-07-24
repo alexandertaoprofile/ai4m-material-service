@@ -6,6 +6,18 @@
 
 它不生成新晶体、不调用 MatterGen、MatterSim 或 Materials Project，也不进行高熵合金/配方的成分优化。此类需求分别交给新材料服务和合金配比优化服务。
 
+## 调度输入与输出
+
+上游只在已经掌握“已有材料锚点”时调用本服务：材料名称、厂家/牌号、标准号，或带有来源和测试工况的材料性质。`mature_material.upstream_evidence` 可传入上游整理的材料、性质、数值、单位、工况和来源；这些信息会被整理展示，但不会自动升级为目录事实。
+
+服务只产生三种业务结果：
+
+- `catalog_matched`：目录中存在匹配材料，返回已核验性质、来源和缺失项；
+- `upstream_evidence_only`：已整理上游证据，但目录没有对应记录；
+- `needs_literature_screening`：没有可承接的材料证据或目录记录；页面以流式 Markdown 提示建议进入文献筛选。
+
+后两种结果都不会生成替代材料、商品牌号或性质推荐。`needs_literature_screening` 仅记录在最终 manifest 的 `data_status.outcome` 中；前端保持既有文本流、`progress` 和 `result` 事件，不需要增加新事件类型。
+
 ## 目录职责
 
 ```text

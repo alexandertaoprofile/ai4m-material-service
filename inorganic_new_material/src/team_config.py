@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-"""Runtime orchestration for the inorganic new-material discovery service.
+"""无机新材料发现服务的运行编排层。
 
-This module intentionally contains only the active service path.  The former
-MP/ALIGNN existing-material ``Coding`` flow is not a role in this service and
-must not be imported during normal startup.
+``main.py`` 负责 HTTP/WebSocket 传输；本模块按阶段编排约束提取、生成、
+结构准入、热力学初筛和展示。旧 MP/ALIGNN 成熟材料查询动作不属于本服务，
+正常启动时不得导入。
 """
 
 from __future__ import annotations
@@ -40,6 +40,7 @@ from src.material_workflow.presentation import (
 )
 from src.material_workflow.upstream_api import result_summary, run_upstream_request
 from src.service_paths import NEW_MATERIAL_RESULTS_ROOT
+from src.service_identity import ACTION_DESCRIPTION, ACTION_NAME, ROLE_NAME, ROLE_PROFILE
 
 
 FRONTEND_STEP_ID = "FILAMENT_SELECTION_OPTIMIZATION"
@@ -56,16 +57,10 @@ os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:10240"
 
 
 class InorganicNewMaterialDiscoveryAction(Action):
-    """Run one MatterGen → pymatgen → MatterSim/MP discovery workflow."""
+    """执行一次 MatterGen → pymatgen → MatterSim/MP 无机晶体发现流程。"""
 
-    name: str = "inorganic_new_material_discovery"
-    desc: str = (
-        "输入数据库外新无机晶体的设计需求：化学式、元素体系、材料类别、应用场景或上游材料结论，"
-        "可选结构化 new_material 约束（allowed_elements、target_properties、validation_targets、max_candidates）。"
-        "将其规范化为 MatterGen 条件，生成候选晶体，执行 pymatgen 准入与 MatterSim--MP 热力学初筛，"
-        "输出候选结构、初筛证据、排序和 manifest。若无法从完整上游信息归纳可追溯的无机材料起点，"
-        "输出用户友好的补充信息请求，不将其报告为计算失败。"
-    )
+    name: str = ACTION_NAME
+    desc: str = ACTION_DESCRIPTION
 
     @staticmethod
     def _payload_from_instruction(instruction: Any, taskid: str, user_name: str, file_metadata: Any) -> dict[str, Any]:
@@ -117,12 +112,14 @@ class InorganicNewMaterialDiscoveryAction(Action):
             await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
 
     async def run(self, instruction: str, *args) -> str:
+        # 阶段 1：保留母服务传来的完整上下文、任务和文件元数据，形成服务 payload。
         websocket = args[0]
         user_name, taskid, file_metadata = args[1], args[2], args[3]
         payload = self._payload_from_instruction(instruction, taskid, user_name, file_metadata)
         config = load_config("config/config.yaml")
         llm = SeLLM(base_url=config["base_url_1"], api_key=config["api_key"])
 
+        # 阶段 2：先确定性解析生成条件；缺失时仅请求受约束的 LLM 补全，随后仍须校验。
         async def announce_missing_input_inference() -> None:
             logger.info("[CONSTRAINT_LLM] deterministic extraction empty; requesting constrained LLM inference taskid={}", taskid)
             await websocket.send_text(
@@ -133,6 +130,7 @@ class InorganicNewMaterialDiscoveryAction(Action):
             on_missing_input_inference=announce_missing_input_inference,
         )
 
+        # 阶段 3：发送既有 progress/正文边界，说明已确认或仍待补充的生成条件。
         await websocket.send_json(build_payload(
             {
                 "id": FRONTEND_STEP_ID,
@@ -148,6 +146,7 @@ class InorganicNewMaterialDiscoveryAction(Action):
             llm, websocket, FRONTEND_STEP_ID, build_requirement_brief(constraints)
         )
 
+        # 阶段 4：在独立线程运行领域流水线，并并行转发已存在的阶段进度。
         progress_task = asyncio.create_task(
             stream_discovery_progress(
                 websocket,
@@ -165,6 +164,7 @@ class InorganicNewMaterialDiscoveryAction(Action):
             except asyncio.CancelledError:
                 pass
 
+        # 阶段 5：基于已保存的计算结果发送展示资产和权威结论；不由展示 LLM 改写事实。
         presentation = (result.artifacts or {}).get("presentation") or {}
         if presentation.get("assets"):
             await self._stream_authoritative_markdown(
@@ -181,20 +181,10 @@ class InorganicNewMaterialDiscoveryAction(Action):
 
 
 class InorganicNewMaterialDiscoveryRole(Role):
-    """The only active role registered by this service."""
+    """本服务注册的唯一活动角色。"""
 
-    name: str = "inorganic_new_material"
-    profile: str = (
-        "生成式无机新材料发现服务：将数据库外新无机晶体的设计需求转为可执行的生成与热力学初筛任务。"
-        "输入：化学式、元素体系、无机材料类别、应用场景或可追溯的上游材料结论之一；可选结构化 new_material 合同"
-        "（allowed_elements、target_properties、validation_targets、max_candidates）。"
-        "输出：候选 CIF/松弛结构路径、MatterSim--MP 近似形成能与高于凸包能、排序、阶段判断结论及完整 manifest；"
-        "若无法从完整上游信息归纳无机材料起点，则向用户提示需补充的材料信息并等待补充，不宣称生成失败。"
-        "执行链：约束规范化 → MatterGen 条件生成 → pymatgen 结构准入 → MatterSim 松弛 → MP 同元素体系竞争相查询与局部相图。"
-        "边界：不用于已有材料查询、商品牌号、材料筛选/选型、FDM/FFF 丝材、商用耗材性质对比，"
-        "也不处理合金或高温合金的元素配比、原子百分比与成分空间优化；这些分别应进入成熟材料或合金配比优化服务。"
-        "结论只代表 MLFF--MP 热力学初筛；高温强度、蠕变、氧化、电导等目标性质必须由专项模型、DFT 或实验确认。"
-    )
+    name: str = ROLE_NAME
+    profile: str = ROLE_PROFILE
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -203,11 +193,11 @@ class InorganicNewMaterialDiscoveryRole(Role):
 
 
 class InorganicNewMaterialService:
-    """Service-level Team orchestration kept outside the FastAPI transport layer."""
+    """位于 FastAPI 传输层之外的服务级 Team 编排。"""
 
     @staticmethod
     def websocket_request(payload: dict) -> dict:
-        """Normalize the historical WebSocket envelope without narrowing it."""
+        """阶段 0：兼容既有 WebSocket 信封，不缩窄或丢弃上游上下文。"""
         if not isinstance(payload, dict):
             raise ValueError("initial WebSocket JSON must be an object")
         taskid = str(payload.get("taskid") or "").strip()
@@ -226,12 +216,13 @@ class InorganicNewMaterialService:
 
     @staticmethod
     def create_team() -> Team:
+        # 阶段 0b：仅装配当前无机发现角色，禁止注册已退役的已有材料查询角色。
         team = Team()
         team.hire([InorganicNewMaterialDiscoveryRole()])
         return team
 
     async def run_round(self, websocket, team: Team, idea: str, n_round: int, user_name: str, taskid: str, file_metadata) -> None:
-        """Run the historical Team envelope while preserving its frontend markers."""
+        """阶段 6：执行历史 Team 信封，并保持既有前端标记与结束语义。"""
         team.run_project(idea)
         await websocket.send_text("【XXX 开始: xxxx】")
         workflow_failed = False

@@ -52,6 +52,3 @@ tmp_*/
 *.extxyz
 *.cif
 *.traj
-
-# case outputs
-src/MNS_CaseHub/cases/**/results/

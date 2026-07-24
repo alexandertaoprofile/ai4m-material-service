@@ -15,11 +15,11 @@ from fastapi.responses import FileResponse
 from src.catalog.assets import publish_png_assets
 from src.catalog.narration import (
     stream_authoritative_markdown,
-    stream_customer_conclusion,
     stream_markdown_rows,
 )
-from src.catalog.presentation import comparison_markdown, resolution_markdown
+from src.catalog.presentation import comparison_markdown, conclusion_markdown, resolution_markdown
 from src.settings import MatureMaterialSettings
+from src.service_identity import ACTION_DESCRIPTION, ACTION_NAME, ROLE_DESCRIPTION, ROLE_NAME, ROLE_PROFILE, SERVICE_ID
 from src.team_config import MaterialMature
 
 load_dotenv()
@@ -82,28 +82,22 @@ def root():
 @app.get("/roles")
 def roles():
     """Gateway discovery metadata, preserving the existing external shape."""
-    profile = (
-        "子流程：已有/商品/成熟材料数据库检索与性质核验（mature_material_catalog）。"
-        "处理已存在材料的筛选、选型、牌号/标准核对、热物性或机械性质对比。"
-        "根据材料名称、牌号、标准、材料族、服役温度和性质条件，在已清洗且可追溯的材料目录中返回候选、性质证据及来源。"
-        "适用于‘材料筛选与计算’、商用耗材、FDM/FFF 丝材、已有材料类别或明确牌号的查询；没有牌号时可按目录中的材料类别给出候选对比。"
-        "仅当请求同时给出元素体系/化学式且明确要求生成数据库外新晶体时，才应进入新材料服务；高熵合金/HEA/MPEA 的成分设计、元素比例优化、配方生成和成分空间搜索应进入合金配比优化服务。"
-    )
+    profile = ROLE_PROFILE
     return {
         profile: {
-            "name": "成熟材料数据库检索与性质核验",
+            "name": ROLE_NAME,
             "profile": profile,
-            "goal": "从已有材料数据库查询可追溯的性质和筛选结果。",
-            "constraints": "仅使用本服务已入库的结构化材料数据；缺失、单位不一致和温度超范围须如实返回。",
-            "desc": "仅用于已有商品材料的牌号核对、性质查询、性能对比与选型；不做新材料或高熵合金成分设计。",
+            "goal": "整理已有材料证据，并从本服务目录返回可追溯的性质和核验结果。",
+            "constraints": "仅使用本服务已入库的结构化材料数据作为已核验事实；上游信息须标注为待核验，缺失、单位不一致和温度超范围须如实返回。",
+            "desc": ROLE_DESCRIPTION,
             "is_human": False,
-            "role_id": "mature_material_catalog_v1",
+            "role_id": f"{SERVICE_ID}_v1",
             "states": ["0. Query catalog"],
             "actions": [{
-                "name": "成熟材料目录查询",
+                "name": ACTION_NAME,
                 "i_context": "",
                 "prefix": f"You are a {profile}",
-                "desc": "读取上游需求并查询已有材料目录，输出材料性质、工况、来源和筛选证据；不进行成分优化。",
+                "desc": ACTION_DESCRIPTION,
                 "__module_class_name": "src.team_config.MatureMaterialCatalogQuery",
             }],
             "rc": {"memory": {"storage": [], "index": {}, "ignore_id": False}, "working_memory": {"storage": [], "index": {}, "ignore_id": False}, "state": -1, "watch": ["alpha.actions.add_requirement.UserRequirement"], "react_mode": "react", "max_react_loop": 1},
@@ -112,10 +106,19 @@ def roles():
             "routing": {
                 "service_id": "mature_material_catalog",
                 "priority": 2,
-                "match_when": "已有材料筛选、选型、性质比较或商用 FDM/FFF 耗材计算；可含牌号/标准，也可只给材料类别、工况和性能条件。",
+                "match_when": "上游已给出已有材料名称、厂家/牌号、标准号，或带来源/工况的材料性质，需要整理或目录核验。",
                 "include_keywords": ["材料筛选与计算", "材料筛选", "材料选型", "候选材料", "性质对比", "商用耗材", "丝材", "FDM", "FFF", "PLA", "PETG", "ASA", "ABS", "PC", "PA", "PEEK", "商品名", "牌号", "标准号", "UNS", "AMS", "MIL", "ASTM", "GB/T", "Inconel", "TIMETAL", "316L"],
                 "exclude_keywords": ["严格化学式", "高熵合金", "HEA", "MPEA", "合金配比", "元素比例", "成分优化", "成分空间"],
                 "route_after": ["alloy_composition_optimization"],
+                "input_contract": {
+                    "required_any": ["material_queries/材料名称", "厂家或牌号", "标准号", "upstream_evidence（性质、工况、来源）"],
+                    "optional": ["material_families", "service_temperature_C", "property_constraints"],
+                },
+                "output_contract": {
+                    "catalog_matched": "目录匹配材料、已核验性质、来源和缺失项。",
+                    "upstream_evidence_only": "仅整理上游材料证据；目录未核验。",
+                    "needs_literature_screening": "无可承接材料证据或目录记录；向用户显示文献筛选建议。",
+                },
             },
             "recovered": False,
             "latest_observed_msg": None,
@@ -225,8 +228,7 @@ async def start(websocket: WebSocket):
             candidates=len(candidates),
             eligible=(sum(bool(item.get("eligible")) for item in candidates) if constraints["property_constraints"] else "not_evaluated"),
             name_resolution=resolution_counts,
-            recommendation=bool(result.get("recommendation")),
-            llm_fallback=bool(result.get("llm_fallback")),
+            outcome=result.get("data_status", {}).get("outcome"),
             candidate_names=candidate_names,
         )
         assets = _render_assets(result)
@@ -253,9 +255,9 @@ async def start(websocket: WebSocket):
                     await websocket.send_text(f"\n![{item['title']}]({item['url']})\n")
             except Exception as exc:
                 logger.exception("[mature-assets] publishing failed taskid=%s error=%s", result["taskid"], exc)
-        await websocket.send_text("\n### 3. 本轮建议\n\n")
-        narration = await stream_customer_conclusion(websocket, result)
-        result["presentation"]["customer_conclusion"] = narration
+        conclusion = conclusion_markdown(result)
+        await stream_authoritative_markdown(websocket, conclusion, section="catalogue_conclusion")
+        result["presentation"]["customer_conclusion"] = conclusion
         result["presentation"]["assets"] = [item for item in assets if item.get("url")]
         _save(result)
         await websocket.send_text(f"<<<CONTENT_END:{FRONTEND_STEP_ID}>>>")

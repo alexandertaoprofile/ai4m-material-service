@@ -84,6 +84,70 @@ class MatureMaterialServiceTest(unittest.TestCase):
         self.assertIn("未给出量化性质阈值", conclusion)
         self.assertNotIn("满足当前可比较的性质条件", conclusion)
 
+    def test_catalogue_miss_suggests_literature_without_llm_material_advice(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            service = self._service(Path(temporary))
+            payload = {
+                "taskid": "unit-catalogue-miss",
+                "idea": "核验未入库商品牌号 ExampleSeal-X9 的性能数据",
+                "mature_material": {"material_queries": ["ExampleSeal-X9"]},
+            }
+            result = asyncio.run(service.run(service.contract(payload)))
+
+        self.assertEqual(result["status"], "completed")
+        self.assertEqual(result["data_status"]["outcome"], "needs_literature_screening")
+        self.assertFalse(result["results"])
+        self.assertNotIn("llm_fallback", result)
+        self.assertNotIn("recommendation", result)
+        self.assertIn("建议进入文献筛选", service.summary(result))
+
+    def test_upstream_evidence_is_preserved_but_not_promoted_to_catalogue_fact(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            service = self._service(Path(temporary))
+            payload = {
+                "taskid": "unit-upstream-evidence",
+                "idea": "整理已有商品材料信息",
+                "mature_material": {
+                    "upstream_evidence": [{
+                        "material": "ExampleSeal-X9",
+                        "property": "拉伸强度",
+                        "value": 12.5,
+                        "unit": "MPa",
+                        "condition": "23 °C",
+                        "source": "供应商数据表第 2 页",
+                    }],
+                },
+            }
+            result = asyncio.run(service.run(service.contract(payload)))
+
+        summary = service.summary(result)
+        self.assertEqual(result["data_status"]["outcome"], "upstream_evidence_only")
+        self.assertIn("供应商数据表第 2 页", summary)
+        self.assertIn("待目录核验", summary)
+        self.assertIn("不视为本服务已核验的数据库事实", summary)
+
+    def test_upstream_evidence_material_anchor_is_used_for_catalogue_lookup(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            service = self._service(Path(temporary))
+            payload = {
+                "taskid": "unit-upstream-evidence-match",
+                "idea": "整理供应商数据表",
+                "mature_material": {
+                    "upstream_evidence": [{
+                        "material": "IN718",
+                        "property": "屈服强度",
+                        "value": 1034,
+                        "unit": "MPa",
+                        "source": "供应商数据表",
+                    }],
+                },
+            }
+            result = asyncio.run(service.run(service.contract(payload)))
+
+        self.assertEqual(result["constraints"]["material_queries"], ["IN718"])
+        self.assertEqual(result["data_status"]["outcome"], "catalog_matched")
+        self.assertEqual(result["results"][0]["material"]["material_id"], "MAT-IN718")
+
     def test_frontend_event_contract(self) -> None:
         async def fake_publish(taskid: str, assets: list[dict]) -> dict[str, str]:
             return {item["name"]: f"https://example.invalid/{taskid}/{item['name']}.png" for item in assets}
@@ -120,16 +184,42 @@ class MatureMaterialServiceTest(unittest.TestCase):
         self.assertLess(result_index, end_index)
         self.assertTrue(websocket.closed)
 
+    def test_catalogue_miss_uses_existing_streaming_markers_for_literature_prompt(self) -> None:
+        payload = {
+            "taskid": "ws-catalogue-miss",
+            "idea": "核验未入库商品牌号 ExampleSeal-X9 的性能数据",
+            "mature_material": {"material_queries": ["ExampleSeal-X9"]},
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            service = self._service(Path(temporary))
+            websocket = _FakeWebSocket(payload)
+            with patch.object(main, "ORCHESTRATOR", service), patch.dict(os.environ, {"MATURE_MATERIAL_LLM_STREAM": "false"}):
+                asyncio.run(main.start(websocket))
+
+        texts = [value for kind, value in websocket.events if kind == "text"]
+        json_events = [value for kind, value in websocket.events if kind == "json"]
+        self.assertEqual(texts.count(f"<<<CONTENT_START:{main.FRONTEND_STEP_ID}>>>"), 2)
+        self.assertEqual(texts.count(f"<<<CONTENT_END:{main.FRONTEND_STEP_ID}>>>"), 2)
+        self.assertTrue(any("建议进入文献筛选" in text for text in texts))
+        self.assertFalse(any("LLM 托底建议" in text for text in texts))
+        self.assertEqual(len([event for event in json_events if event.get("type") == "progress"]), 1)
+        self.assertEqual(len([event for event in json_events if event.get("type") == "result"]), 1)
+
     def test_roles_contract_shape(self) -> None:
         payload = main.roles()
         self.assertEqual(len(payload), 1)
         role = next(iter(payload.values()))
         self.assertEqual(role["role_id"], "mature_material_catalog_v1")
+        self.assertEqual(role["profile"], main.ORCHESTRATOR.profile)
         self.assertEqual(role["addresses"][0], "src.team_config.MaterialMature")
         self.assertEqual(role["__module_class_name"], "src.team_config.MaterialMature")
         self.assertEqual(role["actions"][0]["__module_class_name"], "src.team_config.MatureMaterialCatalogQuery")
         self.assertIn("rc", role)
         self.assertIn("planner", role)
+        self.assertIn("input_contract", role["routing"])
+        self.assertIn("output_contract", role["routing"])
+        self.assertIn("needs_literature_screening", role["routing"]["output_contract"])
+        self.assertIn("文献筛选", role["actions"][0]["desc"])
 
     def test_processed_catalogue_integrity(self) -> None:
         processed = ROOT / "data" / "processed"

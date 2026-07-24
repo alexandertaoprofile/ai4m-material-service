@@ -34,7 +34,7 @@ import src.team_config as _impl
 print("[BOOT] real implementation:", _impl.__file__)
 
 # Keep explicit symbol import used by your CLI
-from src.team_config import XIMUAlpha_MNS  # noqa: E402
+from src.team_config import AlloyCompositionOptimizationRole  # noqa: E402
 
 
 async def start(
@@ -44,7 +44,7 @@ async def start(
     add_human: bool = True,
 ):
     team = Team()
-    team.hire([XIMUAlpha_MNS()])
+    team.hire([AlloyCompositionOptimizationRole()])
     team.run_project(idea)
     await team.run(n_round=n_round)
 

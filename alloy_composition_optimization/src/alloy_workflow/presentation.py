@@ -94,7 +94,7 @@ def response_relationship_block(result: dict[str, Any]) -> str:
     return "\n".join([
         "#### 成分和性能如何关联",
         "成分比例、制备工艺和温度共同影响强度、硬度及相组成；这种关系通常是非线性的，不能可靠地简化成“某元素每增加 1% 就固定提高多少强度”的线性公式。",
-        "本服务用已训练的 HEA/MPEA 集成模型近似这条响应关系：",
+        "本服务用已训练的高熵合金/多主元合金（HEA/MPEA）集成模型近似这条响应关系：",
         f"`{response.get('mathematical_form', 'F(成分, 工艺, 温度) → 性能、相风险与可信度')}`",
         "- 这意味着后续可在给定元素范围内改变一个或多个元素比例，并由同一模型重新计算强度、硬度、相风险和不确定性；而不是把当前候选范围误当成硬编码配方。",
         threshold_note,
@@ -198,16 +198,29 @@ def concise_conclusion_block(result: dict[str, Any]) -> str:
 
 
 def _llm() -> Any | None:
-    """Load a minimal SeLLM-compatible client from the adjacent config format."""
+    """Load presentation credentials from this service's environment first.
+
+    ``config/config.yaml`` remains a read-only compatibility fallback for old
+    tmux deployments.  It is deliberately not the preferred source because
+    credentials and deployment endpoints belong in this service's ignored
+    ``.env`` file.
+    """
     if os.getenv("ALLOY_PRESENTATION_LLM", "true").lower() not in {"1", "true", "yes"}: return None
     try:
         import yaml
         from openai import AsyncOpenAI
-        config_path = Path(os.getenv("ALLOY_LLM_CONFIG", "config/config.yaml"))
-        config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+        base_url = os.getenv("ALLOY_PRESENTATION_BASE_URL", "").strip()
+        api_key = os.getenv("ALLOY_PRESENTATION_API_KEY", "").strip()
+        if not (base_url and api_key):
+            config_path = Path(os.getenv("ALLOY_LLM_CONFIG", "config/config.yaml"))
+            config = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+            base_url = base_url or str(config.get("base_url_1", ""))
+            api_key = api_key or str(config.get("api_key", ""))
+        if not (base_url and api_key):
+            return None
 
         class PresentationLLM:
-            def __init__(self): self.client = AsyncOpenAI(base_url=config["base_url_1"], api_key=config["api_key"])
+            def __init__(self): self.client = AsyncOpenAI(base_url=base_url, api_key=api_key)
             def _default_system_msg(self): return {"role":"system", "content":"你是严谨的材料工程结果呈现助手。"}
             def _user_msg(self, content): return {"role":"user", "content":content}
             async def acompletion_text(self, messages, timeout=30):
@@ -272,7 +285,7 @@ async def emit_result_content(websocket: Any, result: dict[str, Any], *, step_id
         await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
         return
     try:
-        from src.material_workflow.llm_streaming import stream_llm_response
+        from src.alloy_workflow.llm_streaming import stream_llm_response
         authoritative_markdown = rendered_content
         relay_prompt = (
             "你是合金服务的 Markdown 流式转发器，不负责推理、概括、润色或补充。"

@@ -28,12 +28,17 @@
     "property_constraints": [
       {"property": "density", "operator": "<=", "value": 8300, "unit": "kg/m³", "temperature_C": 21}
     ],
+    "upstream_evidence": [
+      {"material": "IN718", "property": "屈服强度", "value": 1034, "unit": "MPa", "condition": "室温", "source": "上游数据表"}
+    ],
     "top_k": 10
   }
 }
 ```
 
 当前版本已支持材料名称、商品名、缩写和标准号的规范化匹配（例如 `IN718`、`Inconel 718`、`UNS N07718`），以及材料族、标准号、单点性质和温度曲线筛选。温度证据会标记为实测点、曲线范围内插值、最近实测点、超出范围或缺失数据。
+
+`upstream_evidence` 是可选的上游材料证据整理字段。服务会原样展示其数值、工况和来源，但只有目录匹配数据才标记为已核验。目录未命中时，服务不会生成替代材料建议，而会以既有流式文本提示建议进入文献筛选。
 
 相近牌号不会自动合并。例如 316、316L、特定 SRM 样品及不同热处理状态均保留为独立材料记录。PDF 尚未自动入库，服务不会从原始 PDF 臆造性质。别名映射保存在 `data/processed/material_aliases.csv`；若一个别名映射到多个材料状态，服务返回歧义信息而不擅自选择。
 

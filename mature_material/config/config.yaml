@@ -2,7 +2,7 @@
 base_url_1: "http://www.science42.vip:40200/v1"
 BACKEND_URL: "http://36.103.203.113:1000"
 #SOURCE_CODE_PATH: "/mnt/sdb/anaconda3/envs/AI4PDE/lib/python3.10/site-packages/"
-#SOURCE_CODE_PATH: "/data/XIMUAlpha_MNS/src"
+SOURCE_CODE_PATH: "/data/se42/alpha_project/alpha_material_sync/mature_material/src"
 
 api_key: "ximu-llm-api-key"
 

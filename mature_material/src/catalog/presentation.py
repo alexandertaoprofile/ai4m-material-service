@@ -203,19 +203,7 @@ def requirement_markdown(result: dict[str, Any]) -> str:
 def resolution_markdown(result: dict[str, Any]) -> str:
     rows = result.get("name_resolution") or []
     if not rows:
-        if result.get("llm_fallback"):
-            return (
-                "### 1. 材料名称核对\n\n"
-                "当前目录中没有可核验的对应记录。以下内容将作为 LLM 托底建议展示，"
-                "不属于目录名称匹配或已入库性质。"
-            )
-        if result.get("recommendation"):
-            return (
-                "### 1. 材料名称核对\n\n"
-                "本轮未提供可精确核对的商品牌号或标准号。系统随后仅在当前已入库目录中挑选了参考材料；"
-                "这些材料不是名称匹配结果。"
-            )
-        return "### 1. 材料名称核对\n\n您未指定具体牌号，本轮将按材料类别和性质条件检索已入库目录。"
+        return "### 1. 材料名称核对\n\n未识别到可在目录中直接核验的材料名称、牌号或标准号。"
     lines = ["### 1. 材料名称匹配", "", "| 输入名称 | 目录条目 | 匹配结果 |", "|---|---|---|"]
     has_exact_match = False
     for row in rows:
@@ -232,19 +220,27 @@ def resolution_markdown(result: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _upstream_evidence_markdown(result: dict[str, Any]) -> list[str]:
+    evidence = result.get("constraints", {}).get("upstream_evidence") or []
+    if not evidence:
+        return []
+    lines = ["#### 上游提供的材料信息（待目录核验）", "", "| 材料/牌号 | 性质或信息 | 数值/描述 | 工况 | 来源 |", "|---|---|---|---|---|"]
+    for item in evidence:
+        material = item.get("material") or item.get("name") or item.get("grade") or "未注明"
+        property_name = item.get("property") or item.get("field") or "材料信息"
+        value = item.get("value") if item.get("value") not in (None, "") else item.get("description") or "未注明"
+        unit = item.get("unit") or ""
+        condition = item.get("condition") or item.get("test_condition") or "未注明"
+        source = item.get("source") or "上游未注明"
+        lines.append(f"| {material} | {property_name} | {value} {unit}".rstrip() + f" | {condition} | {source} |")
+    lines += ["", "说明：本表仅整理上游提供的信息；除非下方存在目录匹配记录，否则不视为本服务已核验的数据库事实。", ""]
+    return lines
+
+
 def comparison_markdown(result: dict[str, Any]) -> str:
-    llm_fallback = result.get("llm_fallback")
-    if llm_fallback:
-        return "\n".join([
-            "### 2. LLM 托底建议（未入库）", "",
-            "当前本地目录没有可核验的候选记录。以下仅用于协助补充选材方向，不能视为已检索到的材料性质。", "",
-            str(llm_fallback.get("markdown") or ""),
-        ])
-    recommendation = result.get("recommendation")
-    lines = ["### 2. 目录中的参考材料" if recommendation else "### 2. 候选材料与性质信息", ""]
-    if recommendation:
-        lines += ["以下条目由模型限定在当前目录内选出，供后续核验参考；不代表与用户原始名称相同，也不代表已满足性能要求。", ""]
-    elif result.get("name_resolution"):
+    lines = ["### 2. 目录核验与性质信息", ""]
+    lines += _upstream_evidence_markdown(result)
+    if result.get("name_resolution"):
         lines += ["以下数据按具体产品状态分组展示，便于核对数值与测试条件。", ""]
     for candidate in result.get("results", []):
         material = candidate["material"]
@@ -258,9 +254,9 @@ def comparison_markdown(result: dict[str, Any]) -> str:
         lines.append("")
     if not result.get("results", []):
         return "\n".join([
-            "### 2. 检索结果", "",
+            *lines,
             "本轮目录中未找到与指定材料、牌号或标准相符的已入库记录。",
-            "为避免误导，系统不会展示其他材料作为替代候选。请补充确切牌号、标准号或允许检索的材料类别后重试。",
+            "为避免误导，系统不会展示或推断其他材料作为替代候选。",
         ])
     return "\n".join(lines)
 
@@ -270,22 +266,19 @@ def conclusion_markdown(result: dict[str, Any]) -> str:
     eligible = sum(bool(item.get("eligible")) for item in candidates)
     catalog_message = result.get("data_status", {}).get("message", "")
     has_property_constraints = bool(result.get("constraints", {}).get("property_constraints"))
-    if result.get("llm_fallback"):
-        return "\n".join([
-            "### 3. 本轮建议", "", catalog_message,
-            "请先以原厂数据表、适用标准或实验记录确认具体牌号、材料状态和关键性能，再将可追溯数据补充入库进行比较。",
-        ])
     if not candidates:
+        has_upstream_evidence = bool(result.get("constraints", {}).get("upstream_evidence"))
+        next_step = (
+            "上游提供的信息已原样整理，但尚无本目录可核验记录。建议先进入文献筛选，"
+            "补充可追溯的材料名称/牌号、性质、测试工况与来源；随后可再次提交本服务核验。"
+            if has_upstream_evidence else
+            "建议进入文献筛选，收集目标材料的名称或牌号、性质数据、测试工况及来源；"
+            "获得这些信息后，可再次提交本服务进行统一整理与目录核验。"
+        )
         return "\n".join([
             "### 3. 本轮建议", "",
             catalog_message,
-            "建议确认目标材料的标准号、化学式/牌号、材料状态和目标工况；待数据入库后可进行可追溯的性质比较。",
-        ])
-    if result.get("recommendation"):
-        return "\n".join([
-            "### 3. 本轮建议", "",
-            catalog_message,
-            "上述条目仅用于帮助下一步确认材料路线。请补充目标牌号、材料状态、服役温度和性质阈值后，再进行可追溯的定量比较。",
+            next_step,
         ])
     if not has_property_constraints:
         return "\n".join([

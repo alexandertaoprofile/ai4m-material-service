@@ -1,8 +1,7 @@
-"""Service orchestration for the mature-material catalogue.
+"""成熟材料目录服务的编排层。
 
-This module is deliberately independent of the historical Alpha framework.
-``main.py`` owns HTTP/WebSocket transport; this module owns the material-query
-workflow from normalized request through manifest and presentation assets.
+``main.py`` 负责 HTTP/WebSocket 传输与前端事件；本模块负责从需求规范化、
+目录检索到 manifest 和展示资产准备的完整服务流程，不依赖历史 Alpha 链路。
 """
 from __future__ import annotations
 
@@ -13,10 +12,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from src.catalog.narration import (
-    generate_llm_material_fallback,
-    recommend_catalog_material_ids,
-)
 from src.catalog.presentation import (
     comparison_markdown,
     conclusion_markdown,
@@ -24,34 +19,28 @@ from src.catalog.presentation import (
     resolution_markdown,
 )
 from src.catalog.query import MatureMaterialCatalog, parse_property_constraints
+from src.service_identity import ACTION_DESCRIPTION, ACTION_NAME, ROLE_NAME, ROLE_PROFILE
 
 
 class MatureMaterialCatalogQuery:
-    """Describe the deterministic existing-material lookup action."""
+    """描述确定性的已有成熟材料目录查询动作。"""
 
-    name: str = "MatureMaterialCatalogQuery"
-    desc: str = (
-        "在已清洗的成熟材料目录中，按名称、牌号、标准、材料族、温度和性质条件检索，"
-        "返回来源可追溯的性质证据、候选对比和数据缺口；不生成或模拟新材料。"
-    )
+    name: str = ACTION_NAME
+    desc: str = ACTION_DESCRIPTION
 
     async def run(self, instruction: str, *args, **kwargs) -> str:
         return (
             "已有材料查询由 mature_material 的 /start 或 /mature-material/query 执行。"
-            "请提供材料名称/牌号、服役温度及需要核验的性质条件。"
+            "请提供材料名称、厂家/牌号、标准号，或包含性质、工况和来源的 upstream_evidence；"
+            "若尚无材料证据，建议先进入文献筛选。"
         )
 
 
 class MaterialMature:
-    """Orchestrate one traceable mature-material catalogue query."""
+    """编排一次可追溯的成熟材料目录查询。"""
 
-    name: str = "MaterialMature"
-    profile: str = (
-        "已有成熟材料数据库检索与性质核验智能体。面向已入库的商品材料、牌号和标准号，"
-        "核验材料状态、温度范围、性质值与来源，并输出候选比较。"
-        "边界：仅查询本服务已清洗的结构化目录；不进行材料生成、数值模拟或外部数据库检索，"
-        "也不从未入库 PDF 或缺失数据推断性质。"
-    )
+    name: str = ROLE_NAME
+    profile: str = ROLE_PROFILE
 
     _EXECUTION_MARKER = re.compile(
         r"(?:接下来(?:需要)?进行执行的任务|接下来执行的任务|当前(?:需要)?执行任务|执行任务)\s*[：:]\s*",
@@ -155,6 +144,8 @@ class MaterialMature:
         ))
 
     def contract(self, payload: dict[str, Any]) -> dict[str, Any]:
+        # 阶段 1：规范化母服务/前端输入，只保留可核验的材料名称、牌号、标准、
+        # 性质条件与上游证据；上游证据不能直接提升为目录事实。
         taskid = self._taskid(payload)
         scope = payload.get("mature_material") or payload.get("constraints") or {}
         if not isinstance(scope, dict):
@@ -167,22 +158,36 @@ class MaterialMature:
         properties = scope.get("property_constraints", scope.get("property_filters", {}))
         upstream_context, upstream_keys = self._upstream_context(payload)
         raw_requirement = str(scope.get("query") or payload.get("idea") or upstream_context)
+        upstream_evidence = scope.get("upstream_evidence", payload.get("upstream_evidence", []))
+        if isinstance(upstream_evidence, dict):
+            upstream_evidence = [upstream_evidence]
+        if not isinstance(upstream_evidence, list) or not all(isinstance(item, dict) for item in upstream_evidence):
+            raise ValueError("upstream_evidence must be an object or a list of objects")
+        material_queries = self._as_list(scope.get("material_queries", scope.get("materials", scope.get("names", []))))
+        if not material_queries:
+            for item in upstream_evidence:
+                for key in ("material", "name", "grade", "standard"):
+                    value = str(item.get(key) or "").strip()
+                    if value and value not in material_queries:
+                        material_queries.append(value)
         return {
             "taskid": taskid,
             "raw_requirement": raw_requirement,
             "upstream_context": upstream_context,
             "upstream_context_keys": upstream_keys,
-            "material_queries": self._as_list(scope.get("material_queries", scope.get("materials", scope.get("names", [])))),
+            "material_queries": material_queries,
             "material_families": self._as_list(scope.get("material_families", scope.get("families", []))),
             "standards": self._as_list(scope.get("standards", [])),
             "property_constraints": [item.__dict__ for item in parse_property_constraints(properties, default_temperature_K)],
             "service_temperature_K": default_temperature_K,
             "top_k": max(1, min(int(scope.get("top_k", 10)), 50)),
             "source_preference": str(scope.get("source_preference", "all")),
+            # 上游证据只原样保留和展示；没有目录匹配时绝不写成已核验事实。
+            "upstream_evidence": upstream_evidence,
         }
 
     async def run(self, constraints: dict[str, Any]) -> dict[str, Any]:
-        """Run one catalogue query without performing transport work."""
+        """阶段 2：执行目录检索与可比性判断，不处理任何传输协议。"""
         catalog = MatureMaterialCatalog(self.catalog_root)
         if not catalog.ready:
             return {
@@ -212,45 +217,17 @@ class MaterialMature:
             )
         else:
             search = {"name_resolution": [], "candidates": []}
-        recommendation: dict[str, Any] | None = None
-        llm_fallback: dict[str, Any] | None = None
-        if not search["candidates"]:
-            selected_ids = await recommend_catalog_material_ids(
-                constraints.get("upstream_context") or constraints.get("raw_requirement") or "",
-                catalog.materials,
-                max_items=min(3, constraints["top_k"]),
-            )
-            if selected_ids:
-                selected_names = [catalog._by_id[material_id]["display_name"] for material_id in selected_ids]
-                fallback = catalog.search(
-                    names=selected_names,
-                    families=[],
-                    standards=[],
-                    constraints=parsed_constraints,
-                    top_k=constraints["top_k"],
-                )
-                if fallback["candidates"]:
-                    search["candidates"] = fallback["candidates"]
-                    recommendation = {
-                        "mode": "catalog_llm_fallback",
-                        "material_ids": selected_ids,
-                        "message": "未找到名称的精确匹配；以下为模型仅从当前已入库目录选出的后续核验参考材料，并非名称匹配结果。",
-                    }
-        if not search["candidates"]:
-            llm_fallback = await generate_llm_material_fallback(
-                constraints.get("upstream_context") or constraints.get("raw_requirement") or ""
-            )
         eligible = sum(item["eligible"] for item in search["candidates"])
-        if recommendation:
-            message = recommendation["message"]
-        elif llm_fallback:
-            message = llm_fallback["message"]
-        elif not search["candidates"]:
-            message = "目录中暂未找到与本轮指定材料、牌号或标准相匹配的已入库记录；未展示无关候选材料。"
+        has_upstream_evidence = bool(constraints["upstream_evidence"])
+        if not search["candidates"]:
+            message = "目录中暂未找到与本轮指定材料、牌号或标准相匹配的已入库记录；未展示或推断替代候选材料。"
+            outcome = "upstream_evidence_only" if has_upstream_evidence else "needs_literature_screening"
         elif not parsed_constraints:
             message = f"已在结构化材料目录中匹配到 {len(search['candidates'])} 种候选；本轮未提供量化性质阈值。"
+            outcome = "catalog_matched"
         else:
             message = f"已在结构化材料目录中评估 {len(search['candidates'])} 种候选，其中 {eligible} 种满足当前可比较的性质条件。"
+            outcome = "catalog_matched"
         return {
             "taskid": constraints["taskid"],
             "status": "completed",
@@ -259,11 +236,10 @@ class MaterialMature:
             "constraints": constraints,
             "results": search["candidates"],
             "name_resolution": search["name_resolution"],
-            "recommendation": recommendation,
-            "llm_fallback": llm_fallback,
             "data_status": {
                 "catalog_ready": True,
                 "raw_data_root_available": self.raw_data_root.exists(),
+                "outcome": outcome,
                 "message": message,
                 "scope": "仅查询已清洗的结构化目录数据；Markdown 解析数据将按来源和表格逐步入库。",
             },
@@ -271,9 +247,11 @@ class MaterialMature:
 
     @staticmethod
     def summary(result: dict[str, Any]) -> str:
+        # 阶段 3：仅由已保存的结果生成可读结论，不补充目录外事实。
         return "\n\n".join([resolution_markdown(result), comparison_markdown(result), conclusion_markdown(result)])
 
     def save(self, manifest: dict[str, Any]) -> None:
+        # 阶段 4：将可追溯结果落盘，供任务查询接口和展示层复用。
         path = self.results_root / self.task_storage_key(manifest["taskid"])
         path.mkdir(parents=True, exist_ok=True)
         (path / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -288,6 +266,7 @@ class MaterialMature:
         return self.results_root / self.task_storage_key(taskid) / "presentation" / asset_name
 
     def render_assets(self, result: dict[str, Any]) -> list[dict[str, str]]:
+        # 阶段 5：生成目录事实的对比图；WebSocket/MinIO 发布仍属于 main.py 的适配层。
         presentation_dir = self.results_root / self.task_storage_key(result["taskid"]) / "presentation"
         chart = render_property_comparison(result, presentation_dir)
         if not chart:

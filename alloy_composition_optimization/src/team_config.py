@@ -1,8 +1,7 @@
-"""Upstream-agent entry point for HEA/MPEA alloy composition optimization.
+"""高熵合金/多主元合金（HEA/MPEA）成分优化的上游 Agent 入口。
 
-The FastAPI service owns the HTTP and WebSocket routes.  This module exists
-for the shared Alpha team loader, so that an upstream orchestrator receives
-the same alloy workflow rather than the copied inorganic-generation workflow.
+``main.py`` 负责 HTTP/WebSocket 传输与前端事件协议；本模块只负责让 Alpha
+母服务以与直连入口相同的顺序调用合金工作流，不再携带无机晶体生成逻辑。
 """
 from __future__ import annotations
 
@@ -13,24 +12,58 @@ from typing import Any
 from alpha.actions import Action, UserRequirement
 from alpha.roles import Role
 
-from main import RESULTS, _proposal, _taskid, emit_public_asset_events, prepare_public_assets
+from src.alloy_workflow.contracts import task_id as _taskid
+from src.alloy_workflow.identity import ACTION_DESCRIPTION, ACTION_NAME, ROLE_NAME, ROLE_PROFILE
 from src.alloy_workflow.presentation import emit_result_content
+from src.alloy_workflow.protocol import emit_public_asset_events, prepare_public_assets
+from src.alloy_workflow.runtime import RUNTIME
+
+# 与 main.py 共享同一运行时装配，禁止由编排层反向 import 传输入口。
+RESULTS = RUNTIME.results_root
+_proposal = RUNTIME.propose
 
 FRONTEND_STEP_ID = "FILAMENT_SELECTION_OPTIMIZATION"
 FRONTEND_STEP_TITLE = "合金成分优化与候选初筛"
 
 
+async def execute_alloy_optimization(websocket: Any, payload: dict[str, Any]) -> dict[str, Any]:
+    """按直连 WebSocket 的既有顺序执行上游角色调用。
+
+    阶段 2 生成候选：规范化高熵/多主元合金需求、调用独立计算执行器、落盘清单并生成
+    当前任务的 PNG/Markdown 资产。
+
+    阶段 3 展示结果：优先发布 PNG，失败时回退本地任务 URL；随后按既有
+    前端协议推送正文和 ``MaterialsPNG``。调用方在本函数返回后再发最终 result。
+    """
+    # 阶段 1：将母服务的角色消息包装成与直连 WebSocket 相同、可校验的任务范围。
+    request_id = _taskid(payload)
+
+    # 阶段 2：高熵/多主元合金用例只执行成分空间和代理模型计算，返回标准结果及本地任务资产；
+    # 它不处理 WebSocket 协议，也不依赖 Alpha Role。
+    result = await asyncio.to_thread(_proposal, payload)
+
+    # 阶段 3a：尽可能将当前任务资产发布为前端可访问地址。
+    result["_summary_path"] = RESULTS / request_id / "presentation" / "summary.md"
+    public_urls, asset_docs, _asset_titles, visual_assets = await prepare_public_assets(websocket, request_id, result, RESULTS)
+
+    # 阶段 3b：按既有顺序发送 Markdown 和 MaterialsPNG 兼容事件，不能改变顺序。
+    await emit_result_content(websocket, result, step_id=FRONTEND_STEP_ID, visual_assets=visual_assets)
+    result.pop("_summary_path", None)
+    await emit_public_asset_events(websocket, result, public_urls, asset_docs)
+    return result
+
+
 def _payload_from_instruction(
     instruction: Any, taskid: str, user_name: str, file_metadata: Any,
 ) -> dict[str, Any]:
-    """Accept the common upstream text/dict/list input without inventing data."""
+    """兼容母服务常见的文本、字典和历史消息列表输入，不臆造缺失数据。"""
     if isinstance(instruction, dict):
         payload = dict(instruction)
     else:
         if isinstance(instruction, list):
             text = ""
-            # Alpha passes Message objects in history.  Prefer the newest
-            # user content rather than ``str(Message)`` or a prior agent reply.
+            # Alpha 历史中可能是 Message 对象；优先取最新用户内容，而不是
+            # ``str(Message)`` 或之前 Agent 的回复。
             for item in reversed(instruction):
                 if isinstance(item, dict):
                     role, content = item.get("role"), item.get("content")
@@ -55,33 +88,32 @@ def _payload_from_instruction(
 
 
 class Coding(Action):
-    """Convert an alloy request into screened HEA candidates and presentation."""
+    """将合金需求转换为经过初筛的候选配比及其展示结果。"""
 
-    name: str = "Coding"
-    desc: str = (
-        "面向 HEA/MPEA 合金的成分空间构建、代理模型批量初筛、适用域与不确定性评估；"
-        "输出用户可读结论和供后续数学优化解析的结构化交接包。"
-    )
+    name: str = ACTION_NAME
+    desc: str = ACTION_DESCRIPTION
 
     async def run(self, instruction: Any, *args: Any) -> str:
+        # 阶段 0：适配 Alpha/母服务输入；先保留 task、用户和文件元数据，再进入服务流程。
         websocket, user_name, taskid, file_metadata = args[:4]
         payload = _payload_from_instruction(instruction, str(taskid), str(user_name), file_metadata)
         request_id = _taskid(payload)
+
+        # 阶段 1：在同步 HEA 用例开始前，保留母服务与前端既有的 progress 事件。
         await websocket.send_json({
             "version": "1.0.0", "agent": "alloy_composition_optimization",
             "request_id": request_id, "type": "progress",
             "data": {
                 "id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID,
                 "title": FRONTEND_STEP_TITLE,
-                "status": "in_progress", "description": "正在将需求映射为可确认的 HEA 探索条件。",
+                "status": "in_progress", "description": "正在将需求映射为可确认的高熵/多主元合金探索条件。",
             },
         })
-        result = await asyncio.to_thread(_proposal, payload)
-        result["_summary_path"] = RESULTS / request_id / "presentation" / "summary.md"
-        public_urls, asset_docs, _asset_titles, visual_assets = await prepare_public_assets(websocket, request_id, result)
-        await emit_result_content(websocket, result, step_id=FRONTEND_STEP_ID, visual_assets=visual_assets)
-        result.pop("_summary_path", None)
-        await emit_public_asset_events(websocket, result, public_urls, asset_docs)
+
+        # 阶段 2—3：执行计算、准备展示资产并流式输出正文。
+        result = await execute_alloy_optimization(websocket, payload)
+
+        # 阶段 4：仅发送一次最终结构化交接 result 事件。
         await websocket.send_json({
             "version": "1.0.0", "agent": "alloy_composition_optimization",
             "request_id": request_id, "type": "result", "data": result,
@@ -89,25 +121,13 @@ class Coding(Action):
         return str(result.get("user_conclusion", "合金候选初筛完成。"))
 
 
-class XIMUAlpha_AlloyCompositionOptimization(Role):
-    """HEA/MPEA 合金配比优化专属 Agent。"""
+class AlloyCompositionOptimizationRole(Role):
+    """高熵合金/多主元合金（HEA/MPEA）配比优化专属 Agent。"""
 
-    name: str = "合金配比优化和候选初筛"
-    profile: str = (
-        "子流程：合金配比优化和候选初筛。当母服务需要面向 HEA/MPEA 合金做成分空间构建、"
-        "候选排序、性能预测、不确定性与适用域评价、工艺条件建议和数学优化交接时，调用本服务。"
-        "适用于航空发动机高温合金、轻量化结构合金、耐热耐蚀合金和多主元合金等场景。"
-        "典型关键词：合金配比、高熵合金、HEA、MPEA、候选筛选、强度预测、相组成、适用域、数学优化。"
-    )
+    name: str = ROLE_NAME
+    profile: str = ROLE_PROFILE
 
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
         self._watch([UserRequirement])
         self.set_actions([Coding])
-
-
-# Compatibility for generic Alpha launchers that import this historical name.
-XIMUAlpha_MNS = XIMUAlpha_AlloyCompositionOptimization
-
-# Descriptive alias for direct programmatic imports.
-AlloyCompositionScreening = Coding
