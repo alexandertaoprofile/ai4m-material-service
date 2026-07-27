@@ -1,1 +1,0 @@
-"""Materials service shared modules."""
