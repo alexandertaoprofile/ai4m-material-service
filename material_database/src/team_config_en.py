@@ -8,6 +8,7 @@ import tempfile
 import io
 import base64
 import json
+from pathlib import Path
 import requests
 import logging
 import traceback
@@ -50,7 +51,9 @@ os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:10240"
 server_base = os.getenv('server_base')
 config = load_config("config/config.yaml")
 backend_url = config["BACKEND_URL"]
-source_path = config['SOURCE_CODE_PATH']
+# Keep the English compatibility flow relocatable when the service directory is
+# renamed or the repository is deployed elsewhere.
+source_path = str(Path(__file__).resolve().parent)
 
 minio_addr = "http://36.103.203.113:2300"
 https_vip_addr = "http://36.103.203.113:2300"
@@ -1072,4 +1075,3 @@ class XIMUAlpha_MNS(Role):
         # 保持不变
         self._watch([UserRequirement])
         self.set_actions([Coding])
-    
