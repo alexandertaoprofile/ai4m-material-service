@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+from pathlib import Path
 from typing import Any
 
 import uvicorn
@@ -22,7 +23,8 @@ from src.settings import MatureMaterialSettings
 from src.service_identity import ACTION_DESCRIPTION, ACTION_NAME, ROLE_DESCRIPTION, ROLE_NAME, ROLE_PROFILE, SERVICE_ID
 from src.team_config import MaterialMature
 
-load_dotenv()
+SERVICE_ROOT = Path(__file__).resolve().parent
+load_dotenv(SERVICE_ROOT / ".env")
 SETTINGS = MatureMaterialSettings.from_env()
 SERVICE = SETTINGS.service_name
 FRONTEND_STEP_ID = "FILAMENT_SELECTION_OPTIMIZATION"

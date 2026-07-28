@@ -53,10 +53,15 @@ python scripts/clean_catalog.py \
 
 ```bash
 pip install -r requirements.minimal.txt
-bash start.sh
+cd /path/to/material_database
+tmux new-session -s material-database-1105
+python main.py
 ```
 
 使用 `PROPERTY_DATA_ROOT` 设置原始商品材料数据目录；使用 `MATURE_MATERIAL_RESULTS_ROOT` 设置任务结果目录。
+
+服务完成稳定验收后，由运维配置并使用 `service material-database-1105` 管理；不要使用
+`start.sh`、`nohup` 或 Docker 作为标准启动路径。
 
 ## 回归测试
 

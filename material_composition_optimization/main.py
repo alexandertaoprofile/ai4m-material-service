@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import re
+from pathlib import Path
 from typing import Any
 
 import uvicorn
@@ -22,7 +23,8 @@ from src.alloy_workflow.identity import ACTION_DESCRIPTION, ACTION_NAME, ROLE_NA
 from src.alloy_workflow.protocol import emit_public_asset_events, prepare_public_assets
 from src.alloy_workflow.runtime import RUNTIME
 
-load_dotenv()
+SERVICE_ROOT = Path(__file__).resolve().parent
+load_dotenv(SERVICE_ROOT / ".env")
 SERVICE = "alloy-composition-optimization"
 FRONTEND_STEP_ID = "FILAMENT_SELECTION_OPTIMIZATION"
 FRONTEND_STEP_TITLE = "合金成分优化与候选初筛"

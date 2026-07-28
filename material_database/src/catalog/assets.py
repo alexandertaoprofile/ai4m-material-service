@@ -11,10 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 def _load_storage_environment() -> None:
-    load_dotenv(override=False)
-    credential_file = os.getenv("MINIO_CREDENTIALS_FILE", "").strip()
-    if credential_file and Path(credential_file).is_file():
-        load_dotenv(credential_file, override=False)
+    service_root = Path(__file__).resolve().parents[2]
+    load_dotenv(service_root / ".env", override=False)
 
 
 async def publish_png_assets(taskid: str, assets: list[dict]) -> dict[str, str]:

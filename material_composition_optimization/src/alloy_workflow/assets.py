@@ -8,15 +8,9 @@ from dotenv import load_dotenv
 
 
 def _load_storage_environment() -> None:
-    """Load service credentials without committing them to this repository."""
-    # Also supports direct calls (tests, scripts) where main.py has not yet
-    # loaded this service's .env file.
-    load_dotenv(override=False)
-    credential_file = os.getenv("MINIO_CREDENTIALS_FILE", "").strip()
-    if credential_file:
-        path = Path(credential_file)
-        if path.is_file():
-            load_dotenv(path, override=False)
+    """Load only this service's local storage credentials."""
+    service_root = Path(__file__).resolve().parents[2]
+    load_dotenv(service_root / ".env", override=False)
 
 
 async def publish_png_assets(taskid: str, assets: list[dict]) -> dict[str, str]:
