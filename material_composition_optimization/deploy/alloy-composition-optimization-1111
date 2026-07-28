@@ -12,7 +12,7 @@
 set -u
 SERVICE_NAME="alloy-composition-optimization-1111"
 SERVICE_USER="ubuntu"
-WORK_DIR="/data/se42/alpha_project/alpha_material_sync/alloy_composition_optimization"
+WORK_DIR="/data/se42/alpha_project/material_service_hub/material_composition_optimization"
 START_SCRIPT="${WORK_DIR}/start.sh"
 ENV_FILE="${WORK_DIR}/.env"
 PID_DIR="/var/run/${SERVICE_NAME}"

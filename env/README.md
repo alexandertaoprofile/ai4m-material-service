@@ -1,6 +1,6 @@
 # Environment Bundle for Production Deployment (113)
 
-本目录用于集中管理 `alpha_material_sync` 的部署环境文件。
+本目录用于集中管理 `material_service_hub` 的部署环境文件。
 
 ## 目录说明
 
@@ -28,7 +28,7 @@
 ## MatterGen 环境
 
 ```bash
-cd ../inorganic_new_material
+cd ../material_discovery
 bash tools/setup_mattergen_env.sh
 ```
 

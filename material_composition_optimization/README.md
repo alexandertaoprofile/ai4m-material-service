@@ -1,4 +1,4 @@
-# alloy_composition_optimization
+# material_composition_optimization
 
 合金配比优化总服务。它使用共享的合金成分解析、描述符、任务 envelope 和流式进度协议，但按材料域路由至**独立训练和验证的模型**：
 
@@ -21,8 +21,8 @@
 ```bash
 cd /data/se42/hea_surrogate
 /home/ubuntu/micromamba run -p /data/mamba/envs/mattergen-py310 python -m src.models.train_baselines --task all
-cd /data/se42/alpha_project/alpha_material_sync/alloy_composition_optimization
-tmux new-session -d -s alloy-composition-optimization \
+cd /data/se42/alpha_project/material_service_hub/material_composition_optimization
+tmux new-session -d -s material-composition-optimization-1111 \
   '/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python main.py'
 ```
 

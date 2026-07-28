@@ -1,4 +1,4 @@
-# inorganic_new_material
+# material_discovery
 
 无机新材料服务，面向生成式无机晶体发现：MatterGen 候选生成、pymatgen 结构准入和确定性排序。
 

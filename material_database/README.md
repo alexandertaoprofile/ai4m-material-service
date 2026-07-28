@@ -1,4 +1,4 @@
-# mature_material_service
+# material_database
 
 成熟已有材料服务。它查询已入库且可追溯的材料数据，不调用 MatterGen、MatterSim、Materials Project 或任何新材料生成链路。
 
