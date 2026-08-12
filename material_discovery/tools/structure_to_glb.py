@@ -142,6 +142,24 @@ def make_cylinder(p0: np.ndarray, p1: np.ndarray, radius: float, rgb: Tuple[int,
     return cyl
 
 
+def add_lattice_outline(scene: trimesh.Scene, structure: Structure, shift: np.ndarray) -> None:
+    """Draw the displayed periodic cell without inventing chemical bonds."""
+    fractional_corners = [(x, y, z) for x in (0, 1) for y in (0, 1) for z in (0, 1)]
+    corners = {
+        fractional: structure.lattice.get_cartesian_coords(fractional) - shift
+        for fractional in fractional_corners
+    }
+    for first_fractional in fractional_corners:
+        for axis in range(3):
+            if first_fractional[axis] != 0:
+                continue
+            second_fractional = list(first_fractional)
+            second_fractional[axis] = 1
+            scene.add_geometry(make_cylinder(
+                corners[first_fractional], corners[tuple(second_fractional)], 0.025, (105, 150, 195)
+            ))
+
+
 # ---------- Neighbors / polyhedra ----------
 def get_crystalnn_bonds(structure: Structure,
                         max_per_site: Optional[int] = None) -> List[Tuple[int, int, np.ndarray]]:
@@ -260,6 +278,7 @@ def export_glb_mpstyle(
     bond_radius: float = 0.07,
     draw_atoms: bool = True,
     draw_bonds: bool = True,
+    draw_lattice_outline: bool = False,
     draw_periodic_boundary_bonds: bool = True,
     bond_rgb: Tuple[int, int, int] = (245, 245, 245),  # 更接近你截图的白色键
     max_bonds_per_site: Optional[int] = None,
@@ -291,6 +310,9 @@ def export_glb_mpstyle(
             el = site.specie.symbol
             c = site.coords - shift
             scene.add_geometry(make_sphere(c, atom_radius, element_rgb(el)))
+
+    if draw_lattice_outline:
+        add_lattice_outline(scene, structure, shift)
 
     # bonds
     bonds = []
@@ -348,6 +370,7 @@ def export_glb_mpstyle(
         "supercell": list(sc),
         "draw_atoms": bool(draw_atoms),
         "draw_bonds": bool(draw_bonds),
+        "draw_lattice_outline": bool(draw_lattice_outline),
         "draw_periodic_boundary_bonds": bool(draw_periodic_boundary_bonds),
         "poly_mode": poly_mode,
         "poly_centers": centers,

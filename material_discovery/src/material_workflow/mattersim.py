@@ -104,6 +104,9 @@ def enrich_validations_with_mattersim(
         validation.validator = "pymatgen+mattersim"
         validation.energy_above_hull = result["energy_above_hull_ev"]
         validation.formation_energy_per_atom = result["formation_energy_per_atom_ev"]
+        # The renderer must consume the structure belonging to this exact
+        # source CIF, never the shared multi-frame relaxation trajectory.
+        validation.artifacts["relaxed_structure_path"] = result["relaxed_structure_path"]
         validation.artifacts["relaxed_structures"] = str(validation_dir.parent / "mattersim" / "relaxed_structures.extxyz")
         validation.metadata["mattersim"] = result
         write_validation_result(validation, validation_dir)

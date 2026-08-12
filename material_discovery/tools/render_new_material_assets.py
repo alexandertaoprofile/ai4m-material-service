@@ -242,7 +242,13 @@ def try_export_glb(structure: Structure, output: Path) -> str | None:
             str(output),
             supercell=(2, 2, 2),
             poly_mode="none",
-            draw_periodic_boundary_bonds=False,
+            # CrystalNN edges are neighbourhood hints, not chemical bonds.
+            # For metals/alloys they form a dense web and hiding boundary edges
+            # makes a continuous periodic lattice look broken.  The default
+            # evidence view therefore shows atoms only; a cell outline can be
+            # offered later as an explicit viewer control, not a default cue.
+            draw_bonds=False,
+            draw_lattice_outline=False,
         )
         return str(output) if info.get("ok") else None
     except Exception:
@@ -255,35 +261,62 @@ def main() -> None:
     candidate, validation = get_top(manifest)
     cif_path = Path(candidate["cif_path"])
     structure = Structure.from_file(cif_path)
-    relaxed_path = Path((validation.get("artifacts") or {}).get("relaxed_structures") or "")
+    artifacts = validation.get("artifacts") or {}
+    structure_admitted = validation.get("is_valid") is True
+    relaxed_structure_value = artifacts.get("relaxed_structure_path")
+    relaxed_path = Path(relaxed_structure_value) if relaxed_structure_value else None
     relaxed = False
-    if relaxed_path.exists():
+    if relaxed_path is not None and relaxed_path.is_file():
         try:
             from ase.io import read
             from pymatgen.io.ase import AseAtomsAdaptor
 
             structure = AseAtomsAdaptor.get_structure(read(relaxed_path, index=-1))
+            if structure.composition.reduced_formula != Structure.from_file(cif_path).composition.reduced_formula:
+                raise ValueError("Relaxed structure composition does not match the selected candidate CIF.")
             relaxed = True
         except Exception:
-            pass
+            # A mismatched or unreadable relaxed structure must not be shown as
+            # evidence for this candidate.  Fall back to its own source CIF.
+            structure = Structure.from_file(cif_path)
+    elif len(manifest.get("ranked_candidates") or []) == 1:
+        # Backward compatibility for historical single-candidate jobs only.
+        # Multi-frame legacy files are intentionally never used for a
+        # multi-candidate result because their final frame is ambiguous.
+        legacy_structure_value = artifacts.get("relaxed_structures")
+        legacy_path = Path(legacy_structure_value) if legacy_structure_value else None
+        if legacy_path is not None and legacy_path.is_file():
+            try:
+                from ase.io import read
+                from pymatgen.io.ase import AseAtomsAdaptor
+
+                structure = AseAtomsAdaptor.get_structure(read(legacy_path, index=-1))
+                relaxed = True
+            except Exception:
+                pass
     formula = candidate.get("formula_pretty") or structure.composition.reduced_formula
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    rotation_gif = args.output_dir / "candidate_rotation.gif"
-    scorecard = args.output_dir / "stability_scorecard.png"
     design_brief = args.output_dir / "design_brief.png"
-    render_rotation_gif(structure, rotation_gif, formula)
     render_design_brief(design_brief, structure, manifest.get("constraints") or {})
-    render_scorecard(scorecard, formula, validation, manifest.get("constraints") or {})
-    glb_path = args.output_dir / "candidate_structure.glb"
-    glb = try_export_glb(structure, glb_path)
     assets = [
         {"path": str(design_brief), "type": "MaterialsPNG", "name": "设计约束卡", "docs": "元素体系、生成引导目标与待验证的工程关注点"},
-        {"path": str(rotation_gif), "type": "MaterialsPNG", "name": f"候选晶体旋转预览（{formula}）", "docs": "候选晶体结构的旋转预览"},
-        {"path": str(scorecard), "type": "MaterialsPNG", "name": f"热力学初筛评分卡（{formula}）", "docs": "MatterSim--MP 热力学初筛证据" if validation.get("energy_above_hull") is not None else "热力学计算尚未完成；当前仅展示结构准入状态"},
     ]
-    if glb:
-        assets.append({"path": glb, "type": "MaterialsGLB", "name": f"候选晶体三维模型（{formula}）", "docs": "可交互查看的 GLB 晶体结构（2×2×2 可视化超胞）"})
-    output = {"status": "ok", "formula": formula, "assets": assets, "glb_available": bool(glb)}
+    formal_structure_ready = structure_admitted and relaxed
+    if formal_structure_ready:
+        rotation_gif = args.output_dir / "candidate_rotation.gif"
+        scorecard = args.output_dir / "stability_scorecard.png"
+        glb_path = args.output_dir / "candidate_structure.glb"
+        render_rotation_gif(structure, rotation_gif, formula)
+        render_scorecard(scorecard, formula, validation, manifest.get("constraints") or {})
+        glb = try_export_glb(structure, glb_path)
+        assets.extend([
+            {"path": str(rotation_gif), "type": "MaterialsPNG", "name": f"候选晶体旋转预览（{formula}）", "docs": "这个候选已完成结构检查和结构优化，可从不同角度查看原子排布。"},
+            {"path": str(scorecard), "type": "MaterialsPNG", "name": f"热力学初筛评分卡（{formula}）", "docs": "基于结构优化结果的热力学初筛参考。"},
+        ])
+        if glb:
+            assets.append({"path": glb, "type": "MaterialsGLB", "name": f"候选晶体三维模型（{formula}）", "docs": "模型展示的是这个候选完成结构优化后的排布。为便于观察整体排列，画面展示了相邻重复单元；没有添加原子之间的连线。"})
+    readiness_message = "候选已完成结构检查和结构优化，可查看结构模型与热力学初筛。" if formal_structure_ready else "候选仍在结构检查或结构优化阶段，暂不展示正式结构模型和热力学初筛结果。"
+    output = {"status": "ok", "formula": formula, "assets": assets, "glb_available": bool(formal_structure_ready and glb), "formal_structure_ready": formal_structure_ready, "message": readiness_message}
     (args.output_dir / "presentation_manifest.json").write_text(json.dumps(output, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(output, ensure_ascii=False))
 

@@ -256,7 +256,7 @@ def visual_assets_block(visual_assets: list[dict[str, str]] | None = None) -> st
         lines.extend([
             f"#### {title}",
             description,
-            f'<img src="{url}" alt="{title}" style="max-width:900px;width:78%;height:auto;display:block;margin:8px auto 18px;" />',
+            f"![{title}]({url})",
         ])
     return "\n\n".join(lines) if len(lines) > 1 else ""
 

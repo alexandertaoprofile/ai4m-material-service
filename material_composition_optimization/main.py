@@ -20,7 +20,7 @@ from fastapi.responses import FileResponse
 from src.alloy_workflow.presentation import emit_result_content
 from src.alloy_workflow.contracts import requirement_plan as _requirement_plan, task_id as _taskid, upstream_requirement as _upstream_requirement
 from src.alloy_workflow.identity import ACTION_DESCRIPTION, ACTION_NAME, ROLE_NAME, ROLE_PROFILE, SERVICE_ID
-from src.alloy_workflow.protocol import emit_public_asset_events, prepare_public_assets
+from src.alloy_workflow.protocol import prepare_public_assets
 from src.alloy_workflow.runtime import RUNTIME
 
 SERVICE_ROOT = Path(__file__).resolve().parent
@@ -190,12 +190,10 @@ async def start(websocket:WebSocket):
         await websocket.send_json({"version":"1.0.0","agent":"alloy_composition_optimization","request_id":taskid,"type":"progress","data":{"id":FRONTEND_STEP_ID,"stepId":FRONTEND_STEP_ID,"title":FRONTEND_STEP_TITLE,"status":"in_progress","description":"正在通过隔离的高熵/多主元合金（HEA/MPEA）专项 runner 进行采样和批量预测。"}})
         result=await asyncio.to_thread(_proposal,payload); result["_summary_path"]=RESULTS/taskid/"presentation"/"summary.md"
         public_urls,asset_docs,_asset_titles,visual_assets=await prepare_public_assets(websocket,taskid,result,RESULTS)
-        # Follow the neighboring 3D-material service: public image URLs are
-        # embedded in the streamed Markdown *and* announced as asset events.
-        # The first path works in chat renderers that do not render asset cards.
+        # PNG 图表只嵌入流式 Markdown；不再额外发送 MaterialsPNG JSON，避免
+        # 前端把同一资产渲染两次。
         await emit_result_content(websocket,result,step_id=FRONTEND_STEP_ID,visual_assets=visual_assets)
         result.pop("_summary_path",None)
-        await emit_public_asset_events(websocket,result,public_urls,asset_docs)
         await websocket.send_json({"version":"1.0.0","agent":"alloy_composition_optimization","request_id":taskid,"type":"result","data":result})
         await websocket.send_text("[end]")
         print(f"[ALLOY][{taskid}] completed generated={result.get('sampling', {}).get('generated', 0)} feasible={result.get('sampling', {}).get('feasible', 0)} assets={len(result.get('presentation', {}).get('assets', []))}", flush=True)
@@ -204,7 +202,7 @@ async def start(websocket:WebSocket):
     except Exception as exc:
         print(f"[WS /alloy/start] failed peer={peer} error={exc!r}", flush=True)
         try:
-            await websocket.send_json({"version":"1.0.0","agent":"alloy_composition_optimization","type":"error","data":str(exc)})
+            await websocket.send_text(f"\n处理失败：{exc}\n")
         except (RuntimeError, WebSocketDisconnect):
             pass
     finally:

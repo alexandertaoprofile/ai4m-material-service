@@ -1,0 +1,5403 @@
+{
+  "snapshot": "2026-08-06_high_temperature_material_v1",
+  "table_count": 331,
+  "row_count": 5193,
+  "summary": {
+    "eligible": 21,
+    "mapping_required": 310
+  },
+  "rule": "Only tables with explicit material identity and candidate property fields may be automatically imported.",
+  "tables": [
+    {
+      "file": "high_temperature_material.chemical_composition__element_composition__31f6e194.csv",
+      "row_count": 5,
+      "identity_fields": [
+        "alloy"
+      ],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "uns_number",
+        "werkstoff_number",
+        "fe",
+        "ni",
+        "cr",
+        "mo",
+        "w_or_nb",
+        "pren"
+      ],
+      "automated_import_eligible": true
+    },
+    {
+      "file": "high_temperature_material.chemical_composition__element_composition__4bbfa5d1.csv",
+      "row_count": 10,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "nickel",
+        "remainder_a"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.chemical_composition__element_composition__68bebd52.csv",
+      "row_count": 9,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "natural_abundance",
+        "element_or_isotope",
+        "absorption_cross_section_barns",
+        "scattering_cross_section_barns"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.chemical_composition__element_composition__80b3307a.csv",
+      "row_count": 1,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "co",
+        "cr",
+        "mo",
+        "fe",
+        "w",
+        "ni",
+        "mn",
+        "si",
+        "n",
+        "al",
+        "c"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.chemical_composition__element_composition__9e8f1655.csv",
+      "row_count": 4,
+      "identity_fields": [
+        "alloy"
+      ],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "fe",
+        "ni",
+        "cr",
+        "mo",
+        "w",
+        "cr_mo_w"
+      ],
+      "automated_import_eligible": true
+    },
+    {
+      "file": "high_temperature_material.chemical_composition__element_composition__ad5a4f10.csv",
+      "row_count": 15,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "element",
+        "mass_fraction",
+        "coverage_factor_k"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.chemical_composition__element_composition__db50a112.csv",
+      "row_count": 3,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "element",
+        "cr",
+        "co",
+        "al",
+        "ti",
+        "nb",
+        "fe",
+        "c",
+        "mn",
+        "mo",
+        "si",
+        "cu",
+        "p",
+        "s",
+        "b",
+        "ni"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.chemical_composition__element_composition__f1c73a33.csv",
+      "row_count": 5,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "field_references",
+        "fe",
+        "cr",
+        "ni",
+        "mo",
+        "mn",
+        "si",
+        "c"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.chemical_composition__element_weight_percent__63b77428.csv",
+      "row_count": 14,
+      "identity_fields": [
+        "alloy"
+      ],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "cr",
+        "co",
+        "mo",
+        "re",
+        "al",
+        "ta",
+        "hf",
+        "y_a_ppm_wt",
+        "ni",
+        "b",
+        "c",
+        "s_ppm_wt"
+      ],
+      "automated_import_eligible": true
+    },
+    {
+      "file": "high_temperature_material.chemical_composition__element_weight_percent__be620da2.csv",
+      "row_count": 13,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "nims_reference_code",
+        "chemical_composition_mass_percent_1_c",
+        "chemical_composition_mass_percent_1_si",
+        "chemical_composition_mass_percent_1_mn",
+        "chemical_composition_mass_percent_1_p",
+        "chemical_composition_mass_percent_1_s",
+        "chemical_composition_mass_percent_1_ni",
+        "chemical_composition_mass_percent_1_cr",
+        "chemical_composition_mass_percent_1_mo",
+        "chemical_composition_mass_percent_1_cu",
+        "chemical_composition_mass_percent_1_ti",
+        "chemical_composition_mass_percent_1_al"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.corrosion_rate__alloy_heat_treatment__24aa4c79.csv",
+      "row_count": 4,
+      "identity_fields": [
+        "alloy"
+      ],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "corrosion_rate_mpy_mm_a_annealed",
+        "corrosion_rate_mpy_mm_a_annealed_reheated_for_1h_at_14_1b3e93eb",
+        "corrosion_rate_mpy_mm_a_annealed_reheated_for_1h_at_16_f5683e14",
+        "corrosion_rate_mpy_mm_a_annealed_reheated_for_1h_at_18_f610b5b8"
+      ],
+      "automated_import_eligible": true
+    },
+    {
+      "file": "high_temperature_material.creep_properties__alloy_time__8c6fa4de.csv",
+      "row_count": 2,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "alloy_hr_160_c_22",
+        "time_to_failure_h_1000h",
+        "time_to_failure_h_no_cracking"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__column_001_n_1__a0b85bb4.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "column_001",
+        "n_1",
+        "q",
+        "b",
+        "b_0",
+        "b_1"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__column_001_n_1__fb180a05.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "column_001",
+        "n_1",
+        "q",
+        "d",
+        "d_0"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__environment_condition__1815548f.csv",
+      "row_count": 12,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "environment",
+        "time_to_failure_h",
+        "elong",
+        "r_a",
+        "time_to_failure_ratio_h",
+        "elong_ratio",
+        "r_a_ratio",
+        "secondary_cracking"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__environment_time__66af2d76.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "test_environment",
+        "time_to_failure_h",
+        "elong",
+        "r_a",
+        "time_to_failure_ratio",
+        "elong_ratio",
+        "r_a_ratio",
+        "secondary_cracking"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__environment_time__c70c98a3.csv",
+      "row_count": 8,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "environment",
+        "max_load_lb",
+        "max_load_kg",
+        "normalized_factor",
+        "time_to_failure_h"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__model_equation__785f0c4f.csv",
+      "row_count": 6,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "model",
+        "equation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__nims_reference_code_log_t_r_a_blog__e2b9046d.csv",
+      "row_count": 1,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "nims_reference_code",
+        "log_t_r_a_blog_minimum_creep_rate_n_1",
+        "log_t_r_a_blog_minimum_creep_rate_a",
+        "log_t_r_a_blog_minimum_creep_rate_b",
+        "see_2_b",
+        "cod_3_b"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__temperature__b6ca003a.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "nims_reference_number",
+        "number_of_data_points",
+        "c_550_deg_c_10_2h",
+        "c_550_deg_c_10_3h",
+        "c_550_deg_c_10_4h",
+        "c_550_deg_c_10_5h",
+        "c_600_deg_c_10_2h",
+        "c_600_deg_c_10_3h",
+        "c_600_deg_c_10_4h",
+        "c_600_deg_c_10_5h"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__temperature_alloy__b0e1b3f0.csv",
+      "row_count": 10,
+      "identity_fields": [
+        "alloy"
+      ],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "hours_to_rupture_1400_deg_f_760_deg_c_15_0_ksi_103_mpa",
+        "hours_to_rupture_1600_deg_f_871_deg_c_4_1_ksi_31_mpa",
+        "hours_to_rupture_1800_deg_f_982_deg_c_2_0_ksi_14_mpa"
+      ],
+      "automated_import_eligible": true
+    },
+    {
+      "file": "high_temperature_material.creep_properties__temperature_alloy__e4b56093.csv",
+      "row_count": 14,
+      "identity_fields": [
+        "alloy"
+      ],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "life_h_at_982_deg_c_241_mpa",
+        "life_h_at_982_deg_c_207_mpa",
+        "life_h_at_1093_deg_c_124_mpa",
+        "life_h_at_1093_deg_c_110_mpa"
+      ],
+      "automated_import_eligible": true
+    },
+    {
+      "file": "high_temperature_material.creep_properties__temperature_condition__08d9b5d8.csv",
+      "row_count": 16,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "welding_material",
+        "stressa_to_produce_rupture_in_100_hr_ksi",
+        "stressa_to_produce_rupture_in_100_hr_mpa",
+        "stressa_to_produce_rupture_in_1000_hr_ksi",
+        "stressa_to_produce_rupture_in_1000_hr_mpa",
+        "stressa_to_produce_rupture_in_10_000_hr_ksi",
+        "stressa_to_produce_rupture_in_10_000_hr_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__temperature_condition__231f3ce4.csv",
+      "row_count": 55,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "creep",
+        "approximate_initial_stress_to_produce_specified_creep_5fa6fab2",
+        "approximate_initial_stress_to_produce_specified_creep_0cc64c8a",
+        "approximate_initial_stress_to_produce_specified_creep_4719106f",
+        "approximate_initial_stress_to_produce_specified_creep_1bbfd242"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__temperature_condition__30ebfc6d.csv",
+      "row_count": 19,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "stressa_to_produce_rupture_in_10_hr_ksi",
+        "stressa_to_produce_rupture_in_10_hr_mpa",
+        "stressa_to_produce_rupture_in_100_hr_ksi",
+        "stressa_to_produce_rupture_in_100_hr_mpa",
+        "stressa_to_produce_rupture_in_1_000_hr_ksi",
+        "stressa_to_produce_rupture_in_1_000_hr_mpa",
+        "stressa_to_produce_rupture_in_10_000_hr_ksi",
+        "stressa_to_produce_rupture_in_10_000_hr_mpa",
+        "stressa_to_produce_rupture_in_100_000_hr_ksi",
+        "stressa_to_produce_rupture_in_100_000_hr_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__temperature_condition__4588d71a.csv",
+      "row_count": 16,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "creep",
+        "approximate_initial_stress_to_produce_specified_creep_5fa6fab2",
+        "approximate_initial_stress_to_produce_specified_creep_0cc64c8a",
+        "approximate_initial_stress_to_produce_specified_creep_524a2e6b",
+        "approximate_initial_stress_to_produce_specified_creep_a67452d7"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__temperature_condition__47988496.csv",
+      "row_count": 171,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "creep",
+        "approximate_initial_stress_to_produce_specified_creep_1a1629bc",
+        "approximate_initial_stress_to_produce_specified_creep_5dfca790",
+        "approximate_initial_stress_to_produce_specified_creep_5fa6fab2",
+        "approximate_initial_stress_to_produce_specified_creep_0cc64c8a",
+        "approximate_initial_stress_to_produce_specified_creep_4719106f",
+        "approximate_initial_stress_to_produce_specified_creep_1bbfd242",
+        "approximate_initial_stress_to_produce_specified_creep_f3229b72",
+        "approximate_initial_stress_to_produce_specified_creep_f803a7b9"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__temperature_condition__56e2c1b9.csv",
+      "row_count": 15,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "creep",
+        "approximate_initial_stress_to_produce_specified_creep_ebf25e2b",
+        "approximate_initial_stress_to_produce_specified_creep_ce08ddb6",
+        "approximate_initial_stress_to_produce_specified_creep_33b8cb0d",
+        "approximate_initial_stress_to_produce_specified_creep_a1700ba7",
+        "approximate_initial_stress_to_produce_specified_creep_857bb3df",
+        "approximate_initial_stress_to_produce_specified_creep_ada9112b"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__temperature_condition__62e3b38f.csv",
+      "row_count": 4,
+      "identity_fields": [
+        "material"
+      ],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "stress_ksi",
+        "stress_mpa",
+        "time_to_1_creep_h",
+        "time_to_rupture_h"
+      ],
+      "automated_import_eligible": true
+    },
+    {
+      "file": "high_temperature_material.creep_properties__temperature_condition__64d907a0.csv",
+      "row_count": 69,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "creep",
+        "approximate_initial_stress_to_produce_specified_creep_1a1629bc",
+        "approximate_initial_stress_to_produce_specified_creep_5dfca790",
+        "approximate_initial_stress_to_produce_specified_creep_5fa6fab2",
+        "approximate_initial_stress_to_produce_specified_creep_0cc64c8a",
+        "approximate_initial_stress_to_produce_specified_creep_4719106f",
+        "approximate_initial_stress_to_produce_specified_creep_1bbfd242"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__temperature_condition__6a32f87d.csv",
+      "row_count": 24,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "thickness_in",
+        "test_conditions_deg_f_ksi",
+        "rupture_life_hr"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__temperature_condition__8a87a8df.csv",
+      "row_count": 15,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "welding_product",
+        "stress_a_for_rupture_in_100_hr_ksi",
+        "stress_a_for_rupture_in_100_hr_mpa",
+        "stress_a_for_rupture_in_1000_hr_ksi",
+        "stress_a_for_rupture_in_1000_hr_mpa",
+        "stress_a_for_rupture_in_10_000_hr_ksi",
+        "stress_a_for_rupture_in_10_000_hr_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__temperature_condition__8be849b7.csv",
+      "row_count": 78,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "creep",
+        "approximate_initial_stress_to_produce_specified_creep_6e6099bb",
+        "approximate_initial_stress_to_produce_specified_creep_80a61568",
+        "approximate_initial_stress_to_produce_specified_creep_5b3e37ad",
+        "approximate_initial_stress_to_produce_specified_creep_28ce8f92",
+        "approximate_initial_stress_to_produce_specified_creep_28e7ac30",
+        "approximate_initial_stress_to_produce_specified_creep_01aa2a58",
+        "approximate_initial_stress_to_produce_specified_creep_eb804531",
+        "approximate_initial_stress_to_produce_specified_creep_c81f15a3"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__temperature_condition__8d0101ad.csv",
+      "row_count": 51,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "creep",
+        "approximate_initial_stress_to_produce_specified_creep_6e6099bb",
+        "approximate_initial_stress_to_produce_specified_creep_80a61568",
+        "approximate_initial_stress_to_produce_specified_creep_5b3e37ad",
+        "approximate_initial_stress_to_produce_specified_creep_28ce8f92",
+        "approximate_initial_stress_to_produce_specified_creep_28e7ac30",
+        "approximate_initial_stress_to_produce_specified_creep_01aa2a58"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__temperature_condition__984cae1c.csv",
+      "row_count": 12,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "creep",
+        "approximate_initial_stress_to_produce_specified_creep_33b8cb0d",
+        "approximate_initial_stress_to_produce_specified_creep_a1700ba7",
+        "approximate_initial_stress_to_produce_specified_creep_857bb3df",
+        "approximate_initial_stress_to_produce_specified_creep_ada9112b"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__temperature_condition__bd58e121.csv",
+      "row_count": 27,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "creep",
+        "approximate_initial_stress_to_produce_specified_creep_6e6099bb",
+        "approximate_initial_stress_to_produce_specified_creep_80a61568",
+        "approximate_initial_stress_to_produce_specified_creep_5b3e37ad",
+        "approximate_initial_stress_to_produce_specified_creep_28ce8f92",
+        "approximate_initial_stress_to_produce_specified_creep_5d898ede",
+        "approximate_initial_stress_to_produce_specified_creep_276e4731",
+        "approximate_initial_stress_to_produce_specified_creep_eb804531",
+        "approximate_initial_stress_to_produce_specified_creep_c81f15a3"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__temperature_condition__c89c7615.csv",
+      "row_count": 6,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "approximate_initial_stress_to_produce_rupture_in_10_h_ksi",
+        "approximate_initial_stress_to_produce_rupture_in_10_h_mpa",
+        "approximate_initial_stress_to_produce_rupture_in_100_h_ksi",
+        "approximate_initial_stress_to_produce_rupture_in_100_h_mpa",
+        "approximate_initial_stress_to_produce_rupture_in_1_000_h_ksi",
+        "approximate_initial_stress_to_produce_rupture_in_1_000_h_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__temperature_condition__f22bd5e4.csv",
+      "row_count": 13,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "stress_for_a_secondary_creep_rate_of_0_01_1000_hr_cold_b68af782",
+        "stress_for_a_secondary_creep_rate_of_0_01_1000_hr_cold_96bdc415",
+        "stress_for_a_secondary_creep_rate_of_0_01_1000_hr_solu_1c9a74ad",
+        "stress_for_a_secondary_creep_rate_of_0_01_1000_hr_solu_ef5ebcc8",
+        "stress_for_a_secondary_creep_rate_of_0_1_1000_hr_cold_099be586",
+        "stress_for_a_secondary_creep_rate_of_0_1_1000_hr_cold_a79e866d",
+        "stress_for_a_secondary_creep_rate_of_0_1_1000_hr_solut_66833c47",
+        "stress_for_a_secondary_creep_rate_of_0_1_1000_hr_solut_f6865507"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__temperature_condition__fbbe07e4.csv",
+      "row_count": 3,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "stress_to_produce_rupture_in_100_h_ksi",
+        "stress_to_produce_rupture_in_100_h_mpa",
+        "stress_to_produce_rupture_in_1000_h_ksi",
+        "stress_to_produce_rupture_in_1000_h_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__test_temperature__09319a9c.csv",
+      "row_count": 16,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "creep",
+        "approximate_initial_stress_to_produce_specified_creep_5fa6fab2",
+        "approximate_initial_stress_to_produce_specified_creep_0cc64c8a",
+        "approximate_initial_stress_to_produce_specified_creep_524a2e6b",
+        "approximate_initial_stress_to_produce_specified_creep_a67452d7",
+        "approximate_initial_stress_to_produce_specified_creep_f3229b72",
+        "approximate_initial_stress_to_produce_specified_creep_f803a7b9",
+        "approximate_initial_stress_to_produce_specified_creep_ced95a25",
+        "approximate_initial_stress_to_produce_specified_creep_5e9595c0"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__test_temperature__12f829ac.csv",
+      "row_count": 24,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "property_stress_to_produce_1_creep_in_100_h_ksi_mpa",
+        "c_263_ksi",
+        "c_263_mpa",
+        "r_41_ksi",
+        "r_41_mpa",
+        "waspaloy_ksi",
+        "waspaloy_mpa",
+        "c_282_ksi",
+        "c_282_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__test_temperature__1dc43ad0.csv",
+      "row_count": 21,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "creep",
+        "approximate_initial_stress_to_produce_specified_creep_1a1629bc",
+        "approximate_initial_stress_to_produce_specified_creep_5dfca790",
+        "approximate_initial_stress_to_produce_specified_creep_5fa6fab2",
+        "approximate_initial_stress_to_produce_specified_creep_0cc64c8a",
+        "approximate_initial_stress_to_produce_specified_creep_524a2e6b",
+        "approximate_initial_stress_to_produce_specified_creep_a67452d7",
+        "approximate_initial_stress_to_produce_specified_creep_f3229b72",
+        "approximate_initial_stress_to_produce_specified_creep_f803a7b9"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__test_temperature__212b1182.csv",
+      "row_count": 7,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_100_000_hour_rupture_strengths_ksi_hr_160",
+        "c_100_000_hour_rupture_strengths_ksi_ra333",
+        "c_100_000_hour_rupture_strengths_ksi_800ht",
+        "c_100_000_hour_rupture_strengths_ksi_ra330",
+        "c_100_000_hour_rupture_strengths_ksi_253_ma",
+        "c_100_000_hour_rupture_strengths_ksi_ra85h",
+        "c_100_000_hour_rupture_strengths_ksi_309",
+        "c_100_000_hour_rupture_strengths_ksi_310"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__test_temperature__30b9a92f.csv",
+      "row_count": 9,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "average_rupture_life_strength_for_time_indicated_10_h_ksi",
+        "average_rupture_life_strength_for_time_indicated_10_h_mpa",
+        "average_rupture_life_strength_for_time_indicated_100_h_ksi",
+        "average_rupture_life_strength_for_time_indicated_100_h_mpa",
+        "average_rupture_life_strength_for_time_indicated_1000_h_ksi",
+        "average_rupture_life_strength_for_time_indicated_1000_h_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__test_temperature__590afd28.csv",
+      "row_count": 36,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "creep",
+        "approximate_initial_stress_to_produce_specified_creep_5fa6fab2",
+        "approximate_initial_stress_to_produce_specified_creep_0cc64c8a",
+        "approximate_initial_stress_to_produce_specified_creep_4719106f",
+        "approximate_initial_stress_to_produce_specified_creep_1bbfd242",
+        "approximate_initial_stress_to_produce_specified_creep_f3229b72",
+        "approximate_initial_stress_to_produce_specified_creep_f803a7b9"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__test_temperature__b3484da7.csv",
+      "row_count": 18,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "approximate_initial_stress_to_produce_rupture_in_10_h_ksi",
+        "approximate_initial_stress_to_produce_rupture_in_10_h_mpa",
+        "approximate_initial_stress_to_produce_rupture_in_100_h_ksi",
+        "approximate_initial_stress_to_produce_rupture_in_100_h_mpa",
+        "approximate_initial_stress_to_produce_rupture_in_1000_h_ksi",
+        "approximate_initial_stress_to_produce_rupture_in_1000_h_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__test_temperature__bf7f4170.csv",
+      "row_count": 21,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "creep",
+        "approximate_initial_stress_to_produce_specified_creep_5fa6fab2",
+        "approximate_initial_stress_to_produce_specified_creep_0cc64c8a",
+        "approximate_initial_stress_to_produce_specified_creep_4719106f",
+        "approximate_initial_stress_to_produce_specified_creep_1bbfd242"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__test_temperature__c3e7ce0c.csv",
+      "row_count": 9,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "creep",
+        "approximate_initial_stress_to_produce_specified_creep_1a1629bc",
+        "approximate_initial_stress_to_produce_specified_creep_5dfca790",
+        "approximate_initial_stress_to_produce_specified_creep_5fa6fab2",
+        "approximate_initial_stress_to_produce_specified_creep_0cc64c8a",
+        "approximate_initial_stress_to_produce_specified_creep_4719106f",
+        "approximate_initial_stress_to_produce_specified_creep_1bbfd242"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__test_temperature__dc46753e.csv",
+      "row_count": 7,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_10_000_hour_rupture_strengths_ksi_hr_160",
+        "c_10_000_hour_rupture_strengths_ksi_ra333",
+        "c_10_000_hour_rupture_strengths_ksi_800ht",
+        "c_10_000_hour_rupture_strengths_ksi_ra330",
+        "c_10_000_hour_rupture_strengths_ksi_253_ma",
+        "c_10_000_hour_rupture_strengths_ksi_ra85h",
+        "c_10_000_hour_rupture_strengths_ksi_309",
+        "c_10_000_hour_rupture_strengths_ksi_310"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__test_temperature__e13f7fb5.csv",
+      "row_count": 15,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "creep",
+        "approximate_initial_stress_to_produce_specified_creep_336a0561",
+        "approximate_initial_stress_to_produce_specified_creep_045aeeb4",
+        "approximate_initial_stress_to_produce_specified_creep_0a54af92",
+        "approximate_initial_stress_to_produce_specified_creep_616ffddc",
+        "approximate_initial_stress_to_produce_specified_creep_46b73fc0",
+        "approximate_initial_stress_to_produce_specified_creep_cee7be1f"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__test_temperature__e8194a3d.csv",
+      "row_count": 15,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "creep",
+        "approximate_initial_stress_to_produce_specified_creep_1a1629bc",
+        "approximate_initial_stress_to_produce_specified_creep_5dfca790",
+        "approximate_initial_stress_to_produce_specified_creep_5fa6fab2",
+        "approximate_initial_stress_to_produce_specified_creep_0cc64c8a",
+        "approximate_initial_stress_to_produce_specified_creep_4719106f",
+        "approximate_initial_stress_to_produce_specified_creep_1bbfd242",
+        "approximate_initial_stress_to_produce_specified_creep_f3229b72",
+        "approximate_initial_stress_to_produce_specified_creep_f803a7b9"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.creep_properties__test_temperature__e9779b27.csv",
+      "row_count": 7,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature",
+        "test_temperature_2"
+      ],
+      "candidate_property_fields": [
+        "average_stress_for_indicated_percent_hour_minimum_creep_rate",
+        "average_stress_for_indicated_percent_hour_minimum_creep_rate_2",
+        "average_stress_for_indicated_percent_hour_minimum_creep_rate_3",
+        "average_stress_for_indicated_percent_hour_minimum_creep_rate_4",
+        "average_stress_for_indicated_percent_hour_minimum_creep_rate_5",
+        "average_stress_for_indicated_percent_hour_minimum_creep_rate_6",
+        "average_stress_for_indicated_percent_hour_minimum_creep_rate_7",
+        "average_stress_for_indicated_percent_hour_minimum_creep_rate_8"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.design_allowables__condition_heat_treatment__4d959f0f.csv",
+      "row_count": 19,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "condition_thickness_or_diameter_in_basis",
+        "annealed_le_0_1875_a",
+        "annealed_le_0_1875_b",
+        "annealed_0_1875_to_2_000_a",
+        "annealed_0_1875_to_2_000_b",
+        "annealed_2_001_to_4_000_s",
+        "annealed_le_0_1875_s",
+        "sta_0_1875_to_0_750_s",
+        "sta_0_751_to_1_000_s"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.design_allowables__condition_heat_treatment__5b341c8c.csv",
+      "row_count": 24,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "condition_thickness_in_basis",
+        "annealed_0_500_s",
+        "annealed_0_500_3_000_a",
+        "annealed_0_500_3_000_b",
+        "sta_5_000_s",
+        "sta_0_501_1_000_s",
+        "sta_0_501_1_000_s_2",
+        "sta_1_001_1_500_s",
+        "sta_1_001_1_500_s_2",
+        "sta_1_501_2_000_s",
+        "sta_1_501_2_000_s_2",
+        "sta_3_001_s",
+        "sta_4_000_s"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.design_allowables__condition_heat_treatment__8d4e338d.csv",
+      "row_count": 19,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "condition_thickness_or_diameter_mm_basis",
+        "annealed_le_4_76_a",
+        "annealed_le_4_76_b",
+        "annealed_4_76_to_50_8_a",
+        "annealed_4_76_to_50_8_b",
+        "annealed_50_83_to_101_6_s",
+        "sta_le_4_76_s",
+        "sta_4_76_to_19_05_s",
+        "sta_19_08_to_25_4_s"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.elastic_properties__condition_time__cb6a88d4.csv",
+      "row_count": 9,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "size_in",
+        "modulus_of_rigidity_10_3_ksi",
+        "damping_decrement_in_torsion_times_10_4"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.elastic_properties__specimen__c315b117.csv",
+      "row_count": 52,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "sample",
+        "onset_storage_modulus_t_g_circ_c",
+        "onset_storage_modulus_t_g_circ_f",
+        "peak_of_tangent_delta_t_g_circ_c",
+        "peak_of_tangent_delta_t_g_circ_f"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.elastic_properties__statistic_strength__2f0152db.csv",
+      "row_count": 114,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "statistic",
+        "strength_ksi",
+        "modulus_msi"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.elastic_properties__statistic_strength__5ded6ad8.csv",
+      "row_count": 24,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "statistic",
+        "strength_ksi",
+        "modulus_msi",
+        "poisson_s_ratio"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.elastic_properties__temperature__c5bb6d53.csv",
+      "row_count": 31,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temp_deg_f"
+      ],
+      "candidate_property_fields": [
+        "thermal_conductivity_btu_cdot_in_ft_2_cdot_h_deg_f",
+        "coeff_of_expansion_a_10_6_in_in_cdot_deg_f",
+        "electrical_resistivity_ohmcmil_ft",
+        "young_s_modulus_10_3_ksi"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.elastic_properties__temperature_condition__088ba383.csv",
+      "row_count": 13,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_f_torsional_modulus"
+      ],
+      "candidate_property_fields": [
+        "modulus_of_elasticity_ksi_x_10_3_young_s_modulus",
+        "modulus_of_elasticity_ksi_x_10_3_torsional_modulus",
+        "poisson_s_ratio_b_torsional_modulus",
+        "modulus_of_elasticity_ksi_x_10_3_young_s_modulus_2",
+        "modulus_of_elasticity_ksi_x_10_3_torsional_modulus_2",
+        "poisson_s_ratio_b_torsional_modulus_2"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.elastic_properties__temperature_condition__3bef1cf4.csv",
+      "row_count": 18,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "modulus_of_elasticity_tension_103_ksi"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.elastic_properties__temperature_condition__3cf9d3a9.csv",
+      "row_count": 8,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "modulus_of_elasticity_ksi_x_103_young_s_modulus",
+        "modulus_of_elasticity_ksi_x_103_torsional_modulus",
+        "poisson_s_ratio_torsional_modulus"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.elastic_properties__temperature_condition__43ef5edd.csv",
+      "row_count": 11,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_c",
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "dynamic_young_s_modulus_gpa",
+        "dynamic_young_s_modulus_10_3_ksi",
+        "dynamic_torsional_modulus_gpa",
+        "dynamic_torsional_modulus_10_3_ksi"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.elastic_properties__temperature_condition__5f24551a.csv",
+      "row_count": 20,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "modulus_of_elasticity_tension_10_3_ksi"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.elastic_properties__temperature_condition__5f8060ea.csv",
+      "row_count": 11,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c_torsion"
+      ],
+      "candidate_property_fields": [
+        "modulus_of_elasticity_10_3_ksi_tension",
+        "modulus_of_elasticity_10_3_ksi_torsion",
+        "poisson_s_ratio_a_torsion",
+        "modulus_of_elasticity_gpa_tension",
+        "modulus_of_elasticity_gpa_torsion",
+        "poisson_s_ratio_a_torsion_2"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.elastic_properties__temperature_condition__e78620c8.csv",
+      "row_count": 8,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "modulus_of_elasticity_10_3_ksi_tension_static",
+        "modulus_of_elasticity_10_3_ksi_tension_dynamic",
+        "modulus_of_elasticity_10_3_ksi_torsion_static"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.elastic_properties__temperature_environment__a0481bea.csv",
+      "row_count": 9,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temp_deg_f",
+        "temp_deg_c_shear_solution_treated"
+      ],
+      "candidate_property_fields": [
+        "modulus_of_elasticity_10_3_ksi_tension_annealed",
+        "modulus_of_elasticity_10_3_ksi_tension_solution_treated",
+        "modulus_of_elasticity_10_3_ksi_shear_annealed",
+        "modulus_of_elasticity_10_3_ksi_shear_solution_treated",
+        "poisson_s_ratio_shear_annealed",
+        "poisson_s_ratio_shear_solution_treated",
+        "modulus_of_elasticity_gpa_tension_annealed",
+        "modulus_of_elasticity_gpa_tension_solution_treated",
+        "modulus_of_elasticity_gpa_shear_annealed",
+        "modulus_of_elasticity_gpa_shear_solution_treated"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.elastic_properties__units_young_s_modulus__6b363467.csv",
+      "row_count": 10,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "units",
+        "young_s_modulus_gpa",
+        "linear_expansion_l_l293_l293_x_105unitless_eg_m_m"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.elastic_properties__v_12_t_major_poisson_s_ratio_tens__661ed4c7.csv",
+      "row_count": 14,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "v_12_t",
+        "major_poisson_s_ratio_tension"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.electrical_properties__heat_treatment__c5a01d45.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "resistivity_ohm_circ_mil_ft"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.fatigue_properties__alloy_cycles__2298fdc4.csv",
+      "row_count": 3,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "alloy_617_heat_number",
+        "astm_g_s_size_no",
+        "c_34_5_413_7_mpa_5_60_ksi_cycles_to_failure"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.fatigue_properties__condition_material__8c1702b3.csv",
+      "row_count": 2,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "reversed_strain_to_cause_failure_in_1000_cycles",
+        "reversed_strain_to_cause_failure_in_10_000_cycles",
+        "reversed_strain_to_cause_failure_in_50_000_cycles"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.fatigue_properties__temperature_condition__5af6fc7a.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "reversed_strain_to_cause_failure_in_10_000_cycles",
+        "reversed_strain_to_cause_failure_in_50_000_cycles",
+        "reversed_strain_to_cause_failure_in_100_000_cycles"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.fatigue_properties__temperature_condition__a7c6e4df.csv",
+      "row_count": 3,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_10_6_cycles_ksi",
+        "c_10_6_cycles_mpa",
+        "c_10_7_cycles_ksi",
+        "c_10_7_cycles_mpa",
+        "c_10_8_cycles_ksi",
+        "c_10_8_cycles_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.fatigue_properties__temperature_condition__d4a8f5b8.csv",
+      "row_count": 53,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "epsilon_tot",
+        "ni_cycles_to_initiation",
+        "nf_cycles_to_failure"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.fatigue_properties__temperature_condition__f4455336.csv",
+      "row_count": 28,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "delta_varepsilon_tot_deg_c",
+        "ni_cycles_to_initiation_deg_c",
+        "nf_cycles_to_failure_deg_c"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.fatigue_properties__temperature_material__9c686f58.csv",
+      "row_count": 14,
+      "identity_fields": [
+        "material"
+      ],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "fatigue_strength_10_6_cycles_ksi_110_deg_f",
+        "fatigue_strength_10_6_cycles_ksi_320_deg_f",
+        "fatigue_strength_10_6_cycles_ksi_423_deg_f"
+      ],
+      "automated_import_eligible": true
+    },
+    {
+      "file": "high_temperature_material.fatigue_properties__temperature_stress__0611c98a.csv",
+      "row_count": 7,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "maximum_stress",
+        "maximum_stress_2",
+        "cycles_to_failure_at_1200_deg_f_650_deg_c_nf",
+        "cycles_to_failure_at_1200_deg_f_650_deg_c_nf_2"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.fatigue_properties__test_temperature__6885b02c.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "fatigue_strength_ksi_10_5_cycles",
+        "fatigue_strength_ksi_10_6_cycles",
+        "fatigue_strength_ksi_10_7_cycles",
+        "fatigue_strength_ksi_10_8_cycles"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.fatigue_properties__test_temperature__d4dd0e21.csv",
+      "row_count": 3,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature"
+      ],
+      "candidate_property_fields": [
+        "stress_for_failure_in_106cycles"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.hardness_properties__alloy__9509a1c9.csv",
+      "row_count": 5,
+      "identity_fields": [
+        "alloy"
+      ],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "c_0",
+        "c_10",
+        "c_20",
+        "c_30",
+        "c_40",
+        "c_50"
+      ],
+      "automated_import_eligible": true
+    },
+    {
+      "file": "high_temperature_material.hardness_properties__cold_work_average_hardness_hrbw__05d49e6c.csv",
+      "row_count": 6,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "cold_work",
+        "average_hardness_hrbw_c"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.hardness_properties__cold_work_hardness_rockwell_c_af__022e586e.csv",
+      "row_count": 5,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "cold_work",
+        "hardness_rockwell_c_after_indicated_level_of_cold_work_238a6aed",
+        "hardness_rockwell_c_after_indicated_level_of_cold_work_27d9080a",
+        "hardness_rockwell_c_after_indicated_level_of_cold_work_c801495b"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.hardness_properties__condition__5414c100.csv",
+      "row_count": 8,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "hardness_bhn",
+        "hardness_rockwell"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.hardness_properties__condition__72d586de.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "hardness_hrc"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.hardness_properties__condition_material__6ffb4289.csv",
+      "row_count": 2,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "hardness_hrc"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.hardness_properties__environment_form__b91fbbdd.csv",
+      "row_count": 3,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "solution_annealed_hrbw",
+        "age_hardened_hrc"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.hardness_properties__form__bf7c0683.csv",
+      "row_count": 5,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "hardness"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.hardness_properties__form_heat_treatment__40293b5f.csv",
+      "row_count": 2,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "form_sheet_plate",
+        "annealed_90_hrb_92_hrb",
+        "standard_annealed_b_age_hardened_30_hrc",
+        "lt_anneal_c_age_hardened",
+        "cold_worked_d",
+        "cold_worked_e_age_hardened"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.hardness_properties__form_heat_treatment__b3e402c7.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "hardness"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.hardness_properties__hardness_depth_of_cut__4449bc7c.csv",
+      "row_count": 2,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "hardness",
+        "depth_of_cut_in",
+        "depth_of_cut_mm",
+        "high_speed_steel_surface_speed_fpm",
+        "high_speed_steel_surface_speed_m_min",
+        "high_speed_steel_feed_ipr",
+        "high_speed_steel_feed_mm_rev",
+        "tool_feed_mm_rev",
+        "carbide_surface_speed_brazed_tool_fpm",
+        "carbide_surface_speed_brazed_tool_m_min",
+        "carbide_surface_speed_throw_away_fpm",
+        "carbide_surface_speed_throw_away_m_min",
+        "carbide_feed_throw_away_ipr",
+        "carbide_feed_throw_away_m_rev",
+        "tool_feed_throw_away_m_rev"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.hardness_properties__temperature_alloy__d7f85358.csv",
+      "row_count": 6,
+      "identity_fields": [
+        "alloy"
+      ],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "c_800_deg_f_425_deg_c_vickers",
+        "c_800_deg_f_425_deg_c_rockwell",
+        "c_1000_deg_f_540_deg_c_vickers",
+        "c_1000_deg_f_540_deg_c_rockwell",
+        "c_1200_deg_f_650_deg_c_vickers",
+        "c_1200_deg_f_650_deg_c_rockwell",
+        "c_1400_deg_f_760_deg_c_vickers",
+        "c_1400_deg_f_760_deg_c_rockwell",
+        "c_1600_deg_f_870_deg_c_vickers",
+        "c_1600_deg_f_870_deg_c_rockwell"
+      ],
+      "automated_import_eligible": true
+    },
+    {
+      "file": "high_temperature_material.hardness_properties__temperature_condition__14d67cca.csv",
+      "row_count": 29,
+      "identity_fields": [],
+      "temperature_fields": [
+        "aging_temperature_deg_f",
+        "aging_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "aging_time_h",
+        "hrbw"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.hardness_properties__temperature_condition__330b6d81.csv",
+      "row_count": 7,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_188_vickers_hardness_dpn",
+        "c_188_rockwell_hardness_hr_c_b",
+        "c_25_vickers_hardness_dpn",
+        "c_25_rockwell_hardness_hr_c_b",
+        "c_6b_vickers_hardness_dpn",
+        "c_6b_rockwell_hardness_hr_c_b",
+        "c_230_vickers_hardness_dpn",
+        "c_230_rockwell_hardness_hr_c_b",
+        "c_556_vickers_hardness_dpn",
+        "c_556_rockwell_hardness_hr_c_b"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.hardness_properties__temperature_condition__6d0c71b6.csv",
+      "row_count": 7,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "aging_deg_f",
+        "aging_h",
+        "hrbw"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.hardness_properties__temperature_condition__cba0b515.csv",
+      "row_count": 28,
+      "identity_fields": [],
+      "temperature_fields": [
+        "aging_temperature_deg_f",
+        "aging_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "aging_time_h",
+        "hardness_hra"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.hardness_properties__temperature_environment__2c042675.csv",
+      "row_count": 6,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "diameter_in",
+        "solution_treated_1800_deg_f_1_hr_a_c",
+        "solution_treated_precipitation_treated_1800_deg_f_1_hr_42ca6bb3"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.hardness_properties__test_temperature__e1753718.csv",
+      "row_count": 23,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "condition_deg_f",
+        "condition_deg_c",
+        "typical_hardness_rockwell",
+        "typical_hardness_brinell"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.hardness_properties__time__1065eea6.csv",
+      "row_count": 6,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "age_hardening_time",
+        "hardness_hrc_for_cold_work_level",
+        "hardness_hrc_for_cold_work_level_2",
+        "hardness_hrc_for_cold_work_level_3",
+        "hardness_hrc_for_cold_work_level_4",
+        "hardness_hrc_for_cold_work_level_5",
+        "hardness_hrc_for_cold_work_level_6"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.material_specifications__form_heat_treatment__07aef1f2.csv",
+      "row_count": 11,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "product_form",
+        "ams_specifications",
+        "remarks"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.mechanical_properties__cold_reduction_tensile_strengt__d967e6f3.csv",
+      "row_count": 10,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "cold_reduction",
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "yield_strength_0_2_offset_b_ksi",
+        "yield_strength_0_2_offset_b_mpa",
+        "elongation_mpa",
+        "reduction_of_area_mpa",
+        "hardness_rockwell_c",
+        "hardness_vickers"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.mechanical_properties__heat_treatment__ec1da73e.csv",
+      "row_count": 17,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "cold_reduction",
+        "subsequent_anneal_none",
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "hrc"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.mechanical_properties__heat_treatment__eed35aa6.csv",
+      "row_count": 28,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "dia_in",
+        "tensile_strength_ksi",
+        "yield_strength_0_2_offset_ksi",
+        "elongation",
+        "reduction_of_area",
+        "hardness_rockwell"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.mechanical_properties__heat_treatment_thickness__010f7285.csv",
+      "row_count": 24,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "diameter_a_in",
+        "heat_treatment_b",
+        "tensile_strength_ksi",
+        "yield_strength_0_2_offset_ksi",
+        "elongation",
+        "reduction_of_area",
+        "hardness"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.mechanical_properties__shear_strength_tensile_strengt__9cf6e221.csv",
+      "row_count": 1,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "shear_strength_ksi",
+        "shear_strength_mpa",
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "shear_tensile_ratio_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.mechanical_properties__temperature_heat_treatment__2faf61a6.csv",
+      "row_count": 6,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "heat_treatment_deg_f_1_hr",
+        "heat_treatment_deg_c_1_hr",
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "elongation_mpa",
+        "reduction_of_area_mpa",
+        "hardness_rockwell_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.mechanical_properties__temperature_heat_treatment__5eb12681.csv",
+      "row_count": 6,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "heat_treatment_deg_f_1_hr",
+        "heat_treatment_deg_c_1_hr",
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "elongation_mpa",
+        "hardness_rockwell_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.mechanical_properties__temperature_heat_treatment__b4332ea3.csv",
+      "row_count": 6,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "heat_treatment_b_deg_f_1_hr",
+        "heat_treatment_b_deg_c_1_hr",
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "elongation_mpa",
+        "hardness_r_b_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.mechanical_properties__temperature_heat_treatment__fef20d48.csv",
+      "row_count": 14,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "heat_treatment_a_deg_f_1_hr",
+        "heat_treatment_a_deg_c_1_hr",
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "elongation_mpa",
+        "reduction_of_area_mpa",
+        "hardness_r_b_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.mechanical_properties__yield_strength_0_2_offset_hard__4a8f1c77.csv",
+      "row_count": 2,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "hardness_r_c",
+        "flattening"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.phase_properties__column_001_typical_astm_grain_size__27b50ac7.csv",
+      "row_count": 3,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "column_001",
+        "typical_astm_grain_size",
+        "average_hardness_hrbw"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.phase_properties__column_001_typical_grain_size__1467e9fb.csv",
+      "row_count": 3,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "column_001",
+        "typical_grain_size",
+        "average_hardness"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.phase_properties__composition_phase__664af86d.csv",
+      "row_count": 136,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "composition_atomic",
+        "ref",
+        "type_of_phases",
+        "rho_g_cm3",
+        "hv",
+        "type_of_tests_sigma_y_mpa",
+        "sigma_max_mpa",
+        "epsilon",
+        "e_gpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.phase_properties__composition_phase__7c22b727.csv",
+      "row_count": 118,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "composition",
+        "refs",
+        "phase",
+        "rho_g_cm3",
+        "t_deg_c",
+        "sigma_y_mpa",
+        "epsilon"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.phase_properties__composition_phase__7f9c6d74.csv",
+      "row_count": 176,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "composition_atomic",
+        "ref",
+        "type_of_phases",
+        "rho_g_cm3",
+        "hv",
+        "type_of_tests",
+        "sigma_y_mpa",
+        "sigma_max_mpa",
+        "epsilon",
+        "e_gpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.phase_properties__composition_phase__91e48481.csv",
+      "row_count": 60,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "composition_atomic",
+        "ref",
+        "type_of_phases",
+        "rho_left_g_cm_3_right",
+        "hv",
+        "sigma_y_mpa",
+        "sigma_max_mpa",
+        "epsilon",
+        "e_gpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.phase_properties__condition__587ddff5.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "elongation_mpa",
+        "reduction_of_area_mpa",
+        "hardness_r_b_mpa",
+        "grain_size_in",
+        "grain_size_mm"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.phase_properties__condition_cycles__8fb20d3b.csv",
+      "row_count": 2,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "condition_b",
+        "tensile_properties_tensile_strength_ksi",
+        "tensile_properties_yield_strength_0_2_offset_ksi",
+        "tensile_properties_elongation",
+        "tensile_properties_reduction_of_area",
+        "grain_size_in_reduction_of_area",
+        "fatigue_strength_ksi_10_6_cycles",
+        "fatigue_strength_ksi_10_7_cycles",
+        "fatigue_strength_ksi_10_8_cycles"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.phase_properties__form__06044bae.csv",
+      "row_count": 3,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "hardness_hrb",
+        "typical_astm_grain_size"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.phase_properties__form__4a7bfab2.csv",
+      "row_count": 43,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "hardness_hrbw",
+        "typical_astm_grain_size"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.phase_properties__form__80efafb5.csv",
+      "row_count": 7,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "hardness",
+        "typical_astm_grain_size"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.phase_properties__heat_treatment_orientation__05cb24f7.csv",
+      "row_count": 11,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "heat_treatment_b",
+        "test_orientation",
+        "tensile_properties_tensile_strength_ksi",
+        "tensile_properties_yield_strength_0_2_offset_ksi",
+        "tensile_properties_elongation",
+        "tensile_properties_reduction_of_area",
+        "grain_size_in_reduction_of_area",
+        "fatigue_strength_ksi_10_6_cycles",
+        "fatigue_strength_ksi_10_7_cycles",
+        "fatigue_strength_ksi_10_8_cycles"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.phase_properties__temperature_alloy__83c3ff33.csv",
+      "row_count": 14,
+      "identity_fields": [
+        "alloy"
+      ],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "gsize_mm",
+        "gvolume_fraction_at_982_deg_c_vol",
+        "gvolume_fraction_at_1093_deg_c_vol",
+        "g_glattice_mismatch_percent"
+      ],
+      "automated_import_eligible": true
+    },
+    {
+      "file": "high_temperature_material.phase_properties__temperature_condition__29ea052c.csv",
+      "row_count": 14,
+      "identity_fields": [],
+      "temperature_fields": [
+        "annealing_temperature_deg_f",
+        "annealing_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "elongation_mpa",
+        "reduction_of_area_mpa",
+        "hardness_rb_mpa",
+        "impact_strength_charpy_v_ftlb",
+        "impact_strength_charpy_v_j",
+        "grain_size_in",
+        "grain_size_mm"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.phase_properties__temperature_condition__9fa81d24.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [
+        "grain_size_for_alloys_exposed_at_temperature_for_vario_bfce7a06",
+        "grain_size_for_alloys_exposed_at_temperature_for_vario_08b68af6",
+        "grain_size_for_alloys_exposed_at_temperature_for_vario_f1a07e86",
+        "grain_size_for_alloys_exposed_at_temperature_for_vario_b85b3d54",
+        "grain_size_for_alloys_exposed_at_temperature_for_vario_4edf0947",
+        "grain_size_for_alloys_exposed_at_temperature_for_vario_a86e8f09"
+      ],
+      "candidate_property_fields": [
+        "exposure_time_h"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.phase_properties__temperature_condition__c723dbcb.csv",
+      "row_count": 10,
+      "identity_fields": [],
+      "temperature_fields": [
+        "hot_forming_temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "heat_treatment_b",
+        "astm_grain_size",
+        "smooth_bar_life_hr",
+        "smooth_bar_elongation",
+        "smooth_bar_reduction_of_area",
+        "smooth_bar_hardness_rc",
+        "notch_bar_life_c_hr_hardness_rc"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.phase_properties__temperature_environment__947bd0e7.csv",
+      "row_count": 2,
+      "identity_fields": [],
+      "temperature_fields": [
+        "solution_annealed_room_temperature_hardness"
+      ],
+      "candidate_property_fields": [
+        "typical_astm_grain_size"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.phase_properties__test_temperature__9e707c80.csv",
+      "row_count": 3,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "conditiona",
+        "grain_size_astm_no",
+        "tensile_strength_ksi",
+        "yield_strength_0_2_offset_ksi",
+        "elongation",
+        "hardness"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.processing_conditions__condition_heat_treatment__867b1a26.csv",
+      "row_count": 13,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "sheet_thickness_in",
+        "patch_test_assemblyb",
+        "condition_after_welding_and_aging",
+        "condition_after_repair_welding_and_re_aging"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.processing_conditions__heat_treatment_orientation__41c6fab6.csv",
+      "row_count": 5,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "location",
+        "base_weld",
+        "orientation",
+        "ft_lbs",
+        "j",
+        "j_sq_cm"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.processing_conditions__temperature_condition__f547d0ff.csv",
+      "row_count": 5,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_required_for_recrystallization_in_15_min_deg_f",
+        "temperature_required_for_recrystallization_in_15_min_deg_c",
+        "temperature_required_for_recrystallization_in_30_min_deg_f",
+        "temperature_required_for_recrystallization_in_30_min_deg_c",
+        "temperature_required_for_recrystallization_in_60_min_deg_f",
+        "temperature_required_for_recrystallization_in_60_min_deg_c",
+        "temperature_required_for_recrystallization_in_120_min_deg_f",
+        "temperature_required_for_recrystallization_in_120_min_deg_c"
+      ],
+      "candidate_property_fields": [
+        "cold_reduction"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.processing_conditions__temperature_heat_treatment__295d6015.csv",
+      "row_count": 6,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "post_weld_heat_treatment",
+        "cvn_impact_at_75_deg_f_24_deg_c_ft_lbf",
+        "cvn_impact_at_75_deg_f_24_deg_c_j",
+        "cvn_impact_at_75_deg_f_59_deg_c_ft_lbf",
+        "cvn_impact_at_75_deg_f_59_deg_c_j"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__alloy__2fd71043.csv",
+      "row_count": 20,
+      "identity_fields": [
+        "alloy"
+      ],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": true
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__alloy__3ded1710.csv",
+      "row_count": 8,
+      "identity_fields": [
+        "alloy"
+      ],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation_ksi"
+      ],
+      "automated_import_eligible": true
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__alloy__4295fdf8.csv",
+      "row_count": 5,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "inconel_alloy_625_joined_to",
+        "gas_metal_arc_spray_transfer_with_filler_metal_265_ten_97e49f95",
+        "gas_metal_arc_spray_transfer_with_filler_metal_265_fra_3153d5a8",
+        "gas_tungsten_arc_with_filler_metal_625_tensile_strength_ksi_mpa",
+        "gas_tungsten_arc_with_filler_metal_625_fracture_location",
+        "shielded_metal_arc_with_welding_electrode_112_tensile_53bc6f48",
+        "shielded_metal_arc_with_welding_electrode_112_fracture_location"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__alloy__4623090c.csv",
+      "row_count": 5,
+      "identity_fields": [
+        "alloy"
+      ],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "chrt_elongation"
+      ],
+      "automated_import_eligible": true
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__alloy__8c2fe435.csv",
+      "row_count": 24,
+      "identity_fields": [
+        "alloy"
+      ],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "rt_0_2_yield_strength_ksi",
+        "rt_0_2_yield_strength_mpa",
+        "rt_ultimate_tensile_strength_ksi",
+        "rt_ultimate_tensile_strength_mpa",
+        "rt_elongation"
+      ],
+      "automated_import_eligible": true
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__alloy__e0c16bbe.csv",
+      "row_count": 6,
+      "identity_fields": [
+        "alloy"
+      ],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "elongation_in_1_5_in_38_1_mm"
+      ],
+      "automated_import_eligible": true
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__c_0_2_yield_strength_ultimate_ten__d8dcea3e.csv",
+      "row_count": 2,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "fracture_location"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__c_0_2_ys_uts__1e0342df.csv",
+      "row_count": 10,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "c_0_2_ys_ksi",
+        "c_0_2_ys_mpa",
+        "uts_ksi",
+        "uts_mpa",
+        "elong_mpa",
+        "r_of_a_mpa",
+        "failure_location_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__cold_reduction_c_0_2_yield_streng__63f47976.csv",
+      "row_count": 7,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "cold_reduction",
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__cold_work_c_0_2_yield_strength__cf0881b0.csv",
+      "row_count": 5,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "cold_work",
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__column_001_ultimate_tensile_stren__c1148eee.csv",
+      "row_count": 2,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "column_001",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "yield_strength_ksi",
+        "yield_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__column_001_ultimate_tensile_stren__c8e8af8a.csv",
+      "row_count": 2,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "column_001",
+        "ultimate_tensile_strength_ksi",
+        "c_0_2_yield_strength_ksi",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__concentration_alloy__3c3bd8eb.csv",
+      "row_count": 6,
+      "identity_fields": [
+        "alloy"
+      ],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "hydrogen_pressure_psi",
+        "hydrogen_pressure_mpa",
+        "stress_concentration_factor_kt",
+        "ratio_of_notched_tensile_strength_hydrogen_air"
+      ],
+      "automated_import_eligible": true
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__condition__62e5c814.csv",
+      "row_count": 6,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "specification",
+        "c_0_2_offset_yield_strength_mpa",
+        "c_0_2_offset_yield_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "elongation",
+        "elongation_2"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__condition__6d684cdc.csv",
+      "row_count": 13,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__condition__90993e18.csv",
+      "row_count": 12,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__condition__93e3e8e5.csv",
+      "row_count": 1,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__condition__b721e425.csv",
+      "row_count": 1,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__condition_form__ae6c14ed.csv",
+      "row_count": 6,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__condition_material__56404e8c.csv",
+      "row_count": 3,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__condition_material__b0b0ddb2.csv",
+      "row_count": 3,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__condition_material__ecb69c77.csv",
+      "row_count": 9,
+      "identity_fields": [
+        "material"
+      ],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "weld_method",
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": true
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__condition_material__efba4314.csv",
+      "row_count": 8,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "heat",
+        "yield_strength_ksi",
+        "coupled_to_carbon_steel",
+        "not_coupled_to_carbon_steel"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__condition_thickness__2f890ecb.csv",
+      "row_count": 20,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "thickness_in",
+        "cold_reduction",
+        "conditiona",
+        "tensile_strength_ksi",
+        "yield_strength_0_2_offset_ksi",
+        "elongation_in_2_in"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__condition_time__a496ef8a.csv",
+      "row_count": 16,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "test_condition",
+        "as_exposed_properties_testing_time_hr",
+        "as_exposed_properties_uts_ksi",
+        "as_exposed_properties_uts_mpa",
+        "as_exposed_properties_0_2_ys_ksi",
+        "as_exposed_properties_0_2_ys_mpa",
+        "as_exposed_properties_el_mpa",
+        "as_exposed_properties_ra_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__exposure_temperature__4fcde557.csv",
+      "row_count": 18,
+      "identity_fields": [],
+      "temperature_fields": [
+        "exposure_temperature_deg_f",
+        "exposure_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "duration_h",
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__exposure_temperature__5a16341b.csv",
+      "row_count": 3,
+      "identity_fields": [],
+      "temperature_fields": [
+        "exposure_temperature_deg_f",
+        "room_temperature_tensile_elongation_230",
+        "room_temperature_tensile_elongation_188",
+        "room_temperature_tensile_elongation_625",
+        "room_temperature_tensile_elongation_x"
+      ],
+      "candidate_property_fields": [],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__exposure_temperature__6d1ad93e.csv",
+      "row_count": 13,
+      "identity_fields": [],
+      "temperature_fields": [
+        "exposure_temperature_deg_f",
+        "exposure_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "time_h",
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__exposure_temperature__9170a63c.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [
+        "exposure_temperature_deg_f",
+        "exposure_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "ultimatetensile_strength_ksi",
+        "ultimatetensile_strength_mpa",
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__exposure_temperature__9822e22c.csv",
+      "row_count": 12,
+      "identity_fields": [],
+      "temperature_fields": [
+        "exposure_temperature_deg_f",
+        "exposure_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "exposure_time_h",
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__exposure_temperature__9b92a954.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [
+        "exposure_temperature_deg_f_deg_c",
+        "properties_at_room_temperature_tensile_strength_ksi",
+        "properties_at_room_temperature_tensile_strength_mpa",
+        "properties_at_room_temperature_yield_strength_0_2_offset_ksi",
+        "properties_at_room_temperature_yield_strength_0_2_offset_mpa",
+        "properties_at_room_temperature_elongation_mpa",
+        "properties_at_exposure_temperature_tensile_strength_ksi",
+        "properties_at_exposure_temperature_tensile_strength_mpa",
+        "properties_at_exposure_temperature_yield_strength_0_2_67916798",
+        "properties_at_exposure_temperature_yield_strength_0_2_6db460ff",
+        "properties_at_exposure_temperature_elongation_mpa"
+      ],
+      "candidate_property_fields": [],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__exposure_temperature__a25bf9ef.csv",
+      "row_count": 8,
+      "identity_fields": [],
+      "temperature_fields": [
+        "exposure_temperature_deg_f",
+        "exposure_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "exposure_time_h",
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__exposure_temperature__fdea1fef.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [
+        "exposure_temperature_deg_f",
+        "exposure_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "exposure_time_h",
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__field_from_c_0_2_yield_strength__5ca649ac.csv",
+      "row_count": 2,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "field_from",
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__form__356bf5ae.csv",
+      "row_count": 3,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__form__4fb89def.csv",
+      "row_count": 5,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "size_in",
+        "size_mm",
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "elongation_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__form__7055621e.csv",
+      "row_count": 1,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__form__8343057a.csv",
+      "row_count": 2,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "product_form",
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "elongation_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__form__90285ee8.csv",
+      "row_count": 7,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "size_in",
+        "size_mm",
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__form__d726b7a2.csv",
+      "row_count": 2,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__form__e9bc2e2a.csv",
+      "row_count": 2,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "yield_strength_ksi",
+        "yield_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__form__ed70e54e.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__form_alloy__fcd165da.csv",
+      "row_count": 2,
+      "identity_fields": [
+        "alloy"
+      ],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "yield_strength_ksi",
+        "yield_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": true
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__form_thickness__9f5e5f1e.csv",
+      "row_count": 12,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "thickness_inches",
+        "thickness_mm",
+        "ftu_ksi",
+        "ftu_mpa",
+        "fty_ksi",
+        "fty_mpa",
+        "ei_1",
+        "ra_1"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__form_thickness__ce232eee.csv",
+      "row_count": 5,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "product_form",
+        "thickness_or_diameter_in",
+        "thickness_or_diameter_mm",
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__heat_treatment__68d10cfa.csv",
+      "row_count": 3,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "postweld_heat_treatmentb",
+        "tensile_strength_ksi",
+        "yield_strength_0_2_offset_ksi",
+        "elongation_in_1_in",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__heat_treatment__bfe8bccb.csv",
+      "row_count": 6,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "c_0_2_ys_ksi",
+        "uts_ksi",
+        "elongation",
+        "red_of_area",
+        "aging"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__heat_treatment_specimen__746f9c7d.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "heat_treatment_b",
+        "life_hr",
+        "elongation",
+        "reduction_of_area",
+        "notch_bar_life_hr"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__heat_treatment_specimen__9f57b99f.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "sample",
+        "postweld_heat_treatmentb",
+        "tensile_strength_ksi",
+        "yield_strength_0_2_offset_ksi",
+        "elongation_in_0_5_in",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__heat_treatment_thickness__4b106e19.csv",
+      "row_count": 20,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "filler_metal_diameter_in_a",
+        "heat_treatmentb",
+        "tensile_strength_ksi",
+        "yield_strength_0_2_offset_ksi",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__heat_yield_strength__a4a857d1.csv",
+      "row_count": 3,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "heat",
+        "yield_strength_ksi",
+        "result"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__heat_yield_strength__b467c05b.csv",
+      "row_count": 7,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "heat",
+        "yield_strength_ksi"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__heat_yield_strength__c0442952.csv",
+      "row_count": 6,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "heat",
+        "yield_strength_ksi",
+        "coupling",
+        "result"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__material__620dba29.csv",
+      "row_count": 3,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "welding_material",
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "elongation_in_1_25_in_31_75_mm_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__neutron_fluence_cm_2_x_10_20_ther__727239d6.csv",
+      "row_count": 6,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "neutron_fluence_cm_2_x_10_20_thermal",
+        "neutron_fluence_cm_2_x_10_20_energy_1_0mev",
+        "uts_smooth_ksi",
+        "uts_smooth_mpa",
+        "uts_k_t_3_ksi",
+        "uts_k_t_3_mpa",
+        "ei_k_t_3"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__nims_reference_code_dependent_var__cec9879b.csv",
+      "row_count": 5,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "nims_reference_code",
+        "dependent_variable",
+        "log_s_y_or_s_t_a_0_a_1_t_a_2_t_2_a_3_t_3_a_4_t_4_a_5_t_5_a_0",
+        "log_s_y_or_s_t_a_0_a_1_t_a_2_t_2_a_3_t_3_a_4_t_4_a_5_t_5_a_1",
+        "log_s_y_or_s_t_a_0_a_1_t_a_2_t_2_a_3_t_3_a_4_t_4_a_5_t_5_a_2",
+        "log_s_y_or_s_t_a_0_a_1_t_a_2_t_2_a_3_t_3_a_4_t_4_a_5_t_5_a_3"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__orientation__b2491c30.csv",
+      "row_count": 8,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "test_orientation",
+        "base_metal_pre_weld_treatment",
+        "post_weld_treatment",
+        "yield_strength_ksi",
+        "yield_strength_mpa",
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "elongation",
+        "reduction_of_area",
+        "side_bend_indications"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__product_tensile_strength__efc99073.csv",
+      "row_count": 2,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "product",
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__size_tensile_strength__00c60945.csv",
+      "row_count": 3,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "size_in",
+        "tensile_strength_ksi",
+        "yield_strength_0_2_offset_ksi",
+        "elongation_in_2_in",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__size_tensile_strength__3000969f.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "size_in",
+        "size_mm",
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "elongation_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__size_tensile_strength__4d201449.csv",
+      "row_count": 2,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "size_in",
+        "tensile_strength_ksi",
+        "yield_strength_0_2_offset_ksi",
+        "elongation_in_4d",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__specimen__7b72c543.csv",
+      "row_count": 10,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "heat",
+        "sample",
+        "c_0_2_yield_strength_ksi",
+        "ultimate_tensile_strength_ksi",
+        "elong",
+        "ra"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__specimen__8a707402.csv",
+      "row_count": 9,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "tensile_strength_ksi",
+        "yield_strength_0_2_offset_ksi",
+        "elongation",
+        "reduction_of_area",
+        "notch_tensile_strengthb_ksi",
+        "notch_unnotch_tensile_strength_ratio"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__specimen__98095817.csv",
+      "row_count": 6,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "sample_location",
+        "c_0_2_ys_ksi",
+        "c_0_2_ys_mpa",
+        "uts_ksi",
+        "uts_mpa",
+        "elong_mpa",
+        "r_of_a_mpa",
+        "failure_location_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__specimen__bdbd6a96.csv",
+      "row_count": 6,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "sample_location",
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "reduction_of_area",
+        "fracture_location"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature__f882f4e7.csv",
+      "row_count": 16,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temp_deg_f",
+        "test_temp_deg_c"
+      ],
+      "candidate_property_fields": [
+        "oxygen_content",
+        "uts_1_ksi",
+        "uts_1_mpa",
+        "ys_0_2_ksi",
+        "ys_0_2_mpa",
+        "ei_mpa",
+        "ra_mpa",
+        "nts_2_k_t_6_7_ksi",
+        "nts_2_k_t_6_7_mpa",
+        "nts_uts_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_alloy__6005a457.csv",
+      "row_count": 4,
+      "identity_fields": [
+        "alloy"
+      ],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "c_1800_deg_f_982_deg_c_0_2_yield_strength_ksi",
+        "c_1800_deg_f_982_deg_c_0_2_yield_strength_mpa",
+        "c_1800_deg_f_982_deg_c_ultimate_tensile_strength_ksi",
+        "c_1800_deg_f_982_deg_c_ultimate_tensile_strength_mpa",
+        "c_1800_deg_f_982_deg_c_elongation",
+        "c_2000_deg_f_1093_deg_c_0_2_yield_strength_ksi",
+        "c_2000_deg_f_1093_deg_c_0_2_yield_strength_mpa",
+        "c_2000_deg_f_1093_deg_c_ultimate_tensile_strength_ksi",
+        "c_2000_deg_f_1093_deg_c_ultimate_tensile_strength_mpa",
+        "c_2000_deg_f_1093_deg_c_elongation"
+      ],
+      "automated_import_eligible": true
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__035a075c.csv",
+      "row_count": 9,
+      "identity_fields": [],
+      "temperature_fields": [
+        "annealing_temperatureb_deg_f",
+        "annealing_temperatureb_deg_c"
+      ],
+      "candidate_property_fields": [
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "elongation_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__082794c7.csv",
+      "row_count": 8,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "reduction_of_area",
+        "failure_location"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__114b6cf2.csv",
+      "row_count": 42,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_0_5_inch_plate_uts_ksi",
+        "c_0_5_inch_plate_uts_mpa",
+        "c_0_125_inch_sheet_uts_psi",
+        "c_0_125_inch_sheet_uts_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__1d899a65.csv",
+      "row_count": 8,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "tensile_strength_ksi",
+        "yield_strength_0_2_offset_ksi",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__286557c1.csv",
+      "row_count": 27,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "fracture_location"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__32b480b6.csv",
+      "row_count": 6,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "yield_strength_ksi",
+        "yield_strength_mpa",
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__365b6775.csv",
+      "row_count": 45,
+      "identity_fields": [],
+      "temperature_fields": [
+        "subsequent_anneal_temperature_none"
+      ],
+      "candidate_property_fields": [
+        "cold_reduction",
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__4da4c11c.csv",
+      "row_count": 17,
+      "identity_fields": [],
+      "temperature_fields": [
+        "aging_temperature_deg_f",
+        "aging_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "aging_time_h",
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__58c31741.csv",
+      "row_count": 24,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "thickness_in_mm",
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__5f18f20f.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__6eec09e1.csv",
+      "row_count": 8,
+      "identity_fields": [],
+      "temperature_fields": [
+        "annealing_temperature_a_deg_f",
+        "annealing_temperature_a_deg_c"
+      ],
+      "candidate_property_fields": [
+        "size_in",
+        "size_mm",
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "elongation_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__73691979.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "c_4d_elongation",
+        "failure_location"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__808ca1e1.csv",
+      "row_count": 9,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__813d4056.csv",
+      "row_count": 31,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__8218da22.csv",
+      "row_count": 12,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "orientation",
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__8b6b94da.csv",
+      "row_count": 46,
+      "identity_fields": [],
+      "temperature_fields": [
+        "aging_temperature_deg_f",
+        "aging_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "aging_time_h",
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__8d526700.csv",
+      "row_count": 8,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temper",
+        "service_temp_deg_f"
+      ],
+      "candidate_property_fields": [
+        "heat_treatment_deg_f_hr_a_c",
+        "ams_specification_no",
+        "ams_specification_size_in_inclusive",
+        "ams_specification_min_tensile_strength_ksi"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__922e58e9.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "tensile_strength_ksi",
+        "yield_strength_0_2_offset_ksi",
+        "elongation_in_2_in",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__9777ff25.csv",
+      "row_count": 15,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__9fe19e93.csv",
+      "row_count": 36,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__aa5a924e.csv",
+      "row_count": 8,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temper_ature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "orienta_tion_deg_f",
+        "tensile_strength_ksi",
+        "yield_strength_ksi",
+        "elonga_tion",
+        "notched_tensile_strength_ksi1",
+        "ratio_notched_unnotched_t_s"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__ae26f338.csv",
+      "row_count": 9,
+      "identity_fields": [],
+      "temperature_fields": [
+        "room_temperature_tensile_properties_0_2_offset_yield_s_ccd585f4",
+        "room_temperature_tensile_properties_0_2_offset_yield_s_3b0ca7d0",
+        "room_temperature_tensile_properties_ultimate_tensile_s_a83d6e6e",
+        "room_temperature_tensile_properties_ultimate_tensile_s_1e02ca04",
+        "room_temperature_tensile_properties_elongation"
+      ],
+      "candidate_property_fields": [
+        "bar_diameter_in",
+        "bar_diameter_mm",
+        "cold_work"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__b29622c0.csv",
+      "row_count": 5,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "failure_location"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__b2c55833.csv",
+      "row_count": 16,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "fracture_location_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__b47a7589.csv",
+      "row_count": 9,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "c_4d_elongation",
+        "reduction_of_area",
+        "failure_location"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__bdd704e3.csv",
+      "row_count": 12,
+      "identity_fields": [],
+      "temperature_fields": [
+        "room_temperature_185_c_180_d_180_e"
+      ],
+      "candidate_property_fields": [
+        "property_tensile_strength_ksi",
+        "c_1200_deg_f_145_c_140_d_140_e"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__beb5b14f.csv",
+      "row_count": 15,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "yield_strength0_2_offset_ksi",
+        "yield_strength0_2_offset_mpa",
+        "ultimate_tensilestrength_ksi",
+        "ultimate_tensilestrength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__c87a1374.csv",
+      "row_count": 5,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "tensile_strength_ksi",
+        "yield_strength_ksi",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__d49536e7.csv",
+      "row_count": 7,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "c_0_2_yield_strength_ksi_hr_120",
+        "c_0_2_yield_strength_ksi_800h",
+        "c_0_2_yield_strength_ksi_ra330",
+        "c_0_2_yield_strength_ksi_600",
+        "c_0_2_yield_strength_ksi_601"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__d6a0d0ad.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [
+        "hot_working_temperature_deg_f",
+        "hot_working_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "elong_ation_mpa",
+        "hard_ness_rb_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__e1d3a436.csv",
+      "row_count": 9,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__ef79e5f8.csv",
+      "row_count": 13,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "elongation_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__fd81bce9.csv",
+      "row_count": 41,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "tensile_strength_ksi",
+        "yield_strength_0_2_offset_ksi",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__fe8ef50b.csv",
+      "row_count": 32,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "welding_process",
+        "consumable_diameter_in_mm",
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_condition__fed1c36d.csv",
+      "row_count": 2,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "tensile_strength_ksi",
+        "yield_strength_0_2_offset_ksi",
+        "sharp_edge_notch_tensile_strength_ksi",
+        "ratio_sharp_edge_notch_tensile_t_s"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_orientation__7b313edb.csv",
+      "row_count": 9,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temp_deg_f",
+        "test_temp_deg_c"
+      ],
+      "candidate_property_fields": [
+        "weld_direction_in_relation_to_the_test_direction",
+        "bendability_r_t",
+        "uts_ksi",
+        "uts_mpa",
+        "ys_ksi",
+        "ys_mpa",
+        "ei_mpa",
+        "nts_kt_3_ksi",
+        "nts_kt_3_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__temperature_orientation__83852d79.csv",
+      "row_count": 6,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temp_deg_f",
+        "test_temp_deg_c"
+      ],
+      "candidate_property_fields": [
+        "weld_direction_in_relation_to_the_test_direction",
+        "bendability_r_t_deg_c",
+        "uts_ksi",
+        "uts_mpa",
+        "ys_ksi",
+        "ys_mpa",
+        "mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__tensile_strength_yield_strength_0__a4b5ab03.csv",
+      "row_count": 20,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "tensile_strength_ksi",
+        "yield_strength_0_2_offset_ksi",
+        "elongation_in_1_in",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_c_0_2_yield_strength__a46400f3.csv",
+      "row_count": 20,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "test",
+        "c_0_2_yield_strength_ksi",
+        "ultimate_tensile_strength_ksi",
+        "elong",
+        "ra",
+        "failure_location"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__0492de75.csv",
+      "row_count": 42,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "c_4d_elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__075772fc.csv",
+      "row_count": 15,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__15a1c5bd.csv",
+      "row_count": 64,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__18abf327.csv",
+      "row_count": 10,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "type",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__23bc9ac8.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [
+        "exposure_temperature_deg_f",
+        "exposure_temperature_deg_c",
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "initial_condition",
+        "exposure_duration_h",
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__26204186.csv",
+      "row_count": 2,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "hydrogen_pressure_psig",
+        "hydrogen_pressure_mpa",
+        "ratio_of_notched_tensile_strength_hydrogen_air"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__26f5ff03.csv",
+      "row_count": 55,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "thickness_bar_diameter_in",
+        "thickness_bar_diameter_mm",
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__2bed890c.csv",
+      "row_count": 17,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "sample",
+        "tensile_strength_ksi",
+        "yield_strength_0_2_offset_ksi",
+        "elongation",
+        "notch_tensile_strength_ksi_kf_6_3",
+        "tensile_strength_0_297_lb_cu_in_a",
+        "ratio_of_notch_tensile_strength_to_tensile_strength",
+        "ratio_of_notch_tensile_strength_to_yield_strength"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__33efcd6c.csv",
+      "row_count": 14,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__386f7531.csv",
+      "row_count": 32,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "c_4d_elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__3caa9f85.csv",
+      "row_count": 36,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "stress_psi",
+        "life_h",
+        "time_hours_for_elongation_of_0_10",
+        "time_hours_for_elongation_of_0_20",
+        "time_hours_for_elongation_of_0_30",
+        "time_hours_for_elongation_of_0_40",
+        "time_hours_for_elongation_of_0_50",
+        "time_hours_for_elongation_of_0_75",
+        "time_hours_for_elongation_of_1_00",
+        "time_hours_for_elongation_of_1_50",
+        "time_hours_for_elongation_of_2_00",
+        "time_hours_for_elongation_of_3_00",
+        "time_hours_for_elongation_of_4_00",
+        "time_hours_for_elongation_of_5_00"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__4ee2384d.csv",
+      "row_count": 20,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "base_materials",
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__548e30b6.csv",
+      "row_count": 45,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "thickness_bar_diameter_in",
+        "thickness_bar_diameter_mm",
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__5815f2dc.csv",
+      "row_count": 45,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "thickness_in",
+        "thickness_mm",
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__59bee588.csv",
+      "row_count": 42,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "test_orientation_a",
+        "tensile_strength_ksi",
+        "yield_strength_ksi",
+        "elongation",
+        "notch_tensile_strength_b_psi",
+        "notch_unnotch_tensile_strength_ratio"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__5e3920c3.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "fracture_location"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__613df4d8.csv",
+      "row_count": 15,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "tensile_strength_ksi",
+        "yield_strength_0_2_offset_ksi",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__6607470e.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c",
+        "exposure_temperature_deg_f",
+        "exposure_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "exposure_time_h",
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__66e84e3d.csv",
+      "row_count": 12,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "h",
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__684e7e7f.csv",
+      "row_count": 13,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__7b837285.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "elongation_2"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__7bd182b7.csv",
+      "row_count": 5,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "weld_type",
+        "c_0_2_offset_yield_strength_ksi",
+        "ultimate_tensile_strength_ksi",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__7c84139f.csv",
+      "row_count": 45,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__80828248.csv",
+      "row_count": 17,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "cold_reduction",
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__848d3768.csv",
+      "row_count": 12,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "stress_psi",
+        "life_h",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__854eadfb.csv",
+      "row_count": 24,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__88ddfac7.csv",
+      "row_count": 13,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "column_001",
+        "yield_strength_at_0_2_offset_ksi",
+        "yield_strength_at_0_2_offset_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__8eb59735.csv",
+      "row_count": 18,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "yield_strength_at_0_2_offset_ksi",
+        "yield_strength_at_0_2_offset_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__8ff12287.csv",
+      "row_count": 14,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "thickness_in",
+        "thickness_mm",
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__922cdefa.csv",
+      "row_count": 18,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__95a6e6a3.csv",
+      "row_count": 7,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__985cbcbf.csv",
+      "row_count": 30,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "form_sheet_0_063_in_thick",
+        "condition_heat_treated_for_at_2150_deg_f_1177_deg_c_rac",
+        "aging_deg_f",
+        "aging_deg_c",
+        "aging_time_h",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__a196ba64.csv",
+      "row_count": 14,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "orientation",
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__a83e8789.csv",
+      "row_count": 109,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__a8a18a30.csv",
+      "row_count": 10,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "column_001",
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__ae6f85ee.csv",
+      "row_count": 14,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_0_2_yield_strength_ksi_mpa",
+        "ultimate_tensile_strength_ksi_mpa",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__af10084f.csv",
+      "row_count": 10,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "reduction_in_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__aff2b82d.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "c_4d_elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__b741d9aa.csv",
+      "row_count": 6,
+      "identity_fields": [],
+      "temperature_fields": [
+        "exposure_temperature_deg_f",
+        "exposure_temperature_deg_c",
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "exposure_duration_h",
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__b8002738.csv",
+      "row_count": 10,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "tensile_strength_ksi",
+        "yield_strength_0_2_offset_ksi",
+        "elongation_in_4d",
+        "reduction_of_area",
+        "notch_strength_tensile_strength_ratio_b"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__bb4a326c.csv",
+      "row_count": 9,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "welding_process",
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__c0367d28.csv",
+      "row_count": 31,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "c_0_2_offset_yield_strength_psi",
+        "c_0_2_offset_yield_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__c16298c2.csv",
+      "row_count": 21,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__ca7fedeb.csv",
+      "row_count": 5,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "yield_strength_ksi",
+        "yield_strength_mpa",
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__cf921803.csv",
+      "row_count": 8,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "distance_from_pin_centerline_to_edge",
+        "bearing_yield_strength_0_2_offset_2_ksi",
+        "bearing_ultimate_strength_3_ksi",
+        "ratio_of_bearing_yield_strength_tensile_yield_strength",
+        "ratio_of_bearing_ultimate_strength_tensile_strength"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__d5ab5252.csv",
+      "row_count": 6,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "welding_method_and_material",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "yield_strength_ksi",
+        "yield_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__e258734d.csv",
+      "row_count": 6,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "treatment_of_weld",
+        "stress_ksi",
+        "life_hr",
+        "elongation",
+        "location_of_fracture"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__e536e9f0.csv",
+      "row_count": 15,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "tensile_strength_ksi",
+        "yield_strength_0_2_offset_ksi",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__efcbf339.csv",
+      "row_count": 7,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "initial_material_condition",
+        "thermal_exposure",
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elong",
+        "r_a"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__efea3f1a.csv",
+      "row_count": 18,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "condition_as_welded",
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation",
+        "reduction_of_area"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__f80d2f82.csv",
+      "row_count": 29,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "c_0_2_yield_strength_ksi",
+        "c_0_2_yield_strength_mpa",
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__f955cfbe.csv",
+      "row_count": 7,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "c_0_2_offset_yield_strength_ksi",
+        "c_0_2_offset_yield_strength_mpa",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__test_temperature__fa0f02fb.csv",
+      "row_count": 16,
+      "identity_fields": [],
+      "temperature_fields": [
+        "test_temperature_deg_f",
+        "test_temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "weld_type",
+        "c_0_2_offset_yield_strength_ksi",
+        "ultimate_tensile_strength_ksi",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__thermal_treatment_uts__58c9923d.csv",
+      "row_count": 5,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "thermal_treatment",
+        "uts_ksi",
+        "uts_mpa",
+        "ys_ksi",
+        "ys_mpa",
+        "elongation_2_51mm",
+        "elongation_1_2_13mm",
+        "elongation_1_8_3_2mm",
+        "failure_location_1_8_3_2mm"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__thickness__71457e49.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "cold_reduction",
+        "wire_diameter_in",
+        "wire_diameter_mm",
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "yield_strength_0_2_offset_ksi",
+        "yield_strength_0_2_offset_mpa",
+        "elongation_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__thickness__a65d6f24.csv",
+      "row_count": 22,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "thickness_in",
+        "tensile_strength_ksi",
+        "yield_strength_ksi",
+        "elongation"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__thickness__b4366fa2.csv",
+      "row_count": 8,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "thickness_inches",
+        "thickness_mm",
+        "ftu_ksi",
+        "ftu_mpa",
+        "fty_ksi",
+        "fty_mpa",
+        "fty_ei_1",
+        "fty_ra_1"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__thickness__c8952777.csv",
+      "row_count": 13,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "wire_diameter_in",
+        "wire_diameter_mm",
+        "cold_reduc_tion_mm",
+        "tensile_strength_ksi",
+        "tensile_strength_mpa",
+        "yield_strength_0_2_offset_b_ksi",
+        "yield_strength_0_2_offset_b_mpa",
+        "elonga_tion_in_10_inches_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.tensile_properties__ultimate_tensile_strength_fractur__e4cb4420.csv",
+      "row_count": 4,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "ultimate_tensile_strength_ksi",
+        "ultimate_tensile_strength_mpa",
+        "fracture_location_mpa"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__column_001_c_600_315__ebe67db9.csv",
+      "row_count": 3,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "column_001",
+        "c_600_315",
+        "c_900_480",
+        "c_1200_650",
+        "c_1500_815",
+        "c_1800_980",
+        "c_2000_1090"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__column_001_t_k__b85f645d.csv",
+      "row_count": 2,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "column_001",
+        "t_k",
+        "delta_t_k"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__property_value_text__0b53f400.csv",
+      "row_count": 32,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "property",
+        "value_text"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__property_y_unit__bae76b9f.csv",
+      "row_count": 10,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "property_y",
+        "unit",
+        "a",
+        "b",
+        "c",
+        "range_t_k",
+        "state",
+        "method"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__property_y_unit__f2078807.csv",
+      "row_count": 11,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "property_y",
+        "unit",
+        "uncertainty",
+        "state",
+        "method"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__t_k_c_p_kj_kg_1_k_1__2d130f78.csv",
+      "row_count": 20,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "t_k",
+        "c_p_kj_kg_1_k_1",
+        "delta_c_p_kj_kg_1_k_1",
+        "t_k_2",
+        "c_p_kj_kg_1_k_1_2",
+        "delta_c_p_kj_kg_1_k_1_2"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__t_k_h_s_kj_kg_1__63bee5db.csv",
+      "row_count": 24,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "t_k",
+        "h_s_kj_kg_1",
+        "rho_ig_u_m",
+        "rho_corr_u_m",
+        "d_t_kg_m_3",
+        "frac_v_t_v_0_1"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature__3da84aa1.csv",
+      "row_count": 77,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "physical_property_mean_coefficient_of_thermal_expansion",
+        "british_units_rt_200_deg_f_300_deg_f",
+        "british_units_6_7_uin_in_deg_f_6_8_uin_in_deg_f",
+        "metric_units_rt_100_deg_c_200_deg_c",
+        "metric_units_12_1_um_m_deg_c_12_4_um_m_deg_c"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature__92861910.csv",
+      "row_count": 17,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temp_deg_f",
+        "temp_deg_c"
+      ],
+      "candidate_property_fields": [
+        "meal_linear_expansion_a_10_6_in_in_deg_f",
+        "thermal_conductivity_b_c_btuin_ft2_h_deg_f",
+        "electrical_resistivity_c_ohm_circ_mil_ft",
+        "mean_linear_expansion_a_um_um_deg_c",
+        "thermal_conductivity_b_c_w_m_deg_c",
+        "electrical_resistivity_c_ucm"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature__9313ee45.csv",
+      "row_count": 10,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "deg_c",
+        "c_10_6_circ_c",
+        "deg_f",
+        "c_10_6_circ_f"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature__ad8d5c7f.csv",
+      "row_count": 26,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temp_deg_f"
+      ],
+      "candidate_property_fields": [
+        "thermal_conductivity_btu_in_ft_2_h_deg_f",
+        "coefficient_of_expansion_a_10_6in_in_deg_f",
+        "specific_heat_btu_in_deg_f"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature__b515979a.csv",
+      "row_count": 8,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "deg_f",
+        "deg_c",
+        "btu_in_ft2_h_deg_f",
+        "w_m_deg_c"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature__f834360b.csv",
+      "row_count": 11,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "deg_f",
+        "deg_c",
+        "in_in_deg_f_x_10_6",
+        "um_um_deg_c"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature_condition__03b2abd2.csv",
+      "row_count": 24,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "thermal_conductivity_btu_in_ft_2_h_deg_f",
+        "coefficient_of_expansion_a_10_6_in_in_deg_f",
+        "specific_heat_btu_lb_deg_f",
+        "electrical_resistivity_ohm_circ_mil_ft"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature_condition__1a452620.csv",
+      "row_count": 11,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temper",
+        "maximum_stress_ksi_for_temperature_deg_f_up_to_400",
+        "maximum_stress_ksi_for_temperature_deg_f_400_450",
+        "maximum_stress_ksi_for_temperature_deg_f_450_500",
+        "maximum_stress_ksi_for_temperature_deg_f_500_550",
+        "maximum_stress_ksi_for_temperature_deg_f_550_600",
+        "maximum_stress_ksi_for_temperature_deg_f_600_650",
+        "maximum_stress_ksi_for_temperature_deg_f_650_700",
+        "maximum_stress_ksi_for_temperature_deg_f_700_750",
+        "maximum_stress_ksi_for_temperature_deg_f_750_800",
+        "maximum_stress_ksi_for_temperature_deg_f_800_850",
+        "maximum_stress_ksi_for_temperature_deg_f_850_900",
+        "maximum_stress_ksi_for_temperature_deg_f_900_950",
+        "maximum_stress_ksi_for_temperature_deg_f_950_1000",
+        "maximum_stress_ksi_for_temperature_deg_f_1000_1050",
+        "maximum_stress_ksi_for_temperature_deg_f_1050_1100",
+        "maximum_stress_ksi_for_temperature_deg_f_1100_1150",
+        "maximum_stress_ksi_for_temperature_deg_f_1150_1200"
+      ],
+      "candidate_property_fields": [
+        "method_of_coiling",
+        "thermal_treatment_2_deg_f_hr"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature_condition__1cef995c.csv",
+      "row_count": 13,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "mean_linear_expansion_in_in_deg_f_x_10_6from_70_deg_f_35aa8fd3",
+        "thermal_conductivity_btu_in_hr_sq_ft_deg_f",
+        "specific_heat_btu_lb_deg_f",
+        "diffusivity_sq_ft_hr",
+        "electrical_resistivity_ohm_circ_mil_ft"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature_condition__33342d6c.csv",
+      "row_count": 19,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "coefficient_of_expansion_in_in_deg_f",
+        "electrical_resistivity_ohm_cmil_ft"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature_condition__49c06327.csv",
+      "row_count": 11,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_c",
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "thermal_conductivity_w_m_deg_c",
+        "thermal_conductivity_btu_ft_h_deg_f"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature_condition__67cbbe12.csv",
+      "row_count": 28,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "coefficient_of_expansion_a_10_6_in_in_bullet_deg_f",
+        "electrical_resistivity_ohmcircmil_ft",
+        "thermal_conductivity_btuin_ft2h_deg_f",
+        "specific_heat_btu_lb_deg_f"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature_condition__7282b553.csv",
+      "row_count": 18,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "specific_heat_btu_lb_deg_f",
+        "coefficient_of_expansion_a_10_6_in_in_deg_f",
+        "electrical_resistivity_ohmcirc_mil_ft"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature_condition__7d8bbf86.csv",
+      "row_count": 14,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_c",
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "conductivity_w_cm_k",
+        "conductivity_btu_in_ft2_h_deg_f"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature_condition__8184fc14.csv",
+      "row_count": 12,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "thermal_conductivity_a_btuin_ft_2_h_deg_f_ann_1800_deg_f_1_hr",
+        "thermal_conductivity_a_btuin_ft_2_h_deg_f_ann_aged",
+        "electrical_resistivity_a_ohm_circ_mil_ft_ann_1800_deg_f_1_hr",
+        "electrical_resistivity_a_ohm_circ_mil_ft_ann_aged",
+        "mean_linear_expansion_b_c_in_in_deg_f_x_10_6_ann_aged"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature_condition__820d5781.csv",
+      "row_count": 26,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "thermal_conductivity_btuin_ft2h_deg_f",
+        "coefficient_of_expansiona_10_6in_in_deg_f",
+        "specific_heat_btu_lb_deg_f"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature_condition__8b6da97a.csv",
+      "row_count": 15,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "thermal_conductivity_btu_in_ft_2_h_deg_f",
+        "coefficient_of_expansion_a_10_6_in_in_deg_f",
+        "specific_heat_btu_lb_deg_f"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature_condition__8fddeb3e.csv",
+      "row_count": 26,
+      "identity_fields": [],
+      "temperature_fields": [
+        "glass_transition_temperature_t_g_deg_c",
+        "glass_transition_temperature_t_g_deg_f",
+        "melting_onset_temperature_t_mo_deg_c",
+        "melting_onset_temperature_t_mo_deg_f",
+        "melting_peak_temperature_t_mp_deg_c",
+        "melting_peak_temperature_t_mp_deg_f",
+        "crystallization_onset_temperature_t_co_deg_c",
+        "crystallization_onset_temperature_t_co_deg_f",
+        "hot_crystallization_peak_temperature_t_cp_deg_c",
+        "hot_crystallization_peak_temperature_t_cp_deg_f"
+      ],
+      "candidate_property_fields": [
+        "sample",
+        "enthalpy_of_melting_delta_h_m_left_lbrack_j_g_right_rb_76903fdf",
+        "enthalpy_of_crystallization_delta_h_c_left_lbrack_j_g_dbce5ef5"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature_condition__b3c738c4.csv",
+      "row_count": 33,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_c",
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "thermal_conductivity_w_m_k",
+        "thermal_conductivity_btu_in_ft_2_h_deg_f",
+        "specific_heat_j_kg_deg_c",
+        "specific_heat_btu_lb_deg_f"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature_condition__bc9ee89a.csv",
+      "row_count": 33,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "coefficient_of_expansion_10_6in_in_deg_f"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature_condition__ceb099ab.csv",
+      "row_count": 23,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "electrical_resistivity_ohm_circ_mil_ft",
+        "thermal_conductivity_a_btu_in_ft_2_hr_deg_f",
+        "coefficient_of_expansion_b_10_6_in_in_deg_f",
+        "specific_heat_btu_lb_deg_f"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature_condition__efb4ac46.csv",
+      "row_count": 6,
+      "identity_fields": [
+        "alloy"
+      ],
+      "temperature_fields": [
+        "mean_coefficient_of_expansion_from_rt_to_temperature_1_217336f2",
+        "mean_coefficient_of_expansion_from_rt_to_temperature_5_c99b922f",
+        "mean_coefficient_of_expansion_from_rt_to_temperature_1_bfa0b5c0",
+        "mean_coefficient_of_expansion_from_rt_to_temperature_5_007878be",
+        "mean_coefficient_of_expansion_from_rt_to_temperature_1_0003adb6",
+        "mean_coefficient_of_expansion_from_rt_to_temperature_6_820fe864",
+        "mean_coefficient_of_expansion_from_rt_to_temperature_1_df7760c8",
+        "mean_coefficient_of_expansion_from_rt_to_temperature_7_e66a85cc",
+        "mean_coefficient_of_expansion_from_rt_to_temperature_1_976cd79b",
+        "mean_coefficient_of_expansion_from_rt_to_temperature_7_1fdf05be"
+      ],
+      "candidate_property_fields": [],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature_condition__f0c961ca.csv",
+      "row_count": 13,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f",
+        "temperature_deg_c"
+      ],
+      "candidate_property_fields": [
+        "thermal_conductivity_btuin_hr_ft_2_deg_f",
+        "thermal_conductivity_w_cmk"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature_condition__fc5b0567.csv",
+      "row_count": 23,
+      "identity_fields": [],
+      "temperature_fields": [
+        "temperature_deg_f"
+      ],
+      "candidate_property_fields": [
+        "electrical_resistivity_ohm_circ_mil_ft",
+        "thermal_conductivity_a_btu_in_ft_2_h_deg_f",
+        "coefficient_of_expansion_b_10_6_in_in_deg_f",
+        "specific_heat_c_btu_lb_deg_f"
+      ],
+      "automated_import_eligible": false
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__temperature_material__71f2db89.csv",
+      "row_count": 3,
+      "identity_fields": [
+        "material"
+      ],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "mean_linear_expansion_a_10_6_in_in_deg_f_200_deg_f",
+        "mean_linear_expansion_a_10_6_in_in_deg_f_300_deg_f",
+        "mean_linear_expansion_a_10_6_in_in_deg_f_400_deg_f",
+        "mean_linear_expansion_a_10_6_in_in_deg_f_500_deg_f",
+        "mean_linear_expansion_a_10_6_in_in_deg_f_600_deg_f",
+        "mean_linear_expansion_a_um_m_deg_c_93_deg_c",
+        "mean_linear_expansion_a_um_m_deg_c_149_deg_c",
+        "mean_linear_expansion_a_um_m_deg_c_204_deg_c",
+        "mean_linear_expansion_a_um_m_deg_c_260_deg_c",
+        "mean_linear_expansion_a_um_m_deg_c_316_deg_c"
+      ],
+      "automated_import_eligible": true
+    },
+    {
+      "file": "high_temperature_material.thermal_properties__units_thermal_conductivity_w_m_k__19a189ea.csv",
+      "row_count": 12,
+      "identity_fields": [],
+      "temperature_fields": [],
+      "candidate_property_fields": [
+        "units",
+        "thermal_conductivity_w_m_k",
+        "specific_heat_j_kg_k"
+      ],
+      "automated_import_eligible": false
+    }
+  ]
+}

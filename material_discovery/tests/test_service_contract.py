@@ -2,12 +2,16 @@ from __future__ import annotations
 
 import asyncio
 import json
+import tempfile
 import unittest
+from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import main
 import src.team_config as team_config
 from src.material_workflow import llm_constraint_inference
+from src.material_workflow import presentation
 
 
 class _FakeWebSocket:
@@ -106,6 +110,39 @@ class _FakeTeam:
 
 
 class InorganicNewMaterialServiceContractTest(unittest.TestCase):
+    def test_asset_delivery_uses_markdown_for_images_and_json_for_glb(self) -> None:
+        class _Storage:
+            async def aobject_exists(self, *_args) -> bool:
+                return True
+
+        async def upload(*_args) -> dict:
+            return {"status": 200}
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            png, gif, glb = root / "card.png", root / "rotation.gif", root / "structure.glb"
+            for path in (png, gif, glb):
+                path.write_bytes(b"test")
+            result = SimpleNamespace(
+                taskid="asset-contract",
+                artifacts={"presentation": {"assets": [
+                    {"path": str(png), "type": "MaterialsPNG", "name": "结构卡"},
+                    {"path": str(gif), "type": "MaterialsPNG", "name": "旋转图"},
+                    {"path": str(glb), "type": "MaterialsGLB", "name": "三维模型"},
+                ]}},
+            )
+            websocket = _FakeWebSocket()
+            with patch.object(presentation, "oss_upload", upload), patch.object(presentation, "get_storage_client", return_value=_Storage()):
+                markdown = asyncio.run(presentation.emit_presentation_assets(websocket, result))
+
+        self.assertIn("![结构卡](https://", markdown)
+        self.assertIn("card.png)", markdown)
+        self.assertIn("![旋转图](https://", markdown)
+        self.assertIn("rotation.gif)", markdown)
+        json_events = [value for kind, value in websocket.events if kind == "json"]
+        self.assertEqual(len(json_events), 1)
+        self.assertEqual(json_events[0]["type"], "MaterialsGLB")
+        self.assertEqual(json_events[0]["name"], "三维模型")
     def test_routes_and_roles_contract(self) -> None:
         route_paths = {route.path for route in main.app.routes}
         self.assertTrue({"/start", "/new-material/start", "/roles", "/new-material/constraints", "/new-material/generate"}.issubset(route_paths))

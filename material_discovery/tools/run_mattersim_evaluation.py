@@ -238,6 +238,17 @@ def _mp_api_reference_results(structures, total_energies, original_structures):
     return result
 
 
+def _write_relaxed_structure(path: Path, structure) -> None:
+    """Persist one relaxed structure, accepting either ASE or pymatgen data."""
+    from ase.io import write as ase_write
+
+    if hasattr(structure, "lattice") and hasattr(structure, "composition"):
+        from pymatgen.io.ase import AseAtomsAdaptor
+
+        structure = AseAtomsAdaptor.get_atoms(structure)
+    ase_write(path, structure, format="extxyz")
+
+
 def main() -> None:
     args = _arguments()
     temporary_root = Path(os.environ.get("MATTERSIM_TMPDIR", "/data/mattersim_tmp"))
@@ -262,6 +273,15 @@ def main() -> None:
         device=args.device,
         output_path=str(relaxed_path),
     )
+    # ``relaxed_structures.extxyz`` is a multi-frame convenience artifact.  It
+    # must never be used to identify a candidate: reading its final frame for
+    # every candidate can attach another candidate's geometry to a GLB.  Keep
+    # one immutable relaxed structure per source CIF for downstream rendering.
+    relaxed_by_source = {}
+    for path, relaxed_structure in zip(cif_paths, relaxed):
+        candidate_path = args.output_dir / f"{path.stem}.relaxed.extxyz"
+        _write_relaxed_structure(candidate_path, relaxed_structure)
+        relaxed_by_source[str(path.resolve())] = str(candidate_path.resolve())
     relaxation_output = {
         "status": "relaxed",
         "backend": "mattersim",
@@ -272,6 +292,7 @@ def main() -> None:
                 "source_cif": str(path.resolve()),
                 "source_name": path.name,
                 "formula_pretty": structure.composition.reduced_formula,
+                "relaxed_structure_path": relaxed_by_source[str(path.resolve())],
                 "relaxed_total_energy_ev": float(energy),
                 "relaxed_energy_per_atom_ev": float(energy / len(structure)),
             }
@@ -313,6 +334,7 @@ def main() -> None:
                 "source_cif": str(path.resolve()),
                 "source_name": path.name,
                 "formula_pretty": structure.composition.reduced_formula,
+                "relaxed_structure_path": relaxed_by_source[str(path.resolve())],
                 "relaxed_total_energy_ev": float(energy),
                 "relaxed_energy_per_atom_ev": float(energy / len(structure)),
                 "formation_energy_per_atom_ev": thermo["formation_energy_per_atom_ev"],

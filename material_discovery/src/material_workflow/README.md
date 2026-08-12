@@ -12,8 +12,8 @@ the WebSocket order, role/action lifecycle and calls into the modules below.
 - `schemas.py`, `generation.py`, `validation.py`, `mattersim.py`, `ranking.py`,
   `pipeline.py`, `upstream_api.py`: MatterGen generation, pymatgen admission,
   MatterSim/MP screening, ranking and manifest-backed pipeline execution.
-- `presentation.py`: renders and publishes PNG/GIF/GLB evidence through the
-  established `MaterialsPNG` / `MaterialsGLB` frontend protocol.
+- `presentation.py`: renders and publishes visual evidence: PNG/GIF become
+  Markdown images, while GLB is emitted as a `MaterialsGLB` JSON event.
 - `emitters.py`, `payloads.py`: build HTTP/WebSocket payloads and manifests.
 - `llm_streaming.py`: relays authoritative Markdown through the existing token
   stream, with a deterministic text fallback.

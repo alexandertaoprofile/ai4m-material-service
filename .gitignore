@@ -1,5 +1,6 @@
 **/__pycache__/
 **/*.pyc
+**/.pytest_cache/
 **/.env
 **/logs/
 **/dist/
@@ -17,3 +18,10 @@
 **/.venv/
 **/.idea/
 **/.vscode/
+
+# Generated / source material datasets (too large for regular Git)
+/
+  material_database/data/
+
+# Generated / source material datasets (too large for regular Git)
+/material_database/data/

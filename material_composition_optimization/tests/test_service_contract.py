@@ -47,12 +47,14 @@ def result(taskid: str) -> dict:
 
 
 async def fake_assets(*_args, **_kwargs):
-    return ({"screening_funnel": "https://assets.example/screening_funnel.png"}, {"screening_funnel": "测试图表"}, {}, [])
+    return ({"screening_funnel": "https://assets.example/screening_funnel.png"}, {"screening_funnel": "测试图表"}, {}, [{"url": "https://assets.example/screening_funnel.png", "title": "测试图表", "description": "测试说明"}])
 
 
-async def fake_content(websocket, _result, *, step_id, **_kwargs) -> None:
+async def fake_content(websocket, _result, *, step_id, visual_assets=None, **_kwargs) -> None:
     await websocket.send_text(f"<<<CONTENT_START:{step_id}>>>")
     await websocket.send_text("测试结果")
+    for asset in visual_assets or []:
+        await websocket.send_text(f"![{asset['title']}]({asset['url']})")
     await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
 
 
@@ -93,12 +95,11 @@ class AlloyServiceContractTest(unittest.TestCase):
         self.assertIn(f"<<<CONTENT_START:{main.FRONTEND_STEP_ID}>>>", texts)
         self.assertIn(f"<<<CONTENT_END:{main.FRONTEND_STEP_ID}>>>", texts)
         self.assertEqual([event["type"] for event in json_events if event.get("type") in {"progress", "result"}], ["progress", "progress", "result"])
-        asset = next(event for event in json_events if event.get("type") == "MaterialsPNG")
-        self.assertEqual(asset["stepId"], main.FRONTEND_STEP_ID)
-        self.assertEqual(asset["type"], "MaterialsPNG")
+        self.assertFalse(any(event.get("type") == "MaterialsPNG" for event in json_events))
+        self.assertIn("![测试图表](https://assets.example/screening_funnel.png)", texts)
         self.assertTrue(websocket.closed)
 
-    def test_team_action_keeps_existing_result_and_asset_events(self) -> None:
+    def test_team_action_keeps_markdown_images_and_result_events(self) -> None:
         websocket = FakeWebSocket()
         action = team_config.Coding()
         with (
@@ -109,23 +110,31 @@ class AlloyServiceContractTest(unittest.TestCase):
         ):
             asyncio.run(action.run({"idea": "HEA 成分优化"}, websocket, "tester", "role-alloy", []))
         json_events = [value for kind, value in websocket.events if kind == "json"]
+        texts = [value for kind, value in websocket.events if kind == "text"]
         self.assertEqual(json_events[0]["type"], "progress")
         self.assertEqual(json_events[-1]["type"], "result")
-        self.assertTrue(any(event.get("type") == "MaterialsPNG" for event in json_events))
+        self.assertFalse(any(event.get("type") == "MaterialsPNG" for event in json_events))
+        self.assertIn("![测试图表](https://assets.example/screening_funnel.png)", texts)
 
     def test_role_entry_exposes_the_alloy_use_case_sequence(self) -> None:
         self.assertTrue(callable(team_config.execute_alloy_optimization))
 
-    def test_asset_publish_failure_keeps_the_failed_progress_event(self) -> None:
+    def test_asset_publish_failure_uses_plain_text_notice(self) -> None:
         websocket = FakeWebSocket()
         from src.alloy_workflow import protocol
         with patch.object(protocol, "publish_png_assets", failing_publish):
             urls, _docs, _titles, visuals = asyncio.run(protocol.prepare_public_assets(websocket, "asset-failure", result("asset-failure"), main.RESULTS))
         self.assertEqual(urls["screening_funnel"], "/alloy/tasks/asset-failure/assets/screening_funnel.png")
         self.assertEqual(len(visuals), 1)
-        failed = websocket.events[0][1]
-        self.assertEqual(failed["type"], "progress")
-        self.assertEqual(failed["data"]["status"], "failed")
+        self.assertEqual(websocket.events, [("text", "\n图片发布失败，已改用本服务任务资产链接继续展示。\n")])
+
+    def test_unhandled_websocket_failure_uses_plain_text_notice(self) -> None:
+        websocket = FakeWebSocket({"taskid": "failed-alloy", "idea": "设计高熵合金配比"})
+        with patch.object(main, "_requirement_plan", side_effect=RuntimeError("计算执行器不可用")):
+            asyncio.run(main.start(websocket))
+
+        self.assertEqual(websocket.events, [("text", "\n处理失败：计算执行器不可用\n")])
+        self.assertTrue(websocket.closed)
 
     def test_alloy_presentation_does_not_import_inorganic_workflow(self) -> None:
         source = (Path(__file__).parents[1] / "src/alloy_workflow/presentation.py").read_text(encoding="utf-8")

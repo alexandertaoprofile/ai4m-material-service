@@ -15,7 +15,7 @@ from alpha.roles import Role
 from src.alloy_workflow.contracts import task_id as _taskid
 from src.alloy_workflow.identity import ACTION_DESCRIPTION, ACTION_NAME, ROLE_NAME, ROLE_PROFILE
 from src.alloy_workflow.presentation import emit_result_content
-from src.alloy_workflow.protocol import emit_public_asset_events, prepare_public_assets
+from src.alloy_workflow.protocol import prepare_public_assets
 from src.alloy_workflow.runtime import RUNTIME
 
 # 与 main.py 共享同一运行时装配，禁止由编排层反向 import 传输入口。
@@ -33,7 +33,7 @@ async def execute_alloy_optimization(websocket: Any, payload: dict[str, Any]) ->
     当前任务的 PNG/Markdown 资产。
 
     阶段 3 展示结果：优先发布 PNG，失败时回退本地任务 URL；随后按既有
-    前端协议推送正文和 ``MaterialsPNG``。调用方在本函数返回后再发最终 result。
+    前端协议推送含 Markdown 图片的正文。调用方在本函数返回后再发最终 result。
     """
     # 阶段 1：将母服务的角色消息包装成与直连 WebSocket 相同、可校验的任务范围。
     request_id = _taskid(payload)
@@ -46,10 +46,9 @@ async def execute_alloy_optimization(websocket: Any, payload: dict[str, Any]) ->
     result["_summary_path"] = RESULTS / request_id / "presentation" / "summary.md"
     public_urls, asset_docs, _asset_titles, visual_assets = await prepare_public_assets(websocket, request_id, result, RESULTS)
 
-    # 阶段 3b：按既有顺序发送 Markdown 和 MaterialsPNG 兼容事件，不能改变顺序。
+    # 阶段 3b：在内容区块内发送 Markdown 图片；GLB 不属于本服务资产类型。
     await emit_result_content(websocket, result, step_id=FRONTEND_STEP_ID, visual_assets=visual_assets)
     result.pop("_summary_path", None)
-    await emit_public_asset_events(websocket, result, public_urls, asset_docs)
     return result
 
 

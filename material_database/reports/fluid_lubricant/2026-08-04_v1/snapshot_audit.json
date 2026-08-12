@@ -1,0 +1,433 @@
+{
+  "snapshot_dir": "/data/se42/alpha_project/material_service_hub/material_database/data/raw/incoming/material_platform/conductive_lubricant/2026-08-04_v1",
+  "audited_at": "2026-08-04T03:54:15.951137+00:00",
+  "tables": {
+    "fluid_property_source": {
+      "file": "material.fluid_property_source.csv",
+      "sha256": "91c5911c5fb879cbc45be86680d54195787887449c51c2621e17f614a81bb886",
+      "rows": 32,
+      "columns": [
+        "id",
+        "source_id",
+        "dataset_name",
+        "source_type",
+        "publisher_or_repository",
+        "landing_page_url",
+        "direct_download_url",
+        "related_publication",
+        "doi",
+        "license",
+        "access_date",
+        "experimental_or_predicted",
+        "pure_component_or_mixture",
+        "conductivity_available",
+        "viscosity_available",
+        "stability_available",
+        "composition_available",
+        "temperature_available",
+        "pressure_available",
+        "water_content_available",
+        "measurement_method_available",
+        "uncertainty_available",
+        "machine_readable",
+        "downloaded",
+        "local_file_path",
+        "notes",
+        "source_artifact_id",
+        "source_row_number"
+      ],
+      "missing": {
+        "direct_download_url": 14,
+        "related_publication": 2,
+        "local_file_path": 22
+      },
+      "categories": {
+        "source_id": {
+          "SRC001": 2,
+          "SRC002": 2,
+          "SRC003": 2,
+          "SRC004": 2,
+          "SRC005": 2,
+          "SRC006": 2,
+          "SRC007": 2,
+          "SRC008": 2,
+          "SRC009": 2,
+          "SRC010": 2,
+          "SRC011": 2,
+          "SRC012": 2,
+          "SRC013": 2,
+          "SRC014": 2,
+          "SRC015": 2,
+          "SRC016": 2
+        },
+        "experimental_or_predicted": {
+          "experimental": 24,
+          "mixed": 6,
+          "predicted": 2
+        },
+        "pure_component_or_mixture": {
+          "pure": 14,
+          "mixture": 14,
+          "both": 4
+        }
+      },
+      "numeric_ranges": {},
+      "composition_basis": {},
+      "mixture_completeness": {
+        "components=0; fractions=0": 14
+      }
+    },
+    "fluid_conductivity": {
+      "file": "material.fluid_conductivity.csv",
+      "sha256": "b305637e595dda830308296c5e4477aaa711699b4aa9a1d12112542da4e96d6c",
+      "rows": 138376,
+      "columns": [
+        "id",
+        "record_id",
+        "component_1",
+        "component_2",
+        "component_3",
+        "pure_component_or_mixture",
+        "composition_basis",
+        "component_1_fraction",
+        "component_2_fraction",
+        "component_3_fraction",
+        "temperature_k",
+        "pressure_pa",
+        "conductivity_original",
+        "conductivity_original_unit",
+        "conductivity_s_m",
+        "resistivity_ohm_m",
+        "frequency_hz",
+        "measurement_method",
+        "cell_constant",
+        "water_content_ppm",
+        "uncertainty",
+        "experimental_or_predicted",
+        "extraction_method",
+        "manual_review_required",
+        "manual_review_reason",
+        "source_id",
+        "source_reference",
+        "source_artifact_id",
+        "source_row_number"
+      ],
+      "missing": {
+        "component_2": 5368,
+        "component_3": 75110,
+        "composition_basis": 86436,
+        "component_1_fraction": 108244,
+        "component_2_fraction": 106842,
+        "component_3_fraction": 137076,
+        "pressure_pa": 17418,
+        "conductivity_s_m": 5368,
+        "resistivity_ohm_m": 5782,
+        "frequency_hz": 119822,
+        "measurement_method": 128306,
+        "cell_constant": 128306,
+        "water_content_ppm": 138376,
+        "uncertainty": 15438,
+        "manual_review_reason": 10070
+      },
+      "categories": {
+        "source_id": {
+          "SRC004": 122938,
+          "SRC011": 10070,
+          "SRC003": 5368
+        },
+        "experimental_or_predicted": {
+          "experimental": 138376
+        },
+        "extraction_method": {
+          "database_export": 133008,
+          "table": 5368
+        },
+        "manual_review_required": {
+          "yes": 128306,
+          "no": 10070
+        },
+        "pure_component_or_mixture": {
+          "mixture": 133008,
+          "pure": 5368
+        }
+      },
+      "numeric_ranges": {
+        "temperature_k": {
+          "count": 138376,
+          "min": 203.4,
+          "max": 571.3
+        },
+        "conductivity_s_m": {
+          "count": 133008,
+          "min": 0.0,
+          "max": 79500.0
+        },
+        "resistivity_ohm_m": {
+          "count": 132594,
+          "min": 1.2578616352201259e-05,
+          "max": 333333333.3333333
+        }
+      },
+      "composition_basis": {
+        "<missing>": 86436,
+        "mole_fraction": 33272,
+        "mass_fraction": 18304,
+        "volume_fraction": 364
+      },
+      "mixture_completeness": {
+        "components=3; fractions=0": 58482,
+        "components=2; fractions=1": 37086,
+        "components=2; fractions=0": 22586,
+        "components=2; fractions=2": 10070,
+        "components=3; fractions=1": 3828,
+        "components=3; fractions=2": 956
+      }
+    },
+    "fluid_viscosity": {
+      "file": "material.fluid_viscosity.csv",
+      "sha256": "0c8960fe6cadd753fbab71b3477d87e4a327825b44f069723b8fe243ea822ed5",
+      "rows": 193692,
+      "columns": [
+        "id",
+        "record_id",
+        "component_1",
+        "component_2",
+        "component_3",
+        "pure_component_or_mixture",
+        "composition_basis",
+        "component_1_fraction",
+        "component_2_fraction",
+        "component_3_fraction",
+        "temperature_k",
+        "pressure_pa",
+        "viscosity_original",
+        "viscosity_original_unit",
+        "viscosity_type",
+        "dynamic_viscosity_mpa_s",
+        "kinematic_viscosity_mm2_s",
+        "density_kg_m3",
+        "instrument_type",
+        "rotational_viscometer",
+        "spindle_type",
+        "rotation_speed_rpm",
+        "shear_rate_s_1",
+        "uncertainty",
+        "experimental_or_predicted",
+        "extraction_method",
+        "manual_review_required",
+        "manual_review_reason",
+        "source_id",
+        "source_reference",
+        "source_artifact_id",
+        "source_row_number"
+      ],
+      "missing": {
+        "component_2": 17306,
+        "component_3": 148896,
+        "composition_basis": 66202,
+        "component_1_fraction": 113804,
+        "component_2_fraction": 141282,
+        "component_3_fraction": 188554,
+        "pressure_pa": 1054,
+        "dynamic_viscosity_mpa_s": 17342,
+        "kinematic_viscosity_mm2_s": 193652,
+        "density_kg_m3": 193692,
+        "instrument_type": 193692,
+        "rotational_viscometer": 193692,
+        "spindle_type": 193692,
+        "rotation_speed_rpm": 193692,
+        "shear_rate_s_1": 193692,
+        "uncertainty": 17342
+      },
+      "categories": {
+        "source_id": {
+          "SRC004": 176350,
+          "SRC003": 17302,
+          "SRC014": 40
+        },
+        "experimental_or_predicted": {
+          "experimental": 193692
+        },
+        "extraction_method": {
+          "database_export": 176350,
+          "table": 17302,
+          "manual_transcription": 40
+        },
+        "manual_review_required": {
+          "yes": 193692
+        },
+        "pure_component_or_mixture": {
+          "mixture": 176386,
+          "pure": 17306
+        }
+      },
+      "numeric_ranges": {
+        "temperature_k": {
+          "count": 193692,
+          "min": 198.25,
+          "max": 573.0
+        },
+        "dynamic_viscosity_mpa_s": {
+          "count": 176350,
+          "min": 0.04,
+          "max": 130000000.0
+        },
+        "kinematic_viscosity_mm2_s": {
+          "count": 40,
+          "min": 12.1,
+          "max": 73.4
+        }
+      },
+      "composition_basis": {
+        "mole_fraction": 117004,
+        "<missing>": 66202,
+        "mass_fraction": 9942,
+        "volume_fraction": 544
+      },
+      "mixture_completeness": {
+        "components=2; fractions=1": 115640,
+        "components=3; fractions=0": 32982,
+        "components=2; fractions=0": 15914,
+        "components=3; fractions=2": 9910,
+        "components=3; fractions=1": 1904,
+        "components=2; fractions=2": 36
+      }
+    },
+    "fluid_stability": {
+      "file": "material.fluid_stability.csv",
+      "sha256": "9c8619d5271fef1a2317bba27c27f256dbd3bedb36297810bc237bc3ed65875f",
+      "rows": 8204,
+      "columns": [
+        "id",
+        "record_id",
+        "component_or_mixture",
+        "pure_component_or_mixture",
+        "stability_type",
+        "temperature_original",
+        "temperature_original_unit",
+        "test_temperature_k",
+        "test_time_h",
+        "atmosphere",
+        "heating_rate_k_min",
+        "decomposition_temperature_k",
+        "melting_temperature_k",
+        "glass_transition_temperature_k",
+        "cloud_point_k",
+        "phase_count",
+        "miscible",
+        "phase_separation",
+        "precipitation",
+        "mass_loss_percent",
+        "experimental_or_predicted",
+        "extraction_method",
+        "manual_review_required",
+        "manual_review_reason",
+        "source_id",
+        "source_reference",
+        "source_artifact_id",
+        "source_row_number"
+      ],
+      "missing": {
+        "test_temperature_k": 8204,
+        "test_time_h": 8204,
+        "atmosphere": 8204,
+        "heating_rate_k_min": 8204,
+        "decomposition_temperature_k": 5732,
+        "melting_temperature_k": 8204,
+        "glass_transition_temperature_k": 8204,
+        "cloud_point_k": 8204,
+        "phase_count": 8204,
+        "miscible": 8204,
+        "phase_separation": 8204,
+        "precipitation": 8204,
+        "mass_loss_percent": 8204,
+        "manual_review_reason": 2472
+      },
+      "categories": {
+        "source_id": {
+          "SRC003": 8204
+        },
+        "experimental_or_predicted": {
+          "experimental": 8204
+        },
+        "extraction_method": {
+          "table": 8204
+        },
+        "manual_review_required": {
+          "yes": 5732,
+          "no": 2472
+        },
+        "pure_component_or_mixture": {
+          "pure": 8204
+        }
+      },
+      "numeric_ranges": {
+        "test_temperature_k": {
+          "count": 0,
+          "min": null,
+          "max": null
+        },
+        "decomposition_temperature_k": {
+          "count": 2472,
+          "min": 316.15,
+          "max": 760.15
+        },
+        "melting_temperature_k": {
+          "count": 0,
+          "min": null,
+          "max": null
+        },
+        "glass_transition_temperature_k": {
+          "count": 0,
+          "min": null,
+          "max": null
+        }
+      },
+      "composition_basis": {},
+      "mixture_completeness": {}
+    },
+    "fluid_missing_field": {
+      "file": "material.fluid_missing_field.csv",
+      "sha256": "b6b49c7b21e561743edcae7ba7b79770cd10ff6dd058769bf274da82431ddd91",
+      "rows": 78,
+      "columns": [
+        "id",
+        "record_type",
+        "field",
+        "record_count",
+        "missing_count",
+        "missing_ratio",
+        "source_artifact_id",
+        "source_row_number"
+      ],
+      "missing": {},
+      "categories": {},
+      "numeric_ranges": {},
+      "composition_basis": {},
+      "mixture_completeness": {}
+    },
+    "fluid_duplicate_record": {
+      "file": "material.fluid_duplicate_record.csv",
+      "sha256": "306ccab34c7fbac319af0c6aa2f0c5960b55c7f3a7cb2ba2a7ebbe6bee96df2b",
+      "rows": 38052,
+      "columns": [
+        "id",
+        "issue_type",
+        "record_type",
+        "record_count",
+        "record_ids",
+        "source_ids",
+        "condition_key",
+        "observed_values",
+        "notes",
+        "source_artifact_id",
+        "source_row_number"
+      ],
+      "missing": {},
+      "categories": {},
+      "numeric_ranges": {},
+      "composition_basis": {},
+      "mixture_completeness": {}
+    }
+  }
+}

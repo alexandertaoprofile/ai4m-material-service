@@ -1,7 +1,6 @@
 """Compatibility adapter for the existing Alloy WebSocket event contract."""
 from __future__ import annotations
 
-import asyncio
 import logging
 import os
 from pathlib import Path
@@ -9,10 +8,6 @@ from typing import Any
 
 from src.alloy_workflow.assets import publish_png_assets
 
-
-SERVICE_AGENT = "alloy_composition_optimization"
-FRONTEND_STEP_ID = "FILAMENT_SELECTION_OPTIMIZATION"
-FRONTEND_STEP_TITLE = "合金成分优化与候选初筛"
 
 ASSET_DOCS = {
     "screening_funnel": "左柱为生成的候选数，右柱为通过初筛的候选数，用于判断当前条件的筛选严格程度。",
@@ -53,17 +48,9 @@ async def prepare_public_assets(websocket: Any, taskid: str, result: dict[str, A
         public_urls = {item["name"]: _local_asset_url(websocket, item) for item in result["presentation"]["assets"]}
         print(f"[ALLOY][{taskid}] MinIO publication failed; using local task-asset URLs", flush=True)
         logger.exception("MinIO publication failed; using local task-asset URLs taskid=%s", taskid)
-        await websocket.send_json({"version": "1.0.0", "agent": SERVICE_AGENT, "request_id": taskid, "type": "progress", "data": {"id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID, "title": FRONTEND_STEP_TITLE, "status": "failed", "description": str(exc)}})
+        await websocket.send_text("\n图片发布失败，已改用本服务任务资产链接继续展示。\n")
     else:
         print(f"[ALLOY][{taskid}] published PNG assets count={len(public_urls)} names={sorted(public_urls)}", flush=True)
         logger.info("published %s alloy PNG asset(s) taskid=%s", len(public_urls), taskid)
     visual_assets = [{"url": public_urls[item["name"]], "title": ASSET_TITLES.get(item["name"], item["name"]), "description": ASSET_DOCS.get(item["name"], "")} for item in result["presentation"]["assets"] if item["name"] in public_urls]
     return public_urls, ASSET_DOCS, ASSET_TITLES, visual_assets
-
-
-async def emit_public_asset_events(websocket: Any, result: dict[str, Any], public_urls: dict[str, str], asset_docs: dict[str, str]) -> None:
-    for item in result["presentation"]["assets"]:
-        url = public_urls.get(item["name"])
-        if url:
-            await websocket.send_json({"step_id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID, "title": FRONTEND_STEP_TITLE, "name": item["name"], "docs": asset_docs.get(item["name"], item["name"]), "url": url, "type": "MaterialsPNG", "description": asset_docs.get(item["name"], "")})
-            await asyncio.sleep(0.15)

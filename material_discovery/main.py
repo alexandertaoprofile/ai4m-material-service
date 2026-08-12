@@ -131,6 +131,10 @@ async def websocket_endpoint(websocket: WebSocket):
         exception_type, exception_value, exception_traceback = sys.exc_info()
         print(f"Exception Type: {exception_type.__name__}")
         print(f"Exception Message: {exception_value}")
+        try:
+            await websocket.send_text(f"\n新材料发现任务失败：{e}\n")
+        except (RuntimeError, WebSocketDisconnect):
+            pass
     try:
         await websocket.close()
         print("正常关闭连接！")

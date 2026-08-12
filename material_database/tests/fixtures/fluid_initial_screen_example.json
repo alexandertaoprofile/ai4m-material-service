@@ -1,0 +1,16 @@
+{
+  "task_id": "conductive_lubricant_room_temperature_demo",
+  "conditions": {
+    "temperature_k": {"min": 293.15, "max": 303.15}
+  },
+  "property_constraints": [
+    {"name": "conductivity", "operator": ">=", "value": 0.1, "unit": "S/m"},
+    {"name": "dynamic_viscosity", "operator": ">=", "value": 130, "unit": "mPa*s"},
+    {"name": "dynamic_viscosity", "operator": "<=", "value": 150, "unit": "mPa*s"}
+  ],
+  "evidence_policy": {
+    "composition": "include_flagged",
+    "manual_review": "include_flagged"
+  },
+  "limit": 200
+}

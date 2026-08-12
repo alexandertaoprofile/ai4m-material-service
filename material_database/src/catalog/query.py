@@ -12,6 +12,7 @@ import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
+from src.catalog.property_vocabulary import vocabulary_aliases
 
 
 PROPERTY_ALIASES = {
@@ -23,6 +24,11 @@ PROPERTY_ALIASES = {
     "thermal_conductivity": "thermal_conductivity",
     "thermalconductivity": "thermal_conductivity",
     "导热率": "thermal_conductivity",
+    "导热": "thermal_conductivity",
+    "interfacial_bond_strength": "interfacial_bond_strength",
+    "界面结合力": "interfacial_bond_strength",
+    "层间结合力": "interfacial_bond_strength",
+    "结合力": "interfacial_bond_strength",
     "thermal_diffusivity": "thermal_diffusivity",
     "thermaldiffusivity": "thermal_diffusivity",
     "热扩散率": "thermal_diffusivity",
@@ -33,12 +39,26 @@ PROPERTY_ALIASES = {
     "屈服强度": "yield_strength",
     "hardness": "hardness",
     "硬度": "hardness",
+    "hardness_vickers": "hardness_vickers",
     "tensile_strength": "tensile_strength",
+    "ultimate_tensile_strength": "ultimate_tensile_strength",
+    "ultimatetensilestrength": "ultimate_tensile_strength",
+    "uts": "ultimate_tensile_strength",
+    "抗拉强度": "ultimate_tensile_strength",
+    "极限抗拉强度": "ultimate_tensile_strength",
     "tensilestrength": "tensile_strength",
     "拉伸强度": "tensile_strength",
     "youngs_modulus": "youngs_modulus",
     "youngsmodulus": "youngs_modulus",
     "杨氏模量": "youngs_modulus",
+    "elongation": "elongation",
+    "延伸率": "elongation",
+    "plastic_elongation": "plastic_elongation",
+    "塑性延伸率": "plastic_elongation",
+    "grain_size": "grain_size",
+    "晶粒尺寸": "grain_size",
+    "density_calculated": "density_calculated",
+    "计算密度": "density_calculated",
     "heat_deflection_temperature": "heat_deflection_temperature",
     "heatdeflectiontemperature": "heat_deflection_temperature",
     "热变形温度": "heat_deflection_temperature",
@@ -49,6 +69,9 @@ def normalize_name(value: Any) -> str:
     """Normalize only spelling/punctuation; never erase grade-defining letters."""
     text = unicodedata.normalize("NFKC", str(value or "")).casefold()
     return re.sub(r"[^0-9a-z\u4e00-\u9fff]+", "", text)
+
+
+PROPERTY_ALIASES.update({normalize_name(alias): property_name for alias, property_name in vocabulary_aliases().items()})
 
 
 def _number(value: Any) -> float | None:
@@ -74,16 +97,26 @@ class PropertyConstraint:
     temperature_K: float | None = None
 
 
+@dataclass(frozen=True)
+class PreferenceGoal:
+    property: str
+    direction: str
+
+
 class MatureMaterialCatalog:
     """In-memory, source-preserving catalogue suitable for the current scale."""
 
     def __init__(self, root: Path):
         self.root = root
-        self.materials = _read(root / "materials.csv")
-        self.points = _read(root / "property_points.csv")
-        self.curves = _read(root / "curve_data.csv")
-        self.compositions = _read(root / "composition_long.csv")
-        self.aliases = _read(root / "material_aliases.csv")
+        bundles = [root]
+        for bundle_root in (root / "material_core", root / "high_temperature"):
+            if bundle_root.is_dir():
+                bundles.extend(sorted(bundle_root.glob("*/")))
+        self.materials = [row for bundle in bundles for row in _read(bundle / "materials.csv")]
+        self.points = [row for bundle in bundles for row in _read(bundle / "property_points.csv")]
+        self.curves = [row for bundle in bundles for row in _read(bundle / "curve_data.csv")]
+        self.compositions = [row for bundle in bundles for row in _read(bundle / "composition_long.csv")]
+        self.aliases = [row for bundle in bundles for row in _read(bundle / "material_aliases.csv")]
         self._by_id = {row["material_id"]: row for row in self.materials}
         self._alias_index = self._build_alias_index()
 
@@ -117,6 +150,27 @@ class MatureMaterialCatalog:
         for supplied in names:
             matches = self._alias_index.get(normalize_name(supplied), [])
             material_ids = list(dict.fromkeys(item["material_id"] for item in matches))
+            # The immutable 1101 import preserves a second identity row for
+            # some already-curated records.  If identity, temper/state and
+            # standard all agree, this is a duplicate import, not a material
+            # ambiguity.  Prefer the curated record for presentation while
+            # retaining the original source rows in the catalogue.
+            fingerprints = {
+                (
+                    normalize_name(self._by_id[material_id].get("display_name")),
+                    normalize_name(self._by_id[material_id].get("grade")),
+                    normalize_name(self._by_id[material_id].get("product_state")),
+                    normalize_name(self._by_id[material_id].get("UNS/standard")),
+                )
+                for material_id in material_ids
+            }
+            duplicate_import = len(material_ids) > 1 and len(fingerprints) == 1
+            if duplicate_import:
+                material_ids.sort(key=lambda material_id: (
+                    self._by_id[material_id].get("data_role") == "1101 material-core evidence",
+                    material_id,
+                ))
+                material_ids = material_ids[:1]
             trace.append({
                 "input": supplied,
                 "normalized": normalize_name(supplied),
@@ -266,7 +320,7 @@ class MatureMaterialCatalog:
             })
         return sorted(evidence, key=lambda item: (str(item["property"]), str(item["coverage"])))
 
-    def search(self, *, names: list[str], families: list[str], standards: list[str], constraints: list[PropertyConstraint], top_k: int) -> dict[str, Any]:
+    def search(self, *, names: list[str], families: list[str], standards: list[str], constraints: list[PropertyConstraint], preferences: list[PreferenceGoal] | None = None, top_k: int) -> dict[str, Any]:
         resolved_ids, resolution_trace = self.resolve_names(names)
         family_keys = {normalize_name(item) for item in families if item}
         standard_keys = {normalize_name(item) for item in standards if item}
@@ -280,14 +334,52 @@ class MatureMaterialCatalog:
             candidates = [row for row in candidates if normalize_name(row.get("family")) in family_keys]
         if standard_keys:
             candidates = [row for row in candidates if normalize_name(row.get("UNS/standard")) in standard_keys]
+        preferences = preferences or []
         results = []
         for material in candidates:
             assessment = self.evaluate(material["material_id"], constraints)
             result = {"material": material, "available_properties": self.property_evidence(material["material_id"]), **assessment}
             result["evidence_score"] = sum(item["status"] == "pass" for item in assessment["evidence"])
+            preference_evidence = []
+            preference_sort_key = []
+            for preference in preferences:
+                measured = self._curve_value(material["material_id"], PropertyConstraint(preference.property, ">=", 0.0)) or self._point_value(material["material_id"], PropertyConstraint(preference.property, ">=", 0.0))
+                if measured is None:
+                    preference_evidence.append({"property": preference.property, "direction": preference.direction, "status": "missing"})
+                    preference_sort_key.append(float("inf"))
+                    continue
+                value = float(measured["value"])
+                preference_evidence.append({
+                    "property": preference.property, "direction": preference.direction, "status": "observed",
+                    "observed": {key: item for key, item in measured.items() if key != "source"}, "source": measured["source"],
+                })
+                preference_sort_key.append(-value if preference.direction == "maximize" else value)
+            result["preference_evidence"] = preference_evidence
+            result["_preference_sort_key"] = tuple(preference_sort_key)
             results.append(result)
-        results.sort(key=lambda item: (not item["eligible"], -item["evidence_score"], item["material"]["material_id"]))
-        return {"name_resolution": resolution_trace, "candidates": results[:top_k]}
+        results.sort(key=lambda item: (not item["eligible"], item["_preference_sort_key"], -item["evidence_score"], item["material"]["material_id"]))
+        preference_data_gaps: list[dict[str, Any]] = []
+        if preferences and not constraints:
+            ranked_results = []
+            for result in results:
+                observed = any(item.get("status") == "observed" for item in result["preference_evidence"])
+                if observed:
+                    ranked_results.append(result)
+                else:
+                    preference_data_gaps.append({
+                        "material_id": result["material"].get("material_id"),
+                        "display_name": result["material"].get("display_name"),
+                        "missing_properties": [item.get("property") for item in result["preference_evidence"] if item.get("status") == "missing"],
+                    })
+            results = ranked_results
+        for rank, result in enumerate(results, start=1):
+            result["preference_rank"] = rank if preferences else None
+            result.pop("_preference_sort_key", None)
+        return {
+            "name_resolution": resolution_trace,
+            "candidates": results[:top_k],
+            "preference_data_gaps": preference_data_gaps,
+        }
 
 
 def parse_property_constraints(payload: Any, default_temperature_K: float | None) -> list[PropertyConstraint]:
@@ -316,3 +408,21 @@ def parse_property_constraints(payload: Any, default_temperature_K: float | None
             temperature = value_c + 273.15 if value_c is not None else None
         constraints.append(PropertyConstraint(property_name, operator, value, str(row.get("unit") or "").strip() or None, temperature if temperature is not None else default_temperature_K))
     return constraints
+
+
+def parse_preference_goals(payload: Any) -> list[PreferenceGoal]:
+    """Validate explicit directional goals; goals rank evidence but never filter it."""
+    if payload is None:
+        return []
+    if not isinstance(payload, list):
+        raise ValueError("preference_goals must be a list")
+    goals = []
+    for row in payload:
+        if not isinstance(row, dict):
+            raise ValueError("preference_goals items must be objects")
+        property_name = PROPERTY_ALIASES.get(normalize_name(row.get("property")), str(row.get("property") or ""))
+        direction = str(row.get("direction") or "").strip().lower()
+        if not property_name or direction not in {"maximize", "minimize"}:
+            raise ValueError(f"invalid preference goal: {row!r}")
+        goals.append(PreferenceGoal(property_name, direction))
+    return goals

@@ -19,6 +19,7 @@ from src.catalog.narration import (
     stream_markdown_rows,
 )
 from src.catalog.presentation import comparison_markdown, conclusion_markdown, resolution_markdown
+from src.fluid_lubricant.api import router_for as fluid_screen_router_for
 from src.settings import MatureMaterialSettings
 from src.service_identity import ACTION_DESCRIPTION, ACTION_NAME, ROLE_DESCRIPTION, ROLE_NAME, ROLE_PROFILE, SERVICE_ID
 from src.team_config import MaterialMature
@@ -41,6 +42,8 @@ ORCHESTRATOR = MaterialMature(
 )
 app = FastAPI(title="Mature Material Service", version="0.1.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=False, allow_methods=["*"], allow_headers=["*"])
+FLUID_EVIDENCE_DATABASE = SERVICE_ROOT / "data/processed/fluid_lubricant/2026-08-04_v1/fluid_property_evidence.sqlite"
+app.include_router(fluid_screen_router_for(FLUID_EVIDENCE_DATABASE, RESULTS / "fluid_lubricant"))
 logger = logging.getLogger("mature_material")
 
 
@@ -50,10 +53,46 @@ def _run_log(taskid: str, event: str, **fields: Any) -> None:
     print(f"[MATURE][{taskid}] {event}{suffix}", flush=True)
 
 
+def _log_input_audit(payload: dict[str, Any], constraints: dict[str, Any]) -> None:
+    """Make upstream loss of a numeric user turn visible in service logs.
+
+    Log only the recognised message envelopes and truncated text.  This is
+    enough to distinguish an upstream forwarding failure from a parser error,
+    without dumping an entire conversation or arbitrary request metadata.
+    """
+    message_keys = (
+        "current_user_message", "latest_user_message", "user_input", "user_message",
+        "follow_up_message", "latest_message", "prompt", "requirement", "question", "query",
+        "idea", "instruction", "previous_step", "task", "messages", "history", "conversation", "data", "input",
+    )
+    def preview(value: Any, limit: int = 500) -> str:
+        return re.sub(r"\s+", " ", str(value or "")).strip()[:limit]
+
+    forwarded = {
+        key: preview(payload.get(key))
+        for key in message_keys
+        if payload.get(key) is not None and key not in {"messages", "history", "conversation", "data", "input"}
+    }
+    detected_user_text = ORCHESTRATOR._direct_user_requirement(payload)
+    screening_request = constraints.get("screening_request") or {}
+    _run_log(
+        constraints["taskid"],
+        "upstream input audit",
+        payload_keys=sorted(payload.keys()),
+        forwarded_message_fields=forwarded,
+        detected_latest_user_text=preview(detected_user_text),
+        selected_raw_requirement=preview(constraints.get("raw_requirement")),
+        workflow=constraints.get("workflow_kind", "catalogue"),
+        parsed_screening_constraints=screening_request.get("property_constraints", []),
+    )
+
+
 # Private compatibility helpers keep local callers stable while all workflow
 # logic lives in src.team_config.MaterialMature.
 def _contract(payload: dict[str, Any]) -> dict[str, Any]:
-    return ORCHESTRATOR.contract(payload)
+    constraints = ORCHESTRATOR.contract(payload)
+    _log_input_audit(payload, constraints)
+    return constraints
 
 
 async def _manifest(constraints: dict[str, Any]) -> dict[str, Any]:
@@ -108,16 +147,20 @@ def roles():
             "routing": {
                 "service_id": "mature_material_catalog",
                 "priority": 2,
-                "match_when": "上游已给出已有材料名称、厂家/牌号、标准号，或带来源/工况的材料性质，需要整理或目录核验。",
-                "include_keywords": ["材料筛选与计算", "材料筛选", "材料选型", "候选材料", "性质对比", "商用耗材", "丝材", "FDM", "FFF", "PLA", "PETG", "ASA", "ABS", "PC", "PA", "PEEK", "商品名", "牌号", "标准号", "UNS", "AMS", "MIL", "ASTM", "GB/T", "Inconel", "TIMETAL", "316L"],
-                "exclude_keywords": ["严格化学式", "高熵合金", "HEA", "MPEA", "合金配比", "元素比例", "成分优化", "成分空间"],
-                "route_after": ["alloy_composition_optimization"],
+                "match_when": "上游需要核验已有商品材料，或在自定义合金成分优化前先获取已入库商品金属/合金的可追溯基准；导电润滑油/导电润滑介质的数值初筛也由本服务处理。",
+                "include_keywords": ["材料筛选与计算", "材料筛选", "材料选型", "候选材料", "性质对比", "导电润滑", "导电润滑油", "润滑介质", "旋转黏度", "旋转粘度", "电导率", "电阻率", "商用耗材", "丝材", "FDM", "FFF", "PLA", "PETG", "ASA", "ABS", "PC", "PA", "PEEK", "商品名", "牌号", "标准号", "UNS", "AMS", "MIL", "ASTM", "GB/T", "Inconel", "TIMETAL", "316L", "高温合金", "高熵合金", "HEA", "MPEA", "合金基准", "商品合金"],
+                "exclude_keywords": ["严格化学式", "元素比例", "原子百分比", "成分优化", "成分空间"],
+                "route_before": ["alloy_composition_optimization"],
+                "workflow_hint": "若任务先要查询商品金属/合金基准，再优化自定义成分，先调用本服务；本服务输出的基准记录不等于目标成分，随后再调用 alloy_composition_optimization。",
                 "input_contract": {
-                    "required_any": ["material_queries/材料名称", "厂家或牌号", "标准号", "upstream_evidence（性质、工况、来源）"],
-                    "optional": ["material_families", "service_temperature_C", "property_constraints"],
+                    "required_any": ["material_queries/材料名称", "厂家或牌号", "标准号", "upstream_evidence（性质、工况、来源）", "合金体系或明确的金属基准需求", "导电润滑应用 + 电导率/电阻率或动态黏度数值条件"],
+                    "optional": ["material_families", "service_temperature_C", "property_constraints", "current_user_message/latest_user_message，或含 role/sender=user 的 messages/history"],
+                    "multi_turn_requirement": "多轮数值筛选允许传递压缩摘要；摘要须保留可执行的电阻率/电导率、黏度和温度具体数值及单位。“严格指标”“按用户要求”等概述不足以执行筛选。",
                 },
                 "output_contract": {
                     "catalog_matched": "目录匹配材料、已核验性质、来源和缺失项。",
+                    "alloy_reference_catalogued": "按合金体系映射的商品金属/合金基准；仅用于对照，不是目标自定义成分的精确匹配。",
+                    "fluid_initial_screen_completed": "导电液体候选的可追溯数值初筛证据；不等同于导电润滑油推荐、长期润滑或耐温验证通过。",
                     "upstream_evidence_only": "仅整理上游材料证据；目录未核验。",
                     "needs_literature_screening": "无可承接材料证据或目录记录；向用户显示文献筛选建议。",
                 },
@@ -191,22 +234,23 @@ async def start(websocket: WebSocket):
         if not isinstance(payload, dict):
             raise ValueError("initial WebSocket JSON must be an object")
         constraints = _contract(payload)
-        upstream_preview = re.sub(r"\s+", " ", constraints["upstream_context"])[:600]
+        upstream_preview = re.sub(r"\s+", " ", str(constraints.get("upstream_context") or constraints.get("raw_requirement") or ""))[:600]
         print(
             f"[WS /mature-material/start] upstream received taskid={constraints['taskid']} "
-            f"keys={constraints['upstream_context_keys']} user={str(payload.get('user_name') or '-')[:80]!r} "
-            f"files={len(payload.get('file_metadata') or [])} context_chars={len(constraints['upstream_context'])} "
+            f"keys={constraints.get('upstream_context_keys', [])} user={str(payload.get('user_name') or '-')[:80]!r} "
+            f"files={len(payload.get('file_metadata') or [])} context_chars={len(str(constraints.get('upstream_context') or constraints.get('raw_requirement') or ''))} "
             f"preview={upstream_preview!r}"
         )
         _run_log(
             constraints["taskid"],
             "accepted catalog query",
-            material_queries=constraints["material_queries"],
-            material_families=constraints["material_families"],
-            standards=constraints["standards"],
-            property_constraints=len(constraints["property_constraints"]),
-            service_temperature_K=constraints["service_temperature_K"],
-            top_k=constraints["top_k"],
+            workflow=constraints.get("workflow_kind", "catalogue"),
+            material_queries=constraints.get("material_queries", []),
+            material_families=constraints.get("material_families", []),
+            standards=constraints.get("standards", []),
+            property_constraints=len(constraints.get("property_constraints", constraints.get("screening_request", {}).get("property_constraints", []))),
+            service_temperature_K=constraints.get("service_temperature_K"),
+            top_k=constraints.get("top_k"),
         )
         print(f"[WS /mature-material/start] received taskid={constraints['taskid']} peer={peer}; querying catalog")
         await websocket.send_text("[start]")
@@ -228,7 +272,7 @@ async def start(websocket: WebSocket):
             "catalog query completed",
             status=result.get("status"),
             candidates=len(candidates),
-            eligible=(sum(bool(item.get("eligible")) for item in candidates) if constraints["property_constraints"] else "not_evaluated"),
+            eligible=(sum(bool(item.get("eligible")) for item in candidates) if constraints.get("property_constraints") else "not_evaluated"),
             name_resolution=resolution_counts,
             outcome=result.get("data_status", {}).get("outcome"),
             candidate_names=candidate_names,
@@ -238,10 +282,11 @@ async def start(websocket: WebSocket):
         result["presentation"] = {"summary_markdown": _summary(result), "assets": assets}
         _save(result)
         await websocket.send_text(f"<<<CONTENT_START:{FRONTEND_STEP_ID}>>>")
-        await stream_markdown_rows(websocket, resolution_markdown(result))
+        first_section, second_section, conclusion = ORCHESTRATOR.presentation_sections(result)
+        await stream_markdown_rows(websocket, first_section)
         await websocket.send_text(f"<<<CONTENT_END:{FRONTEND_STEP_ID}>>>")
         await websocket.send_text(f"<<<CONTENT_START:{FRONTEND_STEP_ID}>>>")
-        await stream_authoritative_markdown(websocket, comparison_markdown(result), section="catalogue_result")
+        await stream_authoritative_markdown(websocket, second_section, section="catalogue_result")
         await websocket.send_text("\n")
         if assets:
             try:
@@ -253,11 +298,20 @@ async def start(websocket: WebSocket):
                     if not item["url"]:
                         continue
                     logger.info("[mature-assets] emitting asset event taskid=%s name=%s url=%s", result["taskid"], item["name"], item["url"])
-                    await websocket.send_json({"step_id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID, "title": FRONTEND_STEP_TITLE, "name": item["name"], "docs": item["description"], "url": item["url"], "type": item["type"]})
-                    await websocket.send_text(f"\n![{item['title']}]({item['url']})\n")
+                    await websocket.send_json({
+                        "step_id": FRONTEND_STEP_ID,
+                        "stepId": FRONTEND_STEP_ID,
+                        "title": FRONTEND_STEP_TITLE,
+                        "name": item["name"],
+                        "docs": item["description"],
+                        "url": item["url"],
+                        "type": item["type"],
+                    })
             except Exception as exc:
                 logger.exception("[mature-assets] publishing failed taskid=%s error=%s", result["taskid"], exc)
-        conclusion = conclusion_markdown(result)
+        # Reuse the service's existing LLM-backed factual Markdown relay for
+        # the conclusion, including the fluid workflow's priority-material
+        # table.  It streams tokens while requiring the table text unchanged.
         await stream_authoritative_markdown(websocket, conclusion, section="catalogue_conclusion")
         result["presentation"]["customer_conclusion"] = conclusion
         result["presentation"]["assets"] = [item for item in assets if item.get("url")]
@@ -274,7 +328,10 @@ async def start(websocket: WebSocket):
         print(f"[WS /mature-material/start] completed taskid={result['taskid']} peer={peer}")
     except (ValueError, json.JSONDecodeError, UnicodeDecodeError) as exc:
         print(f"[WS /mature-material/start] invalid initial message from peer={peer}: {exc}")
-        await websocket.send_json({"version": "1.0.0", "agent": SERVICE, "type": "error", "data": {"message": str(exc), "hint": "请发送 JSON 请求；可使用 mature_material.material_queries、material_families 和 property_constraints。"}})
+        try:
+            await websocket.send_text(f"\n输入有误：{exc}。请发送 JSON 请求；可使用 mature_material.material_queries、material_families 和 property_constraints。\n")
+        except (RuntimeError, WebSocketDisconnect):
+            pass
     except WebSocketDisconnect:
         print(f"[WS /mature-material/start] peer={peer} disconnected during response")
         return
@@ -282,9 +339,16 @@ async def start(websocket: WebSocket):
         print(f"[WS /mature-material/start] failed: {exc!r}")
         taskid = locals().get("constraints", {}).get("taskid", "unknown")
         _run_log(str(taskid), "failed", error=repr(exc))
-        await websocket.send_json({"version": "1.0.0", "agent": SERVICE, "type": "error", "data": {"message": "catalog query failed", "detail": str(exc)}})
+        try:
+            await websocket.send_text(f"\n材料目录查询失败：{exc}\n")
+        except (RuntimeError, WebSocketDisconnect):
+            pass
     finally:
-        await websocket.close()
+        try:
+            await websocket.close()
+        except (RuntimeError, WebSocketDisconnect):
+            # 审查器或浏览器可能已完成关闭握手；不再发送第二个 close 帧。
+            pass
 
 
 if __name__ == "__main__":

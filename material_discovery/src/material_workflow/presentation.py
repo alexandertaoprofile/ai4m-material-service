@@ -411,13 +411,13 @@ async def stream_discovery_progress(
         await asyncio.sleep(5)
 
 
-async def emit_presentation_assets(websocket, result, *, step_id: str = "FILAMENT_SELECTION_OPTIMIZATION") -> None:
-    """Publish each asset once through the established frontend asset protocol."""
+async def emit_presentation_assets(websocket, result, *, step_id: str = "FILAMENT_SELECTION_OPTIMIZATION") -> str:
+    """Publish GLB JSON events and return Markdown for image and GIF assets."""
     presentation = (result.artifacts or {}).get("presentation") or {}
     assets = presentation.get("assets") if isinstance(presentation, dict) else []
     if not assets:
         logger.warning("[new-material-assets] no presentation assets taskid=%s", result.taskid)
-        return
+        return ""
     taskid = str(result.taskid).replace("/", "_")
     pipeline = "inorganic_new_material"
     jobid = taskid or "job"
@@ -445,6 +445,7 @@ async def emit_presentation_assets(websocket, result, *, step_id: str = "FILAMEN
         logger.info("[new-material-assets] trace=%s", record)
 
     seen_asset_paths: set[Path] = set()
+    markdown_images: list[str] = []
     for asset in assets:
         path = Path(asset.get("path") or "")
         if not path.exists():
@@ -496,21 +497,28 @@ async def emit_presentation_assets(websocket, result, *, step_id: str = "FILAMEN
                 _trace(path, "storage_absent", object_key=object_key)
                 continue
 
-            payload = {
-                "step_id": step_id,
-                "stepId": "FILAMENT_SELECTION_OPTIMIZATION",
-                "title": "无机新材料发现与初步验证",
-                "name": str(asset.get("name") or path.stem),
-                "docs": str(asset.get("docs") or "新材料发现可视化资产"),
-                "url": public_url,
-                "type": asset_type,
-                "description": str(asset.get("docs") or "新材料发现可视化资产"),
-            }
-            _trace(path, "websocket_send_started", payload=payload)
-            await websocket.send_json(payload)
-            _trace(path, "websocket_send_finished", asset_type=asset_type, public_url=public_url)
-            logger.info("[new-material-assets] emitted type=%s key=%s url=%s", asset_type, object_key, public_url)
+            name = str(asset.get("name") or path.stem)
+            if asset_type == "MaterialsGLB":
+                payload = {
+                    "step_id": step_id,
+                    "stepId": "FILAMENT_SELECTION_OPTIMIZATION",
+                    "title": "无机新材料发现与初步验证",
+                    "name": name,
+                    "docs": str(asset.get("docs") or "新材料发现可视化资产"),
+                    "url": public_url,
+                    "type": "MaterialsGLB",
+                    "description": str(asset.get("docs") or "新材料发现可视化资产"),
+                }
+                _trace(path, "websocket_send_started", payload=payload)
+                await websocket.send_json(payload)
+                _trace(path, "websocket_send_finished", asset_type=asset_type, public_url=public_url)
+                logger.info("[new-material-assets] emitted GLB key=%s url=%s", object_key, public_url)
+            else:
+                markdown_images.append(f"![{name}]({public_url})")
+                _trace(path, "markdown_image_ready", asset_type=asset_type, public_url=public_url)
+                logger.info("[new-material-assets] prepared Markdown image key=%s url=%s", object_key, public_url)
         except Exception as exc:
             logger.exception("[new-material-assets] failed to emit asset path=%s error=%s", path, exc)
             _trace(path, "delivery_error", error=repr(exc), object_key=object_key, public_url=public_url)
             continue
+    return "\n\n".join(markdown_images)

@@ -173,7 +173,11 @@ class InorganicNewMaterialDiscoveryAction(Action):
                 FRONTEND_STEP_ID,
                 "#### 已生成的可视化\n\n候选结构图、旋转视图、稳定性评分卡和三维结构模型已生成，先展示计算产物；随后给出结果解读。",
             )
-            await emit_presentation_assets(websocket, result, step_id=FRONTEND_STEP_ID)
+            image_markdown = await emit_presentation_assets(websocket, result, step_id=FRONTEND_STEP_ID)
+            if image_markdown:
+                await self._stream_authoritative_markdown(
+                    llm, websocket, FRONTEND_STEP_ID, image_markdown
+                )
         await self._stream_authoritative_markdown(
             llm, websocket, FRONTEND_STEP_ID, result_summary(result)
         )

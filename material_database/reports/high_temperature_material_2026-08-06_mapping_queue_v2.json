@@ -1,0 +1,5 @@
+{
+  "snapshot": "2026-08-06_high_temperature_header_v2",
+  "queued_tables": [],
+  "rule": "Document names are review hints only; create an explicit document-to-material/state mapping before import."
+}
