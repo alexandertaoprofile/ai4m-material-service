@@ -27,14 +27,16 @@
 1. 需求解析：把用户输入整理为生成约束与验证目标
 2. 候选生成：通过 MatterGen 或兼容生成器产生候选结构
 3. 结构验证：通过 pymatgen 结构准入检查，再进入后续热力学评估
-4. 候选排序：基于真实验证结果和用户目标进行确定性排序
-5. 前端输出：基于 manifest 渲染摘要、动图和可追溯资源
+4. 性质初筛：对通过结构准入的候选使用 ALIGNN 快速预测带隙、弹性、介电和有效质量；模量齐全时另给出带不确定性区间的硬度工程估算
+5. 候选排序：基于真实验证结果和用户目标进行确定性排序
+6. 前端输出：基于 manifest 渲染摘要、动图和可追溯资源
 
 主链实现位于：
 
 - `src/material_workflow/schemas.py`：Generation/Validation/Ranking/Pipeline schema
 - `src/material_workflow/generation.py`：MatterGen CLI runner、CIF 解包、生成 manifest
 - `src/material_workflow/validation.py`：pymatgen 结构准入与 validation manifest
+- `src/material_workflow/alignn.py`：ALIGNN 轻量结构性质初筛；离子电导率等无对应预训练模型的性质不会生成虚构数值
 - `src/material_workflow/ranking.py`：确定性排序帮助函数
 - `src/material_workflow/emitters.py`：前端 payload 与 manifest 输出
 - `src/material_workflow/pipeline.py`：新材料主线编排骨架
@@ -116,6 +118,8 @@ python main.py
 
 `target_properties` 仅放 MatterGen 已支持的生成引导目标；`validation_targets` 会记录到
 manifest，供后续 MatterSim/DFT/实验验证使用，不会被误报为本轮计算结果。
+
+通过结构准入后，服务默认使用 `ALIGNN_ENV=alignn-gpu-test` 为每个候选快速计算带隙、体积模量和剪切模量；`ALIGNN_TIMEOUT_SEC` 默认 600 秒，以容纳新部署节点的首次权重下载。生产启动前可预热这三套 ALIGNN 权重，后续推理不需要分子动力学。
 
 ### 前端叙事与真实可视化
 

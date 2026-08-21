@@ -140,3 +140,86 @@ PYTHONPATH=. pytest -q tests/test_mature_material_service.py
 ```
 
 最后一次回归：`46 passed, 4 subtests passed`（批量放行 INCONEL 690/783/X-750、HAYNES 233/242/75/R-41、G-3、Ti-3Al-2.5V 后；27 个材料身份、681 条 property points）。
+
+## 2026-08-12 服务展示与路由更新
+
+- 导电润滑路径只在当前请求明确具有导电与润滑意图、明确油品数值条件、或受限的液体数值/默认值续接时进入；同一 `taskid` 的历史液体任务不能锁定后续成熟金属/合金请求。
+- 温度曲线展示现将“性质值范围”和“测量温度范围”分列；高温点卡同时显示实际测试温度，避免将温度覆盖误标为性质值或将 649 °C 记录展示为 RT。
+- 广泛目录检索会折叠同一材料身份/状态的重复导入记录，避免材料核心快照与既有目录重复显示。
+- 对“高散热、硬度”等方向性目标，若候选具有部分 A/B 级可追溯证据，可输出“暂定优先评估材料”及本轮关注性质证据卡；未收录的性质以 C 级缺失项保留，不作为工程放行结论。
+- 当前快照核验：`MAT-IN718` 已有来源 `SRC-IN718-SMC`、`p.6 Table 5` 的导热系数曲线；`MAT-AL6061-T6` 当前仅有身份/产品状态记录，尚未关联可查询的导热系数或硬度证据。补充 6061‑T6 性质前，必须保留其来源、T6 状态、测试温度和定位信息。
+- 本次服务回归：`50 passed, 4 subtests passed`。
+
+## 2026-08-12：曲线显示与 Al 6061-T6 受控补充
+
+- 曲线卡改为同时显示温区和两端对应性质值；不再把跨温度的性质值写成脱离条件的单一大范围。低温区保留原始 K 温标，避免将 `4 K` 仅显示为不直观的 `-269.15 °C`。
+- 已人工核对归档的 `AL6061物性数据.pdf` 第 1 页及对应原始表 `713ff5a76c14-table-0001`：其明确给出 Aluminum 6061-T6（UNS AA96061）的导热系数、4–300 K 数据范围、1–300 K 方程范围、a–i 系数、`log10(y)` 八阶公式和相对数据的 0.5% 曲线拟合误差。
+- 新增 `scripts/import_al6061_nist_thermal_curve.py`，以固定的 4、20、77、150、200、250、293.15、300 K 网格复算该已发表公式，并将 8 个点写入 `data/processed/curve_data.csv`。每条记录保留 T6 状态、公式、原始表路径、NIST 页面定位和拟合误差；这是“已发表曲线公式复算”，不是模型估算。
+- Al 6061-T6 的硬度仍未入库：原始快照和该 NIST 页面都不能提供同状态、同工况的硬度事实，因此保持 C 级缺失。若用户授权模型/工程估算，可由上游以 `engineering_estimates` 明确提供，并在页面单列 D 级；它不参与目录筛选或推荐排序。
+- 高温快照其余约 300 张待映射表继续执行逐文档、逐表审核。当前不扩大通用导入器的白名单，避免将焊缝、热暴露、比较表或无明确身份/工况的行批量写入目录。
+
+## 2026-08-12：增量文档审核 — HAYNES 718
+
+- 已核对 `/data/se42/docs/property datasets/718-brochure.pdf`：首页给出 HAYNES 718 alloy / UNS N07718；第 7 页的 “Tensile Properties of Solution-annealed 718 at Room Temperature” 表明确包含 sheet 与 plate、UTS、YS 和 elongation，单位完整。
+- 白名单新增 `745317870285-table-0007`，以独立材料记录 `MAT-1101-HT-H718` 导入，产品状态固定为 solution-annealed sheet/plate、室温。该厂商/状态证据不与已存在的 `MAT-IN718` 静默合并。
+- 同页 cold-work hardness 表仍排除：首行是 HRBW，其余行为 HRC；在引入硬度标尺与转换适用性模型前，不能把它们当成同一可排序硬度数值。
+
+## 2026-08-12：批量热物性导入
+
+- 将导入方式改为“规则预审 + 小白名单批量导入”：只接受已核验材料身份、明确温度列、明确单位的热物性表；焊接、热暴露、混合硬度标尺和工具工况表仍不进入此批次。
+- 新增已审核热物性表：INCONEL 600、601、625、686、690、693、725、G-3、X-750 的导热系数和/或比热随温度数据。所有记录保留原始表、页码、产品/热处理状态与源表脚注。
+- 导入器现将 Btu·in/(h·ft²·°F) 统一换算为 W/(m·K)，将 Btu/(lb·°F) 换算为 J/(kg·K)；同一行已有 SI 列时优先该列，防止英制/SI双列被误当两条独立观测。
+- 查询层新增增量包的材料、点和曲线来源去重；点值去重键包括性质、来源、定位、原始行、温度和值，确保不会因增量包重复展示，也不会丢失同一原始行中不同温度的测量点。
+
+## 2026-08-12：第二批身份核验
+
+- 已核对 PDF 首页和原始表：INCONEL 617（UNS N06617）、INCONEL HX（UNS N06002）、HASTELLOY B-3（UNS N10675）身份明确，分别放行 Table 3 热物性、Table 3 导热系数和 page 11 基材拉伸表。
+- HASTELLOY N（UNS N10003）身份已确认，但 page 11 短时拉伸原始表在同一 CSV 中混合基材、时效和“welded and tested as-welded”续行；当前导入器不具备可靠的跨行状态继承/分段模型，故保留在审核队列，不以数量为由入库。
+
+## 2026-08-12：后续库建设范围
+
+- 当前后续目标调整为热学、弹性与常规力学性质的可追溯扩展，而非焊接等专题工况数据的批量补齐。
+- 原始快照的可量化剩余量、金属/复合材料覆盖现状、建议新增材料类别及解析顺序，见 [`material_property_library_coverage_plan_2026-08-12.md`](material_property_library_coverage_plan_2026-08-12.md)。该计划明确：复合材料必须先保留铺层、方向、树脂/增强体、固化和调湿条件，不能直接按金属属性表导入。
+
+## 2026-08-14：仿真性质增量与 INCONEL 783 热学复核
+
+- 当前严格热—力增量包为 `data/processed/high_temperature/2026-08-14_simulation_properties_v2/`，其上游文档映射为 `data/processed/high_temperature/document_registry_2026-08-14_simulation.json`。
+- 本次在既有 748 条严格性质点基础上，新增 INCONEL 783 退火态导热系数 8 点（Table 5，page 2，21–760 °C）和以 70 °F 为基准的平均线膨胀系数 11 点（Table 3，page 1，93–649 °C）。导入包合计 11 个材料身份、767 条性质点、50 个别名。
+- `scripts/import_high_temperature_evidence.py` 仅为完整、单位明确的 `w_m_deg_c` 和 `um_um_deg_c` 字段新增受控映射；前者规范化为 `W/(m·K)`，后者规范化为 `ppm/K`。它们均依赖同一原始行的 `deg_c` 温度列。
+- HAYNES 282 Table 17 与 INCONEL HX Table 4 仍位于 `reports/high_temperature_material_2026-08-14_simulation_review_v2.json`。CSV 分别存在压缩的混合字段和错位温度区间，尚不满足逐行温度/单位可核验要求，未入库。
+- 新增专用导入器 `scripts/import_316l_pichler_thermal.py` 以及严格包 `data/processed/high_temperature/2026-08-14_316l_srm1155a_thermal_v1/`。该包以已存在的 `MAT-316L-SRM1155A` 为唯一身份，从 Pichler et al. 的 Table 6/page 11 与 Table 7/page 12 导入密度 24 点和比热 40 点；不创建或合并“316（待确认 L/状态）”记录。Table 6 的体积膨胀比不被误写为线膨胀系数。
+
+## 2026-08-14：官方 FDM 碳纤维增强 PA6 增量
+
+- 新增 `scripts/import_fiberon_pa6_cf20.py` 及可查询包 `data/processed/material_core/2026-08-14_fiberon_pa6_cf20_v1/`。原始证据保存在 `data/raw/incoming/official_print_filaments/2026-08-14/TDS_FIBERON_PA6-CF20_V1.1_EN.pdf`，SHA-256 为 `f065e0e27b44344da381f7edde481da7dd126b1b9d3da4ed0b5054862256b8b4`。
+- 该包对应商品材料 **Fiberon PA6-CF20 碳纤维增强尼龙6**（20 wt% 短切碳纤维增强 PA6），新增 32 条厂商技术数据表的数值证据和 5 个可检索别名，包括 `CF-PA6`、`PA6-CF20` 与中文通称。
+- 数值均保留 TDS V1.1/page 1、测试方法和状态：密度、吸水率、熔融指数、Tg/Tm/Tc/分解/Vicat/HDT；以及 FDM 打印件的拉伸、弯曲、冲击性质。X-Y 和 Z 向、干态与 60 °C 浸水 48 h 后湿态均逐条区分。仅 X-Y 的拉伸/弯曲点映射到通用筛选属性，Z 向证据使用方向专属属性名，不与面内结果混排。
+- 推荐打印状态也随材料身份入库：喷嘴 280–300 °C、热床 40–50 °C、干燥 100 °C/10 h、建议退火 100 °C/16 h；它们只作为该商品材料的工艺上下文，不作为其他 PA6-CF 产品的通用事实。
+- 当前目录实例核验为 1,596 个材料身份、7,350 条性质点；`CF-PA6` 与 `PA6-CF20` 均解析到该单一商品材料，`PEEK` 仍无目录身份。最后回归：`52 passed, 4 subtests passed`。
+
+## 2026-08-14：官方 FFF 碳纤维增强 PEEK 增量
+
+- 新增 `scripts/import_luvocom_peek_cf9676.py` 及可查询包 `data/processed/material_core/2026-08-14_luvocom_peek_cf9676_v1/`。原始技术表存于 `data/raw/incoming/official_print_filaments/2026-08-14/TDS_LUVOCOM_3F_PEEK_CF_9676_BK_3D4Makers.pdf`，SHA-256 为 `5a08c138dacbbf7a3fb91a53e77d47c55fb46cf92372f40ff14e6cd3b54fdc6e`。
+- 商品身份为 **LUVOCOM 3F PEEK CF 9676 BK 碳纤维增强 PEEK**。导入 10 条逐项对应方法和单位的厂商数值：密度、熔融指数、拉伸强度、断裂伸长率、弹性模量、两类 Charpy 冲击、HDT、连续服役温度和短时最高使用温度；并增加 `CF-PEEK`、`PEEK-CF` 与中文通称别名。
+- 技术表第 1 页的力学试样标识为 ISO 3167 MPTS，而非 FDM 打印试样，故所有已入库力学证据均明确保留为材料级标准试样；页面不会把它们写作层间或打印方向性能。第 2 页的喷嘴/热床/干燥/加工温区只写入该耗材的工艺上下文。
+- 电学指标中 `> / <` 形式的截断值、MVR/收缩率的范围值，以及当前版面无法保证列对齐的 CTE/导热单元格均未强行入库。它们可在后续取得版面可机读或厂商修订 TDS 后补充。
+- 当前目录实例核验为 1,597 个材料身份、7,360 条性质点；`CF-PA6`、`PA6-CF20`、`CF-PEEK`、`PEEK-CF` 均可精确解析。裸 `PEEK` 仍不匹配到 CF-PEEK，以免把“未增强 PEEK”静默替换成增强牌号。最后回归：`52 passed, 4 subtests passed`。
+
+## 2026-08-14：官方 FFF 未增强 PEEK 增量
+
+- 新增 `scripts/import_3d4makers_peek.py` 及可查询包 `data/processed/material_core/2026-08-14_3d4makers_peek_v1/`。原始技术表存于 `data/raw/incoming/official_print_filaments/2026-08-14/TDS_3D4Makers_PEEK_Filament_1.pdf`，SHA-256 为 `f38232700249605ac5e00c47b606d3e336596e47bbc393c132fd0ae44b727667`。
+- 商品身份为 **3D4Makers PEEK 线材（VICTREX PEEK 151G 基料）**，新增 18 条 TDS/page 1 的数值证据：拉伸屈服、断裂伸长率、拉伸/弯曲模量和强度、压缩和冲击、Tg/Tm、沿流向 CTE 与导热系数、HDT、RTI、电熔体黏度、密度、Shore D 硬度及吸水率。每条均保留 ISO 方法、温度、方向或“as moulded”等来源条件。
+- 这份 TDS 面向 FDM/FFF 线材并提供喷嘴 360–400 °C、热床 120 °C、热腔约 100 °C、15–30 mm/s 和 PEI 贴合面的工艺建议；不过各 ISO 性能点没有给出打印方向，因此在目录中保持为材料级标准条件，而非伪作成 FDM 成件方向数据。
+- 当前目录实例核验为 **1,598 个材料身份、7,378 条性质点**；`PEEK` 精确解析为未增强 3D4Makers PEEK，`CF-PEEK`/`PEEK-CF` 精确解析为 LUVOCOM CF 牌号，`CF-PA6`/`PA6-CF20` 精确解析为 Fiberon 牌号。最后回归：`52 passed, 4 subtests passed`。
+
+## 2026-08-14：PEEK 常见输入纠正
+
+- 截图中的 `CEEK` 是对 `PEEK` 的常见单字误输；服务原有的材料缩写提取只接受精确字串，因此会进入“尚未指定材料”的条件收集页。这不是目录未重载：目录在每次 `MaterialMature.run` 时重新读取。
+- 在 `src/team_config.py` 中新增唯一、显式的 `CEEK → PEEK` 规范化规则，并新增端到端回归。它不是通用模糊匹配，不会对牌号、UNS、数字或其他近似拼写作猜测性替换。
+- 本地核验：输入“帮我查询一下CEEK材料的性质”会形成 `material_queries=["PEEK"]`，返回 `catalog_matched` 和 3D4Makers PEEK 线材证据。最后回归：`53 passed, 4 subtests passed`。
+
+## 2026-08-14：网关长历史中的当前问题提取
+
+- 实际 manifest 复盘确认，上述页面不只是 `CEEK` 拼写问题：网关把“=== 当前问题 ===\n用户: 帮我查询一下 PEEK 材料性质”拼接在 5,000+ 字历史之后。原逻辑为避免旧历史中的 PLA/ASA 污染，在无“执行任务”标记的长文本中关闭别名提取，因而将最后的正确 `PEEK` 也遗漏。
+- `MaterialMature._direct_user_requirement` 现优先识别并提取 `=== 当前问题 ===` 后的尾部内容，再进入长历史保护。因此保护机制仍阻止旧材料名污染，但不会丢失网关明确标记的当前问题。
+- 使用该截图同形的完整 5,427 字请求复放，得到 `material_queries=["PEEK"]`、`catalog_matched` 和 **3D4Makers PEEK 线材（VICTREX PEEK 151G 基料）**。新增端到端回归；最后回归：`54 passed, 4 subtests passed`。

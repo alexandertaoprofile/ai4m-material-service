@@ -55,3 +55,14 @@ tmp_*/
 
 # case outputs
 src/MNS_CaseHub/cases/**/results/
+
+# Generated rendering examples are reproducible from the task artifacts.
+rendering_examples/
+
+# Versioned model packages retain manifests and configs only.  Raw training
+# exports, cache shards, checkpoints and run outputs live beside them but are
+# intentionally not source-controlled.
+models/**/data/*.csv
+models/**/data/*.jsonl
+models/**/cache/
+models/**/outputs/

@@ -93,6 +93,7 @@ class ValidationResult:
     energy_above_hull: Optional[float] = None
     formation_energy_per_atom: Optional[float] = None
     density: Optional[float] = None
+    property_predictions: JsonDict = field(default_factory=dict)
     errors: List[str] = field(default_factory=list)
     artifacts: JsonDict = field(default_factory=dict)
     metadata: JsonDict = field(default_factory=dict)

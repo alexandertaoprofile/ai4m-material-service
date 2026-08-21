@@ -286,12 +286,39 @@ def _is_filament_only_request(text: str) -> bool:
     return any(term in lower for term in ("fdm", "fff", "filament")) or "丝材" in text
 
 
-def _is_alloy_optimization_request(text: str) -> bool:
-    """Keep alloy composition work out of the inorganic-crystal service."""
+def _is_alloy_structure_generation_request(text: str) -> bool:
+    """Recognize a request to generate crystal structures for an alloy system.
+
+    HEA/MPEA is a material-system label, not by itself an instruction to tune
+    atomic percentages.  When the user explicitly asks for a new-material or
+    crystal-structure generation task, the discovery workflow must retain that
+    intent and use the supplied/upstream element system as its constraint.
+    """
     lower = text.lower()
-    return any(term in text for term in ("高熵合金", "难熔高熵", "合金配比", "元素比例", "原子百分比", "成分空间")) or any(
-        term in lower for term in ("high entropy alloy", "refractory high entropy", " alloy ", "hea", "mpea")
+    return any(term in text for term in ("新材料结构生成", "生成候选结构", "候选晶体结构", "晶体结构生成", "生成晶体结构")) or any(
+        term in lower for term in ("mattergen", "crystal structure generation", "structure generation")
     )
+
+
+def _is_alloy_optimization_request(text: str) -> bool:
+    """Keep explicit alloy composition optimization out of crystal discovery.
+
+    An alloy/system name alone is not sufficient to reject the request.  The
+    rejection applies only when the current instruction actually asks to tune
+    composition, proportions or composition-space variables.  Explicit
+    structure-generation wording takes precedence when both appear in a
+    multi-round context.
+    """
+    lower = text.lower()
+    if _is_alloy_structure_generation_request(text):
+        return False
+    composition_design = any(term in text for term in ("合金配比", "元素比例", "原子百分比", "成分空间", "配方优化", "成分优化")) or any(
+        term in lower for term in ("composition optimization", "composition space", "atomic percentage", "alloy composition")
+    )
+    alloy_context = any(term in text for term in ("高熵合金", "难熔高熵", "多主元合金")) or any(
+        term in lower for term in ("high entropy alloy", "refractory high entropy", " multi-principal element alloy", "hea", "mpea")
+    )
+    return composition_design or (alloy_context and any(term in text for term in ("优化", "配比", "比例")))
 
 
 def _constraint_source(payload: Mapping[str, Any]) -> Dict[str, Any]:

@@ -81,6 +81,24 @@ class MatureMaterialServiceTest(unittest.TestCase):
             service_name="mature-material",
         )
 
+    def test_customer_report_contract_is_shared_by_catalogue_and_fluid_paths(self) -> None:
+        expected = (
+            "## 1. 需求与已知工况",
+            "## 2. 本轮筛选/比较口径",
+            "## 3. 证据覆盖与候选核验",
+            "## 4. 结论",
+            "## 5. 材料性质汇总",
+        )
+        with tempfile.TemporaryDirectory() as temporary:
+            service = self._service(Path(temporary))
+            catalogue = asyncio.run(service.run(service.contract(_payload("unit-shared-report-catalogue"))))
+            fluid = asyncio.run(service.run(service.contract(_fluid_payload("unit-shared-report-fluid"))))
+
+        for result in (catalogue, fluid):
+            report = service.summary(result)
+            positions = [report.index(heading) for heading in expected]
+            self.assertEqual(positions, sorted(positions))
+
     def test_orchestrator_returns_traceable_catalogue_result(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             service = self._service(Path(temporary))
@@ -154,6 +172,54 @@ class MatureMaterialServiceTest(unittest.TestCase):
         self.assertTrue(candidate["eligible"])
         self.assertEqual(candidate["evidence"][0]["observed"]["value"], 601.0)
         self.assertEqual(candidate["evidence"][0]["observed"]["coverage"], "measured_exact")
+        summary = service.summary(result)
+        self.assertIn("测试温度 649 °C", summary)
+        self.assertNotIn("| 抗拉强度 | 922.15 K", summary)
+
+    def test_reviewed_haynes_718_solution_annealed_tensile_table_is_queryable(self) -> None:
+        payload = {
+            "taskid": "unit-haynes-718-room-temperature",
+            "idea": "核验 HAYNES 718 在室温下的抗拉强度",
+            "mature_material": {
+                "material_queries": ["HAYNES 718"],
+                "property_constraints": [
+                    {"property": "抗拉强度", "operator": ">=", "value": 850, "unit": "MPa"},
+                ],
+            },
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            service = self._service(Path(temporary))
+            result = asyncio.run(service.run(service.contract(payload)))
+
+        candidate = result["results"][0]
+        self.assertEqual(candidate["material"]["material_id"], "MAT-1101-HT-H718")
+        self.assertTrue(candidate["eligible"])
+        self.assertEqual(candidate["evidence"][0]["observed"]["value"], 871.0)
+        summary = service.summary(result)
+        self.assertIn("Solution-annealed 718 at Room Temperature", summary)
+        self.assertIn("745317870285；745317870285-table-0007; page 7", summary)
+
+    def test_reviewed_thermal_batch_preserves_temperature_specific_conductivity(self) -> None:
+        payload = {
+            "taskid": "unit-in625-thermal-batch",
+            "idea": "核验 INCONEL 625 在 20°C 的导热系数",
+            "mature_material": {
+                "material_queries": ["INCONEL 625"],
+                "service_temperature_C": 20,
+                "property_constraints": [
+                    {"property": "导热系数", "operator": ">=", "value": 9.5, "unit": "W/(m·K)"},
+                ],
+            },
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            service = self._service(Path(temporary))
+            result = asyncio.run(service.run(service.contract(payload)))
+
+        evidence = result["results"][0]["evidence"][0]
+        self.assertEqual(evidence["status"], "pass")
+        self.assertEqual(evidence["observed"]["coverage"], "nearest_measured")
+        self.assertEqual(evidence["observed"]["temperature_K"], 294.15)
+        self.assertEqual(evidence["observed"]["value"], 9.8)
 
     def test_unconstrained_lookup_does_not_claim_performance_pass(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -163,10 +229,13 @@ class MatureMaterialServiceTest(unittest.TestCase):
             result = asyncio.run(service.run(service.contract(payload)))
 
         conclusion = service.summary(result)
-        self.assertIn("未给出量化性质阈值", conclusion)
+        self.assertEqual(result["screening"]["strategy"]["mode"], "catalogue_index")
+        self.assertEqual(result["data_status"]["outcome"], "catalog_matched")
+        self.assertIn("材料索引核验", conclusion)
+        self.assertIn("目录证据覆盖", conclusion)
         self.assertNotIn("满足当前可比较的性质条件", conclusion)
 
-    def test_6061_t6_data_card_labels_missing_catalogue_values_as_engineering_references(self) -> None:
+    def test_6061_t6_data_card_keeps_missing_catalogue_values_missing(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             service = self._service(Path(temporary))
             result = asyncio.run(service.run(service.contract({
@@ -176,50 +245,23 @@ class MatureMaterialServiceTest(unittest.TestCase):
             })))
 
         summary = service.summary(result)
-        self.assertIn("工程估算", summary)
-        self.assertIn("工程参考区间；非目录记录，不参与筛选或排序", summary)
+        self.assertIn("4 K：5.3474 W/(m·K)；300 K：155.32 W/(m·K)", summary)
+        self.assertIn("测量温度 4–300 K", summary)
+        self.assertNotIn("工程估算", summary)
 
-    def test_multielement_alloy_request_maps_to_catalogued_metal_references(self) -> None:
-        payload = {
-            "taskid": "unit-alloy-reference",
-            "idea": (
-                "上一步讨论曾涉及 PLA 和 ASA 打印件。\n"
-                "接下来需要进行执行的任务：针对 Fe-Cu-Al-Ni-Co 高温多主元合金，"
-                "先在成熟材料库中寻找可追溯的商品金属/合金基准，再进入成分优化。"
-            ),
-        }
+    def test_chinese_grade_lookup_uses_catalogue_index_mode(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             service = self._service(Path(temporary))
-            contract = service.contract(payload)
-            result = asyncio.run(service.run(contract))
+            result = asyncio.run(service.run(service.contract({
+                "taskid": "unit-6061-chinese-index",
+                "idea": "寻找一下铝合金6061",
+            })))
 
-        reference = contract["catalog_reference"]
-        self.assertEqual(reference["mode"], "alloy_catalog_reference")
-        self.assertEqual(contract["material_families"], ["镍基高温合金", "奥氏体不锈钢"])
-        candidate_ids = {item["material"]["material_id"] for item in result["results"]}
-        self.assertEqual(candidate_ids, {"MAT-IN718", "MAT-316L-SRM1155A"})
-        self.assertFalse(any("BAMBU" in material_id for material_id in candidate_ids))
-        self.assertEqual(result["data_status"]["outcome"], "alloy_reference_catalogued")
-        summary = service.summary(result)
-        self.assertIn("候选商品合金", summary)
-        self.assertIn("已入库数据", summary)
-        self.assertIn("| 性质 | 数值/范围 | 测试或产品条件 | 数据类型 | 来源 |", summary)
-        self.assertNotIn("映射依据", summary)
-
-    def test_alloy_reference_renders_melting_temperature_chart(self) -> None:
-        payload = {
-            "taskid": "unit-alloy-chart",
-            "idea": "针对 Fe-Cu-Al-Ni-Co 高温多主元合金，寻找可对比的商品合金。",
-        }
-        with tempfile.TemporaryDirectory() as temporary:
-            service = self._service(Path(temporary))
-            result = asyncio.run(service.run(service.contract(payload)))
-            assets = service.render_assets(result)
-
-        self.assertEqual(len(assets), 1)
-        self.assertEqual(assets[0]["name"], "melting_temperature_comparison")
-        self.assertEqual(assets[0]["title"], "候选合金熔化温度区间对比")
-        self.assertNotIn("覆盖度", assets[0]["description"])
+        self.assertEqual(result["constraints"]["material_queries"], ["铝合金6061"])
+        self.assertEqual(result["screening"]["strategy"]["mode"], "catalogue_index")
+        # The alias is deliberately resolved at catalogue query time, so the
+        # input remains auditable while the customer gets a direct record.
+        self.assertEqual(result["results"][0]["material"]["material_id"], "MAT-AL6061-T6")
 
     def test_single_alloy_candidate_renders_melting_temperature_chart(self) -> None:
         payload = _payload("unit-single-alloy-chart")
@@ -263,7 +305,6 @@ class MatureMaterialServiceTest(unittest.TestCase):
 
         self.assertEqual(contract["material_queries"], [])
         self.assertEqual(contract["alias_extraction_text"], "")
-        self.assertIsNone(contract["catalog_reference"])
         self.assertFalse(result["results"])
 
     def test_catalogue_miss_suggests_literature_without_llm_material_advice(self) -> None:
@@ -389,6 +430,35 @@ class MatureMaterialServiceTest(unittest.TestCase):
         ])
         self.assertNotEqual(result["data_status"]["outcome"], "needs_screening_criteria")
 
+    def test_common_ceek_typo_is_canonically_resolved_to_peek(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            service = self._service(Path(temporary))
+            contract = service.contract({
+                "taskid": "unit-ceek-typo",
+                "idea": "帮我查询一下CEEK材料的性质",
+            })
+            result = asyncio.run(service.run(contract))
+
+        self.assertEqual(contract["material_queries"], ["PEEK"])
+        self.assertEqual(result["data_status"]["outcome"], "catalog_matched")
+        self.assertEqual(result["results"][0]["material"]["material_id"], "MAT-3D4MAKERS-PEEK")
+
+    def test_current_question_marker_overrides_long_gateway_history_for_peek_lookup(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            service = self._service(Path(temporary))
+            contract = service.contract({
+                "taskid": "unit-current-question-peek",
+                "idea": "=== 对话历史 ===\n" + "旧内容 PLA ASA PETG。\n" * 500 + (
+                    "=== 当前问题 ===\n用户: 帮我查询一下PEEK材料性质\n"
+                    "补充说明：材料选型和计算优化\n约束条件：\n1. 应用部位与工况：参考STL"
+                ),
+            })
+            result = asyncio.run(service.run(contract))
+
+        self.assertEqual(contract["material_queries"], ["PEEK"])
+        self.assertEqual(result["data_status"]["outcome"], "catalog_matched")
+        self.assertEqual(result["results"][0]["material"]["material_id"], "MAT-3D4MAKERS-PEEK")
+
     def test_property_vocabulary_recognizes_cross_domain_engineering_constraints(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             service = self._service(Path(temporary))
@@ -436,12 +506,97 @@ class MatureMaterialServiceTest(unittest.TestCase):
         ])
         self.assertEqual(result["constraints"]["selection_context"]["application"], "机器人零部件")
         self.assertIn("STL", result["constraints"]["selection_context"]["manufacturing"])
-        self.assertIn("排序证据与覆盖", summary)
+        self.assertIn("## 3. 证据覆盖与候选核验", summary)
         self.assertIn("证据覆盖漏斗", summary)
-        self.assertIn("### 需求理解", summary)
+        self.assertIn("## 1. 需求与已知工况", summary)
         self.assertIn("| 应用场景 | 机器人零部件 |", summary)
-        self.assertIn("### 结论", summary)
+        self.assertIn("## 4. 结论", summary)
+        self.assertIn("## 5. 材料性质汇总", summary)
+        self.assertNotIn("## 6. 缺失项与下一步", summary)
+        self.assertIn("当前优先评估", summary)
+        self.assertIn("可比较证据的候选覆盖数，不是已选材料数", summary)
+        self.assertIn("硬度 |", summary)
+        self.assertIn("D：模型/工程估算，不能用于通过判断", summary)
+        property_summary = summary.split("## 5. 材料性质汇总", 1)[1]
+        self.assertIn("热/力预建模参数", property_summary)
+        self.assertNotIn("COMSOL 热/力预建模参数", property_summary)
+        self.assertIn("| 热/力仿真 | 密度 |", property_summary)
+        self.assertIn("| 力仿真 | 杨氏模量 |", property_summary)
+        self.assertRegex(property_summary, r"\d+(?:\.\d+)? HV（工程估算）")
+        self.assertNotIn("导热系数↑", summary)
+        self.assertNotIn("硬度↑", summary)
+        self.assertNotIn("优先选择", summary)
+        self.assertEqual(len({item["material"]["display_name"] for item in result["results"]}), len(result["results"]))
         self.assertEqual(assets[0]["name"], "evidence_funnel")
+
+    def test_partial_traceable_evidence_can_support_a_provisional_material_priority(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            service = self._service(Path(temporary))
+            result = asyncio.run(service.run(service.contract({
+                "taskid": "unit-industrial-robot-alloy-priority",
+                "idea": "工业搬运机械臂的零部件需要高散热和硬度，参考 STL 完成材料选型。",
+                "mature_material": {
+                    "material_families": ["镍基高温合金", "铝合金"],
+                    "selection_context": {
+                        "component": "承力连接件",
+                        "operating_conditions": "15 kg 负载、0.5 m 工作半径",
+                        "project_progress": "已完成 STL 选型，进入材料与制造方案比较",
+                    },
+                },
+            })))
+
+        summary = service.summary(result)
+        self.assertIn("INCONEL 718", summary)
+        self.assertIn("暂定优先评估材料", summary)
+        self.assertIn("A：可追溯，材料状态/测试条件已记录", summary)
+        self.assertIn("d47a32564d01；d47a32564d01-table-0005; page 2", summary)
+        self.assertIn("D：模型/工程估算，不能用于通过判断", summary)
+        self.assertIn("不作为工程放行结论", summary)
+        self.assertIn("15 kg 负载、0.5 m 工作半径", summary)
+        self.assertIn("已完成 STL 选型，进入材料与制造方案比较", summary)
+        self.assertIn("承力连接件", summary)
+        self.assertIn("热/力预建模参数", summary)
+
+    def test_temperature_curve_card_shows_property_values_not_temperature_as_value(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            service = self._service(Path(temporary))
+            result = asyncio.run(service.run(service.contract({
+                "taskid": "unit-316-curve-card",
+                "mature_material": {"material_queries": ["316不锈钢（上传表）"]},
+            })))
+
+        summary = service.summary(result)
+        self.assertIn("260 °C：17.832 W/(m·K)；820 °C：23.123 W/(m·K)", summary)
+        self.assertIn("测量温度 260–820 °C", summary)
+        self.assertNotIn("533.15 K–1,093.2 K 温度曲线", summary)
+
+    def test_engineering_estimate_is_visibly_separate_and_never_used_for_priority(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            service = self._service(Path(temporary))
+            result = asyncio.run(service.run(service.contract({
+                "taskid": "unit-estimate-separation",
+                "idea": "为 Al 6061-T6 比较导热和硬度，允许给出缺失数据的工程估算。",
+                "mature_material": {
+                    "material_queries": ["Al 6061-T6"],
+                    "preference_goals": [
+                        {"property": "thermal_conductivity", "direction": "maximize"},
+                        {"property": "hardness", "direction": "maximize"},
+                    ],
+                    "engineering_estimates": [{
+                        "material": "Al 6061-T6", "property": "hardness",
+                        "value_min": 90, "value_max": 110, "unit": "HV",
+                        "condition": "T6；室温；具体产品状态待复核",
+                        "basis": "上游模型按同牌号 T6 公开数据的保守区间整理",
+                        "source": "上游工程估算 v1",
+                    }],
+                },
+            })))
+
+        summary = service.summary(result)
+        self.assertIn("工程估算", summary)
+        self.assertIn("D：模型/工程估算，不能用于通过判断", summary)
+        self.assertIn("上游工程估算 v1", summary)
+        self.assertEqual(result["results"][0]["preference_evidence"][1]["status"], "missing")
 
     def test_upstream_evidence_is_preserved_but_not_promoted_to_catalogue_fact(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -530,7 +685,7 @@ class MatureMaterialServiceTest(unittest.TestCase):
         first_asset_index = next(index for index, event in enumerate(websocket.events) if event == ("json", asset_events[0]))
         conclusion_index = next(
             index for index, event in enumerate(websocket.events)
-            if event[0] == "text" and "### 结论" in event[1]
+            if event[0] == "text" and "## 4. 结论" in event[1]
         )
         self.assertLess(first_asset_index, conclusion_index)
         self.assertTrue(websocket.closed)
@@ -613,6 +768,26 @@ class MatureMaterialServiceTest(unittest.TestCase):
         self.assertEqual(result["data_status"]["outcome"], "fluid_initial_screen_completed")
         self.assertEqual(result["screening"]["summary"]["matched_before_limit"], 41)
         self.assertTrue(result["constraints"]["default_profile_applied"])
+
+    def test_new_metal_request_does_not_inherit_previous_fluid_route(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            service = self._service(Path(temporary))
+            first = asyncio.run(service.run(service.contract({
+                "taskid": "route-reset-after-fluid",
+                "idea": "推荐一款导电润滑油",
+            })))
+            self.assertEqual(first["workflow_kind"], "conductive_lubricant_initial_screen")
+            service.save(first)
+
+            second = service.contract({
+                "taskid": "route-reset-after-fluid",
+                "current_user_message": "面向机器人高散热、硬度的零部件，推荐一款成熟的金属材料，参考 STL。",
+                # Simulate stale gateway context from the prior turn.
+                "idea": "推荐一款导电润滑油",
+            })
+
+        self.assertEqual(second["workflow_kind"], "mature_material_catalogue_initial_screen")
+        self.assertEqual(second["selection_context"]["application"], "机器人零部件")
 
     def test_gateway_summary_without_numbers_does_not_claim_a_default_screen(self) -> None:
         """A rewritten upstream summary cannot stand in for the user turn."""
@@ -782,7 +957,7 @@ class MatureMaterialServiceTest(unittest.TestCase):
         self.assertEqual(result["screening"]["summary"]["matched_before_limit"], 41)
         _, table, conclusion = service.presentation_sections(result)
         self.assertEqual(table.count("| E"), 5)
-        self.assertIn("### 本轮结论：建议优先评估的体系", conclusion)
+        self.assertIn("## 5. 材料性质汇总", conclusion)
         self.assertIn("| 项目 | 当前已知信息 |", conclusion)
         self.assertIn("| 体系 |", conclusion)
         self.assertIn("| 组分 |", conclusion)
@@ -856,7 +1031,7 @@ class MatureMaterialServiceTest(unittest.TestCase):
         self.assertEqual(result["screening"]["summary"]["matched_before_limit"], 41)
         first_section, _, conclusion = service.presentation_sections(result)
         self.assertIn("严格区间 130 ≤ η ≤ 150", first_section)
-        self.assertIn("### 本轮结论：建议优先评估的体系", conclusion)
+        self.assertIn("## 5. 材料性质汇总", conclusion)
         self.assertIn("**E37**", conclusion)
         self.assertIn("| 项目 | 当前已知信息 |", conclusion)
 
@@ -912,9 +1087,8 @@ class MatureMaterialServiceTest(unittest.TestCase):
         self.assertIn("input_contract", role["routing"])
         self.assertIn("output_contract", role["routing"])
         self.assertIn("needs_literature_screening", role["routing"]["output_contract"])
-        self.assertIn("alloy_reference_catalogued", role["routing"]["output_contract"])
-        self.assertIn("alloy_composition_optimization", role["routing"]["route_before"])
-        self.assertIn("文献筛选", role["actions"][0]["desc"])
+        self.assertEqual(role["routing"]["route_before"], [])
+        self.assertNotIn("alloy_reference_catalogued", role["routing"]["output_contract"])
 
     def test_processed_catalogue_integrity(self) -> None:
         processed = ROOT / "data" / "processed"

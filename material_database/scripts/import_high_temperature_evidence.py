@@ -54,7 +54,68 @@ def safe_identity(name: str) -> bool:
 
 
 def property_mapping(column: str) -> tuple[str, str, float] | None:
-    normalized = column.replace("_", "")
+    normalized = column.replace("_", "").casefold()
+    # Thermal-property tables from the reviewed manufacturer brochures use a
+    # small set of explicit engineering units.  Normalize only these named
+    # units; ambiguous table-layout fragments remain outside the importer.
+    if "thermal_conductivity" in column and "w_m" in column:
+        return "thermal_conductivity", "W/(m·K)", 1.0
+    # A reviewed INCONEL 783 source table uses the concise heading
+    # ``W/m·°C``.  It is dimensionally identical to W/(m·K), while the
+    # neighbouring ``deg_c`` column supplies the source temperature.
+    if column == "w_m_deg_c":
+        return "thermal_conductivity", "W/(m·K)", 1.0
+    if "thermal_conductivity" in column and "btu" in column:
+        # Btu·in/(h·ft²·°F) -> W/(m·K)
+        return "thermal_conductivity", "W/(m·K)", 0.1442279
+    if "specific_heat" in column and "j_kg" in column:
+        return "specific_heat", "J/(kg·K)", 1.0
+    if "specific_heat" in column and "btu_lb" in column:
+        # Btu/(lb·°F) -> J/(kg·K)
+        return "specific_heat", "J/(kg·K)", 4186.8
+    # Mean linear-expansion values are often reported either in μm/(m·°C)
+    # (numerically ppm/K) or in 10⁻⁶ in/(in·°F).  The latter must be
+    # converted from per °F to per K; do not drop that factor silently.
+    if any(marker in normalized for marker in (
+        "coefficientofexpansion", "coeffofexpansion", "meanlinearexpansion",
+        "meancoefficientofthermalexpansion", "linearexpansion",
+    )):
+        if any(marker in normalized for marker in ("ummdegc", "umumdegc", "ppm", "degc")):
+            return "thermal_expansion_coefficient", "ppm/K", 1.0
+        if any(marker in normalized for marker in ("106inindegf", "xinindegfx106", "uinindegf", "inindegf")):
+            return "thermal_expansion_coefficient", "ppm/K", 1.8
+    # The matching reviewed INCONEL 783 table uses μm/(μm·°C), which is
+    # numerically ppm/K.  Do not generalise this to abbreviated headers such
+    # as ``c_10_6_circ_c``: their source-table temperature intervals have to
+    # be structurally parsed before they can be imported.
+    if column == "um_um_deg_c":
+        return "thermal_expansion_coefficient", "ppm/K", 1.0
+    # Tables with explicit elastic units are safe to normalize.  Keep tension
+    # and torsion distinct rather than treating a torsional modulus as Young's
+    # modulus.
+    if "poissonsratio" in normalized:
+        return "poissons_ratio", "dimensionless", 1.0
+    if ("youngsmodulus" in normalized or "modulusofelasticity" in normalized) and "torsion" not in normalized and "shear" not in normalized:
+        if "gpa" in normalized:
+            return "youngs_modulus", "GPa", 1.0
+        if "ksi" in normalized and ("103" in normalized or "10_3" in column):
+            return "youngs_modulus", "GPa", 6.894757293168
+    if ("torsionalmodulus" in normalized or "modulusofrigidity" in normalized or "modulusofelasticity" in normalized and ("torsion" in normalized or "shear" in normalized)):
+        if "gpa" in normalized:
+            return "shear_modulus", "GPa", 1.0
+        if "ksi" in normalized and ("103" in normalized or "10_3" in column):
+            return "shear_modulus", "GPa", 6.894757293168
+    if "diffusivity" in normalized and "sqfthr" in normalized:
+        return "thermal_diffusivity", "m²/s", 2.58064e-5
+    # A few reviewed TIMET tables use abbreviated headings.  ``ei_mpa`` is a
+    # parser artefact for elongation in percent, not a stress in MPa; mapping
+    # it explicitly here avoids both losing the datum and misrepresenting it.
+    if normalized in {"uts1mpa", "utsmpa", "ftumpa"}:
+        return "ultimate_tensile_strength", "MPa", 1.0
+    if normalized in {"ys02mpa", "ysmpa", "ftympa"}:
+        return "yield_strength", "MPa", 1.0
+    if normalized in {"eimpa", "elongation"}:
+        return "elongation", "%", 1.0
     if column.endswith("_mpa") and "yield_strength" in column:
         return "yield_strength", "MPa", 1.0
     if column.endswith("_mpa") and ("ultimate_tensile_strength" in column or "ultimatetensilestrength" in normalized):
@@ -75,11 +136,11 @@ def property_mapping(column: str) -> tuple[str, str, float] | None:
 
 
 def temperature_k(row: dict[str, str], column: str) -> float | None:
-    for field in ("test_temperature_deg_c", "temperature_deg_c", "exposure_temperature_deg_c"):
+    for field in ("test_temperature_deg_c", "temperature_deg_c", "exposure_temperature_deg_c", "temp_deg_c", "deg_c"):
         value = number(row.get(field, ""))
         if value is not None:
             return value + 273.15
-    for field in ("test_temperature_deg_f", "temperature_deg_f", "exposure_temperature_deg_f"):
+    for field in ("test_temperature_deg_f", "temperature_deg_f", "exposure_temperature_deg_f", "temp_deg_f", "deg_f"):
         value = number(row.get(field, ""))
         if value is not None:
             return (value - 32) * 5 / 9 + 273.15
@@ -99,6 +160,7 @@ CONDITION_STATE_FIELDS = (
     "material_condition",
     "heat_treatment",
     "cold_reduction",
+    "oxygen_content",
 )
 
 
@@ -116,7 +178,7 @@ def condition_text(row: dict[str, str], inherited_state: dict[str, str] | None =
             values.append(f"{field}={value.strip()}")
     for field in (
         "test_temperature_deg_c", "test_temperature_deg_f", "temperature_deg_c", "temperature_deg_f",
-        "exposure_temperature_deg_c", "exposure_temperature_deg_f",
+        "exposure_temperature_deg_c", "exposure_temperature_deg_f", "temp_deg_c", "temp_deg_f",
     ):
         value = row.get(field, "").strip()
         if value and number(value) is None:
@@ -149,11 +211,15 @@ def main() -> None:
                         help="Reviewed document-to-material mappings.  Enables only listed source tables.")
     parser.add_argument("--registry-only", action="store_true",
                         help="Import only source tables explicitly allowed by --document-registry.")
+    parser.add_argument("--only-document-id", action="append", default=[],
+                        help="Restrict a reviewed import to one or more lineage document IDs.")
     args = parser.parse_args()
     if not (args.input / "snapshot_manifest.json").is_file() or (args.input / ".INCOMPLETE").exists():
         raise SystemExit("input must be a completed snapshot")
     if args.output.exists() or args.review_output.exists():
         raise SystemExit("refusing to overwrite an existing import bundle or review queue")
+
+    only_document_ids = set(args.only_document_id)
 
     registry: dict[str, dict[str, Any]] = {}
     if args.document_registry:
@@ -178,6 +244,8 @@ def main() -> None:
         mapped_columns = [(field, property_mapping(field)) for field in header]
         mapped_columns = [(field, mapping) for field, mapping in mapped_columns if mapping]
         first = rows[0] if rows else {}
+        if only_document_ids and first.get("lineage_document_id", "") not in only_document_ids:
+            continue
         registry_entry = registry.get(first.get("lineage_document_id", ""))
         table_is_reviewed = bool(
             registry_entry
@@ -245,6 +313,7 @@ def main() -> None:
                     "raw_row_json": json.dumps(row, ensure_ascii=False, sort_keys=True),
                 }
                 aliases.append({"material_id": identifier, "alias": name, "alias_type": identity_field, "source": args.input.name})
+            emitted_properties: set[str] = set()
             for column, mapping in mapped_columns:
                 # A source table that gives both units is one observation, not
                 # two competing measurements. Prefer its already-normalized
@@ -255,6 +324,21 @@ def main() -> None:
                 if value is None:
                     continue
                 property_name, unit, conversion = mapping
+                # Prefer a source's explicitly supplied SI column.  The same
+                # observation is often duplicated in Btu and SI units; never
+                # turn that into two independent catalogue measurements.
+                has_si_twin = (
+                    (property_name == "thermal_conductivity" and any(
+                        name != column and "thermal_conductivity" in name and "w_m" in name
+                        for name in row
+                    ))
+                    or (property_name == "specific_heat" and any(
+                        name != column and "specific_heat" in name and "j_kg" in name
+                        for name in row
+                    ))
+                )
+                if property_name in emitted_properties or (has_si_twin and "btu" in column):
+                    continue
                 value *= conversion
                 condition = condition_text(row, table_condition_state)
                 points.append({
@@ -268,6 +352,7 @@ def main() -> None:
                     "raw_row_json": json.dumps(row, ensure_ascii=False, sort_keys=True),
                 })
                 imported_tables[path.name] += 1
+                emitted_properties.add(property_name)
 
     fields_material = ("material_id", "display_name", "family", "grade", "UNS/standard", "product_state", "source_id", "data_role", "temperature_coverage", "composition_available", "process_metadata", "notes", "raw_source_file", "raw_sheet", "raw_row_number", "raw_row_json")
     fields_point = ("material_id", "property", "value", "unit", "temperature_K", "uncertainty", "data_kind", "condition", "source_id", "source_locator", "notes", "raw_source_file", "raw_sheet", "raw_row_number", "raw_row_json")

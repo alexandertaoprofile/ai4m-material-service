@@ -10,14 +10,16 @@ from src.alloy_workflow.assets import publish_png_assets
 
 
 ASSET_DOCS = {
-    "screening_funnel": "左柱为生成的候选数，右柱为通过初筛的候选数，用于判断当前条件的筛选严格程度。",
-    "strength_hardness_tradeoff": "每个点代表一个通过初筛的候选：横轴越右表示预测屈服强度越高，纵轴越上表示预测硬度越高；蓝色为训练数据覆盖较好，橙色为训练数据边界附近。",
-    "composition_percentiles": "这张图展示保留候选中每种元素的常见含量区间：竖线下端为 P5、圆点为 P50（中位数）、上端为 P95。它用于了解下一步可继续探索的配比区域，不代表最终推荐配方。",
+    "screening_funnel": "以分层漏斗展示生成、相风险、性能与不确定性、最终可比候选四个阶段的数量和保留率，用于定位筛选收缩发生的位置。",
+    "strength_hardness_tradeoff": "每个点代表一个通过初筛的候选；颜色表示训练数据适用域，星形标出当前综合排序第一的候选，虚线为本轮采用的性能门槛。",
+    "composition_percentiles": "上半部分展示最优候选的精确元素原子百分比，下半部分展示保留候选的 P5–P50–P95 探索区间；两者不能混作最终配方。",
+    "microstructure_tendency": "根据当前候选的 SS、IM 与 SS+IM 相分类概率生成的组织倾向示意；风险标记只表达分类风险层级，不对应真实析出相的位置、尺寸或数量。",
 }
 ASSET_TITLES = {
-    "screening_funnel": "候选筛选概览",
-    "strength_hardness_tradeoff": "强度与硬度的候选分布",
-    "composition_percentiles": "候选成分区间图（非最终配方）",
+    "screening_funnel": "候选筛选漏斗",
+    "strength_hardness_tradeoff": "强度、硬度与最优候选位置",
+    "composition_percentiles": "最优候选配方与探索区间",
+    "microstructure_tendency": "预测组织倾向示意图",
 }
 logger = logging.getLogger("alloy.protocol")
 
@@ -52,5 +54,5 @@ async def prepare_public_assets(websocket: Any, taskid: str, result: dict[str, A
     else:
         print(f"[ALLOY][{taskid}] published PNG assets count={len(public_urls)} names={sorted(public_urls)}", flush=True)
         logger.info("published %s alloy PNG asset(s) taskid=%s", len(public_urls), taskid)
-    visual_assets = [{"url": public_urls[item["name"]], "title": ASSET_TITLES.get(item["name"], item["name"]), "description": ASSET_DOCS.get(item["name"], "")} for item in result["presentation"]["assets"] if item["name"] in public_urls]
+    visual_assets = [{"name": item["name"], "url": public_urls[item["name"]], "title": ASSET_TITLES.get(item["name"], item["name"]), "description": ASSET_DOCS.get(item["name"], "")} for item in result["presentation"]["assets"] if item["name"] in public_urls]
     return public_urls, ASSET_DOCS, ASSET_TITLES, visual_assets

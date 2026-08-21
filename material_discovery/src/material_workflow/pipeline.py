@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Optional
 
 from .emitters import write_pipeline_manifest
+from .alignn import enrich_validations_with_alignn
 from .generation import GenerationRunner, run_mattergen_generation
 from .mattersim import enrich_validations_with_mattersim
 from .ranking import rank_candidates
@@ -44,6 +45,17 @@ def run_new_material_pipeline(
     admitted_candidates = [
         candidate for candidate, validation in zip(generation.candidates, validations) if validation.is_valid is True
     ]
+    # ALIGNN is intentionally run immediately after structural admission: it is
+    # a lightweight structure-to-property screen, not a dependent thermodynamic
+    # calculation.  MatterSim remains the following stability screen.
+    validations = enrich_validations_with_alignn(
+        validations,
+        admitted_candidates,
+        validation_dir,
+        target_properties=constraints.target_properties,
+        validation_targets=constraints.validation_targets,
+    )
+    logger.info("[DISCOVERY][%s] ALIGNN property screening completed: candidates=%s", constraints.taskid, sum(bool(item.property_predictions) for item in validations))
     validations = enrich_validations_with_mattersim(validations, admitted_candidates, validation_dir)
     logger.info("[DISCOVERY][%s] MatterSim/MP completed: thermodynamic_results=%s/%s", constraints.taskid, sum(item.energy_above_hull is not None for item in validations), len(admitted_candidates))
     ranked = rank_candidates(generation.candidates, validations)

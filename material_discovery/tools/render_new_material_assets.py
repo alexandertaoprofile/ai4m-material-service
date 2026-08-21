@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import colorsys
 import json
 import math
 import sys
@@ -19,9 +20,23 @@ from matplotlib.animation import PillowWriter
 from pymatgen.core import Structure
 
 
+# A shared deep-navy workspace keeps the constraint card, rotating structure
+# preview and thermodynamic scorecard visually coherent in the client.
+SURFACE = "#06182F"
+PANEL = "#0B2848"
+PANEL_EDGE = "#28577D"
+TEXT = "#F4F8FF"
+MUTED = "#B7CBE0"
+ACCENT = "#63C7FF"
+STRUCTURE_LINE = "#82BCE5"
+
 COLORS = {
-    "Nb": "#59C3C3", "Mo": "#F4A261", "Ta": "#8E7DBE", "W": "#E9C46A",
-    "Li": "#9AD0F5", "P": "#F4A261", "S": "#F9D65C", "Cl": "#79C267",
+    "Nb": "#4E9FB4", "Mo": "#C98947", "Ta": "#876AB3", "W": "#B69631",
+    "Li": "#77B5E8", "P": "#E88B43", "S": "#E3BD23", "Cl": "#5EAD6F",
+    "Cr": "#708CFF", "Fe": "#CE6940", "Co": "#C67992", "Ni": "#4FA866",
+    "Ti": "#5BBED6", "V": "#A775D6", "Mn": "#C9618C", "Cu": "#D98A43",
+    "Zr": "#58BFA4", "Hf": "#7D9AD8", "Ta": "#9D7AD3", "W": "#C9A94E",
+    "Nb": "#4E9FB4", "Mo": "#D4974B", "Re": "#D76B5F", "Al": "#9FB4FF",
 }
 
 
@@ -52,7 +67,24 @@ def arguments() -> argparse.Namespace:
 
 
 def color(element: str) -> str:
-    return COLORS.get(element, "#AAB7C4")
+    """Return a stable, high-contrast colour for every element symbol.
+
+    Generated structures routinely include elements outside the original
+    hand-picked palette.  The previous neutral-grey fallback made a valid
+    element look uncoloured.  A deterministic HSV fallback preserves a
+    distinct, saturated colour without changing between preview frames.
+    """
+    if element in COLORS:
+        return COLORS[element]
+    try:
+        from pymatgen.core import Element
+
+        seed = Element(element).Z
+    except Exception:
+        seed = sum(ord(char) for char in element)
+    hue = (seed * 0.61803398875) % 1.0
+    red, green, blue = colorsys.hsv_to_rgb(hue, 0.58, 0.96)
+    return f"#{round(red * 255):02X}{round(green * 255):02X}{round(blue * 255):02X}"
 
 
 def get_top(manifest: dict) -> tuple[dict, dict]:
@@ -73,47 +105,90 @@ def axes_limits(coords: np.ndarray) -> tuple[tuple[float, float], ...]:
     return tuple((float(low[i] - pad), float(high[i] + pad)) for i in range(3))
 
 
-def draw_structure(ax, structure: Structure, title: str, angle: int = 30) -> None:
+def structure_connections(structure: Structure) -> list[tuple[int, int, np.ndarray]]:
+    """Find CrystalNN structural-neighbour connections for the MP-style preview.
+
+    These lines show periodic near-neighbour topology and coordination.  They
+    are intentionally not presented as calculated bond orders or bond energies.
+    """
+    try:
+        from tools.structure_to_glb import get_crystalnn_bonds
+
+        # The display is a finite visual supercell.  Neighbours beyond its
+        # outer boundary are physically valid periodic images, but omitting
+        # them avoids dangling rods in a browser or a 2-D preview.
+        return [connection for connection in get_crystalnn_bonds(structure) if not np.any(connection[2])]
+    except Exception:
+        # A presentation asset must still be produced if neighbour analysis
+        # cannot resolve a difficult structure.
+        return []
+
+
+def display_supercell(structure: Structure) -> Structure:
+    """Repeat the unit cell so full internal connectivity is visible."""
+    displayed = structure.copy()
+    displayed.make_supercell([2, 2, 2])
+    return displayed
+
+
+def draw_structure(
+    ax,
+    structure: Structure,
+    title: str,
+    angle: int = 30,
+    connections: list[tuple[int, int, np.ndarray]] | None = None,
+) -> None:
     coords = np.asarray(structure.cart_coords)
     elements = [site.specie.symbol for site in structure]
+    line_coordinates = []
+    for first, second, image in connections or []:
+        p0 = coords[first]
+        p1 = coords[second] + image @ structure.lattice.matrix
+        line_coordinates.extend((p0, p1))
+        ax.plot(*zip(p0, p1), color=STRUCTURE_LINE, linewidth=0.65, alpha=0.58, zorder=1)
     for element in sorted(set(elements)):
         ids = [index for index, value in enumerate(elements) if value == element]
         ax.scatter(coords[ids, 0], coords[ids, 1], coords[ids, 2], s=100, color=color(element),
-                   edgecolors="#14213D", linewidths=0.65, label=element, depthshade=True)
-    limits = axes_limits(coords)
+                   edgecolors="#FFFFFF", linewidths=0.65, label=element, depthshade=True)
+    limits = axes_limits(np.vstack([coords, line_coordinates]) if line_coordinates else coords)
     ax.set_xlim(*limits[0]); ax.set_ylim(*limits[1]); ax.set_zlim(*limits[2])
     ax.set_box_aspect([1, 1, 1])
     ax.view_init(elev=22, azim=angle)
-    ax.set_title(title, color="#EAF2FF", fontsize=12, pad=8)
+    ax.set_title(title, color=TEXT, fontsize=12, pad=8)
     ax.set_xticks([]); ax.set_yticks([]); ax.set_zticks([])
-    ax.set_facecolor("#10243E")
+    ax.set_facecolor(PANEL)
     for axis in (ax.xaxis, ax.yaxis, ax.zaxis):
-        axis.pane.set_facecolor("#10243E")
-        axis.pane.set_edgecolor("#406080")
+        axis.pane.set_facecolor(PANEL)
+        axis.pane.set_edgecolor(PANEL_EDGE)
     legend = ax.legend(loc="upper left", fontsize=8, frameon=False, ncol=2)
     for text in legend.get_texts():
-        text.set_color("#EAF2FF")
+        text.set_color(TEXT)
 
 
 def render_structure_png(structure: Structure, output: Path, formula: str, *, relaxed: bool) -> None:
-    figure = plt.figure(figsize=(8, 7), facecolor="#0B172A")
+    figure = plt.figure(figsize=(8, 7), facecolor=SURFACE)
     axis = figure.add_subplot(111, projection="3d")
-    draw_structure(axis, structure, f"Generated candidate · {formula}")
+    displayed = display_supercell(structure)
+    draw_structure(axis, displayed, f"Generated candidate · {formula}",
+                   connections=structure_connections(displayed))
     subtitle = "MatterGen candidate after MatterSim relaxation" if relaxed else "MatterGen-generated candidate · relaxation pending"
-    figure.text(0.5, 0.04, subtitle, ha="center", color="#A8C7E8", fontsize=10)
+    figure.text(0.5, 0.04, subtitle, ha="center", color=MUTED, fontsize=10)
     figure.tight_layout(rect=(0, 0.06, 1, 1))
     figure.savefig(output, dpi=180, facecolor=figure.get_facecolor())
     plt.close(figure)
 
 
 def render_rotation_gif(structure: Structure, output: Path, formula: str) -> None:
-    figure = plt.figure(figsize=(6, 6), facecolor="#0B172A")
+    figure = plt.figure(figsize=(6, 6), facecolor=SURFACE)
     axis = figure.add_subplot(111, projection="3d")
     writer = PillowWriter(fps=8)
+    displayed = display_supercell(structure)
+    connections = structure_connections(displayed)
     with writer.saving(figure, str(output), dpi=110):
         for angle in range(0, 360, 20):
             axis.clear()
-            draw_structure(axis, structure, f"候选晶体旋转预览 · {formula}", angle=angle)
+            draw_structure(axis, displayed, f"候选晶体旋转预览 · {formula}", angle=angle,
+                           connections=connections)
             writer.grab_frame()
     plt.close(figure)
 
@@ -122,27 +197,27 @@ def render_scorecard(output: Path, formula: str, validation: dict, constraints: 
     hull = validation.get("energy_above_hull")
     formation = validation.get("formation_energy_per_atom")
     threshold = float((constraints.get("target_properties") or {}).get("energy_above_hull", 0.05))
-    figure = plt.figure(figsize=(12, 5.4), facecolor="#0B172A")
-    left = figure.add_axes([0.06, 0.24, 0.50, 0.47], facecolor="#10243E")
-    right = figure.add_axes([0.62, 0.18, 0.33, 0.66], facecolor="#10243E")
-    figure.text(0.06, 0.82, "热力学初筛", color="#EAF2FF", fontweight="bold", fontsize=20)
-    figure.text(0.06, 0.765, "MatterSim 势函数 + Materials Project 同元素竞争相", color="#7BA7D1", fontsize=10)
+    figure = plt.figure(figsize=(12, 5.4), facecolor=SURFACE)
+    left = figure.add_axes([0.06, 0.24, 0.50, 0.47], facecolor=PANEL)
+    right = figure.add_axes([0.62, 0.18, 0.33, 0.66], facecolor=PANEL)
+    figure.text(0.06, 0.82, "热力学初筛", color=TEXT, fontweight="bold", fontsize=20)
+    figure.text(0.06, 0.765, "MatterSim 势函数 + Materials Project 同元素竞争相", color=ACCENT, fontsize=10)
     if hull is None:
-        left.text(0.5, 0.55, "热力学计算待完成", color="#EAF2FF", fontsize=19, ha="center", transform=left.transAxes)
+        left.text(0.5, 0.55, "热力学计算待完成", color=TEXT, fontsize=19, ha="center", transform=left.transAxes)
     else:
         max_value = max(threshold * 2.2, float(hull) * 1.35, 0.08)
-        left.barh([0], [max_value], color="#203B59", height=0.32)
-        left.barh([0], [float(hull)], color="#53D3A1" if hull <= threshold else "#F36C6C", height=0.32)
-        left.axvline(threshold, color="#F5C451", linewidth=2, linestyle="--")
+        left.barh([0], [max_value], color="#173D61", height=0.32)
+        left.barh([0], [float(hull)], color="#3FC49A" if hull <= threshold else "#FF7777", height=0.32)
+        left.axvline(threshold, color="#FFD166", linewidth=2, linestyle="--")
         left.set_xlim(0, max_value); left.set_ylim(-0.48, 0.48); left.set_yticks([])
-        left.text(float(hull), 0.27, f"{float(hull) * 1000:.1f} meV/atom", color="#EAF2FF", ha="center", fontsize=14, fontweight="bold")
-        left.text(threshold, -0.37, f"筛选阈值 = {threshold:.3f}", color="#F5C451", ha="center", fontsize=10)
-        left.set_xlabel("高于凸包能（eV/atom）", color="#A8C7E8", labelpad=8)
-        left.tick_params(axis="x", colors="#A8C7E8")
+        left.text(float(hull), 0.27, f"{float(hull) * 1000:.1f} meV/atom", color=TEXT, ha="center", fontsize=14, fontweight="bold")
+        left.text(threshold, -0.37, f"筛选阈值 = {threshold:.3f}", color="#FFD166", ha="center", fontsize=10)
+        left.set_xlabel("高于凸包能（eV/atom）", color=MUTED, labelpad=8)
+        left.tick_params(axis="x", colors=MUTED)
     for spine in left.spines.values(): spine.set_visible(False)
     right.axis("off")
-    right.text(0.06, 0.88, formula, color="#FFFFFF", fontsize=25, fontweight="bold", transform=right.transAxes)
-    right.text(0.06, 0.79, "候选结构 · 计算证据摘要", color="#7BA7D1", fontsize=10, transform=right.transAxes)
+    right.text(0.06, 0.88, formula, color=TEXT, fontsize=25, fontweight="bold", transform=right.transAxes)
+    right.text(0.06, 0.79, "候选结构 · 计算证据摘要", color=ACCENT, fontsize=10, transform=right.transAxes)
     rows = [
         ("形成能", "待计算" if formation is None else f"{float(formation):.4f} eV/atom"),
         ("高于凸包能", "待计算" if hull is None else f"{float(hull):.4f} eV/atom"),
@@ -151,8 +226,8 @@ def render_scorecard(output: Path, formula: str, validation: dict, constraints: 
     ]
     y = 0.65
     for label, value in rows:
-        right.text(0.06, y, label, color="#7BA7D1", fontsize=9, transform=right.transAxes)
-        right.text(0.06, y - 0.075, value, color="#EAF2FF", fontsize=12, transform=right.transAxes)
+        right.text(0.06, y, label, color=ACCENT, fontsize=9, transform=right.transAxes)
+        right.text(0.06, y - 0.075, value, color=TEXT, fontsize=12, transform=right.transAxes)
         y -= 0.17
     figure.savefig(output, dpi=180, facecolor=figure.get_facecolor())
     plt.close(figure)
@@ -160,11 +235,11 @@ def render_scorecard(output: Path, formula: str, validation: dict, constraints: 
 
 def render_design_brief(output: Path, structure: Structure, constraints: dict) -> None:
     """Render the input side of the story without claiming uncomputed properties."""
-    figure = plt.figure(figsize=(12, 4.4), facecolor="#0B172A")
-    figure.text(0.06, 0.82, "设计约束卡", color="#EAF2FF", fontsize=22, fontweight="bold")
+    figure = plt.figure(figsize=(12, 4.4), facecolor=SURFACE)
+    figure.text(0.06, 0.82, "设计约束卡", color=TEXT, fontsize=22, fontweight="bold")
     notes = " ".join(str(value) for value in (constraints.get("notes") or []))
     source = "领域模板约束" if "领域起始模板" in notes else "用户及上下文约束"
-    figure.text(0.06, 0.755, source, color="#7BA7D1", fontsize=10)
+    figure.text(0.06, 0.755, source, color=ACCENT, fontsize=10)
 
     elements = []
     for item in structure.composition.elements:
@@ -175,14 +250,14 @@ def render_design_brief(output: Path, structure: Structure, constraints: dict) -
         x = 0.08 + index * 0.105
         circle = plt.Circle((x, 0.48), 0.041, color=color(element), transform=figure.transFigure)
         figure.add_artist(circle)
-        figure.text(x, 0.48, element, ha="center", va="center", color="#10243E", fontsize=11, fontweight="bold")
-    figure.text(0.06, 0.25, "元素体系", color="#7BA7D1", fontsize=10)
+        figure.text(x, 0.48, element, ha="center", va="center", color=SURFACE, fontsize=11, fontweight="bold")
+    figure.text(0.06, 0.25, "元素体系", color=ACCENT, fontsize=10)
 
     target_properties = constraints.get("target_properties") or {}
     hull = target_properties.get("energy_above_hull")
     target_text = f"稳定性偏好：E_hull ≤ {float(hull):.3f} eV/atom" if hull is not None else "按元素体系条件生成"
-    figure.text(0.56, 0.60, "生成目标", color="#7BA7D1", fontsize=10)
-    figure.text(0.56, 0.52, target_text, color="#EAF2FF", fontsize=17, fontweight="bold")
+    figure.text(0.56, 0.60, "生成目标", color=ACCENT, fontsize=10)
+    figure.text(0.56, 0.52, target_text, color=TEXT, fontsize=17, fontweight="bold")
 
     target_labels = {
         "high_temperature_strength": "高温强度", "creep_resistance": "抗蠕变能力",
@@ -192,8 +267,8 @@ def render_design_brief(output: Path, structure: Structure, constraints: dict) -
     }
     focus = [target_labels.get(name, name.replace("_", " ")) for name in (constraints.get("validation_targets") or {})]
     focus_text = " · ".join(focus) if focus else "结构与热力学初筛"
-    figure.text(0.56, 0.34, "后续验证关注点", color="#7BA7D1", fontsize=10)
-    figure.text(0.56, 0.25, focus_text, color="#EAF2FF", fontsize=12, wrap=True)
+    figure.text(0.56, 0.34, "后续验证关注点", color=ACCENT, fontsize=10)
+    figure.text(0.56, 0.25, focus_text, color=TEXT, fontsize=12, wrap=True)
     figure.savefig(output, dpi=180, facecolor=figure.get_facecolor())
     plt.close(figure)
 
@@ -208,24 +283,24 @@ def render_evidence_coverage(output: Path, validation: dict, constraints: dict, 
         ("LOCAL PHASE\nCOMPARISON", hull_ready),
         ("TARGET PROPERTY\nVALIDATION", False),
     ]
-    figure, axis = plt.subplots(figsize=(12, 3.8), facecolor="#0B172A")
-    axis.set_facecolor("#0B172A")
+    figure, axis = plt.subplots(figsize=(12, 3.8), facecolor=SURFACE)
+    axis.set_facecolor(SURFACE)
     axis.set_xlim(0, len(stages)); axis.set_ylim(0, 1); axis.axis("off")
-    figure.text(0.06, 0.83, "EVIDENCE COVERAGE", color="#EAF2FF", fontsize=21, fontweight="bold")
-    figure.text(0.06, 0.755, "Complete evidence is separated from work reserved for DFT or experiment.", color="#7BA7D1", fontsize=10)
+    figure.text(0.06, 0.83, "EVIDENCE COVERAGE", color=TEXT, fontsize=21, fontweight="bold")
+    figure.text(0.06, 0.755, "Complete evidence is separated from work reserved for DFT or experiment.", color=ACCENT, fontsize=10)
     for index, (label, completed) in enumerate(stages):
-        background = "#173854" if completed else "#263143"
-        accent = "#53D3A1" if completed else "#F5C451"
+        background = "#123B62" if completed else "#102B47"
+        accent = "#63C7FF" if completed else "#FFD166"
         state = "COMPLETE" if completed else "PENDING"
         rectangle = plt.Rectangle((index + 0.06, 0.20), 0.84, 0.36, facecolor=background, edgecolor=accent, linewidth=1.5)
         axis.add_patch(rectangle)
         axis.text(index + 0.48, 0.47, state, ha="center", color=accent, fontsize=9, fontweight="bold")
-        axis.text(index + 0.48, 0.29, label, ha="center", color="#EAF2FF", fontsize=10, linespacing=1.35)
+        axis.text(index + 0.48, 0.29, label, ha="center", color=TEXT, fontsize=10, linespacing=1.35)
         if index < len(stages) - 1:
-            axis.text(index + 0.93, 0.38, ">", color="#7BA7D1", fontsize=17, ha="center")
+            axis.text(index + 0.93, 0.38, ">", color=ACCENT, fontsize=17, ha="center")
     focus = list((constraints.get("validation_targets") or {}).keys())
     if focus:
-        axis.text(0.06, 0.07, "Pending target-property evidence: " + ", ".join(focus).replace("_", " "), color="#A8C7E8", fontsize=10)
+        axis.text(0.06, 0.07, "Pending target-property evidence: " + ", ".join(focus).replace("_", " "), color=MUTED, fontsize=10)
     figure.savefig(output, dpi=180, facecolor=figure.get_facecolor())
     plt.close(figure)
 
@@ -241,13 +316,14 @@ def try_export_glb(structure: Structure, output: Path) -> str | None:
             structure,
             str(output),
             supercell=(2, 2, 2),
-            poly_mode="none",
-            # CrystalNN edges are neighbourhood hints, not chemical bonds.
-            # For metals/alloys they form a dense web and hiding boundary edges
-            # makes a continuous periodic lattice look broken.  The default
-            # evidence view therefore shows atoms only; a cell outline can be
-            # offered later as an explicit viewer control, not a default cue.
-            draw_bonds=False,
+            # Match Materials Project's structure view: draw the complete
+            # CrystalNN near-neighbour graph, then add local polyhedra where a
+            # motif can be recognised.  These are structural connections, not
+            # calculated bond orders.
+            poly_mode="auto",
+            draw_bonds=True,
+            draw_coordination_connections=False,
+            draw_periodic_boundary_bonds=False,
             draw_lattice_outline=False,
         )
         return str(output) if info.get("ok") else None
@@ -314,7 +390,7 @@ def main() -> None:
             {"path": str(scorecard), "type": "MaterialsPNG", "name": f"热力学初筛评分卡（{formula}）", "docs": "基于结构优化结果的热力学初筛参考。"},
         ])
         if glb:
-            assets.append({"path": glb, "type": "MaterialsGLB", "name": f"候选晶体三维模型（{formula}）", "docs": "模型展示的是这个候选完成结构优化后的排布。为便于观察整体排列，画面展示了相邻重复单元；没有添加原子之间的连线。"})
+            assets.append({"path": glb, "type": "MaterialsGLB", "name": f"候选晶体三维模型（{formula}）", "docs": "模型展示的是这个候选完成结构优化后的排布。连线表示按 CrystalNN 识别的周期近邻与配位关系；它用于阅读结构拓扑，不代表计算得到的键级或键能。明确的四面体或八面体基元会额外显示多面体。"})
     readiness_message = "候选已完成结构检查和结构优化，可查看结构模型与热力学初筛。" if formal_structure_ready else "候选仍在结构检查或结构优化阶段，暂不展示正式结构模型和热力学初筛结果。"
     output = {"status": "ok", "formula": formula, "assets": assets, "glb_available": bool(formal_structure_ready and glb), "formal_structure_ready": formal_structure_ready, "message": readiness_message}
     (args.output_dir / "presentation_manifest.json").write_text(json.dumps(output, ensure_ascii=False, indent=2), encoding="utf-8")

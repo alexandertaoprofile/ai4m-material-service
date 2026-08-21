@@ -158,21 +158,24 @@ async def get_teams():
             *[address for address in legacy_addresses if address != canonical_address],
         ]
         metadata["role_id"] = f"{SERVICE_ID}_v1"
+        metadata["goal"] = "形成全新的候选材料结构、稳定性与性能评估结果，以及合成路径预测。"
+        metadata["constraints"] = "基于目标性能、元素体系、材料类别和生成约束，在元素空间或晶体结构空间中组织新材料探索任务。"
+        metadata["desc"] = "面向材料候选尚未确定的探索性研发，针对超导、超高强等目标性能，生成全新的候选材料结构，评估热力学稳定性、电子结构及潜在性能，并预测合成路径。"
         metadata["routing"] = {
             "service_id": SERVICE_ID,
             "priority": 3,
-            "match_when": "请求明确指向数据库外新无机晶体的生成、发现或验证；可由化学式、元素体系、无机材料类别、应用场景或可追溯上游材料结论提供生成起点。",
-            "include_keywords": ["明确化学式", "元素体系", "材料类别", "材料结论", "全新材料", "新晶体", "新无机材料", "MatterGen", "晶体生成", "化学式生成", "数据库外材料"],
-            "exclude_keywords": ["材料筛选与计算", "材料筛选", "材料选型", "候选材料对比", "性质对比", "商用耗材", "FDM", "FFF", "丝材", "PLA", "PETG", "ASA", "ABS", "PC", "PA", "PEEK", "FKM", "FFKM", "VMQ", "FVMQ", "PTFE", "已有材料查询", "商品材料", "牌号查询", "合金配比", "高熵合金", "HEA", "MPEA", "元素比例优化", "原子百分比"],
+            "match_when": "材料候选尚未确定，并需要围绕超导、超高强等目标性能，在元素空间或晶体结构空间中探索全新材料时。",
+            "include_keywords": ["新材料发现", "新材料探索", "候选材料生成", "超导", "超高强", "从头计算", "First-principles", "高通量筛选", "元素空间", "晶体结构空间", "晶体结构", "新晶体", "新无机材料", "MatterGen", "晶体生成", "化学式生成", "数据库外材料", "固态电解质", "陶瓷晶体", "热力学稳定性", "电子结构", "潜在性能", "合成路径"],
+            "exclude_keywords": [],
             "input_contract": {
-                "required": "明确要求生成、发现或验证数据库外新无机晶体。",
-                "required_any": ["化学式", "元素体系", "无机材料类别", "应用场景", "可追溯上游材料结论"],
-                "optional": ["new_material.allowed_elements", "new_material.target_properties", "new_material.validation_targets", "new_material.max_candidates"],
+                "required": "明确的新材料探索目标。",
+                "required_any": ["目标性能", "元素体系", "材料类别", "晶体结构空间", "应用场景"],
+                "optional": ["new_material.allowed_elements", "new_material.target_properties", "new_material.validation_targets", "new_material.max_candidates", "new_material.structure_space"],
             },
             "output_contract": {
-                "generation_started": "候选结构、热力学初筛证据、排序和 manifest。",
-                "waiting_for_input": "无法归纳无机材料起点时，以既有 WebSocket 文本提示用户补充材料信息；不报告为生成失败。",
-                "screening_limit": "结果是 MLFF--MP 热力学初筛，不等同于实验或专项性能验证。",
+                "generation_started": "全新候选材料结构、稳定性与性能评估结果、合成路径预测和 manifest。",
+                "waiting_for_input": "生成约束与目标性能待补充时，返回所需材料探索信息。",
+                "screening_limit": "候选材料探索结果与计算评估记录。",
             },
         }
         roles[role_name] = metadata

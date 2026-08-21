@@ -11,36 +11,38 @@ import os
 from pathlib import Path
 from typing import Any
 
+from src.alloy_workflow.microstructure_tendency import build_engineering_estimates
+
 
 def _composition_text(composition: dict[str, Any]) -> str:
     return " ".join(f"{element}{float(value):.1f}" for element, value in composition.items())
 
 
 def pretrained_model_and_constraints_block(result: dict[str, Any]) -> str:
-    """Explain the pretrained MLP design and screening guardrails plainly."""
+    """Explain the selected pretrained MLP in customer-facing language."""
+    evidence = result.get("model_evidence") or {}
+    version = evidence.get("model_version", "hea_mpea_mlp")
     return "\n".join([
-        "#### 预训练模型与筛选约束",
-        "模型库中包含已离线训练好的高熵/多主元合金 MLP（多层感知机）。本轮只加载既有模型评估候选，不会用当前任务数据重新训练。",
+        "#### 本轮模型与结果依据",
+        "本轮先在已完成离线验证的候选模型中比较，再采用预训练 MLP（多层感知机）评估合金配方。它把成分、制备工艺和评价温度放在同一判断中，用于缩小可继续验证的配方范围。",
         "",
-        "**MLP 如何理解一个候选配方**",
+        "| 项目 | 本轮采用方式 |",
+        "|---|---|",
+        f"| 采用模型 | 预训练 MLP 集成模型（版本：`{version}`） |",
+        "| 输入 | 元素原子百分比、元素组合特征、制备工艺与评价温度 |",
+        "| 输出 | 屈服强度、硬度、相组成倾向、预测离散度与训练数据适用域 |",
+        "| 数据依据 | 已离线整理的实验 HEA/MPEA 数据；模型报告与训练数据范围随任务清单保存 |",
+        "| 结果性质 | 模型预测用于研发排序，不替代 CALPHAD、专项热力学计算或实验验证 |",
         "",
-        "| 环节 | 网络结构 / 输入 | 它在做什么 |",
-        "|---|---|---|",
-        "| 输入层 | 元素比例、元素数、混合熵、平均原子序数、平均 VEC、工艺、温度 | 把一个配方及其使用条件转换为模型能比较的特征。 |",
-        "| 第一隐藏层 | 64 个单元 + ReLU | 从原始输入中识别元素组合与工况的初步特征。 |",
-        "| 第二隐藏层 | 32 个单元 + ReLU | 进一步组合特征，形成对强度、硬度和相风险有用的判断。 |",
-        "| 输出 | 性能预测、相组成风险与预测离散度 | 给出候选的预估结果，以及结果是否一致的提示。 |",
+        "先按元素边界、工艺温度、相风险、性能目标和数据适用域筛除不合适的候选，再在保留候选中比较。训练数据边界附近的候选会保留其探索价值，同时在最终材料卡中单独标明可信度。",
         "",
-        "**工程约束：先筛除，再排序**",
-        "",
+        "#### 当前筛选边界",
         "| 约束 | 筛选要求 |",
         "|---|---|",
         "| 配比边界 | 只允许指定元素；各元素含量在设定范围内；总和必须为 100 at.%。 |",
         "| 使用工况 | 制备工艺和评价温度与成分一起输入，避免脱离场景比较配方。 |",
         "| 相风险 | 仅保留预测中不利相风险较低的候选。 |",
         "| 数据适用域 | 检查候选是否落在训练数据覆盖范围；边界附近结果仅作为探索性备选。 |",
-        "",
-        "最终用于本轮预测的模型，是在相同独立验证条件下比较后效果最好的模型。整个流程用于快速缩小配方搜索范围，不替代 CALPHAD、专项热力学计算或实验验证。",
     ])
 
 
@@ -60,7 +62,7 @@ def screening_workflow_block(result: dict[str, Any]) -> str:
 
 def candidate_table(result: dict[str, Any]) -> str:
     rows = []
-    for index, item in enumerate(result.get("initial_candidates", [])[:10], 1):
+    for index, item in enumerate(result.get("initial_candidates", [])[:5], 1):
         strength = item.get("yield_strength_MPa", {})
         hardness = item.get("hardness_HV", {})
         domain = {"inside":"训练数据范围内", "boundary":"训练数据边界附近", "outside":"训练数据范围外"}.get(item.get("applicability_domain", {}).get("level", "-"), "-")
@@ -74,12 +76,12 @@ def candidate_table(result: dict[str, Any]) -> str:
     if not rows:
         return "#### 初始候选\n当前约束下没有通过初筛的候选。"
     return "\n".join([
-        "### 本轮推荐候选",
+        "### 可继续比较的候选",
         "| 排名 | 成分（at.%） | 屈服强度（MPa） | 硬度（HV） | 相风险 | 数据覆盖情况 |",
         "|---:|---|---:|---:|---|---|",
         *rows,
         "",
-        "这些候选按当前初筛结果排序，并非最终工程定型配方。",
+        "下表仅保留前 5 个候选用于横向比较；完整的优先候选信息见报告末尾的数据卡。",
     ])
 
 
@@ -168,6 +170,7 @@ def final_conclusion_block(result: dict[str, Any]) -> str:
         selection_formula_block(result),
         candidate_table(result),
         concise_conclusion_block(result),
+        optimal_candidate_data_card(result),
     ]
     return "\n\n".join(block for block in blocks if block)
 
@@ -193,8 +196,100 @@ def concise_conclusion_block(result: dict[str, Any]) -> str:
         "### 本轮结论",
         "本轮结合预训练机器学习模型、成分相关的材料机理特征，以及工艺温度、配比边界、相风险和数据适用域等约束，对候选配方进行了初步筛选。",
         finding,
-        "建议下一步结合实际服役温度、氧化环境和制造路线进一步收敛范围，并对优先候选开展热力学、高温性能和实验验证。",
+        "建议下一步结合实际服役温度、氧化环境和制造路线进一步收敛范围，并对优先候选开展热力学、高温性能和实验验证。完整配方、预测结果、来源和可信度见下方材料卡。",
     ])
+
+
+def _domain_and_confidence(candidate: dict[str, Any]) -> tuple[str, str]:
+    level = (candidate.get("applicability_domain") or {}).get("level", "-")
+    return {
+        "inside": ("训练数据范围内", "较高：模型输入与已有训练样本较接近，仍需实验验证。"),
+        "boundary": ("训练数据边界附近", "中等：可作为探索候选，需优先补充计算或实验验证。"),
+        "outside": ("训练数据范围外", "较低：仅保留为探索线索，不作为优先工程判断。"),
+    }.get(level, (str(level), "当前适用域信息未完整记录。"))
+
+
+def optimal_candidate_data_card(result: dict[str, Any]) -> str:
+    """Render the complete, traceable final card for the highest-ranked candidate."""
+    candidates = result.get("initial_candidates") or []
+    if not candidates:
+        return ""
+    candidate = candidates[0]
+    space = result.get("search_space") or {}
+    evidence = result.get("model_evidence") or {}
+    composition = candidate.get("composition_at_pct") or {}
+    strength = candidate.get("yield_strength_MPa") or {}
+    hardness = candidate.get("hardness_HV") or {}
+    phase = candidate.get("phase_probabilities") or {}
+    domain, confidence = _domain_and_confidence(candidate)
+    applicability = candidate.get("applicability_domain") or {}
+    phase_risk = {"low": "较低", "high": "较高"}.get(candidate.get("phase_risk"), str(candidate.get("phase_risk") or "未记录"))
+    source = f"预训练 MLP（{evidence.get('model_version', 'hea_mpea_mlp')}）"
+    report_locator = "HEA 代理模型训练报告：reports/models/*_training_report.json"
+    composition_rows = [f"| {element} | {float(amount):.2f} at.% |" for element, amount in composition.items()]
+    return "\n".join([
+        "### 最优候选材料卡",
+        "**高熵合金优化候选 01**：这是当前约束下综合排序第一的模型预测候选，供后续热力学与实验验证优先评估。",
+        "",
+        "| 配方与条件 | 当前信息 |",
+        "|---|---|",
+        "| 候选身份 | 高熵合金优化候选 01（模型生成配方，不对应既有商品牌号） |",
+        f"| 制备工艺 | {space.get('processing_method', '当前未记录')} |",
+        f"| 评价温度 | {space.get('test_temperature_C', '当前未记录')}°C |",
+        f"| 成分总和 | {sum(float(value) for value in composition.values()):.2f} at.% |",
+        "",
+        "| 元素 | 成分 |",
+        "|---|---:|",
+        *composition_rows,
+        "",
+        "| 关键性质与判断 | 本轮结果 | 条件、来源与可信度 |",
+        "|---|---|---|",
+        f"| 屈服强度 | {strength.get('mean', 0):.0f} ± {strength.get('std', 0):.0f} MPa | {space.get('processing_method', '工艺未记录')}；{space.get('test_temperature_C', '温度未记录')}°C；{source}，集成离散度为 ± 值。 |",
+        f"| 硬度 | {hardness.get('mean', 0):.0f} ± {hardness.get('std', 0):.0f} HV | {space.get('processing_method', '工艺未记录')}；{space.get('test_temperature_C', '温度未记录')}°C；{source}，集成离散度为 ± 值。 |",
+        f"| 相组成倾向 | SS {float(phase.get('SS', 0)):.1%}；IM {float(phase.get('IM', 0)):.1%}；SS+IM {float(phase.get('SS+IM', 0)):.1%} | 模型相分类预测；相风险判定为“{phase_risk}”。 |",
+        f"| 数据适用域 | {domain} | 最近训练成分距离 {float(applicability.get('nearest_training_composition_distance', 0)):.3f}；{confidence} |",
+        f"| 综合排序分数 | {float(candidate.get('selection_score', 0)):.3f} | 仅用于本轮通过初筛候选之间的排序，不是材料性能或工程放行指标。 |",
+        "",
+        "| 工程估算与验证重点 | 初筛估算/判断 | 依据、可信度与后续验证 |",
+        "|---|---|---|",
+        *[
+            f"| {row['property']} | {row['estimate']} | {row['basis']} 验证：{row['validation']} |"
+            for row in build_engineering_estimates(candidate, space)
+        ],
+        "",
+        "| 来源与可信度说明 | 记录 |",
+        "|---|---|",
+        f"| 预测来源 | {source}；{report_locator}。 |",
+        f"| 数据范围 | {evidence.get('data_type', 'HEA/MPEA 训练数据范围随任务清单保存')} |",
+        f"| 可信度结论 | 屈服强度、硬度和相组成来自模型预测；工程估算表中的条目单独按 D 级标注。两类结果均用于研发初筛，不作为工程放行依据。{confidence} |",
+    ])
+
+
+def microstructure_tendency_block(result: dict[str, Any], asset_url: str | None = None) -> str:
+    """Place the explanatory schematic directly after the optimal-candidate card."""
+    tendency = result.get("microstructure_tendency") or {}
+    if not tendency:
+        return ""
+    phase = tendency.get("phase_probabilities") or {}
+    lines = [
+        "### 预测组织倾向示意图",
+        f"**{tendency.get('title', '组织倾向待确认')}**。{tendency.get('explanation', '')}",
+    ]
+    if asset_url:
+        lines.extend(["", f"![预测组织倾向示意图]({asset_url})"])
+    lines.extend([
+        "",
+        "| 项目 | 当前判断 |",
+        "|---|---|",
+        f"| 相分类输入 | SS {float(phase.get('SS', 0)):.1%}；IM {float(phase.get('IM', 0)):.1%}；SS+IM {float(phase.get('SS+IM', 0)):.1%} |",
+        f"| 混相风险 | {tendency.get('mixed_phase_risk', '-')} |",
+        f"| 金属间化合物风险 | {tendency.get('intermetallic_risk', '-')} |",
+        f"| 数据适用域与表达强度 | {tendency.get('applicability_domain', '-')}；{tendency.get('confidence', '模型初筛')} |",
+        f"| 优先验证 | {'；'.join(tendency.get('validation_priorities') or [])} |",
+        "",
+        "注：本图为基于相组成预测结果生成的组织倾向示意，用于辅助理解候选材料的可能组织特征；不代表真实显微照片、相场模拟结果或最终实验组织。",
+    ])
+    return "\n".join(lines)
 
 
 def _llm() -> Any | None:
@@ -248,6 +343,8 @@ def visual_assets_block(visual_assets: list[dict[str, str]] | None = None) -> st
         return ""
     lines = ["#### 图表解读"]
     for item in visual_assets:
+        if item.get("name") == "microstructure_tendency":
+            continue
         url = str(item.get("url") or "").strip()
         if not url:
             continue
@@ -278,6 +375,10 @@ async def emit_result_content(websocket: Any, result: dict[str, Any], *, step_id
     fallback = path.read_text(encoding="utf-8") if path else final_conclusion_block(result)
     visuals = visual_assets_block(visual_assets)
     rendered_content = _place_visuals_before_conclusion(fallback, visuals)
+    tendency_asset = next((item for item in (visual_assets or []) if item.get("name") == "microstructure_tendency"), None)
+    tendency = microstructure_tendency_block(result, str((tendency_asset or {}).get("url") or ""))
+    if tendency:
+        rendered_content = rendered_content.rstrip() + "\n\n" + tendency
     await websocket.send_text(f"<<<CONTENT_START:{step_id}>>>")
     llm = _llm()
     if llm is None:

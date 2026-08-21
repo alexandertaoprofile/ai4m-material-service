@@ -40,14 +40,13 @@ def _decision_summary(result: dict[str, Any]) -> str:
         finding = "在当前数值窗口内没有找到完整匹配的证据配对。"
         use = "定位需要补充的条件或证据，而不是直接替换为其他配方。"
     return "\n".join([
-        "#### 本轮决策摘要",
-        "| 项目 | 本轮说明 |",
+        "### 适用范围与后续验证",
+        "| 项目 | 当前情况 |",
         "|---|---|",
         "| 针对的场景 | 同时具有导电与润滑意图的液体介质初筛。 |",
-        "| 做了什么 | 按温度、电学性质、动态黏度和证据完整性核对已有记录，并进行分层。 |",
-        f"| 得到什么结果 | {finding} |",
-        f"| 当前可用于 | {use} |",
-        "| 下一步 | 补齐抗磨、承载、老化、兼容性和均相稳定性等专项证据，再决定工程验证路线。 |",
+        f"| 当前证据 | {finding} |",
+        f"| 可支持的下一步 | {use} |",
+        "| 仍需验证 | 抗磨、承载、老化、兼容性和均相稳定性，再决定工程验证路线。 |",
     ])
 # The upstream planner sometimes calls the target a "导电润滑材料库" instead
 # of repeating "导电润滑油".  It is still the same fluid workflow when an
@@ -419,13 +418,13 @@ class FluidLubricantWorkflow:
         status = result["data_status"]
         if not result.get("screening"):
             return (
-                "## 导电液体候选初筛（非润滑适用性结论）\n\n" + status["message"],
-                "## 筛选边界\n\n" + status["scope"],
-                "请提供目标温度范围、电导率或电阻率条件、动态黏度条件，以及是否仅接受配方完整或待人工复核的证据。\n\n" + _decision_summary(result),
+                "## 1. 需求与已知工况\n\n" + status["message"] + "\n\n## 2. 本轮筛选/比较口径\n\n当前还没有可执行的温度、电学和黏度比较条件。",
+                "## 3. 证据覆盖与候选核验\n\n本轮尚未进行证据配对，因此没有候选核验结果。",
+                "## 4. 结论\n\n请先补齐可比较条件，才能形成导电液体的证据结论。\n\n## 5. 材料性质汇总\n\n当前没有可展示的匹配体系。\n\n" + _decision_summary(result),
             )
         screening = result["screening"]
         request = screening["request"]
-        rows = ["## 导电液体候选初筛（非润滑适用性结论）", "", "本轮输出的是满足电学与黏度窗口的导电液体候选空间，不将其统称为“导电润滑油”。", "", "### 本轮筛选条件", ""]
+        rows = ["## 1. 需求与已知工况", "", "你当前提出的是同时具有导电与润滑意图的液体介质需求；本轮先核对电学与黏度证据，不将其直接称为可用的导电润滑油。", "", "## 2. 本轮筛选/比较口径", "", "### 已确认的筛选条件", ""]
         if result["constraints"].get("default_profile_applied"):
             rows.append("- 本轮按已提供的数值和默认初筛口径执行；默认值不视为用户最终验收标准。")
         interpretation = result["constraints"].get("screening_interpretation") or {}
@@ -466,7 +465,7 @@ class FluidLubricantWorkflow:
         # in the manifest/result for download and audit.
         matched = matched_all[:5]
         b_candidates = shortlist.get("b_candidates", [])
-        candidate_heading = "## 按方向偏好排序的导电液体证据地图" if result["data_status"]["outcome"] == "fluid_evidence_landscape" else "## 电学与黏度窗口匹配的导电液体候选"
+        candidate_heading = "## 3. 证据覆盖与候选核验"
         candidate_intro = (
             "本轮没有数值硬阈值；以下仅按明确方向偏好排序，不能视为性能通过、产品推荐或润滑适用性结论。"
             if result["data_status"]["outcome"] == "fluid_evidence_landscape" else
@@ -503,7 +502,7 @@ class FluidLubricantWorkflow:
                 p = item["properties"]
                 candidate_rows.append(f"| {item['composition_display']} | {item['reported_fraction']} | {item['conditions']['temperature_k'] - 273.15:.0f} °C；ν={p['kinematic_viscosity_mm2_s']:.3g} mm²/s | 室温电阻率/电导率、动态/旋转黏度 | {item['evidence']['source_id']} |")
         gaps = (shortlist.get("data_gaps") or [])
-        conclusion = ["## 结论与数据缺口", "", status["message"]]
+        conclusion = ["## 4. 结论", "", status["message"]]
         best = shortlist.get("primary_research_reference")
         if best:
             bp = best["properties"]
@@ -517,7 +516,7 @@ class FluidLubricantWorkflow:
                 if isinstance(composition.get(key), (int, float))
             ) or "原始记录未完整报告"
             conclusion += [
-                "", "### 本轮结论：建议优先评估的体系", "",
+                "", "## 5. 材料性质汇总", "",
                 f"在当前匹配记录中，建议优先将 **{best['evidence_id']}** 作为导电功能基准体系开展下一轮验证；它不是可直接用于风机轴承的产品推荐。",
                 "", "| 项目 | 当前已知信息 |",
                 "|---|---|",
@@ -532,7 +531,9 @@ class FluidLubricantWorkflow:
                 "| 尚待验证 | 抗磨与承载、油膜形成、135 °C 老化后电阻率与黏度、金属/密封兼容性、腐蚀、均相稳定性及过滤性。 |",
                 "| 下一步 | 将其离子传导机制转化为 POE、TMP 酯或 PAG 基础油中的油溶性功能组分，再进行台架验证。 |",
             ]
-        conclusion += ["", "### 135 °C 适用性边界", "", "| 核查项 | 当前状态 | 结论 |", "|---|---|---|"]
+        if not best:
+            conclusion += ["", "## 5. 材料性质汇总", "", "当前没有可作为优先评估依据的完整匹配体系。"]
+        conclusion += ["", "### 服役温度与长期适用性边界", "", "| 核查项 | 当前状态 | 结论 |", "|---|---|---|"]
         conclusion += [f"| {item['item']} | {item['status']} | {item['meaning']} |" for item in gaps]
         conclusion += ["", status["scope"], "", _decision_summary(result)]
         return "\n".join(rows), "\n".join(candidate_rows), "\n".join(conclusion)

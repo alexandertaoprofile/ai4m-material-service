@@ -201,20 +201,66 @@ def build_discovery_conclusion(result) -> str:
             finding = f"候选 `{formula}` 已通过基础结构检查，但尚未得到 E_hull，暂不能判断其热力学稳定性。"
         else:
             threshold = float((result.constraints.target_properties or {}).get("energy_above_hull", 0.05))
-            status = "达到" if hull <= threshold else "未达到"
-            finding = f"排名第一的候选为 `{formula}`，E_hull 为 {hull:.4f} eV/atom，{status} {threshold:.2f} eV/atom 的本轮初筛阈值。"
+            if conclusion.get("decision") == "comparison_candidate":
+                finding = (
+                    f"本轮候选均未达到 {threshold:.2f} eV/atom 的稳定性初筛阈值；"
+                    f"`{formula}` 的 E_hull 为 {hull:.4f} eV/atom，是当前批次中最接近该目标的比较候选。"
+                )
+            else:
+                status = "达到" if hull <= threshold else "未达到"
+                finding = f"排名第一的候选为 `{formula}`，E_hull 为 {hull:.4f} eV/atom，{status} {threshold:.2f} eV/atom 的本轮初筛阈值。"
     next_step = {
         "shortlist_for_dft": "建议优先开展 DFT 与目标性能验证，并结合实际工况确认制备与服役可行性。",
-        "deprioritize": "建议降低该候选优先级，补充元素体系或生成条件后重新探索；不宜直接进入工程验证。",
+        "comparison_candidate": "建议保留该结构及下方性质初筛结果作为本轮比较基准，并调整元素体系或生成条件后继续探索。",
         "structure_only": "建议先完成稳定性评估，再决定是否进入 DFT 与目标性能验证。",
         "no_candidate": "建议检查元素体系、生成条件或模型资源后重新执行。",
     }.get(conclusion.get("decision"), "建议结合专项计算与实验继续验证。")
     return "\n\n".join([
-        "### 本轮结论",
-        f"本轮采用条件生成、结构松弛和同元素体系稳定相比较的流程，在 {generated} 个候选中有 {admitted} 个通过基础结构检查。",
-        finding,
-        next_step,
+        "## 4. 结论",
+        f"针对本轮无机新材料结构探索，在已设定元素体系与生成条件下，{finding}",
+        f"本轮生成 {generated} 个候选，其中 {admitted} 个通过基础结构检查。{next_step}",
     ])
+
+
+def build_property_screening_card(result) -> str:
+    """Render only properties actually computed for the shortlisted candidate."""
+    top = result.ranked_candidates[0] if result.ranked_candidates else None
+    predictions = (top.validation.property_predictions if top and top.validation else {}) or {}
+    validation = top.validation if top else None
+    if not predictions and not validation:
+        return ""
+    formula = top.candidate.formula_pretty or top.validation.formula_pretty or top.candidate.candidate_id
+    lines = [
+        "## 5. 候选性质初筛",
+        f"以下为无机材料候选（成分式：{formula}）在本轮结构上的初筛结果。模型名称与版本已保留在任务记录中。",
+        "",
+        "| 性质 | 数值 | 本轮条件与方法 | 证据等级 |",
+        "|---|---:|---|---|",
+    ]
+    if validation.density is not None:
+        lines.append(f"| 密度 | {validation.density:.4f} g/cm³ | 当前候选结构；pymatgen 结构计算 | C：结构计算结果 |")
+    if validation.formation_energy_per_atom is not None:
+        lines.append(f"| 形成能 | {validation.formation_energy_per_atom:.4f} eV/atom | 当前候选结构；MatterSim 松弛 | C：模型初筛 |")
+    if validation.energy_above_hull is not None:
+        lines.append(f"| E_hull | {validation.energy_above_hull:.4f} eV/atom | MatterSim 松弛后与同元素竞争相比较 | C：模型初筛 |")
+    for item in predictions.values():
+        value = item.get("value")
+        number = f"{float(value):.4f}" if isinstance(value, (int, float)) else "当前未得到"
+        lines.append(
+            f"| {item.get('label', '性质')} | {number} {item.get('unit', '')} | "
+            f"当前候选结构；{item.get('display_method', 'ALIGNN 性质快速预测')} | "
+            f"{item.get('evidence_level', 'C：结构模型快速预测')} |"
+        )
+    bulk = predictions.get("bulk_modulus", {}).get("value")
+    shear = predictions.get("shear_modulus", {}).get("value")
+    if isinstance(bulk, (int, float)) and isinstance(shear, (int, float)) and bulk > 0 and shear > 0:
+        chen_hardness = max(0.0, 2.0 * (((shear / bulk) ** 2 * shear) ** 0.585) - 3.0)
+        low, high = chen_hardness * 0.65, chen_hardness * 1.35
+        lines.append(
+            f"| 硬度（估算） | {low:.2f}–{high:.2f} GPa | "
+            "由本轮体积/剪切模量按 Chen 经验式推导；±35% 初步区间 | D：工程估算 |"
+        )
+    return "\n".join(lines)
 
 
 def build_requirement_brief(constraints) -> str:

@@ -112,9 +112,34 @@ class MatureMaterialCatalog:
         for bundle_root in (root / "material_core", root / "high_temperature"):
             if bundle_root.is_dir():
                 bundles.extend(sorted(bundle_root.glob("*/")))
-        self.materials = [row for bundle in bundles for row in _read(bundle / "materials.csv")]
-        self.points = [row for bundle in bundles for row in _read(bundle / "property_points.csv")]
-        self.curves = [row for bundle in bundles for row in _read(bundle / "curve_data.csv")]
+        raw_materials = [row for bundle in bundles for row in _read(bundle / "materials.csv")]
+        # Incremental evidence packs may intentionally add new property rows
+        # for a material already present in an older pack. Keep one identity
+        # row while retaining every source-preserving property record.
+        material_by_id: dict[str, dict[str, str]] = {}
+        for row in raw_materials:
+            material_by_id.setdefault(row.get("material_id", ""), row)
+        self.materials = list(material_by_id.values())
+        raw_points = [row for bundle in bundles for row in _read(bundle / "property_points.csv")]
+        point_by_source: dict[tuple[str, str, str, str, str, str, str], dict[str, str]] = {}
+        for row in raw_points:
+            key = (
+                row.get("material_id", ""), row.get("property", ""),
+                row.get("source_id", ""), row.get("source_locator", ""), row.get("raw_row_number", ""),
+                row.get("temperature_K", ""), row.get("value", ""),
+            )
+            point_by_source.setdefault(key, row)
+        self.points = list(point_by_source.values())
+        raw_curves = [row for bundle in bundles for row in _read(bundle / "curve_data.csv")]
+        curve_by_source: dict[tuple[str, str, str, str, str, str, str], dict[str, str]] = {}
+        for row in raw_curves:
+            key = (
+                row.get("material_id", ""), row.get("property", ""),
+                row.get("source_id", ""), row.get("source_locator", ""), row.get("raw_row_number", ""),
+                row.get("temperature_K", ""), row.get("value_SI", ""),
+            )
+            curve_by_source.setdefault(key, row)
+        self.curves = list(curve_by_source.values())
         self.compositions = [row for bundle in bundles for row in _read(bundle / "composition_long.csv")]
         self.aliases = [row for bundle in bundles for row in _read(bundle / "material_aliases.csv")]
         self._by_id = {row["material_id"]: row for row in self.materials}
@@ -302,20 +327,34 @@ class MatureMaterialCatalog:
                 "coverage": "measured_point" if row.get("temperature_K") else "condition_unspecified",
                 "condition": row.get("condition"), "source": row,
             })
-        grouped: dict[str, list[tuple[float, float, dict[str, str]]]] = {}
+        # Different heat treatments or specimen states must remain separate
+        # curves even when they share a property name.
+        grouped: dict[tuple[str, str], list[tuple[float, float, dict[str, str]]]] = {}
         for row in self.curves:
             if row.get("material_id") != material_id:
                 continue
             temperature, value = _number(row.get("temperature_K")), _number(row.get("value_SI"))
             if temperature is not None and value is not None:
-                grouped.setdefault(row.get("property") or "", []).append((temperature, value, row))
-        for property_name, rows in grouped.items():
+                key = (row.get("property") or "", row.get("condition") or "")
+                grouped.setdefault(key, []).append((temperature, value, row))
+        for (property_name, condition), rows in grouped.items():
             rows.sort(key=lambda item: item[0])
             first, last = rows[0], rows[-1]
+            values = [item[1] for item in rows]
             evidence.append({
                 "property": property_name, "coverage": "temperature_curve",
                 "temperature_range_K": [first[0], last[0]], "point_count": len(rows),
-                "unit": first[2].get("SI_unit"), "condition": first[2].get("condition"),
+                # The temperature span describes the test condition, not the
+                # property value.  Keep both so presentation never labels a
+                # 260–820 °C measurement range as a conductivity range.
+                "value_range": [min(values), max(values)],
+                # Keep values tied to the ends of the temperature interval.
+                # A value range alone is ambiguous for a non-monotonic curve.
+                "temperature_endpoints": [
+                    {"temperature_K": first[0], "value": first[1]},
+                    {"temperature_K": last[0], "value": last[1]},
+                ],
+                "unit": first[2].get("SI_unit"), "condition": condition,
                 "source": {"first": first[2], "last": last[2]},
             })
         return sorted(evidence, key=lambda item: (str(item["property"]), str(item["coverage"])))
@@ -334,6 +373,28 @@ class MatureMaterialCatalog:
             candidates = [row for row in candidates if normalize_name(row.get("family")) in family_keys]
         if standard_keys:
             candidates = [row for row in candidates if normalize_name(row.get("UNS/standard")) in standard_keys]
+        # The material-core import deliberately preserves source records, and
+        # can therefore coexist with an already curated record for the exact
+        # same identity/state.  A broad evidence landscape must not show that
+        # one material twice merely because it has two import lineages.  Keep
+        # exact name searches untouched: callers may be intentionally asking
+        # for a specific imported identity.
+        if not names:
+            deduplicated: dict[tuple[str, str, str, str], dict[str, str]] = {}
+            for material in candidates:
+                fingerprint = (
+                    normalize_name(material.get("display_name")),
+                    normalize_name(material.get("grade")),
+                    normalize_name(material.get("product_state")),
+                    normalize_name(material.get("UNS/standard")),
+                )
+                existing = deduplicated.get(fingerprint)
+                if existing is None or (
+                    existing.get("data_role") == "1101 material-core evidence"
+                    and material.get("data_role") != "1101 material-core evidence"
+                ):
+                    deduplicated[fingerprint] = material
+            candidates = list(deduplicated.values())
         preferences = preferences or []
         results = []
         for material in candidates:
@@ -369,9 +430,25 @@ class MatureMaterialCatalog:
                     preference_data_gaps.append({
                         "material_id": result["material"].get("material_id"),
                         "display_name": result["material"].get("display_name"),
+                        "family": result["material"].get("family"),
                         "missing_properties": [item.get("property") for item in result["preference_evidence"] if item.get("status") == "missing"],
                     })
             results = ranked_results
+            # A broad preference search can otherwise be filled entirely by
+            # literature-formula records that happen to carry one property.
+            # Keep a small, visible comparison set of catalogue commercial
+            # materials whenever the caller did not restrict the material
+            # family or name themselves.
+            if not names and not families and not standards and len(results) > top_k:
+                commercial = [
+                    item for item in results
+                    if item["material"].get("data_role") != "1101 material-core evidence"
+                ]
+                reserve = min(3, len(commercial), top_k)
+                leading = results[:top_k - reserve]
+                selected_ids = {item["material"]["material_id"] for item in leading}
+                leading.extend(item for item in commercial if item["material"]["material_id"] not in selected_ids)
+                results = leading[:top_k]
         for rank, result in enumerate(results, start=1):
             result["preference_rank"] = rank if preferences else None
             result.pop("_preference_sort_key", None)

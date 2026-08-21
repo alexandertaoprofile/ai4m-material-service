@@ -1,0 +1,4 @@
+# The established catalogue CSV files use CRLF line endings; do not report
+# their record terminators as trailing whitespace in diff checks.
+data/processed/*.csv whitespace=-cr-at-eol
+curve_data.csv whitespace=-cr-at-eol

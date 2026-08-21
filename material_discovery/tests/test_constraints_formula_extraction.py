@@ -33,6 +33,15 @@ class FormulaExtractionTests(unittest.TestCase):
                 "idea": "优化 Nb-Mo-Ta-W 高熵合金的原子百分比和成分空间。",
             })
 
+    def test_alloy_structure_generation_request_is_not_misrouted_to_composition_optimization(self):
+        constraint = constraint_from_payload({
+            "taskid": "alloy-structure-generation",
+            "idea": "我考虑传统制备方法，基于上述信息尝试做一个新材料结构生成。",
+            "history": "用户：生成 Nb-Mo-Ta-W 高温高熵合金候选晶体结构。",
+        })
+        self.assertEqual(constraint.allowed_elements, ["Nb", "Mo", "Ta", "W"])
+        self.assertEqual(constraint.target_properties["energy_above_hull"], 0.05)
+
 
 if __name__ == "__main__":
     unittest.main()

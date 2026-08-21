@@ -17,5 +17,7 @@ MAT-IN718,Inconel 718,trade_name,curated_v1
 MAT-IN718,UNS N07718,standard,curated_v1
 MAT-AL6061-T6,6061-T6,grade,curated_v1
 MAT-AL6061-T6,AA 6061-T6,standard,curated_v1
+MAT-AL6061-T6,铝合金6061,common_chinese_name,curated_v1
+MAT-AL6061-T6,6061铝合金,common_chinese_name,curated_v1
 MAT-316L-SRM1155A,316L,grade_ambiguous_state,curated_v1
 MAT-SS316-XLSX,316 stainless steel,generic_grade_ambiguous,curated_v1

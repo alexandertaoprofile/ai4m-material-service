@@ -14,6 +14,7 @@ from .pipeline import run_new_material_pipeline
 from .presentation import (
     build_discovery_conclusion,
     build_discovery_story,
+    build_property_screening_card,
     render_presentation_assets,
     write_preparation_traceability_report,
     write_terminal_progress,
@@ -84,6 +85,9 @@ def result_summary(result) -> str:
             formula = item.candidate.formula_pretty or (validation.formula_pretty if validation else None) or "N/A"
             lines.append(f"| {item.rank} | {item.candidate.candidate_id} | {formula} | {'通过' if validation and validation.is_valid else '未通过/待定'} | {formation} | {hull} |")
     lines.extend(["", build_discovery_conclusion(result)])
+    property_card = build_property_screening_card(result)
+    if property_card:
+        lines.extend(["", property_card])
     return "\n".join(lines)
 
 

@@ -50,7 +50,18 @@ def rank_candidates(
             )
         )
 
-    scored.sort(key=lambda item: (-item.score, item.candidate.candidate_id))
+    # The first visible candidate must remain the most useful comparison
+    # object even when no candidate meets the requested stability threshold.
+    # Prefer structurally admitted candidates with a lower available E_hull;
+    # generation score is only a deterministic tie-breaker, never a reason to
+    # hide the thermodynamically closest structure.
+    def screening_key(item: RankedCandidate) -> tuple[int, float, float, str]:
+        validation = item.validation
+        admitted = validation is not None and validation.is_valid is True
+        hull = float(validation.energy_above_hull) if admitted and validation.energy_above_hull is not None else float("inf")
+        return (0 if admitted else 1, hull, -item.score, item.candidate.candidate_id)
+
+    scored.sort(key=screening_key)
     for index, item in enumerate(scored, start=1):
         item.rank = index
     return scored

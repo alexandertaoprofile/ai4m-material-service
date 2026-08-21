@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import colorsys
 import json
 import math
 import os
@@ -15,44 +16,69 @@ from pymatgen.analysis.local_env import CrystalNN
 
 
 # ---------- Colors (RGB 0-255) ----------
-# 尽量贴近你截图里的观感：Li浅绿、P淡紫、S黄、Cl亮绿；键用白/浅灰
+# Low-saturation palette shared with the service's dark-navy presentation
+# cards.  The viewer owns the background; this controls only model geometry.
 ELEMENT_COLORS: Dict[str, Tuple[int, int, int]] = {
     "H": (255, 255, 255),
     "C": (60, 60, 60),
     "N": (0, 0, 255),
     "O": (255, 0, 0),
 
-    "F":  (0, 255, 0),
-    "Cl": (0, 255, 0),
-    "Br": (165, 42, 42),
-    "I":  (148, 0, 211),
+    "F":  (105, 190, 142),
+    "Cl": (114, 185, 138),
+    "Br": (173, 105, 74),
+    "I":  (143, 111, 181),
 
-    "S":  (255, 255, 0),
-    "P":  (190, 150, 210),   # 更接近 MP 里 P5+ 那种淡紫
-    "Li": (170, 235, 170),   # 更接近 MP 里 Li+ 那种浅绿
+    "S":  (226, 199, 91),
+    "P":  (227, 160, 95),
+    "Li": (143, 198, 232),
 
     "Na": (171, 92, 242),
     "K":  (143, 64, 212),
     "Mg": (138, 255, 0),
-    "Al": (200, 200, 200),
+    "Al": (159, 180, 255),
     "Si": (240, 200, 160),
     "Ca": (61, 255, 0),
-    "Fe": (224, 102, 51),
-    "Ni": (80, 208, 80),
-    "Co": (240, 144, 160),
+    "Fe": (217, 117, 72),
+    "Ni": (102, 190, 122),
+    "Co": (216, 143, 164),
     "Cu": (200, 128, 51),
     "Zn": (125, 128, 176),
-    "W":  (80, 80, 100),
+    "W":  (201, 169, 78),
+    "Ti": (91, 190, 214),
+    "V":  (167, 117, 214),
+    "Cr": (112, 140, 255),
+    "Mn": (201, 97, 140),
+    "Mo": (212, 151, 75),
+    "Nb": (78, 159, 180),
+    "Ta": (157, 122, 211),
+    "Zr": (88, 191, 164),
+    "Hf": (125, 154, 216),
+    "Re": (215, 107, 95),
 }
-DEFAULT_COLOR = (160, 160, 160)
 
 # 典型阴离子（用于 polyhedra 顶点过滤）
 TYPICAL_ANIONS: Set[str] = {"O", "S", "Se", "Te", "F", "Cl", "Br", "I", "N"}
+# These are deliberately a small, interpretable set of network-forming
+# centres.  Do not turn every CrystalNN neighbour into a rendered bond: its
+# output is a coordination heuristic and is especially misleading for metals.
+COORDINATION_CENTERS: Set[str] = {"P", "Si", "Al", "B", "Ge", "As"}
 
 
 # ---------- Helpers ----------
 def element_rgb(el: str) -> Tuple[int, int, int]:
-    return ELEMENT_COLORS.get(el, DEFAULT_COLOR)
+    """Use the same no-grey-fallback rule as the 2-D discovery assets."""
+    if el in ELEMENT_COLORS:
+        return ELEMENT_COLORS[el]
+    try:
+        from pymatgen.core import Element
+
+        seed = Element(el).Z
+    except Exception:
+        seed = sum(ord(char) for char in el)
+    hue = (seed * 0.61803398875) % 1.0
+    red, green, blue = colorsys.hsv_to_rgb(hue, 0.58, 0.96)
+    return (round(red * 255), round(green * 255), round(blue * 255))
 
 def rgba01(rgba255: Tuple[int, int, int, int]) -> Tuple[float, float, float, float]:
     r, g, b, a = rgba255
@@ -196,7 +222,7 @@ def pick_poly_centers_mp_like(structure: Structure, mode: str) -> List[str]:
       - "none": 不画 polyhedra
       - "p":    只画 P-centered（SSE 最直观：PS4）
       - "li":   只画 Li-centered
-      - "mp":   MP-like：优先 P；如果没有 P 再退化
+      - "mp"/"auto": MP-like：优先 P；如果没有 P 再退化
     """
     elems = {site.specie.symbol for site in structure}
 
@@ -207,7 +233,7 @@ def pick_poly_centers_mp_like(structure: Structure, mode: str) -> List[str]:
         return ["P"] if "P" in elems else []
     if mode == "li":
         return ["Li"] if "Li" in elems else []
-    if mode == "mp":
+    if mode in {"mp", "auto"}:
         if "P" in elems:
             return ["P"]
         # fallback：一些常见网络形成中心
@@ -220,6 +246,46 @@ def pick_poly_centers_mp_like(structure: Structure, mode: str) -> List[str]:
         return []
     # default:
     return []
+
+
+def get_local_coordination_connections(
+    structure: Structure,
+    centers: Iterable[str],
+    cn_allowed: Set[int],
+    *,
+    include_periodic_boundary: bool = False,
+) -> List[Tuple[int, int, np.ndarray]]:
+    """Return only unambiguous local coordination connections.
+
+    A connection is emitted only for a recognised network-forming centre whose
+    anion-only coordination count is exactly one of ``cn_allowed``.  This is a
+    visual aid for motifs such as PS4 and SiO4, not a general chemical-bond
+    assignment.  Boundary-image connections are hidden by default so a finite
+    viewer does not show apparently broken periodic rods.
+    """
+    center_elements = set(centers) & COORDINATION_CENTERS
+    if not center_elements:
+        return []
+
+    cnn = CrystalNN()
+    connections: List[Tuple[int, int, np.ndarray]] = []
+    for index, site in enumerate(structure):
+        if site.specie.symbol not in center_elements:
+            continue
+        neighbours = [
+            neighbour for neighbour in cnn.get_nn_info(structure, index)
+            if structure[int(neighbour["site_index"])].specie.symbol in TYPICAL_ANIONS
+        ]
+        if len(neighbours) not in cn_allowed:
+            continue
+        if not include_periodic_boundary and any(np.any(neighbour["image"]) for neighbour in neighbours):
+            # Do not show only part of one tetrahedron/octahedron at a visual
+            # boundary: an incomplete motif is more misleading than no motif.
+            continue
+        for neighbour in neighbours:
+            image = np.array(neighbour["image"], dtype=int)
+            connections.append((index, int(neighbour["site_index"]), image))
+    return connections
 
 
 def get_polyhedra(
@@ -277,11 +343,14 @@ def export_glb_mpstyle(
     atom_radius: float = 0.40,
     bond_radius: float = 0.07,
     draw_atoms: bool = True,
-    draw_bonds: bool = True,
+    draw_bonds: bool = False,
     draw_lattice_outline: bool = False,
     draw_periodic_boundary_bonds: bool = True,
-    bond_rgb: Tuple[int, int, int] = (245, 245, 245),  # 更接近你截图的白色键
+    bond_rgb: Tuple[int, int, int] = (199, 214, 228),
     max_bonds_per_site: Optional[int] = None,
+    # Explicit, local coordination view.  Unlike ``draw_bonds``, this never
+    # creates a whole-crystal CrystalNN web.
+    draw_coordination_connections: bool = False,
     # polyhedra
     poly_mode: str = "mp",              # mp / p / li / none
     poly_cn: Set[int] = frozenset({4}), # SSE 默认只画四面体最直观
@@ -314,7 +383,7 @@ def export_glb_mpstyle(
     if draw_lattice_outline:
         add_lattice_outline(scene, structure, shift)
 
-    # bonds
+    # Generic CrystalNN bonds are intentionally opt-in for CLI compatibility.
     bonds = []
     if draw_bonds:
         bonds = get_crystalnn_bonds(structure, max_per_site=max_bonds_per_site)
@@ -330,6 +399,18 @@ def export_glb_mpstyle(
 
     # polyhedra centers
     centers = pick_poly_centers_mp_like(structure, poly_mode)
+    coordination_connections = []
+    if draw_coordination_connections:
+        coordination_connections = get_local_coordination_connections(
+            structure,
+            centers,
+            set(poly_cn),
+            include_periodic_boundary=False,
+        )
+        for i, j, image in coordination_connections:
+            p0 = structure[i].coords - shift
+            p1 = (structure[j].coords + image @ structure.lattice.matrix) - shift
+            scene.add_geometry(make_cylinder(p0, p1, bond_radius, bond_rgb))
     polys = []
     if centers:
         # 顶点过滤：P-centered 用阴离子做顶点（更像 PS4，而不是乱七八糟的凸包）
@@ -372,12 +453,14 @@ def export_glb_mpstyle(
         "draw_bonds": bool(draw_bonds),
         "draw_lattice_outline": bool(draw_lattice_outline),
         "draw_periodic_boundary_bonds": bool(draw_periodic_boundary_bonds),
+        "draw_coordination_connections": bool(draw_coordination_connections),
         "poly_mode": poly_mode,
         "poly_centers": centers,
         "poly_cn": sorted(list(poly_cn)),
         "poly_alpha": int(poly_alpha),
         "n_sites": len(structure),
         "n_bonds": len(bonds),
+        "n_coordination_connections": len(coordination_connections),
         "n_polyhedra": len(polys),
     }
 
@@ -397,11 +480,13 @@ def main():
     ap.add_argument("--bond-radius", type=float, default=0.07)
     ap.add_argument("--no-atoms", action="store_true")
     ap.add_argument("--no-bonds", action="store_true")
+    ap.add_argument("--coordination-connections", action="store_true",
+                    help="Draw only recognised local coordination connections, not a full bond network")
     ap.add_argument("--hide-periodic-boundary-bonds", action="store_true")
     ap.add_argument("--max-bonds-per-site", type=int, default=None)
 
     ap.add_argument("--poly-mode", type=str, default="mp",
-                    choices=["mp", "p", "li", "none"],
+                    choices=["auto", "mp", "p", "li", "none"],
                     help="mp: prefer P-centered (SSE), p: only P, li: only Li, none: no polyhedra")
     ap.add_argument("--poly-cn", type=str, default="4", help="Allowed CN, e.g. 4 or 4,6")
     ap.add_argument("--poly-alpha", type=int, default=85, help="0-255, lower => more transparent")
@@ -419,6 +504,7 @@ def main():
         bond_radius=args.bond_radius,
         draw_atoms=not args.no_atoms,
         draw_bonds=not args.no_bonds,
+        draw_coordination_connections=args.coordination_connections,
         draw_periodic_boundary_bonds=not args.hide_periodic_boundary_bonds,
         max_bonds_per_site=args.max_bonds_per_site,
         poly_mode=args.poly_mode,

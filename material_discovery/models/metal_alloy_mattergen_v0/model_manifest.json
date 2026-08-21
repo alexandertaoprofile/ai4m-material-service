@@ -1,0 +1,47 @@
+{
+  "model_id": "metal_alloy_mattergen_v0",
+  "display_name": "金属间化合物与有序合金 MatterGen",
+  "status": "scaffolded",
+  "scope": {
+    "included": [
+      "二元及以上有序金属间化合物",
+      "实际结构位点数不超过 20 的晶体结构生成",
+      "DFT 能量与 E_hull 初筛"
+    ],
+    "excluded": [
+      "高熵合金和多主元合金的成分比例优化",
+      "部分占位或有限温度无序固溶体",
+      "未经 DFT/实验验证的工程性能宣称"
+    ]
+  },
+  "base_model": {
+    "name": "mattergen_base",
+    "source": "Microsoft MatterGen",
+    "checkpoint_sha256": null,
+    "checkpoint_path": null
+  },
+  "training_data": {
+    "primary_source": "Science42 AI4S material.jarvis_structure (JARVIS-DFT)",
+    "dataset_manifest": "data/dataset_manifest.json",
+    "dataset_sha256": "5d3d4e08b9390353fee575e60a604d907cde087dd3d36c8e451f7ce17479e7a6",
+    "admission_policy": "data/README.md",
+    "split_policy": "chemical-system grouped train/validation/test split",
+    "accepted_structure_count": 10295
+  },
+  "artifacts": {
+    "best_checkpoint": null,
+    "best_checkpoint_sha256": null,
+    "training_config": null,
+    "metrics": null
+  },
+  "acceptance": {
+    "required": [
+      "全量结构 JSON 可解析并已标准化",
+      "以实际结构位点数完成原子数筛选",
+      "结构匹配去重且按化学体系划分数据集",
+      "稳定性、有效性、唯一性与目标元素体系覆盖完成记录",
+      "MatterSim 与统一参考相图完成独立评估"
+    ],
+    "accepted_at": null
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "snapshot": "2026-08-06_high_temperature_header_v2",
+  "queued_tables": [
+    {
+      "file": "high_temperature_material.282_brochure__thermal_properties__temperature.csv",
+      "row_count": 77,
+      "reason": "missing explicit material identity or unambiguous property-unit mapping",
+      "identity_fields": [],
+      "candidate_property_fields": [
+        "physical_property_mean_coefficient_of_thermal_expansion",
+        "british_units_rt_200_deg_f_300_deg_f",
+        "british_units_6_7_uin_in_deg_f_6_8_uin_in_deg_f",
+        "metric_units_rt_100_deg_c_200_deg_c",
+        "metric_units_12_1_um_m_deg_c_12_4_um_m_deg_c",
+        "lineage_source_item_index",
+        "lineage_caption",
+        "lineage_footnote",
+        "lineage_table_context",
+        "lineage_source_content_list",
+        "lineage_source_csv_path",
+        "lineage_equivalent_source_table_ids"
+      ],
+      "lineage_document_id": "e677ae11d86a",
+      "lineage_document_name": "282-brochure",
+      "lineage_source_table_id": "e677ae11d86a-table-0017"
+    },
+    {
+      "file": "high_temperature_material.INCONEL_783__thermal_properties__temperature__1cebbdb5.csv",
+      "row_count": 8,
+      "reason": "missing explicit material identity or unambiguous property-unit mapping",
+      "identity_fields": [],
+      "candidate_property_fields": [
+        "deg_f",
+        "deg_c",
+        "btu_in_ft2_h_deg_f",
+        "w_m_deg_c",
+        "lineage_source_item_index",
+        "lineage_caption",
+        "lineage_footnote",
+        "lineage_table_context",
+        "lineage_source_content_list",
+        "lineage_source_csv_path",
+        "lineage_equivalent_source_table_ids"
+      ],
+      "lineage_document_id": "9b471b686cf5",
+      "lineage_document_name": "inconel-alloy-783",
+      "lineage_source_table_id": "9b471b686cf5-table-0004"
+    },
+    {
+      "file": "high_temperature_material.INCONEL_783__thermal_properties__temperature__ef691ae7.csv",
+      "row_count": 11,
+      "reason": "missing explicit material identity or unambiguous property-unit mapping",
+      "identity_fields": [],
+      "candidate_property_fields": [
+        "deg_f",
+        "deg_c",
+        "in_in_deg_f_x_10_6",
+        "um_um_deg_c",
+        "lineage_source_item_index",
+        "lineage_caption",
+        "lineage_footnote",
+        "lineage_table_context",
+        "lineage_source_content_list",
+        "lineage_source_csv_path",
+        "lineage_equivalent_source_table_ids"
+      ],
+      "lineage_document_id": "9b471b686cf5",
+      "lineage_document_name": "inconel-alloy-783",
+      "lineage_source_table_id": "9b471b686cf5-table-0003"
+    },
+    {
+      "file": "high_temperature_material.INCONEL_hx__thermal_properties__temperature.csv",
+      "row_count": 10,
+      "reason": "missing explicit material identity or unambiguous property-unit mapping",
+      "identity_fields": [],
+      "candidate_property_fields": [
+        "deg_c",
+        "c_10_6_circ_c",
+        "deg_f",
+        "c_10_6_circ_f",
+        "lineage_source_item_index",
+        "lineage_caption",
+        "lineage_footnote",
+        "lineage_table_context",
+        "lineage_source_content_list",
+        "lineage_source_csv_path",
+        "lineage_equivalent_source_table_ids"
+      ],
+      "lineage_document_id": "14612dee22f3",
+      "lineage_document_name": "inconel-alloy-hx",
+      "lineage_source_table_id": "14612dee22f3-table-0004"
+    }
+  ],
+  "rule": "Document names are review hints only; create an explicit document-to-material/state mapping before import."
+}

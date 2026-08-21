@@ -8,6 +8,8 @@ from unittest.mock import patch
 import main
 import src.team_config as team_config
 from src.alloy_workflow.contracts import requirement_plan
+from src.alloy_workflow.presentation import final_conclusion_block
+from src.alloy_workflow.microstructure_tendency import build_microstructure_tendency
 
 
 class FakeWebSocket:
@@ -67,6 +69,47 @@ async def run_inline(function, *args, **kwargs):
 
 
 class AlloyServiceContractTest(unittest.TestCase):
+    def test_final_report_ends_with_complete_optimal_candidate_card(self) -> None:
+        report = final_conclusion_block({
+            "model_evidence": {"model_version": "hea_mpea_mlp_v1", "data_type": "实验 HEA/MPEA 数据"},
+            "search_space": {"processing_method": "CAST", "test_temperature_C": 900},
+            "sampling": {"generated": 100, "feasible": 1},
+            "initial_candidates": [{
+                "composition_at_pct": {"Ni": 30.0, "Co": 25.0, "Cr": 20.0, "Al": 10.0, "Ti": 15.0},
+                "yield_strength_MPa": {"mean": 520.0, "std": 28.0},
+                "hardness_HV": {"mean": 700.0, "std": 20.0},
+                "phase_probabilities": {"SS": 0.70, "IM": 0.01, "SS+IM": 0.29},
+                "phase_risk": "low",
+                "selection_score": 0.81,
+                "applicability_domain": {"level": "boundary", "nearest_training_composition_distance": 0.21},
+            }],
+        })
+        self.assertIn("预训练 MLP", report)
+        self.assertIn("### 最优候选材料卡", report)
+        self.assertIn("Ni | 30.00 at.%", report)
+        self.assertIn("工程估算与验证重点", report)
+        self.assertIn("D级工程估算", report)
+        self.assertIn("抗拉强度", report)
+        self.assertLess(report.index("### 本轮结论"), report.index("### 最优候选材料卡"))
+
+    def test_microstructure_tendency_maps_phase_risk_without_claiming_micrograph(self) -> None:
+        stable = build_microstructure_tendency({
+            "phase_probabilities": {"SS": .90, "IM": .03, "SS+IM": .07},
+            "applicability_domain": {"level": "inside"},
+        })
+        mixed = build_microstructure_tendency({
+            "phase_probabilities": {"SS": .72, "IM": .04, "SS+IM": .24},
+            "applicability_domain": {"level": "boundary"},
+        })
+        risk = build_microstructure_tendency({
+            "phase_probabilities": {"SS": .58, "IM": .18, "SS+IM": .24},
+            "applicability_domain": {"level": "outside"},
+        })
+        self.assertEqual((stable["level"], stable["visual_marker_count"]), ("A", 2))
+        self.assertEqual((mixed["level"], mixed["confidence"]), ("B", "探索性"))
+        self.assertEqual((risk["level"], risk["visual_marker_count"]), ("C", 14))
+        self.assertIn("规则映射", stable["source"])
+
     def test_routes_and_roles_keep_current_compatibility_contract(self) -> None:
         paths = {route.path for route in main.app.routes}
         self.assertTrue({"/start", "/alloy/start", "/roles", "/alloy/propose-space", "/alloy/evaluate", "/alloy/evaluate-batch"}.issubset(paths))

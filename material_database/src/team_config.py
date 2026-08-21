@@ -12,7 +12,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping
 
-from src.catalog.alloy_reference import catalog_reference_for_alloy_request
 from src.catalog.presentation import (
     analysis_markdown,
     comparison_markdown,
@@ -39,6 +38,10 @@ from src.screening_language import RANGE_JOINER, range_constraints
 
 CATALOG_SCREENING_WORKFLOW = "mature_material_catalogue_initial_screen"
 _OPEN_SELECTION_REQUEST = re.compile(r"挑选|选(?:一款|材|型|择)|筛选|推荐", re.IGNORECASE)
+_CATALOGUE_MATERIAL_REQUEST = re.compile(
+    r"(?:成熟|商品)?(?:金属|固体)?材料|金属材料|合金|不锈钢|高温合金|复合材料",
+    re.IGNORECASE,
+)
 _DIRECTIONAL_PROPERTIES = {
     "抗拉强度": "ultimate_tensile_strength", "极限抗拉强度": "ultimate_tensile_strength",
     "屈服强度": "yield_strength", "导热": "thermal_conductivity", "导热率": "thermal_conductivity", "导热系数": "thermal_conductivity",
@@ -73,11 +76,18 @@ def catalogue_screening_strategy(*, material_queries: list[str], material_famili
     }
     property_target_count = len({item.get("property") for item in property_constraints + preference_goals if item.get("property")})
     count = sum(value for key, value in dimensions.items() if key != "property_targets") + property_target_count
+    # A named grade is also a valid request in its own right.  Treat it as a
+    # catalogue index/verification request until the user states a property
+    # target; do not make the customer add artificial screening conditions just
+    # to see the record, its product state, and its evidence.
+    if (material_queries or standards) and not property_constraints and not preference_goals:
+        mode = "catalogue_index"
+        description = "按材料名称、牌号或标准核验目录身份、产品状态、已收录性质及其来源；未给出性能条件，因此本轮不筛选或排序。"
     # Directional wording (for example “高散热、硬度”) is useful for
     # evidence ordering, but is never a hard multi-condition pass/fail
     # screen.  Keep its strategy truthful even when the request also states
     # application or manufacturing context.
-    if preference_goals and not property_constraints:
+    elif preference_goals and not property_constraints:
         mode = "evidence_landscape"
         description = "按明确的方向性目标排序并展示证据覆盖，不将定性目标伪造成性能阈值或通过结论。"
     elif count == 0:
@@ -122,6 +132,12 @@ def _directional_goals_from_text(text: str) -> list[dict[str, str]]:
         {"property": property_name, "direction": direction}
         for property_name, direction in deduplicated
     ]
+
+
+def _property_is_mentioned(text: str, property_name: str) -> bool:
+    """Do not carry a stale structured preference into a newer user turn."""
+    aliases = [label for label, mapped in _DIRECTIONAL_PROPERTIES.items() if mapped == property_name]
+    return any(label in text for label in aliases)
 
 
 def _selection_context_from_text(text: str) -> dict[str, str]:
@@ -202,10 +218,15 @@ class MaterialMature:
         r"(?:接下来(?:需要)?进行执行的任务|接下来执行的任务|当前(?:需要)?执行任务|执行任务)\s*[：:]\s*",
         flags=re.IGNORECASE,
     )
+    _CURRENT_QUESTION_MARKER = re.compile(r"(?:^|\n)===\s*当前问题\s*===\s*(.+)$", flags=re.DOTALL)
     _NON_MATERIAL_TOKENS = frozenset({
         "XIMUALPHA", "LLM", "RAG", "PDF", "CIF", "MP", "MPA", "HFE", "HTCC", "CTE", "IPC",
     })
     _MATERIAL_ACRONYMS = frozenset({"ABS", "ASA", "PA", "PEEK", "PEI", "PETG", "PLA", "PPS", "PTFE", "PVC"})
+    # Correct only an unambiguous, high-frequency one-letter transposition.
+    # The canonical query is still shown in the report; arbitrary fuzzy
+    # matching would be unsafe for material grades and standards.
+    _COMMON_MATERIAL_TYPO_CORRECTIONS = {"CEEK": "PEEK"}
 
     def __init__(
         self,
@@ -344,6 +365,16 @@ class MaterialMature:
             candidate = text(payload.get(key))
             if candidate:
                 return candidate
+        # Some gateways flatten the complete conversation into ``idea`` and
+        # delimit the actual final user turn with this marker.  Treat that
+        # trailing turn as direct input before applying the long-history guard
+        # below; otherwise an unrelated old-material guard also discards the
+        # real material name in the final question.
+        for key in ("idea", "content", "query"):
+            candidate = text(payload.get(key))
+            match = MaterialMature._CURRENT_QUESTION_MARKER.search(candidate)
+            if match:
+                return match.group(1).strip()
         return latest_user_turn(payload)
 
     @classmethod
@@ -378,23 +409,35 @@ class MaterialMature:
             raise ValueError("temperature_C must be numeric") from exc
         properties = scope.get("property_constraints", scope.get("property_filters", {}))
         upstream_context, upstream_keys = self._upstream_context(payload)
-        raw_requirement = str(self._direct_user_requirement(payload) or scope.get("query") or payload.get("idea") or upstream_context)
+        direct_requirement = self._direct_user_requirement(payload)
+        raw_requirement = str(direct_requirement or scope.get("query") or payload.get("idea") or upstream_context)
         # Planner summaries can quote a prior default profile before their
         # final execution clause.  For fluid screening, only that last clause
         # is allowed to supply current numeric constraints; otherwise old
         # defaults become a false user instruction.
         fluid_requirement = self._material_extraction_text(raw_requirement)
         previous = self.load_task(taskid)
-        explicit_fluid_followup = has_explicit_screening_conditions(fluid_requirement) and (
-            bool(previous and previous.get("workflow_kind") == FLUID_SCREENING_WORKFLOW)
-            or "油" in fluid_requirement
-            or is_conductive_lubricant_request(upstream_context)
+        previous_is_fluid = bool(previous and previous.get("workflow_kind") == FLUID_SCREENING_WORKFLOW)
+        explicit_fluid_request = is_conductive_lubricant_request(fluid_requirement)
+        explicit_fluid_numbers = has_explicit_screening_conditions(fluid_requirement) and "油" in fluid_requirement
+        # A structured fluid request is also an explicit routing signal, but a
+        # latest request for a solid/metal catalogue must override a stale
+        # nested scope supplied by the gateway.
+        explicit_catalogue_request = bool(_CATALOGUE_MATERIAL_REQUEST.search(fluid_requirement))
+        structured_fluid_request = bool(
+            isinstance(scope.get("fluid_initial_screen", scope.get("fluid_screening")), dict)
+            and not explicit_catalogue_request
         )
-        if is_conductive_lubricant_request(fluid_requirement) or explicit_fluid_followup or (
-            previous and previous.get("workflow_kind") == FLUID_SCREENING_WORKFLOW
-        ) or (
-            user_allows_default(fluid_requirement) and is_conductive_lubricant_request(upstream_context)
-        ):
+        # A previous fluid task is context, not a routing lock.  Continue it
+        # only when this turn supplies fluid-screening numbers or explicitly
+        # asks to use defaults.  A new request such as “推荐成熟金属材料” must
+        # be allowed to return to the catalogue workflow even with the same
+        # taskid and stale upstream history.
+        fluid_followup = previous_is_fluid and (
+            has_explicit_screening_conditions(fluid_requirement)
+            or user_allows_default(fluid_requirement)
+        )
+        if explicit_fluid_request or explicit_fluid_numbers or structured_fluid_request or fluid_followup:
             previously_requested_criteria = bool(
                 previous
                 and previous.get("workflow_kind") == FLUID_SCREENING_WORKFLOW
@@ -422,7 +465,21 @@ class MaterialMature:
             upstream_evidence = [upstream_evidence]
         if not isinstance(upstream_evidence, list) or not all(isinstance(item, dict) for item in upstream_evidence):
             raise ValueError("upstream_evidence must be an object or a list of objects")
+        engineering_estimates = scope.get("engineering_estimates", payload.get("engineering_estimates", []))
+        if isinstance(engineering_estimates, dict):
+            engineering_estimates = [engineering_estimates]
+        if not isinstance(engineering_estimates, list) or not all(isinstance(item, dict) for item in engineering_estimates):
+            raise ValueError("engineering_estimates must be an object or a list of objects")
+        for estimate in engineering_estimates:
+            if not str(estimate.get("property") or "").strip():
+                raise ValueError("every engineering estimate needs property")
+            if not str(estimate.get("source") or "").strip() or not str(estimate.get("basis") or "").strip():
+                raise ValueError("every engineering estimate needs source and basis")
         material_queries = self._as_list(scope.get("material_queries", scope.get("materials", scope.get("names", []))))
+        for typo, canonical in self._COMMON_MATERIAL_TYPO_CORRECTIONS.items():
+            if re.search(r"(?<![A-Za-z0-9])" + re.escape(typo) + r"(?![A-Za-z0-9])", alias_extraction_text, re.IGNORECASE):
+                if canonical not in material_queries:
+                    material_queries.append(canonical)
         for acronym in self._MATERIAL_ACRONYMS:
             if re.search(r"(?<![A-Za-z0-9])" + re.escape(acronym) + r"(?![A-Za-z0-9])", alias_extraction_text, re.IGNORECASE):
                 if acronym not in material_queries:
@@ -441,24 +498,26 @@ class MaterialMature:
             raise ValueError("mature_material.selection_context must be an object")
         selection_context = {
             key: str(selection_context_raw.get(key) or scope.get(key) or "").strip()
-            for key in ("application", "environment", "manufacturing")
+            for key in (
+                "application", "component", "operating_conditions",
+                "environment", "manufacturing", "project_progress",
+            )
         }
         for key, value in _selection_context_from_text(extraction_text).items():
             selection_context.setdefault(key, value)
             if not selection_context[key]:
                 selection_context[key] = value
-        catalog_reference = None
-        if not material_queries and not material_families and not self._as_list(scope.get("standards", [])):
-            catalog_reference = catalog_reference_for_alloy_request(extraction_text)
-            if catalog_reference:
-                material_families = catalog_reference["families"]
-
         parsed_property_constraints = [item.__dict__ for item in parse_property_constraints(properties, default_temperature_K)]
         for constraint in _property_constraints_from_text(extraction_text):
             if constraint not in parsed_property_constraints:
                 parsed_property_constraints.append(constraint)
         explicit_preferences = scope.get("preference_goals", [])
         preference_goals = [item.__dict__ for item in parse_preference_goals(explicit_preferences)]
+        if direct_requirement:
+            preference_goals = [
+                goal for goal in preference_goals
+                if _property_is_mentioned(extraction_text, str(goal.get("property") or ""))
+            ]
         for goal in _directional_goals_from_text(raw_requirement):
             if goal not in preference_goals:
                 preference_goals.append(goal)
@@ -486,10 +545,13 @@ class MaterialMature:
             "service_temperature_K": default_temperature_K,
             "top_k": max(1, min(int(scope.get("top_k", 10)), 50)),
             "source_preference": str(scope.get("source_preference", "all")),
-            "catalog_reference": catalog_reference,
             "alias_extraction_text": alias_extraction_text,
             # 上游证据只原样保留和展示；没有目录匹配时绝不写成已核验事实。
             "upstream_evidence": upstream_evidence,
+            # This optional input is deliberately separate from upstream facts
+            # and catalogue evidence.  It may be generated by an upstream LLM,
+            # but is never used by catalogue filtering or ranking.
+            "engineering_estimates": engineering_estimates,
             "selection_context": selection_context,
             "screening_strategy": strategy,
             # Keep the generic path in the same inspectable workflow shape as
@@ -542,17 +604,14 @@ class MaterialMature:
                 preferences=preferences,
                 top_k=constraints["top_k"],
             )
-            # Alloy-reference requests are a deliberately curated bridge into
-            # composition optimisation.  Do not let the broader 1101 research
-            # evidence bundle replace its fixed commodity-alloy baselines.
-            if constraints.get("catalog_reference"):
-                search["candidates"] = [
-                    item for item in search["candidates"]
-                    if item["material"].get("data_role") != "1101 material-core evidence"
-                ]
         else:
             search = {"name_resolution": [], "candidates": []}
         eligible = sum(item["eligible"] for item in search["candidates"])
+        # Estimates are presentation-only annotations supplied by an upstream
+        # engineering/LLM step.  Attaching them after ``catalog.search`` makes
+        # it impossible for them to affect filtering or preference ranking.
+        for candidate in search["candidates"]:
+            candidate["engineering_estimates"] = constraints["engineering_estimates"]
         constraint_status_counts: dict[str, dict[str, int]] = {}
         for candidate in search["candidates"]:
             for evidence in candidate.get("evidence", []):
@@ -563,6 +622,20 @@ class MaterialMature:
                     constraint_status_counts[property_name][status] += 1
         has_upstream_evidence = bool(constraints["upstream_evidence"])
         strategy = constraints["screening_strategy"]
+        # Free-text aliases are resolved only once the structured catalogue is
+        # open.  Promote an unambiguous recovered name to index mode here so a
+        # customer writing “铝合金6061” gets the same index experience as an
+        # explicit API caller providing ``material_queries``.
+        if names and not parsed_constraints and not preferences and strategy["mode"] == "criteria_collection":
+            strategy = catalogue_screening_strategy(
+                material_queries=names,
+                material_families=constraints["material_families"],
+                standards=constraints["standards"],
+                property_constraints=[],
+                service_temperature_K=constraints["service_temperature_K"],
+                selection_context=constraints["selection_context"],
+                preference_goals=[],
+            )
         searchable_criteria = bool(names or constraints["material_families"] or constraints["standards"] or parsed_constraints or preferences)
         if (strategy["mode"] == "criteria_collection" or not searchable_criteria) and not has_upstream_evidence:
             message = (
@@ -573,12 +646,6 @@ class MaterialMature:
         elif not search["candidates"]:
             message = "目录中暂未找到与本轮指定材料、牌号或标准相匹配的已入库记录；未展示或推断替代候选材料。"
             outcome = "upstream_evidence_only" if has_upstream_evidence else "needs_literature_screening"
-        elif constraints.get("catalog_reference"):
-            message = (
-                f"已按合金需求映射到 {len(search['candidates'])} 种已入库商品金属/合金基准；"
-                "这些仅用于性质与工况对照，不是所提成分的精确商品牌号。"
-            )
-            outcome = "alloy_reference_catalogued"
         elif preferences and not parsed_constraints:
             message = f"已按本轮 {len(preferences)} 项方向偏好返回 {len(search['candidates'])} 种可比较的目录证据；偏好仅用于排序，不构成性能通过或工程推荐。"
             outcome = "catalogue_evidence_landscape"
@@ -588,6 +655,11 @@ class MaterialMature:
                 "但没有候选同时满足全部可比较条件；已保留每项约束的通过、不通过或缺失证据，未推断放宽条件或替代材料。"
             )
             outcome = "catalogue_no_eligible_candidates"
+        elif strategy["mode"] == "catalogue_index":
+            message = f"已完成 {len(search['candidates'])} 种已指定材料/牌号的目录核验；本轮为材料索引，不执行候选筛选或排序。"
+            # Keep the existing completed-match outcome for API compatibility;
+            # the inspectable strategy is the discriminator for index mode.
+            outcome = "catalog_matched"
         elif not parsed_constraints:
             message = f"已在结构化材料目录中匹配到 {len(search['candidates'])} 种候选；本轮未提供量化性质阈值。"
             outcome = "catalog_matched"
@@ -600,12 +672,19 @@ class MaterialMature:
             "service": self.service_name,
             "created_at": datetime.now(timezone.utc).isoformat(),
             "workflow_kind": CATALOG_SCREENING_WORKFLOW,
-            "constraints": constraints,
+            "constraints": {
+                **constraints,
+                # Persist the effective resolved anchor as well as the raw
+                # requirement, so the report's first section does not say
+                # “未指定” after a successful free-text catalogue lookup.
+                "material_queries": names,
+                "screening_strategy": strategy,
+            },
             "results": search["candidates"],
             "preference_data_gaps": search.get("preference_data_gaps", []),
             "name_resolution": search["name_resolution"],
             "screening": {
-                "request": constraints["screening_request"],
+                "request": {**constraints["screening_request"], "material_queries": names},
                 "strategy": strategy,
                 "summary": {
                     "candidates_evaluated": len(search["candidates"]),

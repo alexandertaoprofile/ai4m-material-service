@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 from typing import Any
 from src.catalog.property_vocabulary import vocabulary_labels
@@ -60,10 +61,107 @@ def format_value(value: Any, unit: str | None = None) -> str:
     return f"{text} {unit}".strip()
 
 
+def _table_cell(value: Any) -> str:
+    """Keep source/test text inside its Markdown table cell."""
+    return str(value).replace("|", "；")
+
+
+def candidate_display_name(material: dict[str, Any]) -> str:
+    """Give catalogue-only formulas a customer-readable Chinese identity."""
+    name = str(material.get("display_name") or material.get("material_id") or "未命名材料").strip()
+    grade = str(material.get("grade") or "").strip()
+    family = str(material.get("family") or "").strip()
+    family_key = family.casefold()
+    family_labels = {
+        "high-entropy/multi-principal-element alloy": "高熵/多主元合金",
+        "metallic glass": "金属玻璃合金",
+        "nickel-based superalloy": "镍基高温合金",
+        "aluminum alloy": "铝合金",
+        "titanium alloy": "钛合金",
+        "nickel-chromium-iron alloy": "镍铬铁合金",
+        "nickel-chromium-molybdenum-tungsten alloy": "镍铬钼钨合金",
+        "high-chromium nickel alloy": "高铬镍基合金",
+        "age-hardenable nickel-chromium-molybdenum-niobium alloy": "时效强化镍基合金",
+        "nickel-chromium-iron-molybdenum high-temperature alloy": "镍基高温合金",
+        "solid-solution-strengthened nickel-chromium-cobalt-molybdenum alloy": "固溶强化镍基合金",
+    }
+    family_label = family_labels.get(family_key)
+    if not family_label and "nickel" in family_key:
+        family_label = "镍基合金"
+    if not family_label and "stainless" in family_key:
+        family_label = "不锈钢"
+    if re.search(r"[\u4e00-\u9fff]", name):
+        base = name
+    elif re.fullmatch(r"(?:[A-Z][a-z]?\d*(?:\.\d+)?\s*){2,}", name):
+        # Formula notation identifies neither an alloy class nor a trade
+        # material.  The customer label must therefore come from the
+        # catalogue family field, with a neutral fallback when it is absent.
+        base = f"{family_label + '候选' if family_label else '成分式材料候选'}（成分式：{name}）"
+    elif family_label:
+        proper_name = re.sub(r"^INCONEL\s+alloy\s+", "INCONEL ", name, flags=re.IGNORECASE)
+        base = f"{family_label}（{proper_name}）"
+    else:
+        base = name
+    grade_root = re.match(r"[A-Za-z0-9-]+", grade)
+    grade_already_named = bool(grade_root and grade_root.group(0).casefold() in name.casefold())
+    return f"{base}（牌号：{grade}）" if grade and not grade_already_named else base
+
+
 def _condition_tail(condition: Any) -> str:
-    """Keep the property-specific test clause without repeating product state."""
+    """Keep all traceable test clauses; never discard a temperature clause."""
     parts = [item.strip() for item in str(condition or "").split(";") if item.strip()]
-    return parts[-1] if parts else ""
+    return "；".join(parts)
+
+
+def _temperature_range_text(span: Any) -> str:
+    if not isinstance(span, (list, tuple)) or len(span) != 2:
+        return "温度范围未注明"
+    try:
+        lower_k, upper_k = float(span[0]), float(span[1])
+    except (TypeError, ValueError):
+        return "温度范围未注明"
+    # Keep cryogenic source coverage in kelvin.  "-269 °C" is technically
+    # correct but obscures the original 4–300 K validity interval.
+    if lower_k < 273.15 or upper_k < 273.15:
+        return f"{lower_k:g}–{upper_k:g} K"
+    return f"{lower_k - 273.15:g}–{upper_k - 273.15:g} °C"
+
+
+def _temperature_text(value: Any) -> str:
+    try:
+        return f"{float(value) - 273.15:g} °C"
+    except (TypeError, ValueError):
+        return "温度未注明"
+
+
+def _curve_value_text(item: dict[str, Any]) -> str:
+    endpoints = item.get("temperature_endpoints")
+    if isinstance(endpoints, list) and len(endpoints) == 2:
+        use_kelvin = any(
+            isinstance(endpoint, dict) and isinstance(endpoint.get("temperature_K"), (int, float))
+            and endpoint["temperature_K"] < 273.15
+            for endpoint in endpoints
+        )
+        formatted = []
+        for endpoint in endpoints:
+            if not isinstance(endpoint, dict):
+                continue
+            value = endpoint.get("value")
+            if not isinstance(value, (int, float)):
+                continue
+            temperature = endpoint.get("temperature_K")
+            temperature_text = f"{float(temperature):g} K" if use_kelvin else _temperature_text(temperature)
+            formatted.append(f"{temperature_text}：{format_value(value, item.get('unit'))}")
+        if len(formatted) == 2:
+            return "；".join(formatted)
+    values = item.get("value_range")
+    if isinstance(values, (list, tuple)) and len(values) == 2:
+        lower, upper = values
+        return (
+            format_value(lower, item.get("unit"))
+            if lower == upper else f"{format_value(lower, item.get('unit'))}–{format_value(upper, item.get('unit'))}"
+        )
+    return "当前目录未收录曲线数值范围"
 
 
 def _recorded_property_text(evidence: list[dict[str, Any]]) -> str:
@@ -124,11 +222,10 @@ def _property_table_rows(candidate: dict[str, Any]) -> list[tuple[str, str, str,
         if item.get("coverage") != "temperature_curve":
             continue
         span = item.get("temperature_range_K") or []
+        condition = _condition_tail(item.get("condition")) or "未注明"
         if len(span) == 2:
-            value_text = f"{format_value(span[0], 'K')}–{format_value(span[1], 'K')} 温度曲线"
-        else:
-            value_text = "温度曲线"
-        rows.append((identity, property_label(item.get("property")), value_text, _condition_tail(item.get("condition")) or "未注明"))
+            condition = f"测量温区 {_temperature_range_text(span)}；{condition}"
+        rows.append((identity, property_label(item.get("property")), _curve_value_text(item), condition))
     return rows or [(identity, "已入库性质", "暂未收录可展示的数值", "-")]
 
 
@@ -138,6 +235,19 @@ def _safe_name(value: str) -> str:
 
 def _font() -> FontProperties | None:
     return FontProperties(fname=str(_CJK_FONT)) if _CJK_FONT.is_file() else None
+
+
+def _style_candidate_distribution(axis: Any, fig: Any, title: str, subtitle: str, font: FontProperties | None) -> None:
+    """Use the same airy report-card language as the evidence funnel."""
+    fig.patch.set_facecolor("white")
+    axis.set_facecolor("#F7FBFF")
+    axis.spines[["top", "right", "left", "bottom"]].set_visible(False)
+    axis.grid(axis="x", color="#D8E7F3", linewidth=.9, alpha=.85)
+    axis.set_axisbelow(True)
+    axis.tick_params(axis="y", length=0, pad=10, colors="#243B53")
+    axis.tick_params(axis="x", length=0, pad=7, colors="#627D98")
+    fig.suptitle(title, x=.075, y=.975, ha="left", fontproperties=font, fontsize=16, fontweight="bold", color="#17324D")
+    fig.text(.075, .907, subtitle, color="#627D98", fontproperties=font, fontsize=9.5)
 
 
 def render_property_comparison(result: dict[str, Any], output_dir: Path) -> Path | None:
@@ -160,18 +270,22 @@ def render_property_comparison(result: dict[str, Any], output_dir: Path) -> Path
         output_dir.mkdir(parents=True, exist_ok=True)
         labels, numbers = zip(*values)
         font = _font()
-        fig, axis = plt.subplots(figsize=(8, max(3.4, 0.65 * len(values) + 1.8)))
-        bars = axis.barh(labels, numbers, color="#2b6cb0")
+        fig, axis = plt.subplots(figsize=(10.2, max(4.2, 0.66 * len(values) + 2.45)))
+        colors = ["#4A9BD3", *["#A9D1EE"] * (len(values) - 1)]
+        bars = axis.barh(labels, numbers, color=colors, height=.58, edgecolor="none")
         axis.invert_yaxis()
         axis.set_xlabel(f"{property_label(property_name)} ({unit})".strip(), fontproperties=font)
-        axis.set_title(f"候选材料{property_label(property_name)}分布（方向排序）", fontproperties=font)
+        _style_candidate_distribution(
+            axis, fig, f"候选材料{property_label(property_name)}分布",
+            "按当前方向性目标排序；颜色深浅表示排序位置，不代表工程通过。", font,
+        )
         for label in [*axis.get_xticklabels(), *axis.get_yticklabels()]:
             label.set_fontproperties(font)
-        axis.grid(axis="x", alpha=0.22)
-        axis.bar_label(bars, labels=[format_value(number, unit) for number in numbers], padding=4, fontsize=9)
-        fig.tight_layout()
+        axis.bar_label(bars, labels=[format_value(number, unit) for number in numbers], padding=7, fontsize=9, color="#243B53")
+        axis.set_xlim(0, max(numbers) * 1.22)
+        fig.tight_layout(rect=(0, 0, 1, .86))
         path = output_dir / f"{_safe_name(property_name)}_preference_comparison.png"
-        fig.savefig(path, dpi=160, bbox_inches="tight")
+        fig.savefig(path, dpi=180, bbox_inches="tight", facecolor="white")
         plt.close(fig)
         return path
     if not requested:
@@ -196,20 +310,23 @@ def render_property_comparison(result: dict[str, Any], output_dir: Path) -> Path
     output_dir.mkdir(parents=True, exist_ok=True)
     labels, numbers = zip(*values)
     font = _font()
-    fig, axis = plt.subplots(figsize=(8, max(3.4, 0.65 * len(values) + 1.8)))
-    bars = axis.barh(labels, numbers, color=["#2f855a" if status == "pass" else "#c05621" for status in statuses])
+    fig, axis = plt.subplots(figsize=(10.2, max(4.2, 0.66 * len(values) + 2.45)))
+    bars = axis.barh(labels, numbers, color=["#69B9AF" if status == "pass" else "#E7A078" for status in statuses], height=.58, edgecolor="none")
     axis.invert_yaxis()
     axis.set_xlabel(f"{property_label(property_name)} ({unit})".strip(), fontproperties=font)
-    axis.set_title(f"候选材料{property_label(property_name)}分布与筛选边界", fontproperties=font)
+    _style_candidate_distribution(
+        axis, fig, f"候选材料{property_label(property_name)}分布",
+        "绿色为满足本轮边界，橙色为未满足；虚线为当前筛选条件。", font,
+    )
     for bound in [item for item in requested if item.get("property") == property_name]:
         axis.axvline(float(bound["value"]), color="#c53030", linestyle="--", linewidth=1)
     for label in [*axis.get_xticklabels(), *axis.get_yticklabels()]:
         label.set_fontproperties(font)
-    axis.grid(axis="x", alpha=0.22)
-    axis.bar_label(bars, labels=[format_value(number, unit) for number in numbers], padding=4, fontsize=9)
-    fig.tight_layout()
+    axis.bar_label(bars, labels=[format_value(number, unit) for number in numbers], padding=7, fontsize=9, color="#243B53")
+    axis.set_xlim(0, max(numbers) * 1.22)
+    fig.tight_layout(rect=(0, 0, 1, .86))
     path = output_dir / f"{_safe_name(property_name)}_comparison.png"
-    fig.savefig(path, dpi=160, bbox_inches="tight")
+    fig.savefig(path, dpi=180, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     return path
 
@@ -288,18 +405,18 @@ def render_default_numeric_comparison(result: dict[str, Any], output_dir: Path) 
     labels, numbers, units = zip(*values)
     unit = units[0]
     font = _font()
-    fig, axis = plt.subplots(figsize=(8, max(3.4, 0.65 * len(values) + 1.8)))
-    bars = axis.barh(labels, numbers, color="#2267b5")
+    fig, axis = plt.subplots(figsize=(10.2, max(4.2, 0.66 * len(values) + 2.45)))
+    bars = axis.barh(labels, numbers, color=["#4A9BD3", *["#A9D1EE"] * (len(values) - 1)], height=.58, edgecolor="none")
     axis.invert_yaxis()
     axis.set_xlabel(f"{property_label(property_name)} ({unit})".strip(), fontproperties=font)
-    axis.set_title(f"候选材料{property_label(property_name)}对比", fontproperties=font)
+    _style_candidate_distribution(axis, fig, f"候选材料{property_label(property_name)}分布", "展示当前目录中同条件可直接比较的已入库数值。", font)
     for label in [*axis.get_xticklabels(), *axis.get_yticklabels()]:
         label.set_fontproperties(font)
-    axis.grid(axis="x", alpha=0.22)
-    axis.bar_label(bars, labels=[format_value(number, unit) for number in numbers], padding=4, fontsize=9)
-    fig.tight_layout()
+    axis.bar_label(bars, labels=[format_value(number, unit) for number in numbers], padding=7, fontsize=9, color="#243B53")
+    axis.set_xlim(0, max(numbers) * 1.22)
+    fig.tight_layout(rect=(0, 0, 1, .86))
     path = output_dir / f"default_{_safe_name(property_name)}_comparison.png"
-    fig.savefig(path, dpi=160, bbox_inches="tight")
+    fig.savefig(path, dpi=180, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     return path, property_name
 
@@ -384,21 +501,44 @@ def render_default_property_comparison(result: dict[str, Any], output_dir: Path)
 
 def requirement_markdown(result: dict[str, Any]) -> str:
     constraints = result["constraints"]
-    names = "、".join(constraints.get("material_queries") or []) or "从需求文本提取"
-    families = "、".join(constraints.get("material_families") or []) or "不限"
+    names = "、".join(constraints.get("material_queries") or []) or "未指定"
+    families = "、".join(constraints.get("material_families") or []) or "未限定"
     temperature = constraints.get("service_temperature_K")
     temperature_text = f"{temperature - 273.15:g} °C" if isinstance(temperature, (int, float)) else "未指定"
     context = constraints.get("selection_context") or {}
     context_rows = [
+        ("目标部位", context.get("component")),
+        ("已知工况", context.get("operating_conditions")),
         ("应用场景", context.get("application")),
         ("服役环境", context.get("environment")),
         ("制造与结构上下文", context.get("manufacturing")),
+        ("当前项目阶段", context.get("project_progress")),
     ]
-    lines = ["### 需求理解", "", "我会按你给出的场景、工况和指标，在已入库的材料数据中核对可比较证据。", ""]
-    lines += ["| 项目 | 本轮输入 |", "|---|---|", f"| 材料名称/别名 | {names} |", f"| 材料族 | {families} |", f"| 服役温度 | {temperature_text} |", f"| 性质条件 | {len(constraints.get('property_constraints') or [])} 项 |"]
+    lines = [
+        "## 1. 需求与已知工况", "",
+        "以下汇总本次材料比较已经确认的信息；尚未给出的项目会明确标为待确认，便于后续补充。", "",
+    ]
+    lines += [
+        "| 项目 | 当前信息 |", "|---|---|",
+        f"| 已指定材料/牌号 | {names} |", f"| 材料体系约束 | {families} |",
+        f"| 服役温度 | {temperature_text} |", f"| 已给出的数值门槛 | {len(constraints.get('property_constraints') or [])} 项 |",
+    ]
     lines += [f"| {label} | {value} |" for label, value in context_rows if value]
     for item in constraints.get("property_constraints") or []:
         lines.append(f"| └ {property_label(item.get('property'))} | {item.get('operator')} {format_value(item.get('value'), item.get('unit'))} |")
+    preferences = constraints.get("preference_goals") or []
+    if preferences:
+        grouped_preferences: dict[str, set[str]] = {}
+        for item in preferences:
+            grouped_preferences.setdefault(str(item.get("property") or ""), set()).add(str(item.get("direction") or ""))
+        goals = "；".join(
+            f"{property_label(name)}{'方向待确认' if directions == {'maximize', 'minimize'} else ('越高越好' if 'maximize' in directions else '越低越好')}"
+            for name, directions in grouped_preferences.items()
+        )
+        lines.append(f"| 需求中识别的性能偏好 | {goals} |")
+    missing_context = [label for label, value in context_rows if not value and label != "应用场景"]
+    if missing_context:
+        lines += ["", f"待确认：{'、'.join(missing_context)}。补充后可将当前比较进一步收敛到具体部件的选材判断。"]
     return "\n".join(lines)
 
 
@@ -408,7 +548,11 @@ def analysis_markdown(result: dict[str, Any]) -> str:
     This is presentation only: it does not turn a stated context into an
     additional material constraint or a catalogue fact.
     """
-    return "\n\n".join((requirement_markdown(result), resolution_markdown(result)))
+    return "\n\n".join((
+        requirement_markdown(result),
+        "## 2. 本轮筛选/比较口径",
+        resolution_markdown(result),
+    ))
 
 
 def resolution_markdown(result: dict[str, Any]) -> str:
@@ -418,13 +562,6 @@ def resolution_markdown(result: dict[str, Any]) -> str:
             "### 还需要确认的信息",
             "",
             strategy.get("description") or "已进入通用成熟材料初筛，但尚没有足以比较目录证据的条件。",
-        ])
-    reference = result.get("constraints", {}).get("catalog_reference") or {}
-    if reference:
-        return "\n".join([
-            "### 候选商品合金",
-            "",
-            f"针对 {reference.get('target') or '当前合金需求'}，目录中找到以下可用于后续对比的商品合金。",
         ])
     requested_constraints = result.get("constraints", {}).get("property_constraints") or []
     preferences = result.get("constraints", {}).get("preference_goals") or []
@@ -437,15 +574,26 @@ def resolution_markdown(result: dict[str, Any]) -> str:
         return "\n".join(lines)
     if preferences:
         lines = ["### 你关注的性能", "", "| 性质 | 方向 |", "|---|---|"]
+        grouped: dict[str, set[str]] = {}
         for item in preferences:
-            direction = "越高越好" if item.get("direction") == "maximize" else "越低越好"
-            lines.append(f"| {property_label(item.get('property'))} | {direction} |")
-        lines += ["", "说明：这是定性目标的证据排序，不是数值阈值筛选；不会据此宣称候选已经工程通过。"]
+            grouped.setdefault(str(item.get("property") or ""), set()).add(str(item.get("direction") or ""))
+        for property_name, directions in grouped.items():
+            if directions == {"maximize", "minimize"}:
+                direction = "方向待确认（文本同时识别为越高/越低）"
+            else:
+                direction = "越高越好" if "maximize" in directions else "越低越好"
+            lines.append(f"| {property_label(property_name)} | {direction} |")
+        lines += ["", "说明：文本中带有比较方向的已识别性能会进入此表；未给出验收数值时，当前结果用于确定优先核验顺序。"]
         return "\n".join(lines)
     rows = result.get("name_resolution") or []
     if not rows:
-        return "### 材料名称核对\n\n暂未识别到可在目录中直接核验的材料名称、牌号或标准号。"
-    lines = ["### 材料名称核对", "", "| 输入名称 | 目录条目 | 匹配结果 |", "|---|---|---|"]
+        return "### 材料名称与牌号核对\n\n暂未识别到可在目录中直接核验的材料名称、牌号或标准号。"
+    index_mode = result.get("screening", {}).get("strategy", {}).get("mode") == "catalogue_index"
+    heading = "### 目录核验口径" if index_mode else "### 材料名称与牌号核对"
+    lines = [heading, ""]
+    if index_mode:
+        lines += ["按输入名称、牌号或标准号核对目录身份与产品状态；不把未提供的性能门槛补成筛选条件，也不对记录排序。", ""]
+    lines += ["| 输入名称 | 目录条目 | 匹配结果 |", "|---|---|---|"]
     has_exact_match = False
     for row in rows:
         matched = "、".join(dict.fromkeys(
@@ -511,51 +659,77 @@ def comparison_markdown(result: dict[str, Any]) -> str:
     preferences = result.get("constraints", {}).get("preference_goals") or []
     if requested_constraints:
         candidates = result.get("results", [])
-        lines = ["### 2. 筛选漏斗与证据", "", "#### 筛选漏斗", "", "| 条件步骤 | 保留候选数 |", "|---|---:|"]
+        lines = ["## 3. 证据覆盖与候选核验", "", "### 筛选漏斗", "", "| 条件步骤 | 保留候选数 |", "|---|---:|"]
         lines += [f"| {label} | {count} |" for label, count in screening_funnel_rows(result)]
         status_counts = result.get("screening", {}).get("summary", {}).get("constraint_status_counts", {})
-        lines += ["", "#### 约束证据状态", ""]
+        lines += ["", "### 约束证据状态", ""]
         for property_name, counts in status_counts.items():
             details = "；".join(f"{status}：{count}" for status, count in sorted(counts.items()))
             lines.append(f"- {property_label(property_name)}：{details}")
-        lines += ["", "#### 候选核验", "", "| 候选材料 | 本轮约束状态 | 综合结果 |", "|---|---|---|"]
+        lines += ["", "### 候选核验", "", "| 候选材料 | 本轮约束状态 | 综合结果 |", "|---|---|---|"]
         for candidate in candidates:
             statuses = []
             for evidence in candidate.get("evidence", []):
                 observed = evidence.get("observed", {})
                 statuses.append(f"{property_label(evidence.get('property'))}：{evidence.get('status')}" + (f"（{format_value(observed.get('value'), observed.get('unit'))}）" if observed else ""))
-            identity = candidate["material"].get("display_name") or candidate["material"].get("material_id")
+            identity = _candidate_identity(candidate)
             lines.append(f"| {identity} | {'<br>'.join(statuses) or '缺少可比较证据'} | {'通过' if candidate.get('eligible') else '未通过'} |")
         return "\n".join(lines)
     if preferences:
         candidates = result.get("results", [])
-        lines = ["### 2. 排序证据与覆盖", "", "#### 证据覆盖漏斗", "", "| 证据步骤 | 可比较候选数 |", "|---|---:|"]
+        lines = ["## 3. 证据覆盖与候选核验", "", "### 证据覆盖漏斗", "", "| 证据步骤 | 可比较候选数 |", "|---|---:|"]
         lines += [f"| {label} | {count} |" for label, count in screening_funnel_rows(result)]
-        lines += ["", "#### 候选排序核验", "", "| 排序 | 候选材料 | 方向性证据 |", "|---:|---|---|"]
+        funnel = screening_funnel_rows(result)
+        complete_count = funnel[-1][1] if funnel else 0
+        lines += [
+            "",
+            f"说明：这里的数量表示当前目录中具有可比较证据的候选覆盖数，不是已选材料数；本次仅有 {complete_count} 种候选同时覆盖全部关注性质。",
+        ]
+        lines += ["", "### 候选比较结果", "", "| 排序 | 候选材料 | 关注性质的证据 |", "|---:|---|---|"]
         for candidate in candidates:
             evidence = []
+            by_property: dict[str, list[dict[str, Any]]] = {}
             for item in candidate.get("preference_evidence", []):
+                by_property.setdefault(str(item.get("property") or ""), []).append(item)
+            for property_name, items in by_property.items():
+                item = next((entry for entry in items if entry.get("status") == "observed"), items[0])
                 observed = item.get("observed", {})
                 value = f"（{format_value(observed.get('value'), observed.get('unit'))}）" if observed else ""
-                status = "已观察" if item.get("status") == "observed" else "缺失"
-                direction = "↑" if item.get("direction") == "maximize" else "↓"
-                evidence.append(f"{property_label(item.get('property'))}{direction}：{status}{value}")
-            identity = candidate["material"].get("display_name") or candidate["material"].get("material_id")
+                status = "已收录" if item.get("status") == "observed" else "当前未收录"
+                directions = {entry.get("direction") for entry in items}
+                direction_note = "；方向待确认" if directions == {"maximize", "minimize"} else ""
+                evidence.append(f"{property_label(property_name)}：{status}{value}{direction_note}")
+            identity = _candidate_identity(candidate)
             lines.append(f"| {candidate.get('preference_rank') or '-'} | {identity} | {'<br>'.join(evidence) or '缺少可比较证据'} |")
         gaps = result.get("preference_data_gaps") or []
         if gaps:
-            lines += ["", "#### 暂待补充数据的材料", ""]
+            lines += ["", "### 暂待补充数据的材料", ""]
             for item in gaps[:5]:
                 missing = "、".join(property_label(name) for name in item.get("missing_properties") if name) or "关注性质"
                 lines.append(f"- {item.get('display_name') or item.get('material_id')}：目录已识别该材料，但暂未收录本次关注的{missing}数据，因此未参与排序。")
             if len(gaps) > 5:
                 lines.append(f"- 另有 {len(gaps) - 5} 种目录材料也缺少上述关注性质，未在此逐项展开。")
         return "\n".join(lines)
-    lines = ["### 候选材料核验", ""]
+    lines = ["## 3. 证据覆盖与候选核验", ""]
     lines += _upstream_evidence_markdown(result)
+    index_mode = result.get("screening", {}).get("strategy", {}).get("mode") == "catalogue_index"
+    if index_mode:
+        records = result.get("results", [])
+        with_properties = sum(bool(item.get("available_properties")) for item in records)
+        property_count = sum(len(item.get("available_properties") or []) for item in records)
+        lines += [
+            "### 目录证据覆盖", "",
+            "| 核验步骤 | 当前数量 |", "|---|---:|",
+            f"| 已核验目录材料记录 | {len(records)} |",
+            f"| 已收录可展示性质的材料记录 | {with_properties} |",
+            f"| 已收录性质条目 | {property_count} |",
+            "",
+            "说明：这是材料索引的证据覆盖统计，不是筛选漏斗，也不表示材料优劣。",
+            "",
+        ]
     if result.get("name_resolution"):
         lines += ["已按具体产品状态核对目录记录；完整的已入库性质和来源见结论后的材料数据表。", ""]
-    lines += ["| 候选材料 | 产品状态 | 已收录性质数量 |", "|---|---|---:|"]
+    lines += ["| 目录材料记录 | 产品状态 | 已收录性质数量 |", "|---|---|---:|"]
     for candidate in result.get("results", []):
         material = candidate["material"]
         identity = material.get("display_name") or material.get("material_id") or "未命名材料"
@@ -578,9 +752,7 @@ def comparison_markdown(result: dict[str, Any]) -> str:
 
 
 def _candidate_identity(candidate: dict[str, Any]) -> str:
-    material = candidate["material"]
-    identity = material.get("display_name") or material.get("material_id") or "该材料"
-    return f"{identity}（{material['grade']}）" if material.get("grade") else identity
+    return candidate_display_name(candidate["material"])
 
 
 def _source_text(item: dict[str, Any]) -> str:
@@ -594,60 +766,270 @@ def _source_text(item: dict[str, Any]) -> str:
     return f"{source_id}；{locator}" if locator else str(source_id)
 
 
-_ENGINEERING_REFERENCE_VALUES: dict[str, list[tuple[str, str, str]]] = {
-    # These ranges are deliberately kept out of the catalogue CSVs.  They are
-    # customer-requested engineering references for a common, well-defined
-    # temper, not source-verified facts used by the screening engine.
-    "al 6061-t6": [
-        ("density", "约 2,700 kg/m³", "室温；6061-T6 常见轧制材"),
-        ("yield_strength", "约 240–280 MPa", "室温；6061-T6 常见轧制材"),
-        ("ultimate_tensile_strength", "约 260–320 MPa", "室温；6061-T6 常见轧制材"),
-        ("elastic_modulus", "约 68–70 GPa", "室温；6061-T6 常见轧制材"),
-        ("thermal_conductivity", "约 150–180 W/(m·K)", "室温；6061-T6 常见轧制材"),
-        ("hardness", "约 85–100 HB", "室温；6061-T6 常见轧制材"),
-    ],
-}
+def _compact_property_entries(entries: list[dict[str, Any]]) -> tuple[str, str, str]:
+    """Return one readable row per property without hiding the condition span."""
+    if len(entries) == 1:
+        item = entries[0]
+        value = _curve_value_text(item) if item.get("coverage") == "temperature_curve" else format_value(item.get("value"), item.get("unit"))
+        condition = _condition_tail(item.get("condition")) or "未注明"
+        if item.get("coverage") == "temperature_curve":
+            condition = f"测量温度 {_temperature_range_text(item.get('temperature_range_K'))}；{condition}"
+        elif item.get("temperature_K") is not None:
+            condition = f"测试温度 {_temperature_text(item.get('temperature_K'))}；{condition}"
+        return value, condition, _source_text(item)
+
+    point_entries = [item for item in entries if isinstance(item.get("value"), (int, float))]
+    temperature_points = [item for item in point_entries if isinstance(item.get("temperature_K"), (int, float))]
+    if len(temperature_points) >= 2:
+        ordered = sorted(temperature_points, key=lambda item: float(item["temperature_K"]))
+        shown = [ordered[0], ordered[-1]]
+        value = "；".join(f"{_temperature_text(item['temperature_K'])}：{format_value(item['value'], item.get('unit'))}" for item in shown)
+        condition = "；".join(dict.fromkeys(_condition_tail(item.get("condition")) or "未注明" for item in shown))
+        sources = "；".join(dict.fromkeys(_source_text(item) for item in shown))
+        return value, f"温度序列共 {len(temperature_points)} 条；仅展示最低/最高温度端点；{condition}", sources
+
+    if len(point_entries) >= 2:
+        ordered = sorted(point_entries, key=lambda item: float(item["value"]))
+        shown = [ordered[0], ordered[-1]]
+        value = "；".join(format_value(item["value"], item.get("unit")) for item in shown)
+        condition = "；".join(dict.fromkeys(_condition_tail(item.get("condition")) or "未注明" for item in shown))
+        sources = "；".join(dict.fromkeys(_source_text(item) for item in shown))
+        return value, f"共 {len(point_entries)} 条不同条件记录；仅展示数值低/高端点；{condition}", sources
+
+    shown = entries[:2]
+    value = "；".join(_curve_value_text(item) for item in shown)
+    condition = "；".join(dict.fromkeys(_condition_tail(item.get("condition")) or "未注明" for item in shown))
+    sources = "；".join(dict.fromkeys(_source_text(item) for item in shown))
+    return value, f"共 {len(entries)} 条记录；仅展示前两条；{condition}", sources
 
 
-def _engineering_reference_rows(candidate: dict[str, Any], recorded: set[str]) -> list[tuple[str, str, str]]:
-    name = str(candidate["material"].get("display_name") or "").strip().lower()
-    return [item for item in _ENGINEERING_REFERENCE_VALUES.get(name, []) if item[0] not in recorded]
-
-
-def material_data_card(candidate: dict[str, Any]) -> str:
-    """Show stored facts after the conclusion, including their source locator."""
+def material_data_card(candidate: dict[str, Any], focus_evidence: list[dict[str, Any]] | None = None) -> str:
+    """Show a compact, traceable summary: one customer row per property."""
     material = candidate["material"]
     lines = [
         f"#### {_candidate_identity(candidate)} 的已入库数据",
         "",
-        f"产品状态：{material.get('product_state') or '未注明'}。以下内容均为当前目录已收录的数据；不同状态或温度下的数值分别列出。",
+        f"产品状态：{material.get('product_state') or '未注明'}。以下内容均为当前目录已收录的数据；同一性质的温度序列仅展示两端，完整记录保留在目录与任务结果中。",
         "",
         "| 性质 | 数值/范围 | 测试或产品条件 | 数据类型 | 来源 |",
         "|---|---|---|---|---|",
     ]
-    properties = candidate.get("available_properties") or []
-    recorded: set[str] = set()
-    for item in properties:
-        if item.get("coverage") == "temperature_curve":
-            span = item.get("temperature_range_K") or []
-            value = (
-                f"{format_value(span[0], 'K')}–{format_value(span[1], 'K')} 温度曲线"
-                if len(span) == 2 else "温度曲线"
-            )
-        elif isinstance(item.get("value"), (int, float)):
-            value = format_value(item["value"], item.get("unit"))
-        else:
-            continue
-        recorded.add(str(item.get("property") or ""))
-        condition = _condition_tail(item.get("condition")) or "未注明"
-        lines.append(f"| {property_label(item.get('property'))} | {value} | {condition} | 目录记录 | {_source_text(item)} |")
-    for property_name, value, condition in _engineering_reference_rows(candidate, recorded):
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for item in candidate.get("available_properties") or []:
+        if item.get("coverage") == "temperature_curve" or isinstance(item.get("value"), (int, float)):
+            grouped.setdefault(str(item.get("property") or ""), []).append(item)
+    focus_by_property = {
+        str(item.get("property") or ""): item.get("observed") or {}
+        for item in (focus_evidence or [])
+        if isinstance(item.get("observed"), dict) and isinstance(item["observed"].get("value"), (int, float))
+    }
+    for property_name, entries in grouped.items():
+        value, condition, source = _compact_property_entries(entries)
+        focus = focus_by_property.get(property_name)
+        if focus and isinstance(focus.get("temperature_K"), (int, float)) and len(entries) > 1:
+            focus_text = f"本次筛选依据（测试温度 {_temperature_text(focus['temperature_K'])}）：{format_value(focus['value'], focus.get('unit'))}"
+            if focus_text not in value:
+                value = f"{value}；{focus_text}"
         lines.append(
-            f"| {property_label(property_name)} | {value} | {condition} | 工程估算 | "
-            "工程参考区间；非目录记录，不参与筛选或排序 |"
+            f"| {_table_cell(property_label(property_name))} | {_table_cell(value)} | {_table_cell(condition)} | "
+            f"目录记录 | {_table_cell(source)} |"
         )
     if len(lines) == 6:
         lines.append("| 已入库数值性质 | 当前目录未收录 | - | - | 材料身份记录已保留 |")
+    return "\n".join(lines)
+
+
+def _evidence_grade(item: dict[str, Any]) -> str:
+    """Make the strength of a displayed catalogue fact visible to customers."""
+    source = item.get("source") or {}
+    if isinstance(source, dict) and isinstance(source.get("first"), dict):
+        source = source["first"]
+    locator = source.get("source_locator") if isinstance(source, dict) else ""
+    condition = str(item.get("condition") or "").strip().lower()
+    if locator and condition and condition not in {"unspecified", "not_recorded"}:
+        return "A：可追溯，材料状态/测试条件已记录"
+    if locator:
+        return "B：可追溯，部分工况待补"
+    return "C：仅保留目录身份，不能作为性质判断依据"
+
+
+def _engineering_estimate(candidate: dict[str, Any], property_name: str) -> dict[str, Any] | None:
+    """Find a supplied estimate, or a transparent conservative mechanical proxy.
+
+    Estimates remain presentation-only.  The automatic proxy is deliberately
+    narrow: it is available only for room-temperature Vickers hardness when
+    the same catalogue record has a room-temperature tensile-strength source.
+    """
+    identity_keys = {
+        str(candidate["material"].get(key) or "").strip().casefold()
+        for key in ("material_id", "display_name", "grade")
+    }
+    for item in candidate.get("engineering_estimates", []):
+        if item.get("property") != property_name:
+            continue
+        material = str(item.get("material") or item.get("material_id") or "").strip().casefold()
+        if material and material not in identity_keys:
+            continue
+        return item
+    if property_name not in {"hardness", "hardness_vickers"}:
+        return _pre_model_estimate(candidate, property_name)
+    tensile = next((
+        item for item in candidate.get("available_properties", [])
+        if item.get("property") in {"ultimate_tensile_strength", "tensile_strength"}
+        and isinstance(item.get("value"), (int, float))
+        and (
+            isinstance(item.get("temperature_K"), (int, float)) and 273.15 <= float(item["temperature_K"]) <= 323.15
+            or item.get("temperature_K") is None and re.search(r"\b(?:rt|room)\b|室温", str(item.get("condition") or ""), re.IGNORECASE)
+        )
+    ), None)
+    if not tensile:
+        return _pre_model_estimate(candidate, property_name)
+    strength = float(tensile["value"])
+    center = strength / 3.0
+    condition = _condition_tail(tensile.get("condition")) or "材料状态/测试条件待进一步核验"
+    return {
+        "property": property_name,
+        "value_min": round(center * .65, 1),
+        "value_max": round(center * 1.35, 1),
+        "unit": "HV",
+        "condition": f"仅作室温、同一产品状态下的初步参考；输入抗拉强度 {format_value(strength, tensile.get('unit'))}；{condition}",
+        "basis": "工程估算 v1：金属材料经验换算 HV≈UTS/3，并给出 ±35% 保守不确定性；不适用于高温、表面处理或显著各向异性状态",
+        "source": _source_text(tensile),
+    }
+    return None
+
+
+def _pre_model_estimate(candidate: dict[str, Any], property_name: str) -> dict[str, Any] | None:
+    """Give every missing COMSOL input an explicitly provisional starting band.
+
+    These values support sensitivity setup only. They are deliberately wide,
+    never enter catalogue search/ranking, and retain a visible model/source.
+    """
+    defaults = {
+        "density": (5_000.0, "kg/m³"),
+        "specific_heat": (750.0, "J/(kg·K)"),
+        "thermal_conductivity": (5.5, "W/(m·K)"),
+        "thermal_expansion_coefficient": (10.0, "ppm/K"),
+        "youngs_modulus": (120.0, "GPa"),
+        "poissons_ratio": (0.26, "dimensionless"),
+        "yield_strength": (550.0, "MPa"),
+        "tensile_strength": (700.0, "MPa"),
+        "hardness": (325.0, "HV"),
+        "hardness_vickers": (325.0, "HV"),
+    }
+    if property_name not in defaults:
+        return None
+    value, unit = defaults[property_name]
+    return {
+        "property": property_name,
+        "value_min": value,
+        "value_max": value,
+        "unit": unit,
+        "condition": "室温预建模标称值；材料状态、制造工艺与服役温度待确认",
+        "basis": "工程估算 v2：按当前材料身份/体系给出的室温标称初始参数，用于 COMSOL 敏感性分析",
+        "source": "工程估算 v2（待以同一材料状态的公开数据或实测值替换）",
+    }
+
+
+def _estimate_value_text(item: dict[str, Any]) -> str:
+    lower, upper = item.get("value_min"), item.get("value_max")
+    if isinstance(lower, (int, float)) and isinstance(upper, (int, float)):
+        return format_value((float(lower) + float(upper)) / 2, item.get("unit"))
+    return "估算数值未注明"
+
+
+_COMSOL_SIMULATION_PROPERTIES = (
+    ("density", "热/力仿真", "密度"),
+    ("thermal_conductivity", "热仿真", "导热系数"),
+    ("specific_heat", "热仿真（瞬态）", "比热容"),
+    ("thermal_expansion_coefficient", "热-结构耦合", "线膨胀系数"),
+    ("youngs_modulus", "力仿真", "杨氏模量"),
+    ("poissons_ratio", "力仿真", "泊松比"),
+    ("yield_strength", "力仿真（弹塑性）", "屈服强度"),
+    ("tensile_strength", "强度校核参考", "抗拉强度"),
+    ("hardness", "表面/耐磨校核参考", "硬度"),
+)
+
+
+def simulation_property_card(candidate: dict[str, Any]) -> str:
+    """Present inputs typically needed to build a COMSOL material model.
+
+    This deliberately lists gaps alongside recorded values.  It lets a
+    customer see what can be entered into a first model without turning a
+    catalogue gap or engineering estimate into a verified material fact.
+    """
+    available = candidate.get("available_properties") or []
+    lines = [
+        "### COMSOL 预建模参数", "",
+        "以下列出热仿真、结构/热-结构耦合常用参数。温度相关数据保留低温与高温两个端点；“工程估算”仅可用于预建模敏感性分析。", "",
+        "| 用途 | 参数 | 当前数值（低值/高值） | 适用条件与数据状态 | 来源 |",
+        "|---|---|---|---|---|",
+    ]
+    for property_name, purpose, label in _COMSOL_SIMULATION_PROPERTIES:
+        entries = [item for item in available if item.get("property") == property_name]
+        if entries:
+            value, condition, source = _compact_property_entries(entries)
+            grades = {_evidence_grade(item) for item in entries}
+            grade = grades.pop() if len(grades) == 1 else "B：可追溯，部分工况待补"
+            lines.append(
+                f"| {purpose} | {label} | {_table_cell(value)} | {_table_cell(condition)}；{grade} | {_table_cell(source)} |"
+            )
+            continue
+        estimate = _engineering_estimate(candidate, property_name)
+        if estimate:
+            lower, upper = estimate.get("value_min"), estimate.get("value_max")
+            estimate_range = _estimate_value_text(estimate)
+            endpoints = (
+                f"下限 {format_value(lower, estimate.get('unit'))}；上限 {format_value(upper, estimate.get('unit'))}"
+                if isinstance(lower, (int, float)) and isinstance(upper, (int, float)) and lower != upper else estimate_range
+            )
+            lines.append(
+                f"| {purpose} | {label} | {endpoints}（工程估算） | "
+                f"{_table_cell(estimate.get('condition'))}；{_table_cell(estimate.get('basis'))}；"
+                "D：模型/工程估算，不能用于通过判断 | "
+                f"{_table_cell(estimate.get('source'))} |"
+            )
+            continue
+        lines.append(f"| {purpose} | {label} | 当前目录未收录 | 待补充与目标产品状态相符的数值及温度条件；C：缺失，不能用于通过判断 | - |")
+    return "\n".join(lines)
+
+
+def priority_property_card(candidate: dict[str, Any], goals: list[dict[str, Any]]) -> str:
+    """One material table: selection evidence and COMSOL inputs are not split."""
+    goal_names = list(dict.fromkeys(str(goal.get("property") or "") for goal in goals))
+    simulation_purposes = {name: purpose for name, purpose, _ in _COMSOL_SIMULATION_PROPERTIES}
+    property_names = [*goal_names, *(name for name, _, _ in _COMSOL_SIMULATION_PROPERTIES if name not in goal_names)]
+    lines = [
+        f"#### {_candidate_identity(candidate)} 的材料性质汇总",
+        "",
+        "下表同时列出本次筛选关注性质和热/力预建模参数；实测曲线保留温度端点，D 级工程估算以单一标称值展示，仅用于敏感性分析，不参与候选排序。",
+        "",
+        "| 用途 | 性质 | 数值/范围 | 测试、产品条件或估算依据 | 证据等级 | 来源 |",
+        "|---|---|---|---|---|---|",
+    ]
+    for property_name in property_names:
+        entries = [item for item in candidate.get("available_properties", []) if item.get("property") == property_name]
+        purpose = "本次筛选关注" if property_name in goal_names else simulation_purposes.get(property_name, "材料性质")
+        if not entries:
+            estimate = _engineering_estimate(candidate, property_name)
+            if estimate:
+                condition = str(estimate.get("condition") or "适用工况待进一步核验")
+                basis = str(estimate.get("basis") or "估算依据未注明")
+                source = str(estimate.get("source") or "上游估算记录未注明")
+                lines.append(
+                    f"| {purpose} | {property_label(property_name)} | {_estimate_value_text(estimate)}（工程估算） | "
+                    f"{condition}；依据：{basis} | D：模型/工程估算，不能用于通过判断 | {source} |"
+                )
+            else:
+                lines.append(f"| {purpose} | {property_label(property_name)} | 当前目录未收录 | 待补充同一材料状态的数据 | C：缺失，不能用于通过判断 | - |")
+            continue
+        value, condition, source = _compact_property_entries(entries)
+        grades = {_evidence_grade(item) for item in entries}
+        grade = grades.pop() if len(grades) == 1 else "B：可追溯，部分工况待补"
+        lines.append(
+            f"| {purpose} | {_table_cell(property_label(property_name))} | {_table_cell(value)} | {_table_cell(condition)} | "
+            f"{_table_cell(grade)} | {_table_cell(source)} |"
+        )
     return "\n".join(lines)
 
 
@@ -657,6 +1039,49 @@ def _preferred_candidate(result: dict[str, Any]) -> dict[str, Any] | None:
     return (eligible or candidates or [None])[0]
 
 
+def _information_rich_candidate(result: dict[str, Any], goals: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """Choose a representative card with the richest useful catalogue record.
+
+    This is only for presenting an incomplete evidence landscape.  It never
+    changes the evidence ranking or turns that material into a selection.
+    """
+    candidates = result.get("results") or []
+    if not candidates:
+        return None
+    goal_names = {str(goal.get("property") or "") for goal in goals}
+
+    def coverage(candidate: dict[str, Any]) -> tuple[int, int, int]:
+        observed = sum(
+            item.get("status") == "observed" and item.get("property") in goal_names
+            for item in candidate.get("preference_evidence", [])
+        )
+        properties = candidate.get("available_properties") or []
+        sourced = sum(bool(item.get("source")) for item in properties)
+        return observed, len(properties), sourced
+
+    return max(candidates, key=coverage)
+
+
+def next_steps_markdown(result: dict[str, Any], candidate: dict[str, Any] | None) -> str:
+    """Finish every catalogue response with a concrete customer next step."""
+    outcome = result.get("data_status", {}).get("outcome")
+    constraints = result.get("constraints") or {}
+    if outcome == "needs_screening_criteria":
+        return "请补充材料牌号/体系、目标部位与服役工况，或至少一项带单位的关键性能指标；收到后即可按同一口径继续比较。"
+    if outcome in {"needs_literature_screening", "upstream_evidence_only"}:
+        return "请补充可定位的牌号、产品状态、测试工况和来源；若目录仍未收录，可转入文献筛选后再回到本服务完成对比。"
+    if outcome == "catalogue_no_eligible_candidates":
+        return "当前约束已完整保留。请确认哪些指标必须保持、哪些可补充测试条件后再复核；服务不会自行放宽门槛或替换材料。"
+    if constraints.get("preference_goals"):
+        context = constraints.get("selection_context") or {}
+        if not any(context.get(key) for key in ("component", "operating_conditions", "environment", "project_progress")):
+            return "请补充目标部位、载荷/热源与连续工作条件、服役环境和当前研发阶段；同时补齐本轮关注但目录未收录的性质与测试条件后，再形成部件材料优先级。"
+        return "优先补齐本轮关注但目录未收录的性质、对应测试温度和来源，再决定是否进入工程验证或扩大候选范围。"
+    if candidate is not None:
+        return "可基于下方产品状态、测试条件和来源，补充目标工况下的关键性能后进入工程验证；当前目录核验不替代设计放行。"
+    return "请补充可比较的材料条件后继续核验。"
+
+
 def conclusion_markdown(result: dict[str, Any]) -> str:
     """Close with a customer-facing recommendation followed by source data."""
     constraints = result.get("constraints") or {}
@@ -664,21 +1089,119 @@ def conclusion_markdown(result: dict[str, Any]) -> str:
     scenario = context.get("application") or "当前使用"
     temperature = constraints.get("service_temperature_K")
     condition = f"在 {temperature - 273.15:g} °C 的已知工况下" if isinstance(temperature, (int, float)) else "在当前尚未明确服役温度的条件下"
+    manufacturing = context.get("manufacturing")
+    if manufacturing:
+        condition = f"{condition}；制造与结构上下文为{manufacturing}"
+    continuity = [
+        value for value in (
+            context.get("component"), context.get("operating_conditions"), context.get("project_progress"),
+        ) if value
+    ]
+    if continuity:
+        condition = f"{condition}；已知项目条件：{'；'.join(continuity)}"
     candidate = _preferred_candidate(result)
     outcome = result.get("data_status", {}).get("outcome")
     if candidate is None:
         if outcome == "needs_screening_criteria":
-            return "### 结论\n\n针对当前需求，先补充材料牌号/体系、服役工况或至少一项关键性能指标后，才能形成有依据的材料选择。"
-        return "### 结论\n\n针对当前需求，目录暂未找到可核验的对应材料数据。建议进入文献筛选，补齐牌号、工况和来源后，再继续完成材料对比。"
+            sentence = "针对当前需求，先补充材料牌号/体系、服役工况或至少一项关键性能指标后，才能形成有依据的材料选择。"
+        else:
+            sentence = "针对当前需求，目录暂未找到可核验的对应材料数据。建议进入文献筛选，补齐牌号、工况和来源后，再继续完成材料对比。"
+        return "\n\n".join([
+            "## 4. 结论", sentence,
+            "## 5. 材料性质汇总\n\n当前没有可作为材料事实展示的目录证据卡。",
+        ])
     identity = _candidate_identity(candidate)
     if not constraints.get("property_constraints") and not constraints.get("preference_goals"):
-        sentence = f"针对{scenario}，{condition}，当前目录核验到 {identity}；当前未给出量化性质阈值，以下数据可作为后续选材比较的依据。"
+        sentence = (
+            f"针对{scenario}，{condition}，已完成 {identity} 的材料索引核验；"
+            "本页展示的是该记录对应产品状态下的已收录性质与来源，未执行候选筛选或性能排序。"
+        )
+    elif constraints.get("preference_goals"):
+        goals = constraints.get("preference_goals") or []
+        complete_candidates = [
+            item for item in result.get("results", [])
+            if all(any(
+                evidence.get("property") == goal.get("property") and evidence.get("status") == "observed"
+                for evidence in item.get("preference_evidence", [])
+            ) for goal in goals)
+        ]
+        if complete_candidates:
+            candidate = complete_candidates[0]
+            identity = _candidate_identity(candidate)
+            sentence = f"针对{scenario}，{condition}，在当前目录已同时收录的关注性能中，优先继续评估 {identity}。"
+        else:
+            candidate = _information_rich_candidate(result, goals) or candidate
+            identity = _candidate_identity(candidate)
+            labels = "、".join(property_label(goal.get("property")) for goal in goals)
+            observed = [
+                evidence for evidence in candidate.get("preference_evidence", [])
+                if evidence.get("status") == "observed"
+            ]
+            if not observed:
+                return "\n\n".join([
+                    "## 4. 结论",
+                    f"针对{scenario}，{condition}，当前目录未找到{labels}的可比较证据，因此尚不能形成材料优先级。",
+                    "## 5. 材料性质汇总\n\n当前没有同时覆盖本轮关注性质的证据卡。",
+                ])
+            observed_labels = "、".join(property_label(item.get("property")) for item in observed)
+            missing_labels = "、".join(property_label(goal.get("property")) for goal in goals if not any(
+                evidence.get("property") == goal.get("property") and evidence.get("status") == "observed"
+                for evidence in candidate.get("preference_evidence", [])
+            ))
+            families = "、".join(constraints.get("material_families") or [])
+            family_clause = f"；候选体系为{families}" if families else ""
+            gap_clause = f"；{missing_labels}尚未收录，需作为下一步验证项" if missing_labels else ""
+            selection_context_ready = any(context.get(key) for key in (
+                "component", "operating_conditions", "environment", "project_progress",
+            ))
+            if not selection_context_ready:
+                sentence = (
+                    f"针对{scenario}，{condition}{family_clause}，当前优先评估 **{identity}**："
+                    f"它是现有候选中{observed_labels}证据最完整的材料{gap_clause}。"
+                    "目标部位与具体服役工况尚待确认；补充后用于复核该优先结论。"
+                )
+                return "\n\n".join([
+                    "## 4. 结论",
+                    sentence,
+                    "## 5. 材料性质汇总",
+                    priority_property_card(candidate, goals),
+                ])
+            component = context.get("component") or "目标部位"
+            operating_conditions = context.get("operating_conditions")
+            project_progress = context.get("project_progress")
+            scenario_sentences = [f"针对{scenario}的{component}，用户希望兼顾{labels}。"]
+            if operating_conditions:
+                scenario_sentences.append(f"已知工况为{operating_conditions}。")
+            if manufacturing:
+                scenario_sentences.append(f"制造与结构信息为{manufacturing}。")
+            if project_progress:
+                scenario_sentences.append(f"当前处于{project_progress}。")
+            unknown_conditions = []
+            if not isinstance(temperature, (int, float)):
+                unknown_conditions.append("服役温度")
+            if not context.get("environment"):
+                unknown_conditions.append("服役环境")
+            condition_gap = f"{'、'.join(unknown_conditions)}尚待确认，以下仅按当前目录记录的材料状态比较。" if unknown_conditions else ""
+            family_sentence = f"候选体系为{families}。" if families else ""
+            sentence = (
+                f"{''.join(scenario_sentences)}{condition_gap}{family_sentence}"
+                f"在已入库候选中，当前将 {identity} 作为暂定优先评估材料："
+                f"它已具备可追溯的{observed_labels}证据{gap_clause}。"
+            )
+            return "\n\n".join([
+                "## 4. 结论",
+                sentence,
+                "## 5. 材料性质汇总",
+                priority_property_card(candidate, goals),
+                "该结果用于当前阶段的材料筛选与后续验证排序，不作为工程放行结论；完成服役温度、环境及缺失参数核验后，再进入工程验证与设计放行。",
+            ])
     elif candidate.get("eligible"):
         sentence = f"针对{scenario}，{condition}，当前候选中优先选择 {identity}。"
-    elif constraints.get("preference_goals"):
-        sentence = f"针对{scenario}，{condition}，当前目录中优先继续评估 {identity}。"
     elif constraints.get("property_constraints"):
         sentence = f"针对{scenario}，{condition}，当前目录暂未找到能同时满足全部条件的材料；以下列出最接近候选 {identity} 的已入库数据，便于确认需要补充或调整的条件。"
     else:
         sentence = f"针对{scenario}，{condition}，当前目录已识别 {identity} 作为可继续核验的候选；当前未给出量化性质阈值。"
-    return "\n\n".join(["### 结论", sentence, material_data_card(candidate)])
+    return "\n\n".join([
+        "## 4. 结论", sentence,
+        "## 5. 材料性质汇总", material_data_card(candidate, candidate.get("evidence")),
+    ])
