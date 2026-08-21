@@ -31,7 +31,14 @@ def planned_alloy_method_block(payload: dict[str, Any]) -> str:
         if isinstance(value, (list, tuple)) and len(value) == 2
     ) or "由任务约束确定"
     objectives = effective.get("objectives") or {}
-    objective_text = "、".join(objectives) or "强度、硬度、相风险与数据适用域"
+    objective_labels = {
+        "yield_strength_MPa": "屈服强度",
+        "hardness_HV": "硬度",
+        "phase_risk": "相风险",
+    }
+    objective_text = "、".join(
+        objective_labels.get(str(name), str(name)) for name in objectives
+    ) or "强度、硬度、相风险与数据适用域"
     return "\n".join([
         "## 1. 问题描述",
         f"在 {elements} 组成的合金体系中，搜索满足成分边界、工艺和温度条件的候选配比，并对 {objective_text} 进行初步量化评估。",
@@ -47,51 +54,76 @@ def planned_alloy_method_block(payload: dict[str, Any]) -> str:
         "## 3. 计划计算链与模型定义",
         "以下为本任务已配置、将按顺序执行的方法定义，不包含任何预测结果。",
         "",
-        "### 3.1 Dirichlet 成分单纯形采样",
-        "在满足 $\\sum_i x_i=1$ 的成分单纯形内生成候选，再施加元素上下限；该采样保证每个候选的原子分数归一化。",
+        "### 3.1 成分归一化随机采样（Dirichlet）",
+        "先在所有元素原子分数之和为 1 的配比空间中生成候选，再施加每种元素的含量上下限。这样每个候选天然满足总成分为 100 at.% 的条件。",
+        "",
+        "候选成分的采样条件为：",
+        r"$$\sum_i x_i=1,\qquad \mathbf{x}\sim\operatorname{Dir}(\boldsymbol\alpha)$$",
+        "",
+        "其概率密度定义为：",
+        r"$$p(\mathbf{x}\mid\boldsymbol\alpha)=\frac{\Gamma(\sum_i\alpha_i)}{\prod_i\Gamma(\alpha_i)}\prod_i x_i^{\alpha_i-1},\qquad x_i\geq0$$",
+        "",
+        "随后仅保留落在用户设定元素范围内的候选：",
+        r"$$l_i\leq100x_i\leq u_i$$",
         "",
         "| 输入 | 输出 |",
         "|---|---|",
-        "| 元素集合、元素上下限、工艺 p、温度 T | 满足约束的候选成分向量 $\\mathbf{x}$ |",
+        "| 元素种类、各元素含量范围、制备工艺、评价温度 | 满足约束的候选配比 |",
         "",
-        "### 3.2 成分—性能代理模型",
-        "本服务当前使用 5 个随机种子训练的 ExtraTrees 回归/分类集成，而非热力学求解器。每个候选由同一特征管线转换后送入屈服强度、硬度和相类别三个模型头。",
+        "### 3.2 成分—性能预测模型",
+        "模型以成分描述符、制备工艺和评价温度为输入，输出强度、硬度与相组成倾向，并以多个独立训练结果的离散度表征预测稳定性。",
         "",
         "| 特征组 | 具体描述符 |",
         "|---|---|",
         "| 成分表示 | 各元素原子分数 $x_i$、元素数 $N$ |",
-        "| 成分统计 | 理想混合熵、平均原子序数、平均价电子浓度 VEC |",
-        "| 工艺上下文 | 制备工艺 one-hot 编码、评价温度、温度缺失标记 |",
+        "| 成分统计 | 理想混合熵、平均原子序数、平均价电子浓度（VEC） |",
+        "| 工艺上下文 | 制备工艺的分类编码、评价温度、温度是否缺失 |",
+        "",
+        "本服务从候选配比中计算下列连续描述符：",
+        r"$$N=\sum_i\mathbb{I}(x_i>0),\qquad \Delta S_{mix}=-R\sum_i x_i\ln x_i$$",
+        "",
+        r"$$\bar Z=\sum_i x_iZ_i,\qquad \overline{VEC}=\sum_i x_iVEC_i$$",
+        "",
+        "其中，N 是参与合金的元素数；ΔSₘᵢₓ反映理想混合程度；平均原子序数和平均价电子浓度用于刻画成分的电子结构差异。制备工艺转为分类编码后，与评价温度及温度缺失标记一起构成模型输入。",
         "",
         "### 3.3 输出、不确定性与筛选",
         "| 模型输出 | 本轮用途 |",
         "|---|---|",
         "| 屈服强度与硬度 | 5 个集成成员的均值与标准差，用于性能比较与不确定性控制 |",
-        "| 相类别概率 | SS、IM、SS+IM 等类别的集成概率，用于相风险筛除 |",
+        "| 相类别概率 | 固溶体主导（SS）、金属间相（IM）及混相（SS+IM）的概率，用于相风险筛除 |",
         "| 数据适用域 | 候选成分与训练成分云的最近距离，用于标记域内、边界或域外候选 |",
         "| 综合排序 J | 在通过硬约束的候选中组合强度、硬度、相稳定倾向和可靠性 |",
+        "",
+        "若本轮选定模型为集成模型，性能预测的均值和离散度按下式计算：",
+        r"$$\bar y(\mathbf{z})=\frac{1}{M}\sum_{m=1}^{M}\hat y_m(\mathbf{z}),\qquad \sigma_y(\mathbf{z})=\sqrt{\frac{1}{M}\sum_{m=1}^{M}(\hat y_m-\bar y)^2}$$",
+        "",
+        "数据适用域以候选与训练配比的最近距离衡量：",
+        r"$$d_{AD}(\mathbf{x})=\min_{\mathbf{x}^{train}}\lVert\mathbf{x}-\mathbf{x}^{train}\rVert_2$$",
+        "",
+        "通过硬约束后，再按综合评分排序：",
+        r"$$J=w_yz(YS-\sigma_{YS})+w_hz(HV)+w_pz(P_{SS})+w_r\left[0.5\left(1-z(\sigma_{YS})\right)+0.5\left(1-z(d_{AD})\right)\right]$$",
+        "",
+        "其中 YS 为屈服强度，HV 为硬度，P₍SS₎为固溶体主导的预测概率；z(·) 仅在本轮可行候选中进行 min-max 归一化。",
         "",
         f"任务条件来源：{plan.get('template', '当前需求解析')}。计算完成后，结果区仅保留实际产出并用于结论的数值。",
     ])
 
 
-def pretrained_model_and_constraints_block(result: dict[str, Any]) -> str:
-    """Explain the selected ExtraTrees ensemble in customer-facing language."""
-    evidence = result.get("model_evidence") or {}
-    version = evidence.get("model_version", "hea_mpea_baseline_v0.1")
+def prediction_method_and_constraints_block(result: dict[str, Any]) -> str:
+    """Describe usable prediction scope without exposing implementation details."""
     return "\n".join([
-        "#### 本轮模型与结果依据",
-        "本轮采用离线验证后选定的 ExtraTrees 集成模型评估合金配方。它将成分、制备工艺和评价温度及其派生描述符共同映射到性能、相组成倾向和数据适用域。",
+        "#### 预测依据与适用范围",
+        "本轮数值来自经离线验证的合金成分—性能预测模型，用于在给定元素范围、工艺和温度下比较候选配比。",
         "",
-        "| 项目 | 本轮采用方式 |",
+        "| 项目 | 本轮说明 |",
         "|---|---|",
-        f"| 采用模型 | 5 个随机种子训练的 ExtraTrees 回归/分类集成（版本：{version}） |",
+        "| 预测方式 | 多次独立训练结果集成，均值用于比较，离散度用于提示预测稳定性 |",
         "| 输入 | 元素原子分数、元素数、理想混合熵、平均原子序数、平均价电子浓度（VEC）、制备工艺与评价温度 |",
         "| 输出 | 屈服强度、硬度、相组成倾向、预测离散度与训练数据适用域 |",
-        "| 数据依据 | 已离线整理的实验 HEA/MPEA 数据；按规范化成分分组，5 个随机种子形成集成 |",
+        "| 数据依据 | 已整理的实验 HEA/MPEA 数据，并按规范化成分分组评估 |",
         "| 结果性质 | 模型预测用于研发排序与候选收敛 |",
         "",
-        "先按元素边界、工艺温度、相风险、性能目标和数据适用域筛除不合适的候选，再在保留候选中比较。训练数据边界附近的候选会保留其探索价值，同时在最终材料卡中单独标明可信度。",
+        "先按元素边界、工艺温度、相风险、性能目标和数据适用域筛除不合适的候选，再比较保留候选。训练数据边界附近的候选会单独标明可信度。",
         "",
         "#### 当前筛选边界",
         "| 约束 | 筛选要求 |",
@@ -108,12 +140,9 @@ def screening_workflow_block(result: dict[str, Any]) -> str:
     space = result.get("search_space") or {}
     criteria = result.get("screening_criteria") or {}
     return "\n".join([
-        "#### 这轮筛选是怎样完成的",
-        f"1. **确定探索边界**：限定允许元素、各元素原子百分比范围、总和为 100 at.%、工艺为“{space.get('processing_method', '-')}”、温度为 {space.get('test_temperature_C', '-')}°C。",
-        f"2. **生成候选配比**：使用 Dirichlet 成分单纯形采样，可理解为在“所有元素比例非负、总和必为 100%”的配比空间内均匀抽取组合；本轮生成 {sampling.get('generated', 0)} 个候选，且都满足预设元素范围。",
-        "3. **逐个模型推理**：对每个候选输入成分、工艺和温度，集成模型输出屈服强度、硬度、相组成概率、模型间离散度和训练适用域。",
-        f"4. **先做硬性筛除**：检查元素边界、相风险、性能门槛、不确定性和适用域。本轮保留 {sampling.get('feasible', 0)} 个候选；适用域规则为“{criteria.get('applicability_rule', '-')}”。",
-        "5. **再综合排序**：只在通过硬性筛除的候选中综合比较强度、硬度、相稳定倾向和可靠性；排序靠前不等于已经完成工程认证。",
+        "#### 筛选方式",
+        f"在指定元素范围、{space.get('processing_method', '-')} 工艺和 {space.get('test_temperature_C', '-')}°C 条件下生成 {sampling.get('generated', 0)} 个配比；每个配比均满足总成分 100 at.% 的约束。",
+        f"随后计算强度、硬度、相风险、预测离散度和数据适用域，先执行硬性筛除，再对保留的 {sampling.get('feasible', 0)} 个候选综合排序。适用域规则为“{criteria.get('applicability_rule', '-')}”。",
     ])
 
 
@@ -144,20 +173,20 @@ def candidate_table(result: dict[str, Any]) -> str:
 
 def response_relationship_block(result: dict[str, Any]) -> str:
     """Explain the nonlinear surrogate in engineering language and retain its API form."""
-    response = result.get("nonlinear_response_function", {})
     criteria = result.get("screening_criteria", {})
     mode = criteria.get("mode")
     threshold_note = ""
     if mode == "conservative_adaptive":
-        threshold_note = "- 由于本轮需求信息不完整，系统以当前搜索空间内的相对较优区间自动设置强度、硬度和预测稳定性门槛，并仅保留训练数据范围内的候选。补充明确指标后，会优先采用用户指定的门槛。"
+        threshold_note = "本轮未给出完整性能门槛，因此以当前搜索空间的相对较优区间进行初筛；补充明确指标后将按指定门槛筛选。"
     return "\n".join([
-        "#### 成分和性能如何关联",
-        "成分比例、制备工艺和温度共同影响强度、硬度及相组成；这种关系通常是非线性的，不能可靠地简化成“某元素每增加 1% 就固定提高多少强度”的线性公式。",
-        "本服务用已训练的高熵合金/多主元合金（HEA/MPEA）集成模型近似这条响应关系：",
-        f"`{response.get('mathematical_form', 'F(成分, 工艺, 温度) → 性能、相风险与可信度')}`",
-        "- 这意味着后续可在给定元素范围内改变一个或多个元素比例，并由同一模型重新计算强度、硬度、相风险和不确定性；而不是把当前候选范围误当成硬编码配方。",
+        "#### 成分—性能关系",
+        "成分、制备工艺和温度共同影响强度、硬度与相组成，通常呈非线性关系。模型在给定边界内重新计算每个配比的响应：",
+        "",
+        r"$$\mathcal{F}(\mathbf{x},p,T)\longmapsto\left(\widehat{YS},\widehat{HV},\widehat{\mathbf{P}}_{phase},\sigma,d_{AD}\right)$$",
+        "",
+        r"其中 \(\mathbf{x}\) 为元素原子分数，\(p\) 为制备工艺，\(T\) 为评价温度；输出依次为强度、硬度、相组成倾向、预测离散度和数据适用域距离。",
         threshold_note,
-        "- 如需进一步比较多个新配比，系统会逐个计算它们的强度、硬度、相风险和可信度，并将结果并排呈现；每条配比只需给出元素原子百分比（合计 100）、工艺和温度。",
+        "如需比较新配比，只需提供元素原子百分比（合计 100 at.%）、工艺和温度。",
     ])
 
 
@@ -167,13 +196,13 @@ def selection_formula_block(result: dict[str, Any]) -> str:
         return ""
     weights = formula.get("weights") or {}
     return "\n".join([
-        "#### 候选如何综合排序",
-        "通过硬性初筛后，系统不会只看单一强度，而是按下式综合比较候选：",
+        "#### 综合排序",
+        "通过硬性初筛后，按下式综合比较候选：",
         "",
-        "`J = wᵧ·z(屈服强度 − 强度不确定性) + wₕ·z(硬度) + wₚ·z(SS 相概率) + wᵣ·[0.5·(1−z(强度不确定性)) + 0.5·(1−z(距训练数据距离))]`",
+        r"$$J=w_yz(YS-\sigma_{YS})+w_hz(HV)+w_pz(P_{SS})+w_r\left[0.5\left(1-z(\sigma_{YS})\right)+0.5\left(1-z(d_{AD})\right)\right]$$",
         "",
         f"本轮权重：强度 {weights.get('strength', 0):.0%}，硬度 {weights.get('hardness', 0):.0%}，相稳定倾向 {weights.get('phase', 0):.0%}，预测可靠性 {weights.get('reliability', 0):.0%}。",
-        "其中 `z()` 表示在本轮可行候选中归一化；这只用于排序。元素范围、相风险上限、最低性能门槛和适用域仍是先行的硬性条件。",
+        r"\(z(\cdot)\) 只在本轮可行候选中归一化；元素范围、相风险、性能门槛和适用域仍是先行条件。",
     ])
 
 
@@ -219,7 +248,7 @@ def optimization_handoff_table(result: dict[str, Any]) -> str:
 
 def final_conclusion_block(result: dict[str, Any]) -> str:
     blocks = [
-        pretrained_model_and_constraints_block(result),
+        prediction_method_and_constraints_block(result),
         default_assumptions_block(result),
         screening_workflow_block(result),
         response_relationship_block(result),
@@ -272,7 +301,6 @@ def optimal_candidate_data_card(result: dict[str, Any]) -> str:
         return ""
     candidate = candidates[0]
     space = result.get("search_space") or {}
-    evidence = result.get("model_evidence") or {}
     composition = candidate.get("composition_at_pct") or {}
     strength = candidate.get("yield_strength_MPa") or {}
     hardness = candidate.get("hardness_HV") or {}
@@ -280,8 +308,7 @@ def optimal_candidate_data_card(result: dict[str, Any]) -> str:
     domain, confidence = _domain_and_confidence(candidate)
     applicability = candidate.get("applicability_domain") or {}
     phase_risk = {"low": "较低", "high": "较高"}.get(candidate.get("phase_risk"), str(candidate.get("phase_risk") or "未记录"))
-    source = f"ExtraTrees 5-种子集成（{evidence.get('model_version', 'hea_mpea_baseline_v0.1')}）"
-    report_locator = "HEA 代理模型训练报告：reports/models/*_training_report.json"
+    source = "经离线验证的合金成分—性能预测模型"
     composition_rows = [f"| {element} | {float(amount):.2f} at.% |" for element, amount in composition.items()]
     return "\n".join([
         "### 最优候选材料卡",
@@ -315,8 +342,8 @@ def optimal_candidate_data_card(result: dict[str, Any]) -> str:
         "",
         "| 来源与可信度说明 | 记录 |",
         "|---|---|",
-        f"| 预测来源 | {source}；{report_locator}。 |",
-        f"| 数据范围 | {evidence.get('data_type', 'HEA/MPEA 训练数据范围随任务清单保存')} |",
+        f"| 预测依据 | {source}；用于研发筛选与候选排序。 |",
+        "| 数据范围 | HEA/MPEA 实验数据覆盖范围；适用域已在上方单独标注。 |",
         f"| 可信度结论 | 屈服强度、硬度和相组成来自模型预测；工程估算表中的条目单独按 D 级标注。两类结果均用于研发初筛，不作为工程放行依据。{confidence} |",
     ])
 
@@ -388,6 +415,31 @@ async def _stream_deterministic(websocket: Any, text: str) -> None:
             await asyncio.sleep(0)
 
 
+async def stream_authoritative_markdown(websocket: Any, markdown: str, *, step_id: str) -> None:
+    """Use the established LLM token stream for every customer-facing Markdown block."""
+    await websocket.send_text(f"<<<CONTENT_START:{step_id}>>>")
+    llm = _llm()
+    if llm is None:
+        await _stream_deterministic(websocket, markdown)
+        await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
+        return
+    try:
+        from src.alloy_workflow.llm_streaming import stream_llm_response
+        prompt = (
+            "你是合金服务的 Markdown 流式转发器。请通过 token 流逐字输出 "
+            "<AUTHORITATIVE_MARKDOWN> 内的全部 Markdown；不得改写、删减、补充、"
+            "翻译、重排或输出 XML 标签。必须完整保留标题、表格、公式和图片链接。\n"
+            "<AUTHORITATIVE_MARKDOWN>\n"
+            f"{markdown}\n"
+            "</AUTHORITATIVE_MARKDOWN>"
+        )
+        await stream_llm_response(llm, [llm._default_system_msg(), llm._user_msg(prompt)], websocket)
+    except Exception:
+        await _stream_deterministic(websocket, markdown)
+    finally:
+        await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
+
+
 def visual_assets_block(visual_assets: list[dict[str, str]] | None = None) -> str:
     """Render public charts inside the conversation body, like the 3D service.
 
@@ -435,29 +487,4 @@ async def emit_result_content(websocket: Any, result: dict[str, Any], *, step_id
     tendency = microstructure_tendency_block(result, str((tendency_asset or {}).get("url") or ""))
     if tendency:
         rendered_content = rendered_content.rstrip() + "\n\n" + tendency
-    await websocket.send_text(f"<<<CONTENT_START:{step_id}>>>")
-    llm = _llm()
-    if llm is None:
-        await _stream_deterministic(websocket, rendered_content)
-        await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
-        return
-    try:
-        from src.alloy_workflow.llm_streaming import stream_llm_response
-        authoritative_markdown = rendered_content
-        relay_prompt = (
-            "你是合金服务的 Markdown 流式转发器，不负责推理、概括、润色或补充。"
-            "下方 <AUTHORITATIVE_MARKDOWN> 中的内容由程序根据已保存的模型结果生成，"
-            "包括数字、表格、公式和图片链接。你的唯一任务是从正文的第一个字符到最后一个字符逐字输出其内部内容。"
-            "绝对不得改写、翻译、删减、补充、重新排序、解释、添加标题、添加代码围栏，"
-            "也不要输出 XML 标签本身。必须完整保留所有 Markdown 和 HTML。\n"
-            "<AUTHORITATIVE_MARKDOWN>\n"
-            f"{authoritative_markdown}\n"
-            "</AUTHORITATIVE_MARKDOWN>"
-        )
-        await stream_llm_response(llm, [llm._default_system_msg(), llm._user_msg(relay_prompt)], websocket)
-    except Exception:
-        # Same failure philosophy as neighboring services: preserve a complete,
-        # deterministic result rather than suppressing evidence on LLM failure.
-        await _stream_deterministic(websocket, rendered_content)
-    finally:
-        await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
+    await stream_authoritative_markdown(websocket, rendered_content, step_id=step_id)

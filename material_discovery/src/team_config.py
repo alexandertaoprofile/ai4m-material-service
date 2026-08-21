@@ -34,6 +34,7 @@ from src.material_workflow.llm_constraint_inference import (
 from src.material_workflow.llm_streaming import stream_llm_response
 from src.material_workflow.payloads import build_payload
 from src.material_workflow.presentation import (
+    DiscoveryProgressEvents,
     build_requirement_brief,
     emit_presentation_assets,
     stream_discovery_progress,
@@ -90,7 +91,7 @@ class InorganicNewMaterialDiscoveryAction(Action):
 
     @staticmethod
     async def _stream_authoritative_markdown(llm, websocket, step_id: str, markdown: str) -> None:
-        """Stream program-authored Markdown without allowing the display LLM to alter facts."""
+        """Token-stream program-authored Markdown through the established renderer."""
         await websocket.send_text(f"<<<CONTENT_START:{step_id}>>>")
         relay_prompt = (
             "你是无机新材料服务的 Markdown 流式转发器。下方内容由程序根据已保存的计算结果生成。"
@@ -118,7 +119,6 @@ class InorganicNewMaterialDiscoveryAction(Action):
         payload = self._payload_from_instruction(instruction, taskid, user_name, file_metadata)
         config = load_config("config/config.yaml")
         llm = SeLLM(base_url=config["base_url_1"], api_key=config["api_key"])
-
         # 阶段 2：先确定性解析生成条件；缺失时仅请求受约束的 LLM 补全，随后仍须校验。
         async def announce_missing_input_inference() -> None:
             logger.info("[CONSTRAINT_LLM] deterministic extraction empty; requesting constrained LLM inference taskid={}", taskid)
@@ -147,12 +147,14 @@ class InorganicNewMaterialDiscoveryAction(Action):
         )
 
         # 阶段 4：在独立线程运行领域流水线，并并行转发已存在的阶段进度。
+        progress_events = DiscoveryProgressEvents(str(payload["taskid"]))
         progress_task = asyncio.create_task(
             stream_discovery_progress(
                 websocket,
                 NEW_MATERIAL_RESULTS_ROOT / constraints.taskid,
                 constraints.taskid,
                 step_id=FRONTEND_STEP_ID,
+                progress_events=progress_events,
             )
         )
         try:
@@ -163,6 +165,14 @@ class InorganicNewMaterialDiscoveryAction(Action):
                 await progress_task
             except asyncio.CancelledError:
                 pass
+
+        await progress_events.emit(
+            websocket,
+            stage="completed" if result.status == "ok" else "failed",
+            percent=100 if result.status == "ok" else 0,
+            status="completed" if result.status == "ok" else "failed",
+            text="计算流程已结束，正在发送已保存的结果。" if result.status == "ok" else "计算流程未完成，请查看结果中的具体原因。",
+        )
 
         # 阶段 5：基于已保存的计算结果发送展示资产和权威结论；不由展示 LLM 改写事实。
         presentation = (result.artifacts or {}).get("presentation") or {}

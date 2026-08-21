@@ -17,9 +17,9 @@ from dotenv import load_dotenv
 from fastapi import Body, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from src.alloy_workflow.presentation import emit_result_content, planned_alloy_method_block
+from src.alloy_workflow.presentation import emit_result_content, planned_alloy_method_block, stream_authoritative_markdown
 from src.alloy_workflow.contracts import requirement_plan as _requirement_plan, task_id as _taskid, upstream_requirement as _upstream_requirement
-from src.alloy_workflow.identity import ACTION_DESCRIPTION, ACTION_NAME, ROLE_NAME, ROLE_PROFILE, SERVICE_ID
+from src.alloy_workflow.identity import ACTION_DESCRIPTION, ACTION_NAME, ROLE_NAME, ROLE_PROFILE, SERVICE_BOUNDARY, SERVICE_ID
 from src.alloy_workflow.protocol import prepare_public_assets
 from src.alloy_workflow.runtime import RUNTIME
 
@@ -77,9 +77,9 @@ def roles():
         profile: {
             "name": ROLE_NAME,
             "profile": profile,
-            "goal": "形成具体元素配比方案、组织与性能预测结果、模型适用性评估和实验验证优先级建议。",
-            "constraints": "基于特定材料体系的基体元素、大致成分范围、目标性能和应用条件，组织成分微调与计算评估任务。",
-            "desc": "面向铁基、铝基合金等特定材料体系的成分微调与优化场景，输出元素配比方案、微观组织与宏观性能预测、模型适用性评估和实验验证优先级建议。",
+            "goal": "形成单一金属合金的元素配比方案、组织与性能初步预测、模型适用性评估和实验验证优先级建议。",
+            "constraints": SERVICE_BOUNDARY,
+            "desc": ACTION_DESCRIPTION,
             "is_human": False,
             "role_id": f"{SERVICE_ID}_v1",
             "states": ["0. Coding"],
@@ -108,9 +108,9 @@ def roles():
             "routing": {
                 "service_id": SERVICE_ID,
                 "priority": 1,
-                "match_when": "针对铁基、铝基合金等特定材料体系，已明确基体元素和大致成分范围，并需要生成元素配比方案、预测组织与性能时。",
+                "match_when": "针对铁基、镍基、铝基或 HEA/MPEA 等单一金属合金体系，已明确金属元素和原子百分比范围，并需要生成元素配比方案、比较组织与性能时。",
                 "include_keywords": ["铁基合金", "铝基合金", "高熵合金", "多主元合金", "HEA", "MPEA", "高温合金", "镍基合金", "难熔合金", "合金配比", "合金成分", "元素比例", "原子百分比", "添加量", "微量元素", "成分优化", "配比优化", "成分空间", "组分设计", "候选配比", "元素组成", "微观组织", "组织演变", "宏观性能", "热力学", "动力学", "Ni-Co-Cr", "Nb-Mo-Ta-W"],
-                "exclude_keywords": [],
+                "exclude_keywords": ["复合材料", "复材", "树脂", "环氧", "纤维", "碳纤维", "玻璃纤维", "填料", "增强相", "聚合物", "CFRP", "GFRP", "PEEK", "PEKK", "PEI", "PPS"],
             },
             "recovered": False,
             "latest_observed_msg": None,
@@ -186,11 +186,10 @@ async def start(websocket:WebSocket):
         print(f"[ALLOY][{taskid}] accepted template={plan.get('template')!r} domain={effective.get('model_domain')!r}", flush=True)
         await websocket.send_text("[start]")
         await websocket.send_json({"version":"1.0.0","agent":"alloy_composition_optimization","request_id":taskid,"type":"progress","data":{"id":FRONTEND_STEP_ID,"stepId":FRONTEND_STEP_ID,"title":FRONTEND_STEP_TITLE,"status":"completed","description":"已生成可覆盖的探索模板和待确认项。","result":plan}})
-        await websocket.send_text(
-            f"<<<CONTENT_START:{FRONTEND_STEP_ID}>>>\n"
-            f"{planned_alloy_method_block(payload)}\n\n"
-            f"待确认：{'；'.join(plan['questions_to_confirm'])}\n"
-            f"<<<CONTENT_END:{FRONTEND_STEP_ID}>>>"
+        await stream_authoritative_markdown(
+            websocket,
+            f"{planned_alloy_method_block(payload)}\n\n待确认：{'；'.join(plan['questions_to_confirm'])}",
+            step_id=FRONTEND_STEP_ID,
         )
         await websocket.send_json({"version":"1.0.0","agent":"alloy_composition_optimization","request_id":taskid,"type":"progress","data":{"id":FRONTEND_STEP_ID,"stepId":FRONTEND_STEP_ID,"title":FRONTEND_STEP_TITLE,"status":"in_progress","description":"正在通过隔离的高熵/多主元合金（HEA/MPEA）专项 runner 进行采样和批量预测。"}})
         result=await asyncio.to_thread(_proposal,payload); result["_summary_path"]=RESULTS/taskid/"presentation"/"summary.md"

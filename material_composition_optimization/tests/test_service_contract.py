@@ -84,7 +84,11 @@ class AlloyServiceContractTest(unittest.TestCase):
                 "applicability_domain": {"level": "boundary", "nearest_training_composition_distance": 0.21},
             }],
         })
-        self.assertIn("预训练 MLP", report)
+        self.assertIn("预测依据与适用范围", report)
+        self.assertNotIn("ExtraTrees", report)
+        self.assertNotIn("training_report", report)
+        self.assertIn("$$\\mathcal{F}", report)
+        self.assertIn("$$J=", report)
         self.assertIn("### 最优候选材料卡", report)
         self.assertIn("Ni | 30.00 at.%", report)
         self.assertIn("工程估算与验证重点", report)
@@ -201,6 +205,18 @@ class AlloyServiceContractTest(unittest.TestCase):
         })
         self.assertEqual(effective["allowed_elements"], ["Ni", "Co", "Cr", "Al", "Ti"])
         self.assertEqual(plan["template"], "aerospace_high_temperature_hea_exploration")
+
+    def test_composite_material_is_rejected_even_with_metal_element_bounds(self) -> None:
+        payload = {
+            "taskid": "metal-fiber-composite",
+            "idea": "优化 Co-Cr-Fe-Mn-Ni 与碳纤维复合材料的配比",
+            "alloy_optimization": {
+                "allowed_elements": ["Co", "Cr", "Fe", "Mn", "Ni"],
+                "element_bounds_at_pct": {"Co": [10, 30]},
+            },
+        }
+        with self.assertRaisesRegex(ValueError, "单一金属合金"):
+            requirement_plan(payload)
 
     def test_role_and_discovery_use_shared_descriptions(self) -> None:
         from src.alloy_workflow.identity import ACTION_DESCRIPTION, ROLE_PROFILE

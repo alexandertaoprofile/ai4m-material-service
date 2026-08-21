@@ -25,6 +25,11 @@ class _FakeWebSocket:
         self.events.append(("json", value))
 
 
+class _FakeResult:
+    status = "ok"
+    artifacts = {"presentation": {"assets": []}}
+
+
 class _FakeLLM:
     def __init__(self, **_: object) -> None:
         pass
@@ -36,11 +41,6 @@ class _FakeLLM:
     @staticmethod
     def _user_msg(content: str) -> dict:
         return {"role": "user", "content": content}
-
-
-class _FakeResult:
-    status = "ok"
-    artifacts = {"presentation": {"assets": []}}
 
 
 async def _fake_stream_llm(_llm, _messages, *, websocket, logger_obj) -> None:
@@ -110,6 +110,25 @@ class _FakeTeam:
 
 
 class InorganicNewMaterialServiceContractTest(unittest.TestCase):
+    def test_retrieval_progress_event_matches_frontend_bar_schema(self) -> None:
+        event = presentation.build_retrieval_progress_payload(
+            "progress-task",
+            3,
+            stage="generation",
+            percent=42,
+            status="in_progress",
+            text="正在生成候选晶体；已完成真实扩散步数 40/100。",
+        )
+        self.assertEqual(event["type"], "retrieval_progress")
+        self.assertEqual(event["request_id"], "progress-task")
+        self.assertEqual(event["seq"], 3)
+        self.assertEqual(event["content"], {
+            "stage": "generation",
+            "percent": 42,
+            "status": "in_progress",
+            "text": "正在生成候选晶体；已完成真实扩散步数 40/100。",
+        })
+
     def test_asset_delivery_uses_markdown_for_images_and_json_for_glb(self) -> None:
         class _Storage:
             async def aobject_exists(self, *_args) -> bool:
@@ -211,9 +230,13 @@ class InorganicNewMaterialServiceContractTest(unittest.TestCase):
         texts = [value for kind, value in websocket.events if kind == "text"]
         json_events = [value for kind, value in websocket.events if kind == "json"]
         progress = [event for event in json_events if event.get("type") == "progress"]
+        retrieval_progress = [event for event in json_events if event.get("type") == "retrieval_progress"]
         self.assertEqual(len(progress), 1)
         self.assertEqual(progress[0]["data"]["id"], team_config.FRONTEND_STEP_ID)
         self.assertEqual(progress[0]["data"]["stepId"], team_config.FRONTEND_STEP_ID)
+        self.assertEqual(len(retrieval_progress), 1)
+        self.assertEqual(retrieval_progress[0]["content"]["percent"], 100)
+        self.assertEqual(retrieval_progress[0]["content"]["status"], "completed")
         self.assertEqual(texts.count(f"<<<CONTENT_START:{team_config.FRONTEND_STEP_ID}>>>"), 2)
         self.assertEqual(texts.count(f"<<<CONTENT_END:{team_config.FRONTEND_STEP_ID}>>>"), 2)
         self.assertIn("[[WORKFLOW_STATUS:ok]]", status)

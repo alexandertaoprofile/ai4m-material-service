@@ -12,12 +12,49 @@ from .schemas import NewMaterialPipelineResult
 JsonDict = Dict[str, Any]
 
 
+def structural_admission_failure_reason(validation) -> str:
+    """Turn recorded structure-admission evidence into customer-facing text."""
+    metadata = validation.metadata if isinstance(validation.metadata, dict) else {}
+    violations = metadata.get("close_pair_violations") or []
+    normalized: list[tuple[float, float, list[str]]] = []
+    for violation in violations:
+        if not isinstance(violation, dict):
+            continue
+        try:
+            distance = float(violation["distance_angstrom"])
+            lower_bound = float(violation["minimum_allowed_angstrom"])
+        except (KeyError, TypeError, ValueError):
+            continue
+        elements = [str(item) for item in violation.get("elements", []) if item]
+        normalized.append((distance, lower_bound, elements))
+    if normalized:
+        distance, lower_bound, elements = min(normalized, key=lambda item: item[0] / item[1])
+        pair = "–".join(elements) if elements else "原子对"
+        return (
+            f"结构检查发现 {len(normalized)} 对原子距离低于共价半径下限；"
+            f"最严重的是 {pair}，实测距离 {distance:.3f} Å，要求不低于 {lower_bound:.3f} Å。"
+        )
+    errors = [str(error).strip() for error in (validation.errors or []) if str(error).strip()]
+    if errors:
+        return f"基础结构检查记录为：{errors[0]}"
+    return "当前结构未满足基础结构准入条件。"
+
+
 def build_scientific_conclusion(result: NewMaterialPipelineResult) -> JsonDict:
     """Create a conservative, frontend-ready decision from computed evidence."""
     top = result.ranked_candidates[0] if result.ranked_candidates else None
     if top is None or top.validation is None:
         return {"decision": "no_candidate", "text": "未生成可进入验证阶段的候选结构。", "evidence_level": "none"}
     validation = top.validation
+    formula = top.candidate.formula_pretty or validation.formula_pretty or top.candidate.candidate_id
+    if validation.is_valid is not True:
+        return {
+            "decision": "structure_rejected",
+            "candidate_id": top.candidate.candidate_id,
+            "formula": formula,
+            "text": f"{formula} 未通过基础结构检查。{structural_admission_failure_reason(validation)}",
+            "evidence_level": "pymatgen_structure_check",
+        }
     ehull = validation.energy_above_hull
     formation = validation.formation_energy_per_atom
     threshold = float((result.constraints.target_properties or {}).get("energy_above_hull", 0.05))
@@ -33,7 +70,6 @@ def build_scientific_conclusion(result: NewMaterialPipelineResult) -> JsonDict:
     else:
         decision = "comparison_candidate"
         thermal = "本轮没有候选达到稳定性初筛阈值；它仍是当前批次中最接近该目标的比较候选。"
-    formula = top.candidate.formula_pretty or validation.formula_pretty or top.candidate.candidate_id
     formation_text = f"形成能（相对组成元素的能量变化）为 {formation:.4f} eV/atom，" if formation is not None else ""
     return {
         "decision": decision,

@@ -8,6 +8,7 @@ from src.material_workflow.alignn import predict_candidate_properties, requested
 from src.material_workflow.presentation import build_property_screening_card
 from src.material_workflow.presentation import build_discovery_conclusion
 from src.material_workflow.ranking import rank_candidates
+from src.material_workflow.upstream_api import result_summary
 from src.material_workflow.schemas import (
     GeneratedCandidate,
     GenerationConstraint,
@@ -97,6 +98,42 @@ class AlignnPropertyScreeningTests(unittest.TestCase):
         )
         self.assertIn("最接近", build_discovery_conclusion(result))
         self.assertIn("D：工程估算", build_property_screening_card(result))
+
+    def test_rejected_structure_explains_distance_failure_and_skips_properties(self) -> None:
+        candidate = GeneratedCandidate(candidate_id="mg-001", formula_pretty="Mn3CrFe(CoNi)2")
+        validation = ValidationResult(
+            candidate_id="mg-001",
+            status="ok",
+            is_valid=False,
+            formula_pretty="Mn3CrFe(CoNi)2",
+            density=8.11,
+            errors=["Atoms are implausibly close for their elements."],
+            metadata={"close_pair_violations": [{
+                "elements": ["Mn", "Cr"],
+                "distance_angstrom": 1.9480107086882277,
+                "minimum_allowed_angstrom": 2.1675,
+            }]},
+        )
+        result = NewMaterialPipelineResult(
+            taskid="rejected-structure",
+            status="ok",
+            constraints=GenerationConstraint(taskid="rejected-structure"),
+            generation=GenerationManifest(taskid="rejected-structure", status="ok", candidates=[candidate]),
+            validations=[validation],
+            ranked_candidates=[RankedCandidate(candidate=candidate, rank=1, score=1.0, validation=validation)],
+        )
+
+        conclusion = build_discovery_conclusion(result)
+        self.assertIn("未通过基础结构检查", conclusion)
+        self.assertIn("Mn–Cr", conclusion)
+        self.assertIn("1.948 Å", conclusion)
+        self.assertIn("2.167 Å", conclusion)
+        self.assertNotIn("已通过基础结构检查", conclusion)
+        self.assertEqual(build_property_screening_card(result), "")
+        summary = result_summary(result)
+        self.assertIn("未通过原因", summary)
+        self.assertIn("未计算（结构未准入）", summary)
+        self.assertIn("Mn–Cr", summary)
 
 
 if __name__ == "__main__":

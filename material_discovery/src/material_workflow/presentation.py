@@ -9,13 +9,14 @@ import os
 import re
 import subprocess
 import time
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from src.storage_utils import get_storage_client, oss_upload
 
-from .emitters import build_scientific_conclusion, write_pipeline_manifest
+from .emitters import build_scientific_conclusion, structural_admission_failure_reason, write_pipeline_manifest
 
 
 logger = logging.getLogger(__name__)
@@ -44,76 +45,54 @@ PHASE_EXPECTATIONS = {
 }
 
 
-def _target_description(properties: dict[str, object]) -> str:
-    if not properties:
-        return "未设置数值生成目标"
-    labels = {
-        "energy_above_hull": "稳定性偏好 E_hull（越低越接近热力学稳定）",
-        "band_gap": "带隙", "bulk_modulus": "体积模量", "mag_density": "磁性密度", "space_group": "空间群",
+def build_retrieval_progress_payload(
+    request_id: str,
+    seq: int,
+    *,
+    stage: str,
+    percent: int,
+    status: str,
+    text: str,
+) -> dict[str, Any]:
+    """Build the frontend progress-bar event without manufacturing progress."""
+    return {
+        "type": "retrieval_progress",
+        "request_id": request_id,
+        "seq": seq,
+        "content": {
+            "stage": stage,
+            "percent": max(0, min(100, int(percent))),
+            "status": status,
+            "text": text,
+        },
     }
-    values = []
-    for name, value in properties.items():
-        suffix = " eV/atom" if name == "energy_above_hull" else ""
-        values.append(f"{labels.get(name, name)}={value}{suffix}")
-    return "；".join(values)
 
 
-def _executed_method_rows(result) -> list[str]:
-    """Describe only methods whose output is present in this task result."""
-    rows: list[str] = []
-    generation = result.generation
-    if generation.candidates:
-        model = (generation.metadata or {}).get("model") or "MatterGen 条件生成模型"
-        rows.append(
-            f"| 候选结构生成 | {model} | 在限定元素体系与目标偏好下生成 {len(generation.candidates)} 个候选晶体结构。 |"
-        )
+@dataclass
+class DiscoveryProgressEvents:
+    """Own a monotonic event sequence shared by live and terminal updates."""
 
-    validations = list(result.validations or [])
-    admitted = sum(item.is_valid is True for item in validations)
-    if validations:
-        rows.append(
-            f"| 结构合理性检查 | pymatgen 结构解析与几何检查 | 对 {len(validations)} 个候选执行结构检查，其中 {admitted} 个通过。 |"
-        )
+    request_id: str
+    seq: int = 0
 
-    thermodynamic = [
-        item for item in validations
-        if item.formation_energy_per_atom is not None or item.energy_above_hull is not None
-    ]
-    if thermodynamic:
-        rows.append(
-            f"| 结构松弛与稳定性初筛 | MatterSim 势函数 + Materials Project 同元素竞争相 | "
-            f"对 {len(thermodynamic)} 个候选得到形成能或 E_hull 结果，用于本轮热力学排序。 |"
-        )
-
-    predicted_properties = {
-        str(item.get("label") or name)
-        for validation in validations
-        for name, item in (validation.property_predictions or {}).items()
-        if item.get("value") is not None
-    }
-    if predicted_properties:
-        rows.append(
-            "| 候选性质快速预测 | ALIGNN 预训练结构模型 | "
-            f"基于候选晶体结构得到 {'、'.join(sorted(predicted_properties))} 的初筛值。 |"
-        )
-    return rows
-
-
-def _result_indicator_rows(result) -> list[str]:
-    """Explain only quantities actually available in the ranked result."""
-    top = result.ranked_candidates[0] if result.ranked_candidates else None
-    validation = top.validation if top else None
-    if validation is None:
-        return []
-    rows: list[str] = []
-    if validation.energy_above_hull is not None:
-        rows.append("| E_hull | 候选相对同元素竞争相的能量距离；用于本轮稳定性初筛与排序。 |")
-    if validation.formation_energy_per_atom is not None:
-        rows.append("| 形成能 | 候选由元素形成该晶体结构的能量变化；与 E_hull 联合解读。 |")
-    for item in (validation.property_predictions or {}).values():
-        if item.get("value") is not None:
-            rows.append(f"| {item.get('label', '性质')} | 当前候选结构上的快速预测指标。 |")
-    return rows
+    async def emit(
+        self,
+        websocket: Any,
+        *,
+        stage: str,
+        percent: int,
+        status: str,
+        text: str,
+    ) -> None:
+        self.seq += 1
+        await websocket.send_json(build_retrieval_progress_payload(
+            self.request_id,
+            self.seq,
+            stage=stage,
+            percent=percent,
+            status=status,
+            text=text,
+        ))
 
 
 def build_preparation_traceability_report(result) -> str:
@@ -201,48 +180,6 @@ def render_presentation_assets(result) -> dict[str, Any]:
     return json.loads(presentation_manifest.read_text(encoding="utf-8"))
 
 
-def build_discovery_story(result) -> str:
-    """Produce deterministic Markdown blocks; no result is invented by an LLM."""
-    constraints = result.constraints
-    elements = " · ".join(constraints.allowed_elements) or "未显式指定"
-    target_text = _target_description(constraints.target_properties or {})
-    blocks = [
-        "## 1. 问题描述",
-        f"在元素体系 {elements} 中探索候选晶体结构。"
-        + (f"本轮将 {target_text} 作为生成引导条件。" if target_text != "未设置数值生成目标" else ""),
-        "",
-        "## 2. 输入变量与约束",
-        "| 符号/对象 | 定义 | 本轮设定 |",
-        "|---|---|---|",
-        f"| $\\mathcal{{E}}$ | 允许元素集合 | {elements} |",
-        "| $S$ | 候选晶体结构（晶格、元素种类与分数坐标） | 由本轮生成结果确定 |",
-        f"| $\\mathbf{{t}}$ | 目标性质或稳定性偏好 | {target_text} |",
-        "| 可行性条件 | 候选元素属于 $\\mathcal{E}$，并通过本轮结构合理性检查 | 以任务记录中的实际检查结果为准 |",
-    ]
-    method_rows = _executed_method_rows(result)
-    if method_rows:
-        blocks.extend([
-            "",
-            "## 3. 本轮计算链与模型",
-            "| 步骤 | 本轮实际使用的方法 | 已产出的作用 |",
-            "|---|---|---|",
-            *method_rows,
-        ])
-    indicator_rows = _result_indicator_rows(result)
-    if indicator_rows:
-        blocks.extend([
-            "",
-            "## 4. 本轮结果指标说明",
-            "| 指标 | 定量含义 |",
-            "|---|---|",
-            *indicator_rows,
-        ])
-    traceability = build_preparation_traceability_report(result)
-    if traceability:
-        blocks.extend(["", traceability])
-    return "\n".join(blocks)
-
-
 def build_discovery_conclusion(result) -> str:
     """Close the final report with a concise, evidence-scoped decision."""
     conclusion = build_scientific_conclusion(result)
@@ -251,12 +188,17 @@ def build_discovery_conclusion(result) -> str:
     top = result.ranked_candidates[0] if result.ranked_candidates else None
     if top is None or top.validation is None:
         finding = "本轮尚未形成可进入稳定性判断的候选结构。"
+        next_step = "建议检查元素体系、生成条件或模型资源后重新执行。"
     else:
         validation = top.validation
         formula = top.candidate.formula_pretty or validation.formula_pretty or top.candidate.candidate_id
         hull = validation.energy_above_hull
-        if hull is None:
+        if validation.is_valid is not True:
+            finding = f"候选 `{formula}` 未通过基础结构检查。{structural_admission_failure_reason(validation)}"
+            next_step = "建议先调整生成条件或进行几何松弛；待原子间距满足结构准入条件后，再开展性质和热力学稳定性评估。"
+        elif hull is None:
             finding = f"候选 `{formula}` 已通过基础结构检查，但尚未得到 E_hull，暂不能判断其热力学稳定性。"
+            next_step = "建议先完成稳定性评估，再决定后续验证优先级。"
         else:
             threshold = float((result.constraints.target_properties or {}).get("energy_above_hull", 0.05))
             if conclusion.get("decision") == "comparison_candidate":
@@ -264,15 +206,14 @@ def build_discovery_conclusion(result) -> str:
                     f"本轮候选均未达到 {threshold:.2f} eV/atom 的稳定性初筛阈值；"
                     f"`{formula}` 的 E_hull 为 {hull:.4f} eV/atom，是当前批次中最接近该目标的比较候选。"
                 )
+                next_step = "建议保留该结构及下方性质初筛结果作为本轮比较基准，并调整元素体系或生成条件后继续探索。"
             else:
                 status = "达到" if hull <= threshold else "未达到"
                 finding = f"排名第一的候选为 `{formula}`，E_hull 为 {hull:.4f} eV/atom，{status} {threshold:.2f} eV/atom 的本轮初筛阈值。"
-    next_step = {
-        "shortlist_for_dft": "建议优先开展高精度计算与目标性能验证，并结合实际工况确认制备与服役可行性。",
-        "comparison_candidate": "建议保留该结构及下方性质初筛结果作为本轮比较基准，并调整元素体系或生成条件后继续探索。",
-        "structure_only": "建议先完成稳定性评估，再决定后续验证优先级。",
-        "no_candidate": "建议检查元素体系、生成条件或模型资源后重新执行。",
-    }.get(conclusion.get("decision"), "建议结合专项计算与实验继续验证。")
+                next_step = {
+                    "shortlist_for_dft": "建议优先开展高精度计算与目标性能验证，并结合实际工况确认制备与服役可行性。",
+                    "structure_only": "建议先完成稳定性评估，再决定后续验证优先级。",
+                }.get(conclusion.get("decision"), "建议结合专项计算与实验继续验证。")
     return "\n\n".join([
         "## 4. 结论",
         f"针对本轮无机新材料结构探索，在已设定元素体系与生成条件下，{finding}",
@@ -285,7 +226,7 @@ def build_property_screening_card(result) -> str:
     top = result.ranked_candidates[0] if result.ranked_candidates else None
     predictions = (top.validation.property_predictions if top and top.validation else {}) or {}
     validation = top.validation if top else None
-    if not predictions and not validation:
+    if validation is None or validation.is_valid is not True:
         return ""
     formula = top.candidate.formula_pretty or top.validation.formula_pretty or top.candidate.candidate_id
     lines = [
@@ -332,9 +273,17 @@ def planned_discovery_method_block(constraints) -> str:
     from .generation import _model_and_properties
     from .mattersim import mattersim_enabled
 
-    model_name, conditioned_properties = _model_and_properties(constraints)
+    _, conditioned_properties = _model_and_properties(constraints)
+    condition_labels = {
+        "chemical_system": "允许元素体系",
+        "energy_above_hull": "稳定性目标 E_hull",
+        "band_gap": "带隙目标",
+        "bulk_modulus": "体积模量目标",
+        "mag_density": "磁性密度目标",
+        "space_group": "空间群偏好",
+    }
     condition_text = (
-        "；".join(f"{name}={value}" for name, value in conditioned_properties.items())
+        "；".join(f"{condition_labels.get(name, name)}：{value}" for name, value in conditioned_properties.items())
         or "无附加性质条件"
     )
     sampling_steps = int(os.environ.get("MATTERGEN_SAMPLING_STEPS", "100"))
@@ -343,8 +292,8 @@ def planned_discovery_method_block(constraints) -> str:
         constraints.target_properties or {},
         constraints.validation_targets or {},
     )
-    alignn_models = [
-        "/".join(_PREDICTED_PROPERTIES[name]["models"])
+    alignn_properties = [
+        _PREDICTED_PROPERTIES[name]["label"]
         for name in requested
         if name in _PREDICTED_PROPERTIES
     ]
@@ -354,10 +303,15 @@ def planned_discovery_method_block(constraints) -> str:
         "",
         "### 4.1 MatterGen 条件扩散生成",
         "MatterGen 以晶格、原子种类和分数坐标为联合生成变量，通过反向扩散从噪声结构逐步形成候选晶体。条件信息在采样时作为引导项进入生成过程。",
+        "候选结构由晶格、原子种类和原子位置共同表示：",
+        r"$$S=(\mathbf{L},\mathbf{Z},\mathbf{F}),\qquad \mathbf{r}_i=\mathbf{L}\mathbf{f}_i$$",
+        "其中 L 为晶格矩阵，Z 为原子种类，F 为分数坐标，r_i 为第 i 个原子的笛卡尔坐标。",
+        "条件扩散的反向生成与引导写为：",
+        r"$$p_\theta(S_{t-1}\mid S_t,\mathbf{c}),\qquad \hat\epsilon=(1+w)\epsilon_\theta(S_t,\mathbf{c})-w\epsilon_\theta(S_t,\varnothing)$$",
         "",
         "| 项目 | 本任务配置 |",
         "|---|---|",
-        f"| 预训练模型 | {model_name} |",
+        "| 预训练模型 | 化学体系—稳定性条件生成模型 |",
         f"| 条件描述符 | {condition_text} |",
         f"| 采样设置 | {sampling_steps} 个反向扩散步；条件引导系数 {guidance} |",
         "| 输入 | 允许元素集合、目标性质条件与候选数量 |",
@@ -365,30 +319,42 @@ def planned_discovery_method_block(constraints) -> str:
         "",
         "### 4.2 pymatgen 结构合理性检查",
         "对每个候选 CIF 解析周期结构，计算原子间距离矩阵，并用共价半径下限筛查过近原子对；同时记录有序性、空间群、密度和位点数。",
+        "周期边界下，原子对采用最小像距离；结构准入采用共价半径下限：",
+        r"$$d_{ij}=\min_{\mathbf{n}\in\mathbb{Z}^3}\|\mathbf{L}(\mathbf{f}_i-\mathbf{f}_j+\mathbf{n})\|_2,\qquad d_{ij}\geq0.75(r_i^{cov}+r_j^{cov})$$",
+        "空间群由保持分数坐标等价的旋转—平移操作记录：",
+        r"$$\mathbf{f}_j\equiv\mathbf{R}\mathbf{f}_i+\mathbf{t}\pmod{1}$$",
         "",
         "| 输入 | 输出 | 判定规则 |",
         "|---|---|---|",
-        "| MatterGen 生成的 CIF | 有效性标记、化学式、空间群、密度、最小原子间距 | 无部分占位；任意原子对距离不低于 0.75×两原子共价半径之和 |",
+        "| 生成的晶体结构文件 | 有效性、化学式、空间群、密度、最小原子间距 | 无部分占位；原子对距离满足共价半径下限 |",
     ]
-    if alignn_models:
+    if alignn_properties:
         blocks.extend([
             "",
             "### 4.3 ALIGNN 结构—性质快速预测",
             "ALIGNN 将晶体表示为原子邻接图及边角线图（atomistic line graph），用预训练图神经网络从候选结构直接预测所选性质。",
+            "原子图以原子为节点、原子间距离为边特征；边角线图进一步编码相邻化学键与键角：",
+            r"$$G=(V,E),\qquad L(G):\ (i,j)\xrightarrow{\angle jik}(j,k)$$",
+            "图网络逐层聚合局域原子环境，性质头输出对应的结构—性质预测：",
+            r"$$\mathbf{h}_i^{(l+1)}=\phi_l\!\left(\mathbf{h}_i^{(l)},\sum_{j\in\mathcal{N}(i)}\psi_l(\mathbf{h}_i^{(l)},\mathbf{h}_j^{(l)},\mathbf{e}_{ij}^{(l)})\right),\qquad \hat y_q=f_q(G,L(G))$$",
             "",
             "| 输入 | 本任务属性头 | 输出 |",
             "|---|---|---|",
-            f"| 通过结构检查的 CIF | {'；'.join(alignn_models)} | {', '.join(requested)} 的结构模型预测值 |",
+            f"| 通过结构检查的晶体结构 | {'、'.join(alignn_properties)} | 相应性质的结构模型预测值 |",
         ])
     if mattersim_enabled():
         blocks.extend([
             "",
             "### 4.4 MatterSim 势函数松弛与相稳定性比较",
             "MatterSim 机器学习原子间势用于在候选结构上进行几何松弛并计算形成能；随后以同元素体系竞争相为参照计算高于凸包能 E_hull。",
+            "势能由局域原子环境贡献求和，原子力为势能对位置的负梯度；松弛寻找最低能量结构：",
+            r"$$E_\theta(S)=\sum_i\varepsilon_\theta(\mathcal{N}_i),\qquad \mathbf{F}_i=-\nabla_{\mathbf{r}_i}E_\theta,\qquad S^*=\arg\min_S E_\theta(S)$$",
+            "随后计算形成能，并与同元素体系竞争相构成的凸包基准比较：",
+            r"$$E_f=\frac{E_\theta(S^*)-\sum_\alpha n_\alpha\mu_\alpha}{N},\qquad E_{hull}=E_f-E_{hull}^{ref}(\mathbf{x})$$",
             "",
             "| 输入 | 输出 | 定量用途 |",
             "|---|---|---|",
-            "| 通过结构检查的候选 CIF | 松弛后结构、形成能、E_hull | 用于本轮候选的热力学初筛与排序 |",
+            "| 通过结构检查的候选晶体 | 松弛后结构、形成能、高于凸包能 | 用于本轮候选的热力学初筛与排序 |",
         ])
     return "\n".join(blocks)
 
@@ -543,9 +509,12 @@ async def stream_discovery_progress(
     request_id: str,
     *,
     step_id: str,
+    progress_events: DiscoveryProgressEvents | None = None,
 ) -> None:
-    """Stream phase updates as plain body text; step JSON is sent by the caller."""
+    """Emit concise, evidence-based JSON progress events for the frontend bar."""
+    progress_events = progress_events or DiscoveryProgressEvents(request_id)
     last_phase: int | None = None
+    last_sampling_current: int | None = None
     last_heartbeat = 0.0
     started_at = time.monotonic()
     phase_started_at = started_at
@@ -561,6 +530,7 @@ async def stream_discovery_progress(
         phase_elapsed = int(now - phase_started_at)
         expected, expectation_note = PHASE_EXPECTATIONS[phase]
         sampling = _mattergen_sampling_progress(task_dir) if phase == 2 else None
+        sampling_changed = sampling is not None and sampling["current"] != last_sampling_current
         sampling_text = (
             f" 当前已完成真实扩散步数 {sampling['current']}/{sampling['total']}（{sampling['percent']}%）；"
             if sampling else ""
@@ -570,28 +540,42 @@ async def stream_discovery_progress(
             f"本阶段已进行 {phase_elapsed // 60} 分 {phase_elapsed % 60} 秒；"
             f"常见耗时：{expected}。{expectation_note}"
         )
-        if phase_changed or now - last_heartbeat >= 15:
-            description_for_text = full_description if phase_changed else (
-                f"进度：第 {phase}/4 阶段；已等待 {total_elapsed // 60} 分 {total_elapsed % 60} 秒；"
-                f"本阶段已进行 {phase_elapsed // 60} 分 {phase_elapsed % 60} 秒"
-                + (f"；当前扩散步数 {sampling['current']}/{sampling['total']}（{sampling['percent']}%）" if sampling else "")
-                + "。"
+        if phase_changed or sampling_changed or now - last_heartbeat >= 15:
+            description_for_state = full_description if phase_changed else (
+                f"第 {phase}/4 阶段；"
+                + (f"当前扩散步数 {sampling['current']}/{sampling['total']}（{sampling['percent']}%）" if sampling else "正在执行。")
             )
             _write_progress_state(
-                task_dir, phase=phase, title=title, description=description_for_text,
+                task_dir, phase=phase, title=title, description=description_for_state,
                 total_elapsed=total_elapsed, phase_elapsed=phase_elapsed,
             )
-            # Keep the former Markdown presentation: a heading for a newly
-            # entered phase and a compact quote for every heartbeat.  It is
-            # ordinary body text, deliberately without CONTENT markers and
-            # without another progress JSON.
-            if phase_changed:
-                markdown = f"\n\n#### {title}\n\n{description_for_text}\n\n"
-            else:
-                markdown = f"> {description_for_text}\n"
-            await websocket.send_text(markdown)
+            if phase_changed or sampling_changed:
+                if phase == 1:
+                    stage, percent, text = "preparing", 5, "正在准备计算"
+                elif phase == 2:
+                    # 20–75% is reserved for the only fine-grained live metric:
+                    # MatterGen's own sampled diffusion-step counter.
+                    progress = sampling["percent"] if sampling else 0
+                    stage, percent = "generation", 20 + round(progress * 0.55)
+                    text = (
+                        f"正在生成候选结构：{sampling['current']}/{sampling['total']} 步"
+                        if sampling else "正在加载生成模型"
+                    )
+                elif phase == 3:
+                    stage, percent, text = "structure_validation", 80, "正在检查候选结构"
+                else:
+                    stage, percent, text = "result_packaging", 95, "正在整理结果"
+                await progress_events.emit(
+                    websocket,
+                    stage=stage,
+                    percent=percent,
+                    status="in_progress",
+                    text=text,
+                )
             if phase_changed:
                 last_phase = phase
+            if sampling is not None:
+                last_sampling_current = sampling["current"]
             last_heartbeat = now
         await asyncio.sleep(5)
 

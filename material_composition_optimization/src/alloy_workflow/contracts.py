@@ -11,6 +11,20 @@ from datetime import datetime, timezone
 from typing import Any
 
 
+_COMPOSITE_MATERIAL_PATTERN = re.compile(
+    r"复合材料|复材|树脂|环氧|纤维|碳纤维|玻璃纤维|填料|增强相|聚合物|"
+    r"金属基复合|陶瓷基复合|CFRP|GFRP|CF[/-]?(?:PEEK|PEKK|PA|PPS)|"
+    r"PEEK|PEKK|PEI|PPS|CFRP|GFRP|epoxy|resin|fiber|composite",
+    re.IGNORECASE,
+)
+
+
+def is_composite_material_request(text: str, scope: dict[str, Any]) -> bool:
+    """Reject composite systems before an element-only alloy model is selected."""
+    scope_text = json.dumps(scope, ensure_ascii=False, default=str)
+    return bool(_COMPOSITE_MATERIAL_PATTERN.search(f"{text}\n{scope_text}"))
+
+
 def task_id(payload: dict[str, Any]) -> str:
     external_taskid = str(payload.get("taskid") or f"alloy-{datetime.now(timezone.utc):%Y%m%d%H%M%S}").strip()
     if not external_taskid or len(external_taskid) > 512:
@@ -54,6 +68,8 @@ def upstream_requirement(payload: dict[str, Any]) -> tuple[str, list[str]]:
 
 
 def is_alloy_request(text: str, scope: dict[str, Any]) -> bool:
+    if is_composite_material_request(text, scope):
+        return False
     if scope.get("composition") or scope.get("allowed_elements") or scope.get("element_bounds_at_pct"):
         return True
     lowered = text.casefold()
@@ -79,6 +95,8 @@ def contract(payload: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(scope, dict):
         raise ValueError("alloy_optimization must be an object")
     upstream_context, upstream_keys = upstream_requirement(payload)
+    if is_composite_material_request(upstream_context, scope):
+        raise ValueError("本服务仅适用于单一金属合金的元素配比优化；包含树脂、纤维、填料或其他复合相的材料应使用复合材料专项流程")
     if not is_alloy_request(upstream_context, scope):
         raise ValueError("本服务仅处理合金/高温合金的成分或配比优化；已有材料查询请使用成熟材料服务，非合金新材料生成请使用新材料服务")
     domain = scope.get("model_domain", "hea_mpea")
@@ -90,6 +108,8 @@ def contract(payload: dict[str, Any]) -> dict[str, Any]:
 def requirement_plan(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
     supplied = dict(payload.get("alloy_optimization") or payload.get("hea_optimization") or payload.get("constraints") or {})
     idea, upstream_keys = upstream_requirement(payload)
+    if is_composite_material_request(idea, supplied):
+        raise ValueError("本服务仅适用于单一金属合金的元素配比优化；包含树脂、纤维、填料或其他复合相的材料应使用复合材料专项流程")
     if not is_alloy_request(idea, supplied):
         raise ValueError("本服务仅适用于合金或高温合金的成分优化，不适用于一般高温材料查询或非合金新材料生成")
     text = idea.lower()

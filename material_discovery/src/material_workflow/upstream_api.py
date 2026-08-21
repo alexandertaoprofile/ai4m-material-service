@@ -9,11 +9,15 @@ from pathlib import Path
 from typing import Any, Dict
 
 from .constraints import upstream_contract
-from .emitters import build_frontend_payload, build_scientific_conclusion, write_pipeline_manifest
+from .emitters import (
+    build_frontend_payload,
+    build_scientific_conclusion,
+    structural_admission_failure_reason,
+    write_pipeline_manifest,
+)
 from .pipeline import run_new_material_pipeline
 from .presentation import (
     build_discovery_conclusion,
-    build_discovery_story,
     build_property_screening_card,
     render_presentation_assets,
     write_preparation_traceability_report,
@@ -73,17 +77,18 @@ def result_summary(result) -> str:
             "#### 下一步",
             "补齐对应 MatterGen 模型权重后，可在相同任务条件下重新执行；无需重新编写需求。",
         ])
-    lines.extend(["", build_discovery_story(result)])
     if result.ranked_candidates:
         lines.append("\n### 本轮候选结果")
-        lines.append("| 排名 | 候选 | 化学式 | 基础结构检查 | 形成能（相对元素） | 稳定性距离 E_hull（越低越好） |")
-        lines.append("|---|---|---|---|---|---|")
+        lines.append("| 排名 | 候选 | 化学式 | 基础结构检查 | 未通过原因 | 形成能（相对元素） | 稳定性距离 E_hull（越低越好） |")
+        lines.append("|---|---|---|---|---|---|---|")
         for item in result.ranked_candidates:
             validation = item.validation
-            formation = f"{validation.formation_energy_per_atom:.4f}" if validation and validation.formation_energy_per_atom is not None else "待计算"
-            hull = f"{validation.energy_above_hull:.4f}" if validation and validation.energy_above_hull is not None else "待计算"
+            admitted = validation is not None and validation.is_valid is True
+            formation = f"{validation.formation_energy_per_atom:.4f}" if validation and validation.formation_energy_per_atom is not None else ("未计算（结构未准入）" if validation and not admitted else "待计算")
+            hull = f"{validation.energy_above_hull:.4f}" if validation and validation.energy_above_hull is not None else ("未计算（结构未准入）" if validation and not admitted else "待计算")
+            failure_reason = structural_admission_failure_reason(validation) if validation and not admitted else "—"
             formula = item.candidate.formula_pretty or (validation.formula_pretty if validation else None) or "N/A"
-            lines.append(f"| {item.rank} | {item.candidate.candidate_id} | {formula} | {'通过' if validation and validation.is_valid else '未通过/待定'} | {formation} | {hull} |")
+            lines.append(f"| {item.rank} | {item.candidate.candidate_id} | {formula} | {'通过' if admitted else '未通过/待定'} | {failure_reason} | {formation} | {hull} |")
     lines.extend(["", build_discovery_conclusion(result)])
     property_card = build_property_screening_card(result)
     if property_card:
