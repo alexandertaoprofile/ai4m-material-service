@@ -14,7 +14,7 @@ from alpha.roles import Role
 
 from src.alloy_workflow.contracts import task_id as _taskid
 from src.alloy_workflow.identity import ACTION_DESCRIPTION, ACTION_NAME, ROLE_NAME, ROLE_PROFILE
-from src.alloy_workflow.presentation import emit_result_content
+from src.alloy_workflow.presentation import emit_result_content, planned_alloy_method_block
 from src.alloy_workflow.protocol import prepare_public_assets
 from src.alloy_workflow.runtime import RUNTIME
 
@@ -108,6 +108,9 @@ class Coding(Action):
                 "status": "in_progress", "description": "正在将需求映射为可确认的高熵/多主元合金探索条件。",
             },
         })
+        await websocket.send_text(f"<<<CONTENT_START:{FRONTEND_STEP_ID}>>>")
+        await websocket.send_text(planned_alloy_method_block(payload))
+        await websocket.send_text(f"<<<CONTENT_END:{FRONTEND_STEP_ID}>>>")
 
         # 阶段 2—3：执行计算、准备展示资产并流式输出正文。
         result = await execute_alloy_optimization(websocket, payload)

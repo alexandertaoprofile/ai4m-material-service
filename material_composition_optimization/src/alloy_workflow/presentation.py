@@ -18,21 +18,78 @@ def _composition_text(composition: dict[str, Any]) -> str:
     return " ".join(f"{element}{float(value):.1f}" for element, value in composition.items())
 
 
+def planned_alloy_method_block(payload: dict[str, Any]) -> str:
+    """Define the configured HEA/MPEA calculation chain before it is run."""
+    from src.alloy_workflow.contracts import requirement_plan
+
+    effective, plan = requirement_plan(payload)
+    elements = "、".join(effective.get("allowed_elements") or []) or "由任务约束确定"
+    bounds = effective.get("element_bounds_at_pct") or {}
+    bounds_text = "；".join(
+        f"{element} {value[0]}–{value[1]} at.%"
+        for element, value in bounds.items()
+        if isinstance(value, (list, tuple)) and len(value) == 2
+    ) or "由任务约束确定"
+    objectives = effective.get("objectives") or {}
+    objective_text = "、".join(objectives) or "强度、硬度、相风险与数据适用域"
+    return "\n".join([
+        "## 1. 问题描述",
+        f"在 {elements} 组成的合金体系中，搜索满足成分边界、工艺和温度条件的候选配比，并对 {objective_text} 进行初步量化评估。",
+        "",
+        "## 2. 变量与约束",
+        "| 符号/变量 | 定义 | 本轮设定 |",
+        "|---|---|---|",
+        f"| $x_i$ | 第 i 种元素的原子分数 | 元素：{elements} |",
+        "| $\\mathbf{x}$ | 成分向量 | $x_i \\geq 0$，$\\sum_i x_i = 1$ |",
+        f"| 成分边界 | 每种元素允许的原子百分比 | {bounds_text} |",
+        f"| $p$、$T$ | 制备工艺与评价温度 | {effective.get('processing_method') or '未指定'}；{effective.get('test_temperature_C', 25)} °C |",
+        "",
+        "## 3. 计划计算链与模型定义",
+        "以下为本任务已配置、将按顺序执行的方法定义，不包含任何预测结果。",
+        "",
+        "### 3.1 Dirichlet 成分单纯形采样",
+        "在满足 $\\sum_i x_i=1$ 的成分单纯形内生成候选，再施加元素上下限；该采样保证每个候选的原子分数归一化。",
+        "",
+        "| 输入 | 输出 |",
+        "|---|---|",
+        "| 元素集合、元素上下限、工艺 p、温度 T | 满足约束的候选成分向量 $\\mathbf{x}$ |",
+        "",
+        "### 3.2 成分—性能代理模型",
+        "本服务当前使用 5 个随机种子训练的 ExtraTrees 回归/分类集成，而非热力学求解器。每个候选由同一特征管线转换后送入屈服强度、硬度和相类别三个模型头。",
+        "",
+        "| 特征组 | 具体描述符 |",
+        "|---|---|",
+        "| 成分表示 | 各元素原子分数 $x_i$、元素数 $N$ |",
+        "| 成分统计 | 理想混合熵、平均原子序数、平均价电子浓度 VEC |",
+        "| 工艺上下文 | 制备工艺 one-hot 编码、评价温度、温度缺失标记 |",
+        "",
+        "### 3.3 输出、不确定性与筛选",
+        "| 模型输出 | 本轮用途 |",
+        "|---|---|",
+        "| 屈服强度与硬度 | 5 个集成成员的均值与标准差，用于性能比较与不确定性控制 |",
+        "| 相类别概率 | SS、IM、SS+IM 等类别的集成概率，用于相风险筛除 |",
+        "| 数据适用域 | 候选成分与训练成分云的最近距离，用于标记域内、边界或域外候选 |",
+        "| 综合排序 J | 在通过硬约束的候选中组合强度、硬度、相稳定倾向和可靠性 |",
+        "",
+        f"任务条件来源：{plan.get('template', '当前需求解析')}。计算完成后，结果区仅保留实际产出并用于结论的数值。",
+    ])
+
+
 def pretrained_model_and_constraints_block(result: dict[str, Any]) -> str:
-    """Explain the selected pretrained MLP in customer-facing language."""
+    """Explain the selected ExtraTrees ensemble in customer-facing language."""
     evidence = result.get("model_evidence") or {}
-    version = evidence.get("model_version", "hea_mpea_mlp")
+    version = evidence.get("model_version", "hea_mpea_baseline_v0.1")
     return "\n".join([
         "#### 本轮模型与结果依据",
-        "本轮先在已完成离线验证的候选模型中比较，再采用预训练 MLP（多层感知机）评估合金配方。它把成分、制备工艺和评价温度放在同一判断中，用于缩小可继续验证的配方范围。",
+        "本轮采用离线验证后选定的 ExtraTrees 集成模型评估合金配方。它将成分、制备工艺和评价温度及其派生描述符共同映射到性能、相组成倾向和数据适用域。",
         "",
         "| 项目 | 本轮采用方式 |",
         "|---|---|",
-        f"| 采用模型 | 预训练 MLP 集成模型（版本：`{version}`） |",
-        "| 输入 | 元素原子百分比、元素组合特征、制备工艺与评价温度 |",
+        f"| 采用模型 | 5 个随机种子训练的 ExtraTrees 回归/分类集成（版本：{version}） |",
+        "| 输入 | 元素原子分数、元素数、理想混合熵、平均原子序数、平均价电子浓度（VEC）、制备工艺与评价温度 |",
         "| 输出 | 屈服强度、硬度、相组成倾向、预测离散度与训练数据适用域 |",
-        "| 数据依据 | 已离线整理的实验 HEA/MPEA 数据；模型报告与训练数据范围随任务清单保存 |",
-        "| 结果性质 | 模型预测用于研发排序，不替代 CALPHAD、专项热力学计算或实验验证 |",
+        "| 数据依据 | 已离线整理的实验 HEA/MPEA 数据；按规范化成分分组，5 个随机种子形成集成 |",
+        "| 结果性质 | 模型预测用于研发排序与候选收敛 |",
         "",
         "先按元素边界、工艺温度、相风险、性能目标和数据适用域筛除不合适的候选，再在保留候选中比较。训练数据边界附近的候选会保留其探索价值，同时在最终材料卡中单独标明可信度。",
         "",
@@ -117,7 +174,6 @@ def selection_formula_block(result: dict[str, Any]) -> str:
         "",
         f"本轮权重：强度 {weights.get('strength', 0):.0%}，硬度 {weights.get('hardness', 0):.0%}，相稳定倾向 {weights.get('phase', 0):.0%}，预测可靠性 {weights.get('reliability', 0):.0%}。",
         "其中 `z()` 表示在本轮可行候选中归一化；这只用于排序。元素范围、相风险上限、最低性能门槛和适用域仍是先行的硬性条件。",
-        "当前公式尚未包含混合焓、Omega 或 CALPHAD 自由能项；这些项须在统一重算或独立热力学计算接入后才能加入。",
     ])
 
 
@@ -224,7 +280,7 @@ def optimal_candidate_data_card(result: dict[str, Any]) -> str:
     domain, confidence = _domain_and_confidence(candidate)
     applicability = candidate.get("applicability_domain") or {}
     phase_risk = {"low": "较低", "high": "较高"}.get(candidate.get("phase_risk"), str(candidate.get("phase_risk") or "未记录"))
-    source = f"预训练 MLP（{evidence.get('model_version', 'hea_mpea_mlp')}）"
+    source = f"ExtraTrees 5-种子集成（{evidence.get('model_version', 'hea_mpea_baseline_v0.1')}）"
     report_locator = "HEA 代理模型训练报告：reports/models/*_training_report.json"
     composition_rows = [f"| {element} | {float(amount):.2f} at.% |" for element, amount in composition.items()]
     return "\n".join([

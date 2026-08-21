@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 from fastapi import Body, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from src.alloy_workflow.presentation import emit_result_content
+from src.alloy_workflow.presentation import emit_result_content, planned_alloy_method_block
 from src.alloy_workflow.contracts import requirement_plan as _requirement_plan, task_id as _taskid, upstream_requirement as _upstream_requirement
 from src.alloy_workflow.identity import ACTION_DESCRIPTION, ACTION_NAME, ROLE_NAME, ROLE_PROFILE, SERVICE_ID
 from src.alloy_workflow.protocol import prepare_public_assets
@@ -186,7 +186,12 @@ async def start(websocket:WebSocket):
         print(f"[ALLOY][{taskid}] accepted template={plan.get('template')!r} domain={effective.get('model_domain')!r}", flush=True)
         await websocket.send_text("[start]")
         await websocket.send_json({"version":"1.0.0","agent":"alloy_composition_optimization","request_id":taskid,"type":"progress","data":{"id":FRONTEND_STEP_ID,"stepId":FRONTEND_STEP_ID,"title":FRONTEND_STEP_TITLE,"status":"completed","description":"已生成可覆盖的探索模板和待确认项。","result":plan}})
-        await websocket.send_text(f"<<<CONTENT_START:{FRONTEND_STEP_ID}>>>\n### 合金设计需求解读\n- 探索方案：{_template_label(plan['template'])}\n- 适用对象：高熵合金/多主元合金。\n- 待确认：{'；'.join(plan['questions_to_confirm'])}\n<<<CONTENT_END:{FRONTEND_STEP_ID}>>>")
+        await websocket.send_text(
+            f"<<<CONTENT_START:{FRONTEND_STEP_ID}>>>\n"
+            f"{planned_alloy_method_block(payload)}\n\n"
+            f"待确认：{'；'.join(plan['questions_to_confirm'])}\n"
+            f"<<<CONTENT_END:{FRONTEND_STEP_ID}>>>"
+        )
         await websocket.send_json({"version":"1.0.0","agent":"alloy_composition_optimization","request_id":taskid,"type":"progress","data":{"id":FRONTEND_STEP_ID,"stepId":FRONTEND_STEP_ID,"title":FRONTEND_STEP_TITLE,"status":"in_progress","description":"正在通过隔离的高熵/多主元合金（HEA/MPEA）专项 runner 进行采样和批量预测。"}})
         result=await asyncio.to_thread(_proposal,payload); result["_summary_path"]=RESULTS/taskid/"presentation"/"summary.md"
         public_urls,asset_docs,_asset_titles,visual_assets=await prepare_public_assets(websocket,taskid,result,RESULTS)

@@ -323,6 +323,76 @@ def build_property_screening_card(result) -> str:
     return "\n".join(lines)
 
 
+def planned_discovery_method_block(constraints) -> str:
+    """Describe this task's configured calculation chain before execution.
+
+    This is a method definition, not a statement that any model has completed.
+    """
+    from .alignn import _PREDICTED_PROPERTIES, requested_properties
+    from .generation import _model_and_properties
+    from .mattersim import mattersim_enabled
+
+    model_name, conditioned_properties = _model_and_properties(constraints)
+    condition_text = (
+        "；".join(f"{name}={value}" for name, value in conditioned_properties.items())
+        or "无附加性质条件"
+    )
+    sampling_steps = int(os.environ.get("MATTERGEN_SAMPLING_STEPS", "100"))
+    guidance = os.environ.get("MATTERGEN_GUIDANCE_FACTOR", "2.0")
+    requested = requested_properties(
+        constraints.target_properties or {},
+        constraints.validation_targets or {},
+    )
+    alignn_models = [
+        "/".join(_PREDICTED_PROPERTIES[name]["models"])
+        for name in requested
+        if name in _PREDICTED_PROPERTIES
+    ]
+    blocks = [
+        "## 4. 计划计算链与模型定义",
+        "以下为本任务已配置、将按顺序调用的计算链；本节定义输入、输出与适用场景，不包含计算结果。",
+        "",
+        "### 4.1 MatterGen 条件扩散生成",
+        "MatterGen 以晶格、原子种类和分数坐标为联合生成变量，通过反向扩散从噪声结构逐步形成候选晶体。条件信息在采样时作为引导项进入生成过程。",
+        "",
+        "| 项目 | 本任务配置 |",
+        "|---|---|",
+        f"| 预训练模型 | {model_name} |",
+        f"| 条件描述符 | {condition_text} |",
+        f"| 采样设置 | {sampling_steps} 个反向扩散步；条件引导系数 {guidance} |",
+        "| 输入 | 允许元素集合、目标性质条件与候选数量 |",
+        "| 输出 | 候选 CIF：晶格参数、元素种类、原子分数坐标 |",
+        "",
+        "### 4.2 pymatgen 结构合理性检查",
+        "对每个候选 CIF 解析周期结构，计算原子间距离矩阵，并用共价半径下限筛查过近原子对；同时记录有序性、空间群、密度和位点数。",
+        "",
+        "| 输入 | 输出 | 判定规则 |",
+        "|---|---|---|",
+        "| MatterGen 生成的 CIF | 有效性标记、化学式、空间群、密度、最小原子间距 | 无部分占位；任意原子对距离不低于 0.75×两原子共价半径之和 |",
+    ]
+    if alignn_models:
+        blocks.extend([
+            "",
+            "### 4.3 ALIGNN 结构—性质快速预测",
+            "ALIGNN 将晶体表示为原子邻接图及边角线图（atomistic line graph），用预训练图神经网络从候选结构直接预测所选性质。",
+            "",
+            "| 输入 | 本任务属性头 | 输出 |",
+            "|---|---|---|",
+            f"| 通过结构检查的 CIF | {'；'.join(alignn_models)} | {', '.join(requested)} 的结构模型预测值 |",
+        ])
+    if mattersim_enabled():
+        blocks.extend([
+            "",
+            "### 4.4 MatterSim 势函数松弛与相稳定性比较",
+            "MatterSim 机器学习原子间势用于在候选结构上进行几何松弛并计算形成能；随后以同元素体系竞争相为参照计算高于凸包能 E_hull。",
+            "",
+            "| 输入 | 输出 | 定量用途 |",
+            "|---|---|---|",
+            "| 通过结构检查的候选 CIF | 松弛后结构、形成能、E_hull | 用于本轮候选的热力学初筛与排序 |",
+        ])
+    return "\n".join(blocks)
+
+
 def build_requirement_brief(constraints) -> str:
     """A small, truthful streamable brief displayed before GPU work starts."""
     elements = " · ".join(constraints.allowed_elements) or "从化学式解析"
@@ -366,7 +436,9 @@ def build_requirement_brief(constraints) -> str:
         property_rows,
         "",
         *( [f"需求解析：{' '.join(constraints.notes)}", ""] if constraints.notes else [] ),
-        "本页将在计算完成后，仅补充任务记录中实际产生的计算步骤、定量结果及其结构化解释。",
+        planned_discovery_method_block(constraints),
+        "",
+        "计算完成后，结果区仅保留实际产出并用于结论的模型结果。",
     ])
 
 
