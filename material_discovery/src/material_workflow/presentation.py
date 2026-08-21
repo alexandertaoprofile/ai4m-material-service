@@ -39,7 +39,7 @@ GLB_PUBLIC_BASE_URL = os.getenv(
 PHASE_EXPECTATIONS = {
     1: ("通常少于 30 秒", "正在准备元素约束、模型配置和任务目录。"),
     2: ("模型加载通常 1–5 分钟；加载后 100 步采样通常更短", "每个任务目前都会独立加载 MatterGen 条件模型；加载完成后才开始扩散采样。"),
-    3: ("通常 20 秒–3 分钟", "正在完成 MatterSim 松弛并查询 MP 同元素竞争相；MP API 波动会延长等待。"),
+    3: ("通常 20 秒–3 分钟", "正在完成结构松弛与同元素体系稳定性比较；外部数据查询波动会延长等待。"),
     4: ("通常少于 1 分钟", "正在整理数值、渲染结构图和热力学评分卡，并上传前端资产。"),
 }
 
@@ -58,16 +58,62 @@ def _target_description(properties: dict[str, object]) -> str:
     return "；".join(values)
 
 
-def build_term_guide() -> str:
-    """Explain only the result indicators a decision-maker needs to read."""
-    return "\n".join([
-        "#### 如何阅读本轮结果",
-        "| 指标 | 如何理解 |",
-        "|---|---|",
-        "| E_hull（高于凸包能） | 候选相对同元素体系稳定组合的能量距离；越低，越值得进入后续验证。 |",
-        "| 形成能 | 材料由组成元素形成晶体时的能量变化；须与 E_hull 一起判断，不能单独说明能否合成。 |",
-        "| 证据范围 | 本轮是机器学习快速评估与公开数据库比对，不等同于 DFT、相平衡计算或实验结果。 |",
-    ])
+def _executed_method_rows(result) -> list[str]:
+    """Describe only methods whose output is present in this task result."""
+    rows: list[str] = []
+    generation = result.generation
+    if generation.candidates:
+        model = (generation.metadata or {}).get("model") or "MatterGen 条件生成模型"
+        rows.append(
+            f"| 候选结构生成 | {model} | 在限定元素体系与目标偏好下生成 {len(generation.candidates)} 个候选晶体结构。 |"
+        )
+
+    validations = list(result.validations or [])
+    admitted = sum(item.is_valid is True for item in validations)
+    if validations:
+        rows.append(
+            f"| 结构合理性检查 | pymatgen 结构解析与几何检查 | 对 {len(validations)} 个候选执行结构检查，其中 {admitted} 个通过。 |"
+        )
+
+    thermodynamic = [
+        item for item in validations
+        if item.formation_energy_per_atom is not None or item.energy_above_hull is not None
+    ]
+    if thermodynamic:
+        rows.append(
+            f"| 结构松弛与稳定性初筛 | MatterSim 势函数 + Materials Project 同元素竞争相 | "
+            f"对 {len(thermodynamic)} 个候选得到形成能或 E_hull 结果，用于本轮热力学排序。 |"
+        )
+
+    predicted_properties = {
+        str(item.get("label") or name)
+        for validation in validations
+        for name, item in (validation.property_predictions or {}).items()
+        if item.get("value") is not None
+    }
+    if predicted_properties:
+        rows.append(
+            "| 候选性质快速预测 | ALIGNN 预训练结构模型 | "
+            f"基于候选晶体结构得到 {'、'.join(sorted(predicted_properties))} 的初筛值。 |"
+        )
+    return rows
+
+
+def _result_indicator_rows(result) -> list[str]:
+    """Explain only quantities actually available in the ranked result."""
+    top = result.ranked_candidates[0] if result.ranked_candidates else None
+    validation = top.validation if top else None
+    if validation is None:
+        return []
+    rows: list[str] = []
+    if validation.energy_above_hull is not None:
+        rows.append("| E_hull | 候选相对同元素竞争相的能量距离；用于本轮稳定性初筛与排序。 |")
+    if validation.formation_energy_per_atom is not None:
+        rows.append("| 形成能 | 候选由元素形成该晶体结构的能量变化；与 E_hull 联合解读。 |")
+    for item in (validation.property_predictions or {}).values():
+        if item.get("value") is not None:
+            rows.append(f"| {item.get('label', '性质')} | 当前候选结构上的快速预测指标。 |")
+    return rows
 
 
 def build_preparation_traceability_report(result) -> str:
@@ -81,11 +127,7 @@ def build_preparation_traceability_report(result) -> str:
     mattersim = (validation.metadata or {}).get("mattersim") if validation else None
     traceability = (mattersim or {}).get("preparation_traceability") if isinstance(mattersim, dict) else None
     if not isinstance(traceability, dict):
-        return "\n".join([
-            "#### 制备可追溯信息",
-            "本轮尚未形成可用的 MP 同元素竞争相数据，因此暂不能提供原型匹配或稳定相清单。",
-            "当前仅可交付候选 CIF 与基础结构检查；这不是合成路线建议。",
-        ])
+        return ""
 
     fingerprint = traceability.get("candidate_crystallography") or {}
     prototype = traceability.get("prototype_match")
@@ -164,25 +206,41 @@ def build_discovery_story(result) -> str:
     constraints = result.constraints
     elements = " · ".join(constraints.allowed_elements) or "未显式指定"
     target_text = _target_description(constraints.target_properties or {})
-    return "\n".join([
-        "#### 本轮任务与生成条件",
-        "| 项目 | 本轮设置 |",
-        "|---|---|",
-        f"| 元素体系 | `{elements}` |",
-        f"| 生成引导 | {target_text}（仅用于引导生成，不是验证结果） |",
-        f"| 候选数量 | 生成 {len(result.generation.candidates)} 个；通过基础结构检查后才进入稳定性评估。 |",
+    blocks = [
+        "## 1. 问题描述",
+        f"在元素体系 {elements} 中探索候选晶体结构。"
+        + (f"本轮将 {target_text} 作为生成引导条件。" if target_text != "未设置数值生成目标" else ""),
         "",
-        "#### 本轮如何评估",
-        "| 阶段 | 使用的方法 | 用途 |",
+        "## 2. 输入变量与约束",
+        "| 符号/对象 | 定义 | 本轮设定 |",
         "|---|---|---|",
-        "| 生成候选 | MatterGen 条件生成模型 | 在指定元素体系与生成偏好下探索晶体结构。 |",
-        "| 结构与能量评估 | pymatgen 基础检查 + MatterSim 松弛 | 排除基础结构问题，并估计较低能量构型。 |",
-        "| 稳定性比较 | Materials Project 同元素竞争相查询 | 将候选与已知稳定相比较，得到 E_hull 初筛依据。 |",
-        "",
-        build_preparation_traceability_report(result),
-        "",
-        build_term_guide(),
-    ])
+        f"| $\\mathcal{{E}}$ | 允许元素集合 | {elements} |",
+        "| $S$ | 候选晶体结构（晶格、元素种类与分数坐标） | 由本轮生成结果确定 |",
+        f"| $\\mathbf{{t}}$ | 目标性质或稳定性偏好 | {target_text} |",
+        "| 可行性条件 | 候选元素属于 $\\mathcal{E}$，并通过本轮结构合理性检查 | 以任务记录中的实际检查结果为准 |",
+    ]
+    method_rows = _executed_method_rows(result)
+    if method_rows:
+        blocks.extend([
+            "",
+            "## 3. 本轮计算链与模型",
+            "| 步骤 | 本轮实际使用的方法 | 已产出的作用 |",
+            "|---|---|---|",
+            *method_rows,
+        ])
+    indicator_rows = _result_indicator_rows(result)
+    if indicator_rows:
+        blocks.extend([
+            "",
+            "## 4. 本轮结果指标说明",
+            "| 指标 | 定量含义 |",
+            "|---|---|",
+            *indicator_rows,
+        ])
+    traceability = build_preparation_traceability_report(result)
+    if traceability:
+        blocks.extend(["", traceability])
+    return "\n".join(blocks)
 
 
 def build_discovery_conclusion(result) -> str:
@@ -210,9 +268,9 @@ def build_discovery_conclusion(result) -> str:
                 status = "达到" if hull <= threshold else "未达到"
                 finding = f"排名第一的候选为 `{formula}`，E_hull 为 {hull:.4f} eV/atom，{status} {threshold:.2f} eV/atom 的本轮初筛阈值。"
     next_step = {
-        "shortlist_for_dft": "建议优先开展 DFT 与目标性能验证，并结合实际工况确认制备与服役可行性。",
+        "shortlist_for_dft": "建议优先开展高精度计算与目标性能验证，并结合实际工况确认制备与服役可行性。",
         "comparison_candidate": "建议保留该结构及下方性质初筛结果作为本轮比较基准，并调整元素体系或生成条件后继续探索。",
-        "structure_only": "建议先完成稳定性评估，再决定是否进入 DFT 与目标性能验证。",
+        "structure_only": "建议先完成稳定性评估，再决定后续验证优先级。",
         "no_candidate": "建议检查元素体系、生成条件或模型资源后重新执行。",
     }.get(conclusion.get("decision"), "建议结合专项计算与实验继续验证。")
     return "\n\n".join([
@@ -245,7 +303,9 @@ def build_property_screening_card(result) -> str:
         lines.append(f"| E_hull | {validation.energy_above_hull:.4f} eV/atom | MatterSim 松弛后与同元素竞争相比较 | C：模型初筛 |")
     for item in predictions.values():
         value = item.get("value")
-        number = f"{float(value):.4f}" if isinstance(value, (int, float)) else "当前未得到"
+        if not isinstance(value, (int, float)):
+            continue
+        number = f"{float(value):.4f}"
         lines.append(
             f"| {item.get('label', '性质')} | {number} {item.get('unit', '')} | "
             f"当前候选结构；{item.get('display_method', 'ALIGNN 性质快速预测')} | "
@@ -278,8 +338,8 @@ def build_requirement_brief(constraints) -> str:
         return f"{value} eV/atom" if name == "energy_above_hull" else str(value)
 
     property_rows = "\n".join(
-        f"| {friendly_names.get(name, name)} | {display_value(name, value)} | 让生成模型优先探索相应结构；最终仍需用结果复核 |" for name, value in properties.items()
-    ) or "| 元素体系 | 未提供数值 | 在指定元素组合内探索晶体结构 |"
+        f"| {friendly_names.get(name, name)} | {display_value(name, value)} | 任务输入条件 |" for name, value in properties.items()
+    ) or "| 目标性质 | 未提供数值 | 任务输入条件 |"
     validation_names = {
         "high_temperature_strength": "高温强度",
         "creep_resistance": "抗蠕变能力",
@@ -290,16 +350,23 @@ def build_requirement_brief(constraints) -> str:
     }
     validation = "、".join(validation_names.get(item, item) for item in (constraints.validation_targets or {}).keys()) or "基础结构与热力学稳定性"
     return "\n".join([
-        "### 新材料发现任务",
-        "#### 设计条件",
-        f"将围绕元素体系 `[{elements}]` 创建候选晶体；后续重点验证：{validation}。",
+        "## 1. 问题描述",
+        f"在元素体系 [{elements}] 中探索候选晶体结构，并以 {validation} 作为本轮研发关注点。",
         "",
-        "| 设计偏好 | 目标值 | 系统如何使用 |",
+        "## 2. 参数定义",
+        "| 符号/参数 | 定义 | 本轮输入 |",
+        "|---|---|---|",
+        f"| $\\mathcal{{E}}$ | 允许元素集合 | {elements} |",
+        "| $S$ | 待求候选晶体结构 | 晶格、元素种类与分数坐标由后续计算确定 |",
+        "| $\\mathbf{t}$ | 目标性质或稳定性偏好 | 见下表 |",
+        "",
+        "## 3. 设计约束",
+        "| 设计偏好 | 目标值 | 属性 |",
         "|---|---:|---|",
         property_rows,
         "",
-        *( [f"解析说明：{' '.join(constraints.notes)}", ""] if constraints.notes else [] ),
-        "接下来将依次完成：生成候选结构、让原子位置自动调整到较低能量、与同元素体系的已知稳定相比较，再给出是否值得进入 DFT 的阶段建议。",
+        *( [f"需求解析：{' '.join(constraints.notes)}", ""] if constraints.notes else [] ),
+        "本页将在计算完成后，仅补充任务记录中实际产生的计算步骤、定量结果及其结构化解释。",
     ])
 
 

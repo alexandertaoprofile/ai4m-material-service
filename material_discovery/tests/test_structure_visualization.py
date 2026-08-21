@@ -24,8 +24,31 @@ class LocalCoordinationVisualisationTest(unittest.TestCase):
         self.assertEqual(len(set(two_dimensional.values())), len(expected))
         self.assertTrue(all(value != (160, 160, 160) for value in three_dimensional.values()))
         self.assertEqual(len(set(three_dimensional.values())), len(expected))
+        self.assertEqual(
+            two_dimensional,
+            {
+                element: "#{:02X}{:02X}{:02X}".format(*rgb)
+                for element, rgb in three_dimensional.items()
+            },
+        )
         self.assertEqual(render_new_material_assets.SURFACE, "#06182F")
         self.assertEqual(render_new_material_assets.PANEL, "#0B2848")
+
+    def test_glb_uses_the_same_structure_spec_as_the_rotation_gif(self) -> None:
+        with patch.object(structure_to_glb, "export_glb_mpstyle", return_value={"ok": True}) as export:
+            output = render_new_material_assets.try_export_glb(
+                Structure(Lattice.cubic(3), ["Fe"], [[0, 0, 0]]),
+                "/tmp/candidate_structure.glb",
+            )
+
+        self.assertEqual(output, "/tmp/candidate_structure.glb")
+        _structure, _path = export.call_args.args
+        kwargs = export.call_args.kwargs
+        self.assertEqual(kwargs["supercell"], (2, 2, 2))
+        self.assertTrue(kwargs["draw_bonds"])
+        self.assertFalse(kwargs["draw_periodic_boundary_bonds"])
+        self.assertEqual(kwargs["poly_mode"], "auto")
+        self.assertEqual(render_new_material_assets.STRUCTURE_LINE, "#C7D6E4")
 
     def test_only_recognised_local_motifs_get_connections(self) -> None:
         structure = Structure(

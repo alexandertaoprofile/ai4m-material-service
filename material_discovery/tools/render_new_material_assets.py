@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import colorsys
 import json
 import math
 import sys
@@ -17,7 +16,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import font_manager
 from matplotlib.animation import PillowWriter
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from pymatgen.core import Structure
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 
 # A shared deep-navy workspace keeps the constraint card, rotating structure
@@ -28,16 +33,9 @@ PANEL_EDGE = "#28577D"
 TEXT = "#F4F8FF"
 MUTED = "#B7CBE0"
 ACCENT = "#63C7FF"
-STRUCTURE_LINE = "#82BCE5"
-
-COLORS = {
-    "Nb": "#4E9FB4", "Mo": "#C98947", "Ta": "#876AB3", "W": "#B69631",
-    "Li": "#77B5E8", "P": "#E88B43", "S": "#E3BD23", "Cl": "#5EAD6F",
-    "Cr": "#708CFF", "Fe": "#CE6940", "Co": "#C67992", "Ni": "#4FA866",
-    "Ti": "#5BBED6", "V": "#A775D6", "Mn": "#C9618C", "Cu": "#D98A43",
-    "Zr": "#58BFA4", "Hf": "#7D9AD8", "Ta": "#9D7AD3", "W": "#C9A94E",
-    "Nb": "#4E9FB4", "Mo": "#D4974B", "Re": "#D76B5F", "Al": "#9FB4FF",
-}
+STRUCTURE_LINE = "#C7D6E4"
+STRUCTURE_LINE_RGB = (199, 214, 228)
+POLYHEDRON_ALPHA = 85 / 255
 
 
 def configure_chinese_font() -> None:
@@ -67,24 +65,11 @@ def arguments() -> argparse.Namespace:
 
 
 def color(element: str) -> str:
-    """Return a stable, high-contrast colour for every element symbol.
+    """Return the exact element colour used by the interactive GLB."""
+    from tools.structure_to_glb import element_rgb
 
-    Generated structures routinely include elements outside the original
-    hand-picked palette.  The previous neutral-grey fallback made a valid
-    element look uncoloured.  A deterministic HSV fallback preserves a
-    distinct, saturated colour without changing between preview frames.
-    """
-    if element in COLORS:
-        return COLORS[element]
-    try:
-        from pymatgen.core import Element
-
-        seed = Element(element).Z
-    except Exception:
-        seed = sum(ord(char) for char in element)
-    hue = (seed * 0.61803398875) % 1.0
-    red, green, blue = colorsys.hsv_to_rgb(hue, 0.58, 0.96)
-    return f"#{round(red * 255):02X}{round(green * 255):02X}{round(blue * 255):02X}"
+    red, green, blue = element_rgb(element)
+    return f"#{red:02X}{green:02X}{blue:02X}"
 
 
 def get_top(manifest: dict) -> tuple[dict, dict]:
@@ -124,9 +109,33 @@ def structure_connections(structure: Structure) -> list[tuple[int, int, np.ndarr
         return []
 
 
+def structure_polyhedra(structure: Structure) -> list[tuple[np.ndarray, np.ndarray, str]]:
+    """Return the same recognised coordination polyhedra used by the GLB."""
+    try:
+        from tools.structure_to_glb import (
+            TYPICAL_ANIONS,
+            get_polyhedra,
+            pick_poly_centers_mp_like,
+        )
+
+        centers = pick_poly_centers_mp_like(structure, "auto")
+        vertex_filter = set(TYPICAL_ANIONS) if "P" in centers else None
+        return get_polyhedra(
+            structure=structure,
+            centers=centers,
+            cn_allowed={4},
+            max_neighbors=4,
+            vertex_filter=vertex_filter,
+        )
+    except Exception:
+        return []
+
+
 def display_supercell(structure: Structure) -> Structure:
-    """Repeat the unit cell so full internal connectivity is visible."""
-    displayed = structure.copy()
+    """Build the same standardized 2×2×2 structure used for the GLB."""
+    from tools.structure_to_glb import standardize_structure
+
+    displayed = standardize_structure(structure)
     displayed.make_supercell([2, 2, 2])
     return displayed
 
@@ -137,6 +146,7 @@ def draw_structure(
     title: str,
     angle: int = 30,
     connections: list[tuple[int, int, np.ndarray]] | None = None,
+    polyhedra: list[tuple[np.ndarray, np.ndarray, str]] | None = None,
 ) -> None:
     coords = np.asarray(structure.cart_coords)
     elements = [site.specie.symbol for site in structure]
@@ -146,6 +156,21 @@ def draw_structure(
         p1 = coords[second] + image @ structure.lattice.matrix
         line_coordinates.extend((p0, p1))
         ax.plot(*zip(p0, p1), color=STRUCTURE_LINE, linewidth=0.65, alpha=0.58, zorder=1)
+    for _center, vertices, element in polyhedra or []:
+        try:
+            import trimesh
+
+            hull = trimesh.convex.convex_hull(vertices)
+            collection = Poly3DCollection(
+                hull.vertices[hull.faces],
+                facecolors=color(element),
+                edgecolors=color(element),
+                linewidths=0.25,
+                alpha=POLYHEDRON_ALPHA,
+            )
+            ax.add_collection3d(collection)
+        except Exception:
+            continue
     for element in sorted(set(elements)):
         ids = [index for index, value in enumerate(elements) if value == element]
         ax.scatter(coords[ids, 0], coords[ids, 1], coords[ids, 2], s=100, color=color(element),
@@ -170,7 +195,8 @@ def render_structure_png(structure: Structure, output: Path, formula: str, *, re
     axis = figure.add_subplot(111, projection="3d")
     displayed = display_supercell(structure)
     draw_structure(axis, displayed, f"Generated candidate · {formula}",
-                   connections=structure_connections(displayed))
+                   connections=structure_connections(displayed),
+                   polyhedra=structure_polyhedra(displayed))
     subtitle = "MatterGen candidate after MatterSim relaxation" if relaxed else "MatterGen-generated candidate · relaxation pending"
     figure.text(0.5, 0.04, subtitle, ha="center", color=MUTED, fontsize=10)
     figure.tight_layout(rect=(0, 0.06, 1, 1))
@@ -184,11 +210,12 @@ def render_rotation_gif(structure: Structure, output: Path, formula: str) -> Non
     writer = PillowWriter(fps=8)
     displayed = display_supercell(structure)
     connections = structure_connections(displayed)
+    polyhedra = structure_polyhedra(displayed)
     with writer.saving(figure, str(output), dpi=110):
         for angle in range(0, 360, 20):
             axis.clear()
             draw_structure(axis, displayed, f"候选晶体旋转预览 · {formula}", angle=angle,
-                           connections=connections)
+                           connections=connections, polyhedra=polyhedra)
             writer.grab_frame()
     plt.close(figure)
 
@@ -316,10 +343,8 @@ def try_export_glb(structure: Structure, output: Path) -> str | None:
             structure,
             str(output),
             supercell=(2, 2, 2),
-            # Match Materials Project's structure view: draw the complete
-            # CrystalNN near-neighbour graph, then add local polyhedra where a
-            # motif can be recognised.  These are structural connections, not
-            # calculated bond orders.
+            # The GIF consumes the same standardized 2×2×2 structure,
+            # CrystalNN graph and recognised polyhedra; it only adds rotation.
             poly_mode="auto",
             draw_bonds=True,
             draw_coordination_connections=False,
@@ -390,7 +415,7 @@ def main() -> None:
             {"path": str(scorecard), "type": "MaterialsPNG", "name": f"热力学初筛评分卡（{formula}）", "docs": "基于结构优化结果的热力学初筛参考。"},
         ])
         if glb:
-            assets.append({"path": glb, "type": "MaterialsGLB", "name": f"候选晶体三维模型（{formula}）", "docs": "模型展示的是这个候选完成结构优化后的排布。连线表示按 CrystalNN 识别的周期近邻与配位关系；它用于阅读结构拓扑，不代表计算得到的键级或键能。明确的四面体或八面体基元会额外显示多面体。"})
+            assets.append({"path": glb, "type": "MaterialsGLB", "name": f"候选晶体三维模型（{formula}）", "docs": "该 GLB 与旋转预览使用同一标准化 2×2×2 结构、元素色板、CrystalNN 周期近邻连线与识别出的局部配位多面体；GIF 仅增加自动旋转。连线用于阅读结构拓扑，不代表计算得到的键级或键能。"})
     readiness_message = "候选已完成结构检查和结构优化，可查看结构模型与热力学初筛。" if formal_structure_ready else "候选仍在结构检查或结构优化阶段，暂不展示正式结构模型和热力学初筛结果。"
     output = {"status": "ok", "formula": formula, "assets": assets, "glb_available": bool(formal_structure_ready and glb), "formal_structure_ready": formal_structure_ready, "message": readiness_message}
     (args.output_dir / "presentation_manifest.json").write_text(json.dumps(output, ensure_ascii=False, indent=2), encoding="utf-8")
