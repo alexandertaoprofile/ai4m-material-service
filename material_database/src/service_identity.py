@@ -2,7 +2,7 @@
 
 SERVICE_ID = "mature_material_catalog"
 ROLE_NAME = "成熟材料证据检索与性能比对"
-ACTION_NAME = "成熟材料证据检索与比对"
+ACTION_NAME = "成熟材料筛选与比对"
 
 ROLE_PROFILE = (
     "面向已知材料体系的选型与核验。在既定的材料库或标准牌号范围内，根据需求指标进行检索、"

@@ -4,6 +4,31 @@
 
 将 1101 高温材料库中可追溯的原始 PDF/表格整理为成熟材料服务可查询的证据；只导入材料身份、测试状态、单位和来源表号明确的基材记录。焊缝、填充金属、对比表、综述/多材料论文不混入基础材料记录。
 
+## 2026-08-24 补充物性导入
+
+已新增受控数据包 `data/processed/high_temperature/2026-08-24_c276_n06230_physical_v2/`，来源均为已核验的 Special Metals 厂商资料：
+
+- INCONEL alloy C-276：仅纳入 Table 2（第 1 页）的温度相关导热系数、线膨胀系数和杨氏模量；资料未单列产品形态，因此按产品状态待补的可追溯证据展示。
+- INCONEL alloy N06230：仅纳入 Table 3（第 2 页）中 200–1600 °F 的 15 个线膨胀系数点，统一换算为 ppm/K。CSV 在该表之后拼入图形提取的摄氏温度序列，导入器通过受控分界规则排除该段；范围字符串拉伸表与其他物性表仍未导入。
+
+该包包含 1 个新增材料身份、81 条性质点和 9 条别名记录；C-276 复用既有 `MAT-1101-HT-INC276` 身份。受控映射位于 `data/processed/high_temperature/document_registry_2026-08-14_simulation.json`。重建命令：
+
+```bash
+rm -rf data/processed/high_temperature/2026-08-24_c276_n06230_physical_v2
+rm -f reports/high_temperature_material_2026-08-24_c276_n06230_mapping_queue.json
+PYTHONPATH=. python scripts/import_high_temperature_evidence.py \
+  --input data/raw/incoming/material_platform/2026-08-06_high_temperature_header_v2 \
+  --output data/processed/high_temperature/2026-08-24_c276_n06230_physical_v2 \
+  --review-output reports/high_temperature_material_2026-08-24_c276_n06230_mapping_queue.json \
+  --document-registry data/processed/high_temperature/document_registry_2026-08-14_simulation.json \
+  --registry-only \
+  --only-document-id 5830e84da253 \
+  --only-document-id 99a780063c24
+PYTHONPATH=. pytest -q tests/test_mature_material_service.py
+```
+
+最新回归：`57 passed, 4 subtests passed`。
+
 ## 数据版本
 
 - 当前应使用新版快照：`data/raw/incoming/material_platform/2026-08-06_high_temperature_header_v2/`
@@ -223,3 +248,12 @@ PYTHONPATH=. pytest -q tests/test_mature_material_service.py
 - 实际 manifest 复盘确认，上述页面不只是 `CEEK` 拼写问题：网关把“=== 当前问题 ===\n用户: 帮我查询一下 PEEK 材料性质”拼接在 5,000+ 字历史之后。原逻辑为避免旧历史中的 PLA/ASA 污染，在无“执行任务”标记的长文本中关闭别名提取，因而将最后的正确 `PEEK` 也遗漏。
 - `MaterialMature._direct_user_requirement` 现优先识别并提取 `=== 当前问题 ===` 后的尾部内容，再进入长历史保护。因此保护机制仍阻止旧材料名污染，但不会丢失网关明确标记的当前问题。
 - 使用该截图同形的完整 5,427 字请求复放，得到 `material_queries=["PEEK"]`、`catalog_matched` 和 **3D4Makers PEEK 线材（VICTREX PEEK 151G 基料）**。新增端到端回归；最后回归：`54 passed, 4 subtests passed`。
+
+## 2026-08-25：机械臂与增材材料扩展（可追溯首批）
+
+- 新增两份留存的官方原始 PDF：Stratasys ULTEM 9085 MDS（SHA-256 `62c446cc0f6cb4422d1d3ed6621c03b4c7247d24107595decf3ef797afe40426`）和 Markforged Composites Data Sheet（SHA-256 `b2758793ae085bafd8308cd1f5d9d1142983387d32dd21aca34840fefea56fac`）。文件、页码、URL、哈希、导入/排除范围均写入各自增量包的 `import_manifest.json`。
+- 新增可查询包 `2026-08-25_stratasys_ultem_9085_v1`：ULTEM 9085 Natural 的 F900/T16/0.254 mm FDM 数据。XZ 与 ZX 方向、HDT 载荷、CTE 温区均逐条保留；ZX 机械数值以 `z_axis_*` 方向属性保存，未混入通用 XZ 筛选。
+- 新增可查询包 `2026-08-25_markforged_composite_bases_v1`：Onyx、Onyx FR、Onyx ESD、Nylon White 四种全填充 FFF 基材。来源中的连续纤维表没有为每一数值指明树脂/纤维构型，故不导入，避免将其误作完整 CFRP 材料卡。
+- 新增展示词典：弯曲模量、缺口 Izod 冲击强度以中文材料性质名显示，继续使用既有材料性质汇总表、来源和条件列；未增加前端接口、事件或步骤 ID。
+- 后续四组机械臂材料（结构/传动金属、增材聚合物、碳纤维复材、热管理/轻量化）及每类的审核门槛见 `reports/robot_arm_material_coverage_execution_2026-08-25.md`。无可留存原始来源或状态条件的数据一律留在审核队列。
+- 验证：手工查询 `ULTEM 9085`、`Onyx`、`Onyx FR`、`Onyx ESD`、`Nylon White` 均精确解析；`PYTHONPATH=. pytest -q tests/test_mature_material_service.py` 为 `57 passed, 4 subtests passed`；`git diff --check` 通过。

@@ -196,8 +196,9 @@ class MatureMaterialServiceTest(unittest.TestCase):
         self.assertTrue(candidate["eligible"])
         self.assertEqual(candidate["evidence"][0]["observed"]["value"], 871.0)
         summary = service.summary(result)
-        self.assertIn("Solution-annealed 718 at Room Temperature", summary)
-        self.assertIn("745317870285；745317870285-table-0007; page 7", summary)
+        self.assertIn("固溶退火态；室温测试", summary)
+        self.assertIn("718 technical brochure；表 7，第 7 页", summary)
+        self.assertNotIn("745317870285-table-0007", summary)
 
     def test_reviewed_thermal_batch_preserves_temperature_specific_conductivity(self) -> None:
         payload = {
@@ -220,6 +221,44 @@ class MatureMaterialServiceTest(unittest.TestCase):
         self.assertEqual(evidence["observed"]["coverage"], "nearest_measured")
         self.assertEqual(evidence["observed"]["temperature_K"], 294.15)
         self.assertEqual(evidence["observed"]["value"], 9.8)
+
+    def test_c276_physical_property_table_is_available_as_separate_traceable_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            service = self._service(Path(temporary))
+            result = asyncio.run(service.run(service.contract({
+                "taskid": "unit-c276-physical-properties",
+                "idea": "查看 INCONEL C-276 的导热与弹性数据",
+                "mature_material": {"material_queries": ["INCONEL C-276"]},
+            })))
+
+        properties = result["results"][0]["available_properties"]
+        c276_points = [item for item in properties if item.get("source", {}).get("source_id") == "5830e84da253"]
+        self.assertTrue(any(item["property"] == "thermal_conductivity" for item in c276_points))
+        self.assertTrue(any(item["property"] == "youngs_modulus" for item in c276_points))
+        self.assertTrue(any(item["property"] == "thermal_expansion_coefficient" for item in c276_points))
+
+    def test_n06230_import_excludes_adjacent_figure_series(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            service = self._service(Path(temporary))
+            result = asyncio.run(service.run(service.contract({
+                "taskid": "unit-n06230-cte",
+                "idea": "核验 INCONEL N06230 在约 200°C 的线膨胀系数",
+                "mature_material": {
+                    "material_queries": ["UNS N06230"],
+                    "service_temperature_C": 204.44,
+                    "property_constraints": [{
+                        "property": "thermal_expansion_coefficient", "operator": "<=", "value": 13.0, "unit": "ppm/K",
+                    }],
+                },
+            })))
+
+        candidate = result["results"][0]
+        evidence = candidate["evidence"][0]
+        self.assertEqual(candidate["material"]["material_id"], "MAT-1101-HT-INN06230")
+        self.assertTrue(candidate["eligible"])
+        self.assertEqual(evidence["observed"]["value"], 12.78)
+        n06230_points = [item for item in candidate["available_properties"] if item.get("source", {}).get("source_id") == "99a780063c24"]
+        self.assertEqual(len(n06230_points), 15)
 
     def test_unconstrained_lookup_does_not_claim_performance_pass(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -487,6 +526,63 @@ class MatureMaterialServiceTest(unittest.TestCase):
         self.assertTrue(result["results"])
         self.assertTrue(result["results"][0]["preference_evidence"])
 
+    def test_low_density_compact_goal_is_ranked_and_reports_catalogue_truncation(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            service = self._service(Path(temporary))
+            result = asyncio.run(service.run(service.contract({
+                "taskid": "unit-low-density-preference",
+                "idea": "机械臂零件需要低密度、强度高。",
+            })))
+            summary = service.summary(result)
+
+        self.assertEqual(result["constraints"]["preference_goals"], [
+            {"property": "density", "direction": "minimize"},
+            {"property": "ultimate_tensile_strength", "direction": "maximize"},
+        ])
+        self.assertEqual(result["constraints"]["top_k"], 10)
+        self.assertGreater(result["screening"]["summary"]["candidates_evaluated"], 50)
+        self.assertTrue(result["screening"]["summary"]["candidates_truncated"])
+        self.assertEqual(result["screening"]["summary"]["candidates_returned"], 10)
+        self.assertGreater(result["screening"]["summary"]["preference_funnel_counts"][0]["count"], 10)
+        self.assertEqual(
+            result["screening"]["summary"]["preference_funnel_counts"][-1]["count"],
+            result["screening"]["summary"]["complete_preference_candidate_count"],
+        )
+        self.assertGreater(result["screening"]["summary"]["complete_preference_candidate_count"], 0)
+        self.assertTrue(all(
+            all(item["status"] == "observed" for item in candidate["preference_evidence"])
+            for candidate in result["results"][:result["screening"]["summary"]["complete_preference_candidate_count"]]
+        ))
+        self.assertIn("当前目录共有", summary)
+        self.assertIn("本页仅展示前 10 种", summary)
+        self.assertIn(f"| 已纳入本轮目录候选 | {result['screening']['summary']['candidates_evaluated']} |", summary)
+        self.assertNotIn("暂待补充数据的材料", summary)
+
+    def test_printing_consumable_scope_and_composite_grade_are_not_lost(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            service = self._service(Path(temporary))
+            scoped = asyncio.run(service.run(service.contract({
+                "taskid": "unit-print-consumable-scope",
+                "idea": "我想找3D打印耗材，低密度高强度。",
+            })))
+            composite = asyncio.run(service.run(service.contract({
+                "taskid": "unit-ppscf-exact",
+                "idea": "打印材料 PPS-CF 的性能。",
+            })))
+
+        self.assertEqual(scoped["constraints"]["material_families"], ["__3d_printing_consumables__"])
+        self.assertTrue(scoped["results"])
+        self.assertTrue(all(
+            any(token in " ".join(str(item["material"].get(key) or "").casefold() for key in ("display_name", "family", "product_state"))
+                for token in ("fdm", "fff", "sls", "sla", "耗材", "filament", "线材", "树脂", "工程塑料", "尼龙", "pekk", "peek", "pei", "pps", "abs", "asa", "onyx"))
+            for item in scoped["results"]
+        ))
+        self.assertTrue(any(
+            all(evidence["status"] == "observed" for evidence in item["preference_evidence"])
+            for item in scoped["results"]
+        ))
+        self.assertEqual(composite["results"][0]["material"]["material_id"], "MAT-ROBOT-SEED-PPS-CF-FDM")
+
     def test_compact_high_heat_dissipation_and_hardness_request_becomes_preference_screening(self) -> None:
         """Do not send a qualitative but actionable request back to empty criteria collection."""
         with tempfile.TemporaryDirectory() as temporary:
@@ -510,6 +606,14 @@ class MatureMaterialServiceTest(unittest.TestCase):
         self.assertIn("证据覆盖漏斗", summary)
         self.assertIn("## 1. 需求与已知工况", summary)
         self.assertIn("| 应用场景 | 机器人零部件 |", summary)
+        requirement_section = summary.split("## 2. 本轮筛选/比较口径", 1)[0]
+        self.assertIn("以下仅列出本轮已提供、可用于材料比较的信息。", requirement_section)
+        self.assertIn("| 性能关注点 | 导热系数越高越好；硬度越高越好 |", requirement_section)
+        self.assertIn("已提供 STL 几何文件，可用于理解零件边界；制造工艺尚待补充", requirement_section)
+        self.assertIn("### 为形成部件级判断，建议补充", requirement_section)
+        self.assertNotIn("| 已指定材料/牌号 | 未指定 |", requirement_section)
+        self.assertNotIn("| 材料体系约束 | 未限定 |", requirement_section)
+        self.assertNotIn("| 已给出的数值门槛 | 0 项 |", requirement_section)
         self.assertIn("## 4. 结论", summary)
         self.assertIn("## 5. 材料性质汇总", summary)
         self.assertNotIn("## 6. 缺失项与下一步", summary)
@@ -549,13 +653,17 @@ class MatureMaterialServiceTest(unittest.TestCase):
         self.assertIn("INCONEL 718", summary)
         self.assertIn("暂定优先评估材料", summary)
         self.assertIn("A：可追溯，材料状态/测试条件已记录", summary)
-        self.assertIn("d47a32564d01；d47a32564d01-table-0005; page 2", summary)
+        self.assertIn("INCONEL alloy 718；表 5，第 2 页", summary)
+        self.assertNotIn("d47a32564d01-table-0005", summary)
         self.assertIn("D：模型/工程估算，不能用于通过判断", summary)
         self.assertIn("不作为工程放行结论", summary)
         self.assertIn("15 kg 负载、0.5 m 工作半径", summary)
         self.assertIn("已完成 STL 选型，进入材料与制造方案比较", summary)
         self.assertIn("承力连接件", summary)
         self.assertIn("热/力预建模参数", summary)
+        self.assertIn("来源表包含多种热处理/测试脚注", summary)
+        self.assertNotIn("Annealing was 1800°F/1 hr", summary)
+        self.assertNotIn("test_temperature_deg_f=Room", summary)
 
     def test_temperature_curve_card_shows_property_values_not_temperature_as_value(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

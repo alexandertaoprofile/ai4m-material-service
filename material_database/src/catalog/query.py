@@ -81,6 +81,27 @@ def _number(value: Any) -> float | None:
         return None
 
 
+def _preference_comparison_value(property_name: str, value: float, unit: Any) -> float | None:
+    """Normalize only preference values that otherwise use mixed common units.
+
+    Stored evidence remains untouched for display.  Density is commonly
+    ingested as either g/cm³ or kg/m³; comparing their raw magnitudes would
+    make every g/cm³ row appear lighter than every kg/m³ row.
+    """
+    if property_name == "hardness":
+        # HRC/HRB/HB facts stay visible in material cards, but raw values from
+        # those scales cannot be silently mixed with Vickers rankings.
+        return value if normalize_name(unit) == "hv" else None
+    if property_name != "density":
+        return value
+    normalized_unit = normalize_name(unit)
+    if normalized_unit in {"kgm3", "kgm3"}:
+        return value
+    if normalized_unit in {"gcm3", "gcm3"}:
+        return value * 1000.0
+    return None
+
+
 def _read(path: Path) -> list[dict[str, str]]:
     if not path.is_file():
         return []
@@ -118,7 +139,15 @@ class MatureMaterialCatalog:
         # row while retaining every source-preserving property record.
         material_by_id: dict[str, dict[str, str]] = {}
         for row in raw_materials:
-            material_by_id.setdefault(row.get("material_id", ""), row)
+            material_id = row.get("material_id", "")
+            existing = material_by_id.get(material_id)
+            # A later A/B source-backed identity supersedes an earlier D-only
+            # seed identity while its D estimates remain separately retained.
+            if existing is None or (
+                existing.get("data_role") == "D级工程估算材料身份"
+                and row.get("data_role") != "D级工程估算材料身份"
+            ):
+                material_by_id[material_id] = row
         self.materials = list(material_by_id.values())
         raw_points = [row for bundle in bundles for row in _read(bundle / "property_points.csv")]
         point_by_source: dict[tuple[str, str, str, str, str, str, str], dict[str, str]] = {}
@@ -142,6 +171,13 @@ class MatureMaterialCatalog:
         self.curves = list(curve_by_source.values())
         self.compositions = [row for bundle in bundles for row in _read(bundle / "composition_long.csv")]
         self.aliases = [row for bundle in bundles for row in _read(bundle / "material_aliases.csv")]
+        # D-level engineering estimates live in a separate file rather than
+        # property_points.csv.  They may be shown to users, but this physical
+        # separation prevents them from ever entering evaluate()/ranking.
+        self.engineering_estimates = [
+            row for bundle in bundles for row in _read(bundle / "engineering_estimates.csv")
+            if row.get("material_id")
+        ]
         self._by_id = {row["material_id"]: row for row in self.materials}
         self._alias_index = self._build_alias_index()
 
@@ -260,7 +296,19 @@ class MatureMaterialCatalog:
         return {"value": nearest[1], "unit": nearest[2].get("SI_unit"), "temperature_K": nearest[0], "coverage": "out_of_range", "source": nearest[2]}
 
     def _point_value(self, material_id: str, constraint: PropertyConstraint) -> dict[str, Any] | None:
-        rows = [row for row in self.points if row.get("material_id") == material_id and row.get("property") == constraint.property]
+        properties = {constraint.property}
+        # Older source packs preserve Vickers hardness under the more specific
+        # property name.  It is still direct evidence for a generic customer
+        # hardness query; other hardness scales remain separate.
+        if constraint.property == "hardness":
+            properties.add("hardness_vickers")
+        # Polymer and filament data sheets commonly call the ISO/ASTM result
+        # simply "tensile_strength".  For a customer request for generic
+        # ultimate tensile strength it is the relevant tensile failure value;
+        # yield strength is deliberately not folded into this fallback.
+        if constraint.property == "ultimate_tensile_strength":
+            properties.add("tensile_strength")
+        rows = [row for row in self.points if row.get("material_id") == material_id and row.get("property") in properties]
         parsed = []
         for row in rows:
             value = _number(row.get("value"))
@@ -359,9 +407,26 @@ class MatureMaterialCatalog:
             })
         return sorted(evidence, key=lambda item: (str(item["property"]), str(item["coverage"])))
 
+    def engineering_estimates_for(self, material_id: str) -> list[dict[str, Any]]:
+        """Return separately stored D-level values for presentation only."""
+        estimates: list[dict[str, Any]] = []
+        for row in self.engineering_estimates:
+            if row.get("material_id") != material_id:
+                continue
+            item: dict[str, Any] = dict(row)
+            for key in ("value_min", "value_max", "temperature_min_K", "temperature_max_K"):
+                value = _number(item.get(key))
+                if value is not None:
+                    item[key] = value
+            estimates.append(item)
+        return estimates
+
     def search(self, *, names: list[str], families: list[str], standards: list[str], constraints: list[PropertyConstraint], preferences: list[PreferenceGoal] | None = None, top_k: int) -> dict[str, Any]:
         resolved_ids, resolution_trace = self.resolve_names(names)
         family_keys = {normalize_name(item) for item in families if item}
+        printing_consumables = "3dprintingconsumables" in family_keys
+        additive_materials = "additivemanufacturingmaterials" in family_keys
+        family_keys -= {"3dprintingconsumables", "additivemanufacturingmaterials"}
         standard_keys = {normalize_name(item) for item in standards if item}
         candidates = self.materials
         # A supplied but unmatched/ambiguous material name must never degrade
@@ -371,6 +436,13 @@ class MatureMaterialCatalog:
             candidates = [row for row in candidates if row["material_id"] in resolved_ids]
         if family_keys:
             candidates = [row for row in candidates if normalize_name(row.get("family")) in family_keys]
+        if printing_consumables or additive_materials:
+            def printable(row: dict[str, str]) -> bool:
+                text = " ".join(str(row.get(key) or "") for key in ("display_name", "family", "grade", "product_state", "process_metadata")).casefold()
+                polymer_markers = ("fdm", "fff", "sls", "sla", "耗材", "filament", "线材", "树脂", "工程塑料", "尼龙", "pekk", "peek", "pei", "pps", "abs", "asa", "onyx")
+                additive_markers = (*polymer_markers, "增材", "metal x", "alsi10mg")
+                return any(marker in text for marker in (polymer_markers if printing_consumables else additive_markers))
+            candidates = [row for row in candidates if printable(row)]
         if standard_keys:
             candidates = [row for row in candidates if normalize_name(row.get("UNS/standard")) in standard_keys]
         # The material-core import deliberately preserves source records, and
@@ -399,7 +471,12 @@ class MatureMaterialCatalog:
         results = []
         for material in candidates:
             assessment = self.evaluate(material["material_id"], constraints)
-            result = {"material": material, "available_properties": self.property_evidence(material["material_id"]), **assessment}
+            result = {
+                "material": material,
+                "available_properties": self.property_evidence(material["material_id"]),
+                "engineering_estimates": self.engineering_estimates_for(material["material_id"]),
+                **assessment,
+            }
             result["evidence_score"] = sum(item["status"] == "pass" for item in assessment["evidence"])
             preference_evidence = []
             preference_sort_key = []
@@ -409,7 +486,13 @@ class MatureMaterialCatalog:
                     preference_evidence.append({"property": preference.property, "direction": preference.direction, "status": "missing"})
                     preference_sort_key.append(float("inf"))
                     continue
-                value = float(measured["value"])
+                value = _preference_comparison_value(
+                    preference.property, float(measured["value"]), measured.get("unit"),
+                )
+                if value is None:
+                    preference_evidence.append({"property": preference.property, "direction": preference.direction, "status": "unit_incomparable"})
+                    preference_sort_key.append(float("inf"))
+                    continue
                 preference_evidence.append({
                     "property": preference.property, "direction": preference.direction, "status": "observed",
                     "observed": {key: item for key, item in measured.items() if key != "source"}, "source": measured["source"],
@@ -417,8 +500,47 @@ class MatureMaterialCatalog:
                 preference_sort_key.append(-value if preference.direction == "maximize" else value)
             result["preference_evidence"] = preference_evidence
             result["_preference_sort_key"] = tuple(preference_sort_key)
+            result["_preference_missing_count"] = sum(
+                item.get("status") != "observed" for item in preference_evidence
+            )
             results.append(result)
-        results.sort(key=lambda item: (not item["eligible"], item["_preference_sort_key"], -item["evidence_score"], item["material"]["material_id"]))
+        # A partially covered candidate must not outrank a candidate that has
+        # evidence for every stated preference merely because one available
+        # property has a large raw value.
+        results.sort(key=lambda item: (not item["eligible"], item["_preference_missing_count"], item["_preference_sort_key"], -item["evidence_score"], item["material"]["material_id"]))
+        candidate_count_before_limit = len(results)
+        # Build every funnel from the full evaluated set, before the UI's
+        # display limit is applied.  A funnel labelled "候选" must never say
+        # 10 merely because the response renders the top 10 cards.
+        preference_funnel_counts: list[dict[str, Any]] = []
+        constraint_funnel_counts: list[dict[str, Any]] = []
+        if preferences and not constraints:
+            remaining = list(results)
+            for preference in preferences:
+                remaining = [
+                    item for item in remaining
+                    if any(
+                        evidence.get("property") == preference.property and evidence.get("status") == "observed"
+                        for evidence in item.get("preference_evidence", [])
+                    )
+                ]
+                preference_funnel_counts.append({"property": preference.property, "count": len(remaining)})
+        elif constraints:
+            remaining = list(results)
+            for constraint in constraints:
+                remaining = [
+                    item for item in remaining
+                    if any(
+                        evidence.get("property") == constraint.property
+                        and evidence.get("status") == "pass"
+                        and evidence.get("requested", {}).get("operator") == constraint.operator
+                        and evidence.get("requested", {}).get("value") == constraint.value
+                        for evidence in item.get("evidence", [])
+                    )
+                ]
+                constraint_funnel_counts.append({"constraint": constraint.__dict__, "count": len(remaining)})
+        comparable_candidate_count = len(results)
+        complete_preference_candidate_count = 0
         preference_data_gaps: list[dict[str, Any]] = []
         if preferences and not constraints:
             ranked_results = []
@@ -434,6 +556,10 @@ class MatureMaterialCatalog:
                         "missing_properties": [item.get("property") for item in result["preference_evidence"] if item.get("status") == "missing"],
                     })
             results = ranked_results
+            comparable_candidate_count = len(results)
+            complete_preference_candidate_count = sum(
+                item["_preference_missing_count"] == 0 for item in results
+            )
             # A broad preference search can otherwise be filled entirely by
             # literature-formula records that happen to carry one property.
             # Keep a small, visible comparison set of catalogue commercial
@@ -449,13 +575,21 @@ class MatureMaterialCatalog:
                 selected_ids = {item["material"]["material_id"] for item in leading}
                 leading.extend(item for item in commercial if item["material"]["material_id"] not in selected_ids)
                 results = leading[:top_k]
+        truncated = comparable_candidate_count > top_k
         for rank, result in enumerate(results, start=1):
             result["preference_rank"] = rank if preferences else None
             result.pop("_preference_sort_key", None)
+            result.pop("_preference_missing_count", None)
         return {
             "name_resolution": resolution_trace,
             "candidates": results[:top_k],
             "preference_data_gaps": preference_data_gaps,
+            "candidate_count_before_limit": candidate_count_before_limit,
+            "comparable_candidate_count": comparable_candidate_count,
+            "complete_preference_candidate_count": complete_preference_candidate_count,
+            "preference_funnel_counts": preference_funnel_counts,
+            "constraint_funnel_counts": constraint_funnel_counts,
+            "truncated": truncated,
         }
 
 

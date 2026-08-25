@@ -127,11 +127,29 @@ def _directional_goals_from_text(text: str) -> list[dict[str, str]]:
         goals.append({"property": "thermal_conductivity", "direction": "maximize"})
     if re.search(r"(?:高硬度|高散热\s*[、，,及和与]\s*硬度)", text, re.IGNORECASE):
         goals.append({"property": "hardness", "direction": "maximize"})
+    if re.search(r"(?:高强度|强度高|高抗拉|高屈服)", text, re.IGNORECASE):
+        goals.append({"property": "ultimate_tensile_strength", "direction": "maximize"})
+    # “低密度/轻量化” is the equally common compact counterpart of
+    # “密度越低越好”.  It is a ranking intent, never an inferred threshold.
+    if re.search(r"(?:低密度|轻量化|轻质(?:化)?|质量轻)", text, re.IGNORECASE):
+        goals.append({"property": "density", "direction": "minimize"})
     deduplicated = dict.fromkeys((goal["property"], goal["direction"]) for goal in goals)
-    return [
+    ordered = [
         {"property": property_name, "direction": direction}
         for property_name, direction in deduplicated
     ]
+    markers = {
+        "density": ("密度", "轻量", "轻质", "质量轻"),
+        "ultimate_tensile_strength": ("抗拉", "拉伸", "强度", "高强"),
+        "yield_strength": ("屈服",),
+        "thermal_conductivity": ("散热", "导热"),
+        "hardness": ("硬度",),
+        "elongation": ("延伸",),
+    }
+    return sorted(
+        ordered,
+        key=lambda goal: min((text.find(marker) for marker in markers.get(goal["property"], ()) if text.find(marker) >= 0), default=len(text)),
+    )
 
 
 def _property_is_mentioned(text: str, property_name: str) -> bool:
@@ -223,6 +241,8 @@ class MaterialMature:
         "XIMUALPHA", "LLM", "RAG", "PDF", "CIF", "MP", "MPA", "HFE", "HTCC", "CTE", "IPC",
     })
     _MATERIAL_ACRONYMS = frozenset({"ABS", "ASA", "PA", "PEEK", "PEI", "PETG", "PLA", "PPS", "PTFE", "PVC"})
+    _PRINT_CONSUMABLE_SCOPE = "__3d_printing_consumables__"
+    _ADDITIVE_SCOPE = "__additive_manufacturing_materials__"
     # Correct only an unambiguous, high-frequency one-letter transposition.
     # The canonical query is still shown in the report; arbitrary fuzzy
     # matching would be unsafe for material grades and standards.
@@ -481,7 +501,8 @@ class MaterialMature:
                 if canonical not in material_queries:
                     material_queries.append(canonical)
         for acronym in self._MATERIAL_ACRONYMS:
-            if re.search(r"(?<![A-Za-z0-9])" + re.escape(acronym) + r"(?![A-Za-z0-9])", alias_extraction_text, re.IGNORECASE):
+            # Do not truncate a composite grade such as PPS-CF into PPS.
+            if re.search(r"(?<![A-Za-z0-9])" + re.escape(acronym) + r"(?![A-Za-z0-9-])", alias_extraction_text, re.IGNORECASE):
                 if acronym not in material_queries:
                     material_queries.append(acronym)
         if not material_queries:
@@ -491,6 +512,16 @@ class MaterialMature:
                     if value and value not in material_queries:
                         material_queries.append(value)
         material_families = self._as_list(scope.get("material_families", scope.get("families", [])))
+        # These are catalogue scopes, not inferred material grades.  They are
+        # intentionally explicit so a request for printing consumables does
+        # not silently turn into an all-metal catalogue search.
+        printable_text = extraction_text.casefold()
+        if not material_families and re.search(r"(?:3d\s*打印|打印耗材|打印线材|fdm|fff|sls|sla|光固化|耗材)", printable_text, re.IGNORECASE):
+            material_families.append(
+                self._PRINT_CONSUMABLE_SCOPE
+                if re.search(r"(?:耗材|线材|fdm|fff|sls|sla|光固化)", printable_text, re.IGNORECASE)
+                else self._ADDITIVE_SCOPE
+            )
         selection_context_raw = scope.get("selection_context", {})
         if selection_context_raw is None:
             selection_context_raw = {}
@@ -531,6 +562,11 @@ class MaterialMature:
             selection_context=selection_context,
             preference_goals=preference_goals,
         )
+        # Keep the first response compact for the UI.  Search still calculates
+        # and reports the full candidate counts before this display limit;
+        # callers can request up to 50 results explicitly.
+        requested_limit = scope.get("top_k", 10)
+        top_k = max(1, min(int(requested_limit), 50))
         return {
             "taskid": taskid,
             "workflow_kind": CATALOG_SCREENING_WORKFLOW,
@@ -543,7 +579,7 @@ class MaterialMature:
             "property_constraints": parsed_property_constraints,
             "preference_goals": preference_goals,
             "service_temperature_K": default_temperature_K,
-            "top_k": max(1, min(int(scope.get("top_k", 10)), 50)),
+            "top_k": top_k,
             "source_preference": str(scope.get("source_preference", "all")),
             "alias_extraction_text": alias_extraction_text,
             # 上游证据只原样保留和展示；没有目录匹配时绝不写成已核验事实。
@@ -565,7 +601,7 @@ class MaterialMature:
                 "preference_goals": preference_goals,
                 "service_temperature_K": default_temperature_K,
                 "selection_context": selection_context,
-                "limit": max(1, min(int(scope.get("top_k", 10)), 50)),
+                "limit": top_k,
             },
         }
 
@@ -611,7 +647,13 @@ class MaterialMature:
         # engineering/LLM step.  Attaching them after ``catalog.search`` makes
         # it impossible for them to affect filtering or preference ranking.
         for candidate in search["candidates"]:
-            candidate["engineering_estimates"] = constraints["engineering_estimates"]
+            # Catalogue D-level records are presentation-only, just like
+            # request-scoped estimates.  Preserve both; catalog.search has
+            # already completed, so neither can affect eligibility/ranking.
+            candidate["engineering_estimates"] = [
+                *(candidate.get("engineering_estimates") or []),
+                *constraints["engineering_estimates"],
+            ]
         constraint_status_counts: dict[str, dict[str, int]] = {}
         for candidate in search["candidates"]:
             for evidence in candidate.get("evidence", []):
@@ -647,7 +689,11 @@ class MaterialMature:
             message = "目录中暂未找到与本轮指定材料、牌号或标准相匹配的已入库记录；未展示或推断替代候选材料。"
             outcome = "upstream_evidence_only" if has_upstream_evidence else "needs_literature_screening"
         elif preferences and not parsed_constraints:
-            message = f"已按本轮 {len(preferences)} 项方向偏好返回 {len(search['candidates'])} 种可比较的目录证据；偏好仅用于排序，不构成性能通过或工程推荐。"
+            total_comparable = int(search.get("comparable_candidate_count", len(search["candidates"])))
+            total_complete = int(search.get("complete_preference_candidate_count", total_comparable))
+            returned = len(search["candidates"])
+            truncation = f"；当前展示前 {returned} 种" if search.get("truncated") else "；已完整展示"
+            message = f"已按本轮 {len(preferences)} 项方向偏好识别 {total_comparable} 种至少覆盖一项性质的目录证据，其中 {total_complete} 种同时覆盖全部关注性质{truncation}；偏好仅用于排序，不构成性能通过或工程推荐。"
             outcome = "catalogue_evidence_landscape"
         elif parsed_constraints and eligible == 0:
             message = (
@@ -687,7 +733,13 @@ class MaterialMature:
                 "request": {**constraints["screening_request"], "material_queries": names},
                 "strategy": strategy,
                 "summary": {
-                    "candidates_evaluated": len(search["candidates"]),
+                    "candidates_evaluated": int(search.get("candidate_count_before_limit", len(search["candidates"]))),
+                    "candidates_returned": len(search["candidates"]),
+                    "candidates_truncated": bool(search.get("truncated")),
+                    "comparable_candidate_count": int(search.get("comparable_candidate_count", len(search["candidates"]))),
+                    "complete_preference_candidate_count": int(search.get("complete_preference_candidate_count", len(search["candidates"]))),
+                    "preference_funnel_counts": search.get("preference_funnel_counts", []),
+                    "constraint_funnel_counts": search.get("constraint_funnel_counts", []),
                     "eligible_candidates": eligible,
                     "matched_name_count": sum(item["status"] == "matched" for item in search["name_resolution"]),
                     "constraint_status_counts": constraint_status_counts,

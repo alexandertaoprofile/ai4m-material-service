@@ -1,6 +1,7 @@
 """Human-readable streaming and chart assets for mature-material lookups."""
 from __future__ import annotations
 
+import json
 import os
 import re
 from pathlib import Path
@@ -30,6 +31,7 @@ PROPERTY_LABELS = {
     "specific_enthalpy": "比焓",
     "tensile_strength": "拉伸强度", "heat_deflection_temperature": "热变形温度",
     "ultimate_tensile_strength": "抗拉强度", "hardness_vickers": "维氏硬度",
+    "hardness_rockwell_b": "洛氏硬度 B 标尺", "hardness_rockwell_c": "洛氏硬度 C 标尺",
     "elongation": "延伸率", "plastic_elongation": "塑性延伸率", "grain_size": "晶粒尺寸",
     "density_calculated": "计算密度",
 }
@@ -108,9 +110,51 @@ def candidate_display_name(material: dict[str, Any]) -> str:
 
 
 def _condition_tail(condition: Any) -> str:
-    """Keep all traceable test clauses; never discard a temperature clause."""
-    parts = [item.strip() for item in str(condition or "").split(";") if item.strip()]
+    """Keep customer-relevant test clauses without exposing import-field names."""
+    text = str(condition or "")
+    text = re.sub(r"\btest_temperature_deg_[cf]\s*=\s*(?:room|rt)\b", "测试温度：室温", text, flags=re.IGNORECASE)
+    text = re.sub(r"\btest_temperature_deg_c\s*=\s*([-+]?\d+(?:\.\d+)?)", r"测试温度：\1 °C", text, flags=re.IGNORECASE)
+    text = re.sub(r"\btest_temperature_deg_f\s*=\s*([-+]?\d+(?:\.\d+)?)", r"测试温度：\1 °F", text, flags=re.IGNORECASE)
+    text = re.sub(r"(?:^|;)\s*source column=[^;]+", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"(?:^|;)\s*imported through [^;]+", "", text, flags=re.IGNORECASE)
+    parts = [item.strip() for item in text.split(";") if item.strip()]
     return "；".join(parts)
+
+
+def _customer_condition(condition: Any) -> str:
+    """Summarise a source condition without turning table footnotes into UI logs."""
+    raw = _condition_tail(condition)
+    if not raw or raw.casefold() in {"unspecified", "not_recorded"}:
+        return "产品状态/测试条件未注明"
+
+    # A table-level footnote can describe several product states.  Unless the
+    # source row identifies its letter, showing every footnote as this row's
+    # condition would be misleading as well as unreadable.
+    footnotes = re.findall(r"\$\^\{?\s*([a-z])\s*\}?", raw, flags=re.IGNORECASE)
+    if len(set(footnotes)) > 1:
+        return "来源表包含多种热处理/测试脚注；当前数据行未标明对应脚注，需按原表复核"
+
+    lowered = raw.casefold()
+    labels: list[str] = []
+    for pattern, label in (
+        (r"hot[- ]rolled round", "热轧圆棒"),
+        (r"cold[- ]rolled sheet", "冷轧板材"),
+        (r"sheet and plate", "板材/板件"),
+        (r"annealed and aged", "退火及时效态"),
+        (r"solution[- ]annealed", "固溶退火态"),
+        (r"room temperature|\brt\b", "室温测试"),
+    ):
+        if re.search(pattern, lowered, flags=re.IGNORECASE) and label not in labels:
+            labels.append(label)
+    if re.search(r"annealed", lowered, flags=re.IGNORECASE) and not any(
+        label in labels for label in ("退火及时效态", "固溶退火态")
+    ):
+        labels.append("退火态")
+    if labels:
+        return "；".join(labels)
+    if re.search(r"\btable\s+\d+\b", raw, flags=re.IGNORECASE):
+        return "来源表条件已记录；详见证据出处"
+    return raw if len(raw) <= 120 else "来源已记录测试/产品条件；详见证据出处"
 
 
 def _temperature_range_text(span: Any) -> str:
@@ -222,10 +266,20 @@ def _property_table_rows(candidate: dict[str, Any]) -> list[tuple[str, str, str,
         if item.get("coverage") != "temperature_curve":
             continue
         span = item.get("temperature_range_K") or []
-        condition = _condition_tail(item.get("condition")) or "未注明"
+        condition = _customer_condition(item.get("condition"))
         if len(span) == 2:
             condition = f"测量温区 {_temperature_range_text(span)}；{condition}"
         rows.append((identity, property_label(item.get("property")), _curve_value_text(item), condition))
+    # D-level values are deliberately not mixed into available_properties.
+    # Still show them in the normal identity card so a lookup without explicit
+    # simulation goals remains useful and honest about its evidence level.
+    for estimate in candidate.get("engineering_estimates", []):
+        rows.append((
+            identity,
+            f"{property_label(estimate.get('property'))}（工程估算）",
+            _estimate_value_text(estimate),
+            f"D：模型/工程估算，不能用于通过判断；不参与筛选/排序；{estimate.get('condition') or '适用状态待核验'}；{estimate.get('basis') or '依据待补'}",
+        ))
     return rows or [(identity, "已入库性质", "暂未收录可展示的数值", "-")]
 
 
@@ -501,10 +555,17 @@ def render_default_property_comparison(result: dict[str, Any], output_dir: Path)
 
 def requirement_markdown(result: dict[str, Any]) -> str:
     constraints = result["constraints"]
-    names = "、".join(constraints.get("material_queries") or []) or "未指定"
-    families = "、".join(constraints.get("material_families") or []) or "未限定"
+    names = "、".join(constraints.get("material_queries") or [])
+    family_labels = {
+        "__3d_printing_consumables__": "3D 打印耗材",
+        "__additive_manufacturing_materials__": "增材制造材料",
+    }
+    families = "、".join(
+        family_labels.get(str(value), str(value))
+        for value in (constraints.get("material_families") or [])
+    )
     temperature = constraints.get("service_temperature_K")
-    temperature_text = f"{temperature - 273.15:g} °C" if isinstance(temperature, (int, float)) else "未指定"
+    temperature_text = f"{temperature - 273.15:g} °C" if isinstance(temperature, (int, float)) else ""
     context = constraints.get("selection_context") or {}
     context_rows = [
         ("目标部位", context.get("component")),
@@ -516,16 +577,28 @@ def requirement_markdown(result: dict[str, Any]) -> str:
     ]
     lines = [
         "## 1. 需求与已知工况", "",
-        "以下汇总本次材料比较已经确认的信息；尚未给出的项目会明确标为待确认，便于后续补充。", "",
+        "以下仅列出本轮已提供、可用于材料比较的信息。", "",
     ]
-    lines += [
-        "| 项目 | 当前信息 |", "|---|---|",
-        f"| 已指定材料/牌号 | {names} |", f"| 材料体系约束 | {families} |",
-        f"| 服役温度 | {temperature_text} |", f"| 已给出的数值门槛 | {len(constraints.get('property_constraints') or [])} 项 |",
-    ]
-    lines += [f"| {label} | {value} |" for label, value in context_rows if value]
-    for item in constraints.get("property_constraints") or []:
-        lines.append(f"| └ {property_label(item.get('property'))} | {item.get('operator')} {format_value(item.get('value'), item.get('unit'))} |")
+    known_rows: list[tuple[str, str]] = []
+    if names:
+        known_rows.append(("指定材料/牌号", names))
+    if families:
+        known_rows.append(("材料体系范围", families))
+    if temperature_text:
+        known_rows.append(("服役温度", temperature_text))
+    for label, value in context_rows:
+        if not value:
+            continue
+        if label == "制造与结构上下文" and "stl" in str(value).lower():
+            value = "已提供 STL 几何文件，可用于理解零件边界；制造工艺尚待补充"
+        known_rows.append((label, str(value)))
+    property_constraints = constraints.get("property_constraints") or []
+    if property_constraints:
+        thresholds = "；".join(
+            f"{property_label(item.get('property'))} {item.get('operator')} {format_value(item.get('value'), item.get('unit'))}"
+            for item in property_constraints
+        )
+        known_rows.append(("性能门槛", thresholds))
     preferences = constraints.get("preference_goals") or []
     if preferences:
         grouped_preferences: dict[str, set[str]] = {}
@@ -535,10 +608,25 @@ def requirement_markdown(result: dict[str, Any]) -> str:
             f"{property_label(name)}{'方向待确认' if directions == {'maximize', 'minimize'} else ('越高越好' if 'maximize' in directions else '越低越好')}"
             for name, directions in grouped_preferences.items()
         )
-        lines.append(f"| 需求中识别的性能偏好 | {goals} |")
-    missing_context = [label for label, value in context_rows if not value and label != "应用场景"]
-    if missing_context:
-        lines += ["", f"待确认：{'、'.join(missing_context)}。补充后可将当前比较进一步收敛到具体部件的选材判断。"]
+        known_rows.append(("性能关注点", goals))
+    if known_rows:
+        lines += ["| 信息维度 | 已掌握内容 |", "|---|---|"]
+        lines += [f"| {label} | {value} |" for label, value in known_rows]
+    else:
+        lines += ["当前尚未提供可用于比较的材料、工况或性能条件。"]
+
+    follow_up: list[tuple[str, str]] = []
+    if not context.get("component"):
+        follow_up.append(("零件角色", "目标部位及其连接/受力方式，例如承力臂、关节壳体或连接件。"))
+    if not context.get("operating_conditions") or not temperature_text:
+        follow_up.append(("工况边界", "载荷、循环情况，以及连续/峰值服役温度。"))
+    if not context.get("environment"):
+        follow_up.append(("服役环境", "介质、湿度、腐蚀、磨损或清洁要求。"))
+    if not context.get("manufacturing"):
+        follow_up.append(("制造方案", "目标工艺、热处理和表面处理要求。"))
+    if follow_up:
+        lines += ["", "### 为形成部件级判断，建议补充", "", "| 补充主题 | 建议说明 |", "|---|---|"]
+        lines += [f"| {label} | {detail} |" for label, detail in follow_up]
     return "\n".join(lines)
 
 
@@ -629,9 +717,16 @@ def _upstream_evidence_markdown(result: dict[str, Any]) -> list[str]:
 def screening_funnel_rows(result: dict[str, Any]) -> list[tuple[str, int]]:
     """Return the same ordered, evidence-strict funnel for text and charts."""
     candidates = list(result.get("results", []))
-    rows = [("已纳入本轮目录候选", len(candidates))]
+    summary = result.get("screening", {}).get("summary", {})
+    rows = [("已纳入本轮目录候选", int(summary.get("candidates_evaluated", len(candidates))))]
     preferences = result.get("constraints", {}).get("preference_goals", [])
     if not result.get("constraints", {}).get("property_constraints") and preferences:
+        full_counts = summary.get("preference_funnel_counts") or []
+        if len(full_counts) == len(preferences):
+            return rows + [
+                (f"有{property_label(preference.get('property'))}可比较证据", int(item.get("count", 0)))
+                for preference, item in zip(preferences, full_counts)
+            ]
         for preference in preferences:
             property_name = preference.get("property")
             candidates = [
@@ -642,6 +737,12 @@ def screening_funnel_rows(result: dict[str, Any]) -> list[tuple[str, int]]:
             rows.append((f"有{property_label(property_name)}可比较证据", len(candidates)))
         return rows
     for constraint in result.get("constraints", {}).get("property_constraints", []):
+        full_counts = summary.get("constraint_funnel_counts") or []
+        if len(full_counts) == len(result.get("constraints", {}).get("property_constraints", [])):
+            return rows + [
+                (f"{property_label(item.get('constraint', {}).get('property'))} {item.get('constraint', {}).get('operator')} {format_value(item.get('constraint', {}).get('value'), item.get('constraint', {}).get('unit'))}", int(item.get("count", 0)))
+                for item in full_counts
+            ]
         def passes(candidate: dict[str, Any]) -> bool:
             for evidence in candidate.get("evidence", []):
                 requested = evidence.get("requested", {})
@@ -677,13 +778,19 @@ def comparison_markdown(result: dict[str, Any]) -> str:
         return "\n".join(lines)
     if preferences:
         candidates = result.get("results", [])
+        search_summary = result.get("screening", {}).get("summary", {})
+        comparable_count = search_summary.get("comparable_candidate_count", len(candidates))
+        complete_catalogue_count = search_summary.get("complete_preference_candidate_count", 0)
+        returned_count = search_summary.get("candidates_returned", len(candidates))
+        truncated = bool(search_summary.get("candidates_truncated"))
         lines = ["## 3. 证据覆盖与候选核验", "", "### 证据覆盖漏斗", "", "| 证据步骤 | 可比较候选数 |", "|---|---:|"]
         lines += [f"| {label} | {count} |" for label, count in screening_funnel_rows(result)]
         funnel = screening_funnel_rows(result)
         complete_count = funnel[-1][1] if funnel else 0
         lines += [
             "",
-            f"说明：这里的数量表示当前目录中具有可比较证据的候选覆盖数，不是已选材料数；本次仅有 {complete_count} 种候选同时覆盖全部关注性质。",
+            f"说明：这里的数量表示当前目录中具有可比较证据的候选覆盖数，不是已选材料数；当前目录共有 {complete_catalogue_count} 种候选同时覆盖全部关注性质。"
+            + (f" 另有 {comparable_count - complete_catalogue_count} 种仅覆盖部分性质；本页仅展示前 {returned_count} 种。" if truncated else f" 另有 {comparable_count - complete_catalogue_count} 种仅覆盖部分性质，均已展示。"),
         ]
         lines += ["", "### 候选比较结果", "", "| 排序 | 候选材料 | 关注性质的证据 |", "|---:|---|---|"]
         for candidate in candidates:
@@ -701,14 +808,6 @@ def comparison_markdown(result: dict[str, Any]) -> str:
                 evidence.append(f"{property_label(property_name)}：{status}{value}{direction_note}")
             identity = _candidate_identity(candidate)
             lines.append(f"| {candidate.get('preference_rank') or '-'} | {identity} | {'<br>'.join(evidence) or '缺少可比较证据'} |")
-        gaps = result.get("preference_data_gaps") or []
-        if gaps:
-            lines += ["", "### 暂待补充数据的材料", ""]
-            for item in gaps[:5]:
-                missing = "、".join(property_label(name) for name in item.get("missing_properties") if name) or "关注性质"
-                lines.append(f"- {item.get('display_name') or item.get('material_id')}：目录已识别该材料，但暂未收录本次关注的{missing}数据，因此未参与排序。")
-            if len(gaps) > 5:
-                lines.append(f"- 另有 {len(gaps) - 5} 种目录材料也缺少上述关注性质，未在此逐项展开。")
         return "\n".join(lines)
     lines = ["## 3. 证据覆盖与候选核验", ""]
     lines += _upstream_evidence_markdown(result)
@@ -756,14 +855,40 @@ def _candidate_identity(candidate: dict[str, Any]) -> str:
 
 
 def _source_text(item: dict[str, Any]) -> str:
+    """Turn provenance into a readable citation while retaining IDs in the manifest."""
     source = item.get("source") or {}
     if isinstance(source, dict) and isinstance(source.get("first"), dict):
         source = source["first"]
     if not isinstance(source, dict):
-        return "目录来源未注明"
-    source_id = source.get("source_id") or "目录来源未注明"
-    locator = source.get("source_locator") or ""
-    return f"{source_id}；{locator}" if locator else str(source_id)
+        return "资料定位待补充"
+
+    raw = source.get("raw_row_json")
+    try:
+        lineage = json.loads(raw) if isinstance(raw, str) and raw.strip() else {}
+    except json.JSONDecodeError:
+        lineage = {}
+    if not isinstance(lineage, dict):
+        lineage = {}
+    document = str(lineage.get("lineage_document_name") or "").strip()
+    if document:
+        document = re.sub(r"^inconel-alloy-", "INCONEL alloy ", document, flags=re.IGNORECASE)
+        document = re.sub(r"^haynes-", "HAYNES ", document, flags=re.IGNORECASE)
+        document = document.replace("-brochure", " technical brochure").replace("-", " ")
+    caption = str(lineage.get("lineage_caption") or "").strip()
+    page = str(lineage.get("lineage_page_number") or "").strip()
+    locator = str(source.get("source_locator") or "").strip()
+    table_match = re.search(r"\bTable\s+(\d+)\b", caption, flags=re.IGNORECASE) or re.search(r"\btable-(\d+)\b", locator, flags=re.IGNORECASE)
+    page_match = re.search(r"\bpage\s+(\d+)\b|\bp\.?\s*(\d+)\b", locator, flags=re.IGNORECASE)
+    table = f"表 {int(table_match.group(1))}" if table_match else ""
+    if not page and page_match:
+        page = page_match.group(1) or page_match.group(2) or ""
+    location = "，".join(part for part in (table, f"第 {page} 页" if page else "") if part)
+    if document:
+        return f"{document}；{location}" if location else document
+
+    source_id = str(source.get("source_id") or "").strip()
+    readable_id = source_id if source_id and not re.fullmatch(r"[0-9a-f]{10,}(?:-[a-z0-9-]+)?", source_id, flags=re.IGNORECASE) else ""
+    return "；".join(part for part in (readable_id, location or locator, "目录已核验") if part) or "资料定位待补充"
 
 
 def _compact_property_entries(entries: list[dict[str, Any]]) -> tuple[str, str, str]:
@@ -784,21 +909,21 @@ def _compact_property_entries(entries: list[dict[str, Any]]) -> tuple[str, str, 
         ordered = sorted(temperature_points, key=lambda item: float(item["temperature_K"]))
         shown = [ordered[0], ordered[-1]]
         value = "；".join(f"{_temperature_text(item['temperature_K'])}：{format_value(item['value'], item.get('unit'))}" for item in shown)
-        condition = "；".join(dict.fromkeys(_condition_tail(item.get("condition")) or "未注明" for item in shown))
+        condition = "；".join(dict.fromkeys(_customer_condition(item.get("condition")) for item in shown))
         sources = "；".join(dict.fromkeys(_source_text(item) for item in shown))
-        return value, f"温度序列共 {len(temperature_points)} 条；仅展示最低/最高温度端点；{condition}", sources
+        return value, f"已收录 {len(temperature_points)} 个温度点；展示低、高温端点；{condition}", sources
 
     if len(point_entries) >= 2:
         ordered = sorted(point_entries, key=lambda item: float(item["value"]))
         shown = [ordered[0], ordered[-1]]
         value = "；".join(format_value(item["value"], item.get("unit")) for item in shown)
-        condition = "；".join(dict.fromkeys(_condition_tail(item.get("condition")) or "未注明" for item in shown))
+        condition = "；".join(dict.fromkeys(_customer_condition(item.get("condition")) for item in shown))
         sources = "；".join(dict.fromkeys(_source_text(item) for item in shown))
         return value, f"共 {len(point_entries)} 条不同条件记录；仅展示数值低/高端点；{condition}", sources
 
     shown = entries[:2]
     value = "；".join(_curve_value_text(item) for item in shown)
-    condition = "；".join(dict.fromkeys(_condition_tail(item.get("condition")) or "未注明" for item in shown))
+    condition = "；".join(dict.fromkeys(_customer_condition(item.get("condition")) for item in shown))
     sources = "；".join(dict.fromkeys(_source_text(item) for item in shown))
     return value, f"共 {len(entries)} 条记录；仅展示前两条；{condition}", sources
 
@@ -811,7 +936,7 @@ def material_data_card(candidate: dict[str, Any], focus_evidence: list[dict[str,
         "",
         f"产品状态：{material.get('product_state') or '未注明'}。以下内容均为当前目录已收录的数据；同一性质的温度序列仅展示两端，完整记录保留在目录与任务结果中。",
         "",
-        "| 性质 | 数值/范围 | 测试或产品条件 | 数据类型 | 来源 |",
+        "| 性质 | 数值/范围 | 测试或产品条件 | 数据类型 | 证据出处 |",
         "|---|---|---|---|---|",
     ]
     grouped: dict[str, list[dict[str, Any]]] = {}
@@ -834,6 +959,13 @@ def material_data_card(candidate: dict[str, Any], focus_evidence: list[dict[str,
             f"| {_table_cell(property_label(property_name))} | {_table_cell(value)} | {_table_cell(condition)} | "
             f"目录记录 | {_table_cell(source)} |"
         )
+    for estimate in candidate.get("engineering_estimates") or []:
+        value = _estimate_value_text(estimate)
+        lower, upper = estimate.get("value_min"), estimate.get("value_max")
+        if isinstance(lower, (int, float)) and isinstance(upper, (int, float)) and lower != upper:
+            value = f"{format_value(lower, estimate.get('unit'))}–{format_value(upper, estimate.get('unit'))}"
+        condition = f"{estimate.get('condition') or '适用状态待核验'}；依据：{estimate.get('basis') or '待补'}"
+        lines.append(f"| {_table_cell(property_label(estimate.get('property')))} | {_table_cell(value)} | {_table_cell(condition)} | D：模型/工程估算，不能用于通过判断；不参与筛选/排序 | {_table_cell(estimate.get('source') or '工程估算记录')} |")
     if len(lines) == 6:
         lines.append("| 已入库数值性质 | 当前目录未收录 | - | - | 材料身份记录已保留 |")
     return "\n".join(lines)
@@ -846,6 +978,8 @@ def _evidence_grade(item: dict[str, Any]) -> str:
         source = source["first"]
     locator = source.get("source_locator") if isinstance(source, dict) else ""
     condition = str(item.get("condition") or "").strip().lower()
+    if any(marker in condition for marker in ("产品形态未单列", "product form is not separately reported")):
+        return "B：可追溯，部分工况待补"
     if locator and condition and condition not in {"unspecified", "not_recorded"}:
         return "A：可追溯，材料状态/测试条件已记录"
     if locator:
@@ -886,14 +1020,14 @@ def _engineering_estimate(candidate: dict[str, Any], property_name: str) -> dict
         return _pre_model_estimate(candidate, property_name)
     strength = float(tensile["value"])
     center = strength / 3.0
-    condition = _condition_tail(tensile.get("condition")) or "材料状态/测试条件待进一步核验"
+    condition = _customer_condition(tensile.get("condition"))
     return {
         "property": property_name,
         "value_min": round(center * .65, 1),
         "value_max": round(center * 1.35, 1),
         "unit": "HV",
         "condition": f"仅作室温、同一产品状态下的初步参考；输入抗拉强度 {format_value(strength, tensile.get('unit'))}；{condition}",
-        "basis": "工程估算 v1：金属材料经验换算 HV≈UTS/3，并给出 ±35% 保守不确定性；不适用于高温、表面处理或显著各向异性状态",
+        "basis": "金属材料经验换算 HV≈UTS/3，并给出 ±35% 保守不确定性；不适用于高温、表面处理或显著各向异性状态",
         "source": _source_text(tensile),
     }
     return None
@@ -926,8 +1060,8 @@ def _pre_model_estimate(candidate: dict[str, Any], property_name: str) -> dict[s
         "value_max": value,
         "unit": unit,
         "condition": "室温预建模标称值；材料状态、制造工艺与服役温度待确认",
-        "basis": "工程估算 v2：按当前材料身份/体系给出的室温标称初始参数，用于 COMSOL 敏感性分析",
-        "source": "工程估算 v2（待以同一材料状态的公开数据或实测值替换）",
+        "basis": "按当前材料身份/体系给出的室温标称初始参数，用于 COMSOL 敏感性分析",
+        "source": "工程初步估算（待以同一材料状态的公开数据或实测值替换）",
     }
 
 
@@ -962,7 +1096,7 @@ def simulation_property_card(candidate: dict[str, Any]) -> str:
     lines = [
         "### COMSOL 预建模参数", "",
         "以下列出热仿真、结构/热-结构耦合常用参数。温度相关数据保留低温与高温两个端点；“工程估算”仅可用于预建模敏感性分析。", "",
-        "| 用途 | 参数 | 当前数值（低值/高值） | 适用条件与数据状态 | 来源 |",
+        "| 用途 | 参数 | 当前数值（低值/高值） | 适用条件与数据状态 | 证据出处 |",
         "|---|---|---|---|---|",
     ]
     for property_name, purpose, label in _COMSOL_SIMULATION_PROPERTIES:
@@ -1002,14 +1136,14 @@ def priority_property_card(candidate: dict[str, Any], goals: list[dict[str, Any]
     lines = [
         f"#### {_candidate_identity(candidate)} 的材料性质汇总",
         "",
-        "下表同时列出本次筛选关注性质和热/力预建模参数；实测曲线保留温度端点，D 级工程估算以单一标称值展示，仅用于敏感性分析，不参与候选排序。",
+        "下表同时列出当前需求关注性质和热/力预建模参数；实测曲线保留温度端点，D 级工程估算以单一标称值展示，仅用于敏感性分析，不参与候选排序。",
         "",
-        "| 用途 | 性质 | 数值/范围 | 测试、产品条件或估算依据 | 证据等级 | 来源 |",
+        "| 用途 | 性质 | 数值/范围 | 测试、产品条件或估算依据 | 证据等级 | 证据出处 |",
         "|---|---|---|---|---|---|",
     ]
     for property_name in property_names:
         entries = [item for item in candidate.get("available_properties", []) if item.get("property") == property_name]
-        purpose = "本次筛选关注" if property_name in goal_names else simulation_purposes.get(property_name, "材料性质")
+        purpose = "当前需求关注" if property_name in goal_names else simulation_purposes.get(property_name, "材料性质")
         if not entries:
             estimate = _engineering_estimate(candidate, property_name)
             if estimate:
@@ -1128,7 +1262,14 @@ def conclusion_markdown(result: dict[str, Any]) -> str:
         if complete_candidates:
             candidate = complete_candidates[0]
             identity = _candidate_identity(candidate)
-            sentence = f"针对{scenario}，{condition}，在当前目录已同时收录的关注性能中，优先继续评估 {identity}。"
+            sentence = f"针对{scenario}，{condition}，在当前目录已同时收录的关注性能中，当前优先评估 {identity}。"
+            return "\n\n".join([
+                "## 4. 结论",
+                sentence,
+                "## 5. 材料性质汇总",
+                priority_property_card(candidate, goals),
+                "该结果用于当前阶段的材料筛选与后续验证排序，不作为工程放行结论；完成服役温度、环境及缺失参数核验后，再进入工程验证与设计放行。",
+            ])
         else:
             candidate = _information_rich_candidate(result, goals) or candidate
             identity = _candidate_identity(candidate)

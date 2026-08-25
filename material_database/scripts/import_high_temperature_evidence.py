@@ -54,7 +54,7 @@ def safe_identity(name: str) -> bool:
 
 
 def property_mapping(column: str) -> tuple[str, str, float] | None:
-    normalized = column.replace("_", "").casefold()
+    normalized = re.sub(r"[^0-9a-z]+", "", column.casefold()).replace("cdot", "")
     # Thermal-property tables from the reviewed manufacturer brochures use a
     # small set of explicit engineering units.  Normalize only these named
     # units; ambiguous table-layout fragments remain outside the importer.
@@ -133,6 +133,41 @@ def property_mapping(column: str) -> tuple[str, str, float] | None:
     if "vickers" in column:
         return "hardness_vickers", "HV", 1.0
     return None
+
+
+def row_is_admitted(document: dict[str, Any], source_table_id: str, row: dict[str, str]) -> bool:
+    """Apply a reviewed row window when one source CSV contains mixed series.
+
+    A table may contain a complete tabular series plus values extracted from a
+    neighbouring figure.  The registry can retain the former without treating
+    the latter as the same property merely because the CSV has one header.
+    """
+    filters = (document.get("row_filters") or {}).get(source_table_id) or {}
+    for field, limits in filters.items():
+        if field.startswith("_"):
+            continue
+        if not isinstance(limits, dict):
+            return False
+        value = number(row.get(field, ""))
+        if value is None:
+            return False
+        lower, upper = limits.get("min"), limits.get("max")
+        if lower is not None and value < float(lower):
+            return False
+        if upper is not None and value > float(upper):
+            return False
+    return True
+
+
+def row_starts_excluded_series(document: dict[str, Any], source_table_id: str, row: dict[str, str]) -> bool:
+    """Recognise a reviewed delimiter before a mixed chart series begins."""
+    filters = (document.get("row_filters") or {}).get(source_table_id) or {}
+    delimiter = filters.get("_stop_after_contains")
+    if not isinstance(delimiter, dict):
+        return False
+    field = str(delimiter.get("field") or "")
+    text = str(delimiter.get("text") or "")
+    return bool(field and text and text.casefold() in str(row.get(field) or "").casefold())
 
 
 def temperature_k(row: dict[str, str], column: str) -> float | None:
@@ -267,6 +302,7 @@ def main() -> None:
         # the first row of a block.  Carry that state into the emitted
         # condition text, but retain the untouched source row in raw_row_json.
         table_condition_state: dict[str, str] = {}
+        excluded_series_started: set[tuple[str, str]] = set()
         for row in rows:
             for field in CONDITION_STATE_FIELDS:
                 value = row.get(field, "").strip()
@@ -278,6 +314,14 @@ def main() -> None:
             if args.registry_only and (not document or source_table_id not in allowed_tables):
                 continue
             if document and source_table_id not in allowed_tables:
+                continue
+            series_key = (row.get("lineage_document_id", ""), source_table_id)
+            if document and row_starts_excluded_series(document, source_table_id, row):
+                excluded_series_started.add(series_key)
+                continue
+            if series_key in excluded_series_started:
+                continue
+            if document and not row_is_admitted(document, source_table_id, row):
                 continue
             name = row.get(identity_field, "").strip() if identity_field else ""
             if document:
@@ -341,6 +385,9 @@ def main() -> None:
                     continue
                 value *= conversion
                 condition = condition_text(row, table_condition_state)
+                documented_state = str(document.get("product_state") or "").strip() if document else ""
+                if documented_state and documented_state not in condition:
+                    condition = "; ".join(part for part in (documented_state, condition) if part)
                 points.append({
                     "material_id": identifier, "property": property_name, "value": f"{value:g}", "unit": unit,
                     "temperature_K": "" if temperature_k(row, column) is None else f"{temperature_k(row, column):.5g}",
