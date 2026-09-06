@@ -169,7 +169,7 @@ class InorganicNewMaterialServiceContractTest(unittest.TestCase):
         roles = asyncio.run(main.get_teams())
         self.assertEqual(len(roles), 1)
         role = next(iter(roles.values()))
-        self.assertEqual(role["name"], "inorganic_new_material")
+        self.assertEqual(role["name"], "新材料发现与候选生成")
         self.assertEqual(role["role_id"], "inorganic_new_material_generation_v1")
         self.assertEqual(role["addresses"][0], "src.team_config.InorganicNewMaterialDiscoveryRole")
         self.assertEqual(role["__module_class_name"], "src.team_config.InorganicNewMaterialDiscoveryRole")
@@ -177,8 +177,10 @@ class InorganicNewMaterialServiceContractTest(unittest.TestCase):
         self.assertIn("input_contract", role["routing"])
         self.assertIn("output_contract", role["routing"])
         self.assertIn("waiting_for_input", role["routing"]["output_contract"])
-        self.assertIn("等待补充", role["profile"])
-        self.assertIn("补充信息请求", role["actions"][0]["desc"])
+        self.assertIn("只要上游提供可理解的材料方向、应用场景或性能目标", role["profile"])
+        self.assertIn("只有完全没有材料、应用或性能线索", role["profile"])
+        self.assertIn("结合当前任务与完整上文", role["actions"][0]["desc"])
+        self.assertIn("只有完全没有材料、应用、性能", role["routing"]["output_contract"]["waiting_for_input"])
 
     def test_constraint_preview_does_not_start_gpu_work(self) -> None:
         payload = {

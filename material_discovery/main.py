@@ -159,8 +159,8 @@ async def get_teams():
         ]
         metadata["role_id"] = f"{SERVICE_ID}_v1"
         metadata["goal"] = "形成全新的候选材料结构、稳定性与性能评估结果，以及合成路径预测。"
-        metadata["constraints"] = "基于目标性能、元素体系、材料类别和生成约束，在元素空间或晶体结构空间中组织新材料探索任务。"
-        metadata["desc"] = "面向材料候选尚未确定的探索性研发，针对超导、超高强等目标性能，生成全新的候选材料结构，评估热力学稳定性、电子结构及潜在性能，并预测合成路径。"
+        metadata["constraints"] = "结合当前请求与完整上文，从目标性能、元素体系、材料类别或应用场景中归纳受限生成条件，在元素空间或晶体结构空间中组织新材料探索任务。"
+        metadata["desc"] = "面向材料候选尚未确定的探索性研发；只要当前请求或上文包含材料方向、应用场景、性能目标、元素体系或材料类别，就先归纳受限的起始元素体系并继续生成候选，评估其稳定性、电子结构及潜在性能。只有完全没有有效材料探索线索时才请求补充。"
         metadata["routing"] = {
             "service_id": SERVICE_ID,
             "priority": 3,
@@ -168,13 +168,13 @@ async def get_teams():
             "include_keywords": ["新材料发现", "新材料探索", "候选材料生成", "超导", "超高强", "从头计算", "First-principles", "高通量筛选", "元素空间", "晶体结构空间", "晶体结构", "新晶体", "新无机材料", "MatterGen", "晶体生成", "化学式生成", "数据库外材料", "固态电解质", "陶瓷晶体", "热力学稳定性", "电子结构", "潜在性能", "合成路径"],
             "exclude_keywords": [],
             "input_contract": {
-                "required": "明确的新材料探索目标。",
-                "required_any": ["目标性能", "元素体系", "材料类别", "晶体结构空间", "应用场景"],
+                "required": "当前请求或完整上文中至少包含一种可理解的材料探索线索。",
+                "required_any": ["材料方向或已有材料结论", "目标性能", "元素体系", "材料类别", "晶体结构空间", "应用场景"],
                 "optional": ["new_material.allowed_elements", "new_material.target_properties", "new_material.validation_targets", "new_material.max_candidates", "new_material.structure_space"],
             },
             "output_contract": {
                 "generation_started": "全新候选材料结构、稳定性与性能评估结果、合成路径预测和 manifest。",
-                "waiting_for_input": "生成约束与目标性能待补充时，返回所需材料探索信息。",
+                "waiting_for_input": "只有完全没有材料、应用、性能、元素体系或材料类别线索时，才返回所需的材料探索信息。",
                 "screening_limit": "候选材料探索结果与计算评估记录。",
             },
         }
