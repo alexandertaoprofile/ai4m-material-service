@@ -69,6 +69,20 @@ Web 服务与 GPU 生成环境隔离：主服务继续在 `conda` 的 `ai4m-serv
 MatterGen 使用 `micromamba` 的 `/data/mamba/envs/mattergen-py310` 子环境。官方源码默认安装到
 Git 仓库之外的 `/data/third_party/mattergen`，首次调用会下载预训练权重。
 
+### HEA v2 条件路由
+
+当请求明确给出 `Co-Cr-Fe-Mn-Ni` 与 `energy_above_hull` 时，服务使用本地
+`hea_mattergen_v2` 的验证最优 checkpoint（epoch 18）；其他元素体系继续使用官方
+MatterGen 条件模型。v2 从官方 chemical-system + E_hull 条件模型全参数微调而来，训练数据为
+Cantor HEA DFT 数据中 5--7 元、最多 32 原子的已弛豫结构：训练/验证/测试分别为
+15,520 / 774 / 630 条，按 chemical system 分组切分。v2 同时保留 chemical_system 和
+energy_above_hull 两个条件嵌入，使用 30 epoch 训练，最佳验证损失 checkpoint 为 epoch 18。
+
+该路由以元素列表传递 chemical_system，并沿用 v2 已验证的 1000 步采样与 guidance=1.0。
+当前已完成的 32 样本对照显示，Co-Cr-Fe-Mn-Ni 精确元素集合命中率由官方基础模型的
+15.6% 提升至 v2 的 56.2%。E_hull 仍由后续 MatterSim + MP2020 凸包初筛；它不是生成器
+直接计算的 DFT 结论，五元体系的有限温稳定性与 DFT 复核仍是后续工作。
+
 ```bash
 bash tools/setup_mattergen_env.sh
 python main.py
@@ -157,12 +171,22 @@ conda run -n ai4m-service-py310 python -m unittest discover -s tests -v
 1. 继续扩展对更多 MatterGen 可条件化性质的自然语言数值解析。
 2. MatterSim 评估默认开启；
    默认会在 MatterGen 后对通过基础结构准入的候选自动执行 MatterSim 松弛，回填
-   `formation_energy_per_atom` 与 `energy_above_hull`。默认只经 MP API 查询候选元素体系的竞争相，
-   避免加载全量参考库；结果明确标为 **MatterSim--MP 混合近似**，不能替代 DFT。设置
-   `MATTERSIM_REFERENCE_MODE=official` 才会使用完整 MatterGen MP2020/Alexandria 参考库。参考数据准备：
+   `formation_energy_per_atom` 与 `energy_above_hull`。默认使用完整 MatterGen MP2020/Alexandria
+   校正参考库，确保候选与凸包参考采用兼容的能量体系；结果仍仅作模型初筛，不能替代 DFT。
+   如需诊断旧的轻量 MP API 路径，可显式设置 `MATTERSIM_REFERENCE_MODE=mp_api`。参考数据准备：
 
    ```bash
    bash tools/setup_mattersim_reference.sh
+   ```
+
+   首次使用官方模式会将参考库展开为约 3.85 GB 的只读缓存，默认位置为
+   `/data/mattersim_reference_cache`；可通过 `MATTERSIM_REFERENCE_CACHE_DIR` 配置到持久磁盘。
+   每个元素体系的凸包会另存到 `/data/mattersim_phase_diagram_cache`，首次构建后可直接复用。
+   可在低峰期预热当前常用体系：
+
+   ```bash
+   micromamba run -p /data/mamba/envs/mattergen-py310 \
+     python tools/precompute_mattersim_phase_diagrams.py
    ```
 
    也可单独对已有输出运行：

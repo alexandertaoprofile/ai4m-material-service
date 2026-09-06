@@ -16,6 +16,13 @@ except ModuleNotFoundError:
 
 @unittest.skipUnless(PYMATGEN_AVAILABLE, "Crystal rendering dependencies are installed in the MatterGen environment")
 class LocalCoordinationVisualisationTest(unittest.TestCase):
+    def test_scorecard_uses_ev_per_atom_for_all_thermodynamic_values(self) -> None:
+        self.assertEqual(
+            render_new_material_assets.format_energy_ev_per_atom(0.1303),
+            "0.1303 eV/atom",
+        )
+        self.assertEqual(render_new_material_assets.format_energy_ev_per_atom(None), "待计算")
+
     def test_alloy_elements_have_stable_non_grey_colours_in_2d_and_glb_assets(self) -> None:
         expected = {"Ti", "Cr", "Mo", "Nb", "Ta", "W", "Zr", "Hf"}
         two_dimensional = {element: render_new_material_assets.color(element) for element in expected}

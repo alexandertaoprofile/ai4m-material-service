@@ -46,6 +46,7 @@ _DIRECTIONAL_PROPERTIES = {
     "抗拉强度": "ultimate_tensile_strength", "极限抗拉强度": "ultimate_tensile_strength",
     "屈服强度": "yield_strength", "导热": "thermal_conductivity", "导热率": "thermal_conductivity", "导热系数": "thermal_conductivity",
     "硬度": "hardness", "延伸率": "elongation", "密度": "density",
+    "抗氧化": "oxidation_resistance", "抗氧化性": "oxidation_resistance", "耐氧化": "oxidation_resistance",
 }
 _TEXT_PROPERTY_CONSTRAINTS = tuple(
     (alias, property_name, unit_pattern, canonical_unit)
@@ -133,6 +134,8 @@ def _directional_goals_from_text(text: str) -> list[dict[str, str]]:
     # “密度越低越好”.  It is a ranking intent, never an inferred threshold.
     if re.search(r"(?:低密度|轻量化|轻质(?:化)?|质量轻)", text, re.IGNORECASE):
         goals.append({"property": "density", "direction": "minimize"})
+    if re.search(r"(?:抗氧化(?:性|能力)?(?:强|好)?|耐氧化(?:性|能力)?(?:强|好)?|氧化稳定性(?:好|高)?)", text, re.IGNORECASE):
+        goals.append({"property": "oxidation_resistance", "direction": "maximize"})
     deduplicated = dict.fromkeys((goal["property"], goal["direction"]) for goal in goals)
     ordered = [
         {"property": property_name, "direction": direction}
@@ -144,6 +147,7 @@ def _directional_goals_from_text(text: str) -> list[dict[str, str]]:
         "yield_strength": ("屈服",),
         "thermal_conductivity": ("散热", "导热"),
         "hardness": ("硬度",),
+        "oxidation_resistance": ("抗氧化", "耐氧化", "氧化稳定"),
         "elongation": ("延伸",),
     }
     return sorted(
@@ -165,8 +169,41 @@ def _selection_context_from_text(text: str) -> dict[str, str]:
         context["application"] = "机器人零部件"
     if re.search(r"(?<![A-Za-z0-9])STL(?![A-Za-z0-9])", text, re.IGNORECASE):
         context["manufacturing"] = "参考 STL 几何文件；具体制造工艺待确认"
+    if re.search(r"碳纤维|主梁|泡沫|轻木|夹芯|蒙皮", text, re.IGNORECASE):
+        context["component"] = "碳纤维主梁、金属连接件及轻木/泡沫蒙皮混合结构"
     return context
-    return goals
+
+
+def _guided_catalogue_seed_plan(text: str, selection_context: dict[str, str]) -> list[dict[str, str]]:
+    """Choose a small, traceable starting set from an explicitly stated scenario.
+
+    A user who has not yet translated a design brief into material metrics
+    still needs something concrete to react to.  These are catalogue queries,
+    not inferred thresholds: every returned candidate retains its own product
+    state and source card, and the plan is deliberately small enough to invite
+    the next conversation rather than masquerade as a finished selection.
+    """
+    context_text = " ".join((text, *selection_context.values()))
+    # A long flattened gateway history is not a current design brief.  Keep
+    # its stale aliases and generic “materials” wording out of guided starts.
+    if len(text) > 1200:
+        return []
+    if re.search(r"碳纤维|主梁|泡沫|轻木|夹芯|蒙皮", context_text, re.IGNORECASE):
+        return [
+            {"query": "IM7/8552", "role": "主梁起步候选", "reason": "与已描述的碳纤维主承力结构相符；下一步确认铺层、载荷方向和环境。"},
+            {"query": "InstaVoxel 7075-T6 铝合金", "role": "连接件起步候选", "reason": "与金属连接件的轻量高强路线相符；下一步确认承压、疲劳和防腐隔离。"},
+        ]
+    if "机器人" in context_text:
+        return [
+            {"query": "Al 6061-T6", "role": "结构件起步候选", "reason": "作为常用金属结构件的目录基线，便于先讨论质量、刚度与加工方式。"},
+            {"query": "TIMETAL 6-4", "role": "高载荷连接件起步候选", "reason": "用于与铝合金并行比较高接触载荷下的连接方案。"},
+        ]
+    if re.search(r"结构件|零件|选材|选型|挑选|推荐", context_text, re.IGNORECASE):
+        return [
+            {"query": "Al 6061-T6", "role": "轻量结构起步候选", "reason": "作为易加工的金属结构基线，先帮助确认质量、刚度和成本侧重点。"},
+            {"query": "TIMETAL 6-4", "role": "高载荷起步候选", "reason": "作为更高载荷连接场景的对照路线，便于确认是否需要耐蚀或耐磨能力。"},
+        ]
+    return []
 
 
 def _property_constraints_from_text(text: str) -> list[dict[str, Any]]:
@@ -562,6 +599,16 @@ class MaterialMature:
             selection_context=selection_context,
             preference_goals=preference_goals,
         )
+        # A described component is enough to start a catalogue conversation,
+        # even when the caller did not phrase it as an explicit selection
+        # request or has already supplied application/environment context.
+        # Explicit material anchors and numerical goals keep their normal
+        # lookup/screening semantics instead.
+        guided_candidate_plan = (
+            _guided_catalogue_seed_plan(raw_requirement, selection_context)
+            if not (material_queries or material_families or standards or parsed_property_constraints or preference_goals)
+            else []
+        )
         # Keep the first response compact for the UI.  Search still calculates
         # and reports the full candidate counts before this display limit;
         # callers can request up to 50 results explicitly.
@@ -589,6 +636,7 @@ class MaterialMature:
             # but is never used by catalogue filtering or ranking.
             "engineering_estimates": engineering_estimates,
             "selection_context": selection_context,
+            "guided_candidate_plan": guided_candidate_plan,
             "screening_strategy": strategy,
             # Keep the generic path in the same inspectable workflow shape as
             # conductive-liquid screening.  This is a catalogue evidence
@@ -630,10 +678,13 @@ class MaterialMature:
         names = constraints["material_queries"] or catalog.aliases_mentioned_in(constraints.get("alias_extraction_text", ""))
         if not names:
             names = self._formula_like_terms(constraints.get("alias_extraction_text", ""))
+        guided_candidate_plan = list(constraints.get("guided_candidate_plan") or [])
+        guided_names = [str(item.get("query") or "") for item in guided_candidate_plan if str(item.get("query") or "")]
+        search_names = names or guided_names
         preferences = parse_preference_goals(constraints.get("preference_goals", []))
-        if names or constraints["material_families"] or constraints["standards"] or parsed_constraints or preferences:
+        if search_names or constraints["material_families"] or constraints["standards"] or parsed_constraints or preferences:
             search = catalog.search(
-                names=names,
+                names=search_names,
                 families=constraints["material_families"],
                 standards=constraints["standards"],
                 constraints=parsed_constraints,
@@ -642,6 +693,19 @@ class MaterialMature:
             )
         else:
             search = {"name_resolution": [], "candidates": []}
+        guidance_by_query = {str(item.get("query") or ""): (index, item) for index, item in enumerate(guided_candidate_plan)}
+        for trace in search.get("name_resolution", []):
+            plan_entry = guidance_by_query.get(str(trace.get("input") or ""))
+            if not plan_entry:
+                continue
+            order, plan = plan_entry
+            for resolved in trace.get("resolved_materials") or []:
+                material_id = resolved.get("material_id")
+                for candidate in search.get("candidates", []):
+                    if candidate.get("material", {}).get("material_id") == material_id:
+                        candidate["guided_start"] = {**{key: plan[key] for key in ("role", "reason")}, "order": order}
+        if guided_candidate_plan:
+            search["candidates"].sort(key=lambda item: int((item.get("guided_start") or {}).get("order", len(guided_candidate_plan))))
         eligible = sum(item["eligible"] for item in search["candidates"])
         # Estimates are presentation-only annotations supplied by an upstream
         # engineering/LLM step.  Attaching them after ``catalog.search`` makes
@@ -678,15 +742,15 @@ class MaterialMature:
                 selection_context=constraints["selection_context"],
                 preference_goals=[],
             )
-        searchable_criteria = bool(names or constraints["material_families"] or constraints["standards"] or parsed_constraints or preferences)
-        if (strategy["mode"] == "criteria_collection" or not searchable_criteria) and not has_upstream_evidence:
-            message = (
-                "当前已提供的条件不足以执行目录证据比较；请补充材料体系/牌号、"
-                "可比较的性能阈值或其他可检索条件。服务不会假设高温、高强或任何候选材料体系。"
-            )
+        searchable_criteria = bool(search_names or constraints["material_families"] or constraints["standards"] or parsed_constraints or preferences)
+        if guided_candidate_plan and not names and search["candidates"] and not has_upstream_evidence:
+            message = f"已根据上文提到的结构与材料线索，从目录准备 {len(search['candidates'])} 个起步候选；你可以直接查看，或再补充工况让我继续比较。"
+            outcome = "catalogue_guided_start"
+        elif (strategy["mode"] == "criteria_collection" or not searchable_criteria) and not has_upstream_evidence:
+            message = "先告诉我零件大致用途或最在意的方向即可；收到后会从目录准备起步候选，再一起收敛工况和性能重点。"
             outcome = "needs_screening_criteria"
         elif not search["candidates"]:
-            message = "目录中暂未找到与本轮指定材料、牌号或标准相匹配的已入库记录；未展示或推断替代候选材料。"
+            message = "目录中暂未找到与本轮指定材料、牌号或标准相匹配的已入库记录；页面将保留可继续推进的材料路线和核验项。"
             outcome = "upstream_evidence_only" if has_upstream_evidence else "needs_literature_screening"
         elif preferences and not parsed_constraints:
             total_comparable = int(search.get("comparable_candidate_count", len(search["candidates"])))
@@ -745,7 +809,7 @@ class MaterialMature:
                     "constraint_status_counts": constraint_status_counts,
                 },
                 "evidence_policy": "Only structured catalogue evidence is evaluated; missing data and incompatible conditions do not pass.",
-                "next_action": "await_user_criteria" if outcome == "needs_screening_criteria" else "return_catalogue_evidence",
+                "next_action": "continue_guided_discovery" if outcome == "catalogue_guided_start" else ("await_user_criteria" if outcome == "needs_screening_criteria" else "return_catalogue_evidence"),
             },
             "data_status": {
                 "catalog_ready": True,

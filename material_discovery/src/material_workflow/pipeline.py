@@ -56,7 +56,12 @@ def run_new_material_pipeline(
         validation_targets=constraints.validation_targets,
     )
     logger.info("[DISCOVERY][%s] ALIGNN property screening completed: candidates=%s", constraints.taskid, sum(bool(item.property_predictions) for item in validations))
-    validations = enrich_validations_with_mattersim(validations, admitted_candidates, validation_dir)
+    validations = enrich_validations_with_mattersim(
+        validations,
+        admitted_candidates,
+        validation_dir,
+        reference_system="-".join(constraints.allowed_elements),
+    )
     logger.info("[DISCOVERY][%s] MatterSim/MP completed: thermodynamic_results=%s/%s", constraints.taskid, sum(item.energy_above_hull is not None for item in validations), len(admitted_candidates))
     ranked = rank_candidates(generation.candidates, validations)
 

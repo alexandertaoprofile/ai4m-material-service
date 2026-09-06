@@ -220,6 +220,11 @@ def render_rotation_gif(structure: Structure, output: Path, formula: str) -> Non
     plt.close(figure)
 
 
+def format_energy_ev_per_atom(value: float | None) -> str:
+    """Format every thermodynamic energy on the card in its canonical unit."""
+    return "待计算" if value is None else f"{float(value):.4f} eV/atom"
+
+
 def render_scorecard(output: Path, formula: str, validation: dict, constraints: dict) -> None:
     hull = validation.get("energy_above_hull")
     formation = validation.get("formation_energy_per_atom")
@@ -237,21 +242,22 @@ def render_scorecard(output: Path, formula: str, validation: dict, constraints: 
         left.barh([0], [float(hull)], color="#3FC49A" if hull <= threshold else "#FF7777", height=0.32)
         left.axvline(threshold, color="#FFD166", linewidth=2, linestyle="--")
         left.set_xlim(0, max_value); left.set_ylim(-0.48, 0.48); left.set_yticks([])
-        left.text(float(hull), 0.27, f"{float(hull) * 1000:.1f} meV/atom", color=TEXT, ha="center", fontsize=14, fontweight="bold")
-        left.text(threshold, -0.37, f"筛选阈值 = {threshold:.3f}", color="#FFD166", ha="center", fontsize=10)
+        left.text(float(hull), 0.27, f"E_hull = {format_energy_ev_per_atom(hull)}", color=TEXT, ha="center", fontsize=14, fontweight="bold")
+        left.text(threshold, -0.37, f"筛选阈值 = {format_energy_ev_per_atom(threshold)}", color="#FFD166", ha="center", fontsize=10)
         left.set_xlabel("高于凸包能（eV/atom）", color=MUTED, labelpad=8)
         left.tick_params(axis="x", colors=MUTED)
     for spine in left.spines.values(): spine.set_visible(False)
     right.axis("off")
     right.text(0.06, 0.88, formula, color=TEXT, fontsize=25, fontweight="bold", transform=right.transAxes)
     right.text(0.06, 0.79, "候选结构 · 计算证据摘要", color=ACCENT, fontsize=10, transform=right.transAxes)
+    right.text(0.06, 0.735, "形成能与 E_hull 为不同指标；均按 eV/atom 计", color=MUTED, fontsize=8.5, transform=right.transAxes)
     rows = [
-        ("形成能", "待计算" if formation is None else f"{float(formation):.4f} eV/atom"),
-        ("高于凸包能", "待计算" if hull is None else f"{float(hull):.4f} eV/atom"),
+        ("形成能（相对元素参考态）", format_energy_ev_per_atom(formation)),
+        ("高于凸包能 E_hull", format_energy_ev_per_atom(hull)),
         ("下一步", "建议进行 DFT 验证" if hull is not None and hull <= threshold else ("热力学计算待完成" if hull is None else "建议复核或重新生成")),
         ("证据来源", "机器学习势函数 + 同元素竞争相" if hull is not None else "基础结构检查"),
     ]
-    y = 0.65
+    y = 0.61
     for label, value in rows:
         right.text(0.06, y, label, color=ACCENT, fontsize=9, transform=right.transAxes)
         right.text(0.06, y - 0.075, value, color=TEXT, fontsize=12, transform=right.transAxes)

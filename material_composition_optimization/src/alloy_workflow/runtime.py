@@ -50,7 +50,7 @@ class AlloyRuntime:
         """执行候选提议并生成任务级展示资产。"""
         result, constraints = self.application.propose_space(payload)
         candidates = result.get("_presentation_candidates", result.get("initial_candidates", []))
-        if candidates:
+        if candidates and result.get("model_domain") == "hea_mpea":
             result["microstructure_tendency"] = build_microstructure_tendency(candidates[0])
         assets = self._render(result)
         result.pop("_presentation_candidates", None)
@@ -90,6 +90,12 @@ class AlloyRuntime:
             label.set_fontproperties(font)
 
     def _render(self, result: dict[str, Any]) -> dict[str, Path]:
+        if result.get("model_domain") == "ni_superalloy_hot_end":
+            return self._render_hot_end(result)
+        if result.get("model_domain") == "reusable_rocket_stainless":
+            return self._render_rocket_stainless(result)
+        if result.get("model_domain") == "chip_glass_thermomechanical_family_v1":
+            return self._render_chip_glass(result)
         task_dir = self.results_root / result["taskid"] / "presentation"
         task_dir.mkdir(parents=True, exist_ok=True)
         os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
@@ -279,6 +285,232 @@ class AlloyRuntime:
         summary = task_dir / "summary.md"
         summary.write_text("\n".join(["### 合金配比探索结果", "", final_conclusion_block(result)]), encoding="utf-8")
         assets["summary_markdown"] = summary
+        return assets
+
+    def _render_rocket_stainless(self, result: dict[str, Any]) -> dict[str, Path]:
+        """Render the same funnel → trade-off → composition visual sequence as 1111 hot-end."""
+        task_dir = self.results_root / result["taskid"] / "presentation"
+        task_dir.mkdir(parents=True, exist_ok=True)
+        os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
+        from src.alloy_workflow.presentation import rocket_stainless_summary_block
+        assets: dict[str, Path] = {}
+        candidates = result.get("initial_candidates") or []
+        if result.get("mode") != "cryogenic_reference" and candidates:
+            font = self._chart_font()
+            all_candidates = result.get("all_candidates") or candidates
+            sampling = result.get("sampling") or {}
+            stages = [
+                (str(item.get("label") or "筛选阶段"), int(item.get("count", 0)))
+                for item in (sampling.get("funnel_stages") or [])
+                if isinstance(item, dict)
+            ] or [
+                ("满足成分边界的候选", len(all_candidates)),
+                ("训练成分邻域内", sum(1 for item in all_candidates if (item.get("applicability_domain") or {}).get("level") == "inside")),
+                ("强度—延性综合优先", min(5, sum(1 for item in all_candidates if (item.get("applicability_domain") or {}).get("level") == "inside"))),
+            ]
+            counts = [count for _, count in stages]; maximum = max(counts) or 1
+            widths = [max(.30, .30 + .64 * (count / maximum) ** .34) for count in counts]
+            fig, ax = plt.subplots(figsize=(10.8, 7.2), facecolor="#FFFFFF")
+            for index, ((label, count), top_width) in enumerate(zip(stages, widths)):
+                bottom_width = max(.20, top_width * .80); y_top = len(stages) - index * 1.24; y_bottom = y_top - .86
+                color = ("#9ECCE1", "#78ADD0", "#5D93C0", "#467BAA", "#315F8F")[min(index, 4)]; dark = tuple(value * .78 for value in to_rgb(color)); light = tuple(min(1, value + (1 - value) * .55) for value in to_rgb(color))
+                ax.add_patch(Ellipse((.5, y_bottom), width=bottom_width, height=.24, facecolor=dark, edgecolor="none", zorder=1))
+                ax.add_patch(Polygon([(.5-top_width/2,y_top),(.5+top_width/2,y_top),(.5+bottom_width/2,y_bottom),(.5-bottom_width/2,y_bottom)], closed=True, facecolor=color, edgecolor="none", zorder=2))
+                ax.add_patch(Ellipse((.5,y_top), width=top_width, height=.24, facecolor=light, edgecolor="white", linewidth=1.3, zorder=3))
+                ax.text(.5, (y_top+y_bottom)/2, label, ha="center", va="center", color="#203B55", fontproperties=font, fontsize=10, fontweight="bold", zorder=4)
+                retention = count / counts[0] if counts[0] else 0
+                ax.annotate(f"{count:,}（保留 {retention:.1%}）", xy=(.5+bottom_width/2,(y_top+y_bottom)/2), xytext=(1.08,(y_top+y_bottom)/2), ha="left", va="center", color="#425466", fontproperties=font, fontsize=11, fontweight="bold", arrowprops={"arrowstyle":"-","color":"#94A3B8","lw":1.15})
+            fig.suptitle("可回收火箭不锈钢：候选筛选漏斗", x=.055, y=.98, ha="left", fontproperties=font, fontsize=17, fontweight="bold")
+            fig.text(.055,.895,"按成分边界、Fe 平衡、成分适用域与强度—延性综合排序逐层保留",color="#5B6472",fontproperties=font,fontsize=9.5)
+            bottom_y = len(stages) - (len(stages) - 1) * 1.24 - .86
+            ax.set_xlim(-.02,1.38); ax.set_ylim(bottom_y-.35,len(stages)+.36); ax.axis("off"); fig.tight_layout(rect=(0,0,1,.84))
+            path = task_dir / "rocket_screening_funnel.png"; fig.savefig(path,dpi=220,facecolor=fig.get_facecolor(),bbox_inches="tight"); plt.close(fig); assets["rocket_screening_funnel"] = path
+
+            fig, ax = plt.subplots(figsize=(8.6, 5.6), facecolor="#FFFFFF")
+            styles = {"inside": ("#1F77B4", "训练邻域内"), "boundary": ("#F28E2B", "数据边界附近")}
+            used: set[str] = set()
+            for candidate in candidates:
+                tensile = candidate["short_time_tensile"]; level = candidate.get("applicability_domain", {}).get("level", "boundary")
+                color, label = styles.get(level, styles["boundary"])
+                ax.scatter(tensile["elongation_pct"]["mean"], tensile["yield_0p2_MPa"]["mean"], s=52, color=color, alpha=.75, edgecolor="white", linewidth=.55, label=label if level not in used else None)
+                used.add(level)
+            top = candidates[0]; tensile = top["short_time_tensile"]
+            ax.scatter(tensile["elongation_pct"]["mean"], tensile["yield_0p2_MPa"]["mean"], marker="*", s=250, color="#D62728", edgecolor="white", linewidth=1, label="优先候选", zorder=4)
+            ax.set_xlabel("预测延伸率（%）", fontproperties=font); ax.set_ylabel("预测 0.2% 屈服强度（MPa）", fontproperties=font)
+            ax.set_title("强度—延性取舍", fontproperties=font, fontsize=15, pad=12); ax.legend(prop=font); ax.grid(alpha=.16); ax.set_axisbelow(True); ax.spines[["top", "right"]].set_visible(False); self._apply_chart_font(ax, font)
+            path = task_dir / "rocket_strength_ductility_tradeoff.png"; fig.tight_layout(); fig.savefig(path, dpi=220, facecolor=fig.get_facecolor(), bbox_inches="tight"); plt.close(fig); assets["rocket_strength_ductility_tradeoff"] = path
+
+            top_comp = top.get("composition_wt_percent") or {}; labels = list(top_comp); amounts = [float(top_comp[k]) for k in labels]
+            fig, ax = plt.subplots(figsize=(8.6, 4.8), facecolor="#FFFFFF")
+            colors = plt.cm.tab20(np.linspace(0, 1, len(labels))); left = 0.0
+            for label, amount, color in zip(labels, amounts, colors):
+                ax.barh(["优先候选"], [amount], left=left, label=label, color=color)
+                if amount >= 2: ax.text(left + amount / 2, 0, f"{label}\n{amount:.1f}", ha="center", va="center", fontsize=8)
+                left += amount
+            ax.set_xlim(0, 100); ax.set_xlabel("质量百分比（wt.%）", fontproperties=font); ax.set_title("优先候选成分（Fe 为平衡元素）", fontproperties=font, fontsize=15, pad=12); ax.legend(prop=font, ncol=min(7, len(labels)), loc="upper center", bbox_to_anchor=(.5, -0.18), frameon=False); ax.spines[["top", "right", "left"]].set_visible(False); ax.tick_params(axis="y", length=0); self._apply_chart_font(ax, font)
+            path = task_dir / "rocket_composition_comparison.png"; fig.tight_layout(); fig.savefig(path, dpi=220, facecolor=fig.get_facecolor(), bbox_inches="tight"); plt.close(fig); assets["rocket_composition_comparison"] = path
+        summary = task_dir / "summary.md"; summary.write_text(rocket_stainless_summary_block(result), encoding="utf-8"); assets["summary_markdown"] = summary
+        return assets
+
+    def _render_chip_glass(self, result: dict[str, Any]) -> dict[str, Path]:
+        """Render glass assets through the same task-local/published 1111 path."""
+        task_dir = self.results_root / result["taskid"] / "presentation"
+        task_dir.mkdir(parents=True, exist_ok=True)
+        os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
+        font = self._chart_font(); assets: dict[str, Path] = {}
+        stages = [(str(item.get("label") or "筛选阶段"), int(item.get("count", 0))) for item in (result.get("sampling", {}).get("funnel_stages") or [])]
+        if stages:
+            # Keep the same five-layer cadence as the hot-end nickel funnel.
+            # The inserted applicability layer is not a second filtering claim:
+            # it makes explicit that all locally perturbed candidates remain in
+            # the admitted glass-family / oxide-bound domain at this stage.
+            if len(stages) == 4:
+                anchor_label, anchor_count = stages[0]
+                perturb_label, perturb_count = stages[1]
+                property_label, property_count = stages[2]
+                shortlist_label, shortlist_count = stages[3]
+                stages = [
+                    (anchor_label, anchor_count),
+                    (perturb_label, perturb_count),
+                    ("同家族适用域与氧化物边界", perturb_count),
+                    (property_label, property_count),
+                    (shortlist_label, shortlist_count),
+                ]
+            # Match the hot-end nickel chart geometry, palette, cap treatment
+            # and callout placement one-to-one; only labels and counts differ.
+            fig, ax = plt.subplots(figsize=(10.8, 7.2), facecolor="#FFFFFF")
+            counts = [count for _, count in stages]; maximum = max(counts) or 1
+            widths = [max(.30, .30 + .64 * (count / maximum) ** .34) for count in counts]
+            palette = ("#8FC6E4", "#69A8D0", "#4D8DBB", "#356F9E", "#234F7D")
+            layer_height, layer_gap, cap_height = .90, .38, .24
+            for index, ((label, count), top_width) in enumerate(zip(stages, widths)):
+                bottom_width = max(.20, top_width * .78)
+                y_top = len(stages) - index * (layer_height + layer_gap); y_bottom = y_top - layer_height
+                color = palette[min(index, len(palette) - 1)]
+                dark = tuple(value * .78 for value in to_rgb(color)); light = tuple(min(1, value + (1 - value) * .55) for value in to_rgb(color))
+                ax.add_patch(Ellipse((.5, y_bottom), width=bottom_width, height=cap_height, facecolor=dark, edgecolor="none", zorder=1))
+                ax.add_patch(Polygon([(.5-top_width/2, y_top), (.5+top_width/2, y_top), (.5+bottom_width/2, y_bottom), (.5-bottom_width/2, y_bottom)], closed=True, facecolor=color, edgecolor="none", zorder=2))
+                ax.add_patch(Ellipse((.5, y_top), width=top_width, height=cap_height, facecolor=light, edgecolor="white", linewidth=1.35, zorder=3))
+                ax.text(.5, (y_top+y_bottom)/2, label, ha="center", va="center", color="#203B55", fontproperties=font, fontsize=10, fontweight="bold", zorder=4)
+                ax.annotate(f"{count:,}（保留 {count / counts[0]:.1%}）", xy=(.5+bottom_width/2, (y_top+y_bottom)/2), xytext=(1.08, (y_top+y_bottom)/2), ha="left", va="center", color="#425466", fontproperties=font, fontsize=11, fontweight="bold", arrowprops={"arrowstyle": "-", "color": "#94A3B8", "lw": 1.15})
+            bottom_y = len(stages) - (len(stages)-1) * (layer_height+layer_gap) - layer_height
+            fig.suptitle("芯片玻璃基板：候选筛选漏斗", x=.055, y=.98, ha="left", fontproperties=font, fontsize=17, fontweight="bold")
+            fig.text(.055, .895, "来源锚点、局部氧化物扰动、性质门槛与优先短名单逐层保留", color="#5B6472", fontproperties=font, fontsize=9.5)
+            ax.set_xlim(-.02, 1.38); ax.set_ylim(bottom_y-.35, len(stages)+.36); ax.axis("off")
+            path = task_dir / "glass_screening_funnel.png"; fig.tight_layout(rect=(0, 0, 1, .86)); fig.savefig(path, dpi=220, bbox_inches="tight"); plt.close(fig); assets["glass_screening_funnel"] = path
+        candidates = result.get("all_candidates") or result.get("initial_candidates") or []
+        if candidates:
+            fig, ax = plt.subplots(figsize=(9.6, 5.8), facecolor="#FFFFFF")
+            cte = [item["predicted_properties"]["CTE_linear_0_to_300C"]["prediction_ppm_per_K"] for item in candidates]
+            modulus = [item["predicted_properties"]["young_modulus_GPa"]["prediction"] for item in candidates]
+            score = [item.get("selection_score", 0) for item in candidates]
+            points = ax.scatter(cte, modulus, c=score, cmap="Blues", s=45, edgecolor="white", linewidth=.5)
+            top = (result.get("initial_candidates") or candidates)[0]
+            top_cte = top["predicted_properties"]["CTE_linear_0_to_300C"]["prediction_ppm_per_K"]; top_e = top["predicted_properties"]["young_modulus_GPa"]["prediction"]
+            ax.scatter([top_cte], [top_e], marker="*", s=240, color="#E07A38", edgecolor="white", zorder=4, label="当前优先候选")
+            ax.set_xlabel("CTE（0–300°C，ppm/K）", fontproperties=font); ax.set_ylabel("杨氏模量 E（GPa）", fontproperties=font)
+            ax.set_title("同家族候选的 CTE—刚度取舍", fontproperties=font, fontsize=15, fontweight="bold")
+            legend = ax.legend(); [label.set_fontproperties(font) for label in legend.get_texts()]
+            colorbar = fig.colorbar(points, ax=ax); colorbar.set_label("综合筛选分数", fontproperties=font)
+            self._apply_chart_font(ax, font); ax.grid(alpha=.16); ax.set_axisbelow(True); ax.spines[["top", "right"]].set_visible(False)
+            path = task_dir / "glass_cte_modulus_tradeoff.png"; fig.tight_layout(); fig.savefig(path, dpi=220, bbox_inches="tight"); plt.close(fig); assets["glass_cte_modulus_tradeoff"] = path
+            anchor = top.get("source_anchor") or {}; anchor_comp = anchor.get("composition_mol_percent") or {}
+            candidate_comp = top.get("composition_mol_percent") or {}
+            elements = [name for name in candidate_comp if candidate_comp.get(name, 0) > 0 or anchor_comp.get(name, 0) > 0]
+            fig, ax = plt.subplots(figsize=(11.2, 5.8), facecolor="#FFFFFF")
+            loc = np.arange(len(elements)); width = .38
+            ax.bar(loc-width/2, [anchor_comp.get(name, 0) for name in elements], width, color="#A7C4D8", label="来源锚点")
+            ax.bar(loc+width/2, [candidate_comp.get(name, 0) for name in elements], width, color="#1F5B89", label="优先候选")
+            ax.set_xticks(loc, elements, rotation=35, ha="right"); ax.set_ylabel("氧化物含量（mol%）", fontproperties=font)
+            ax.set_title("优先候选相对来源锚点的氧化物配方调整", fontproperties=font, fontsize=15, fontweight="bold")
+            legend = ax.legend(); [label.set_fontproperties(font) for label in legend.get_texts()]
+            self._apply_chart_font(ax, font); ax.grid(axis="y", alpha=.16); ax.set_axisbelow(True); ax.spines[["top", "right"]].set_visible(False)
+            path = task_dir / "glass_composition_traceability.png"; fig.tight_layout(); fig.savefig(path, dpi=220, bbox_inches="tight"); plt.close(fig); assets["glass_composition_traceability"] = path
+        from src.alloy_workflow.presentation import glass_summary_block
+        summary = task_dir / "summary.md"; summary.write_text(glass_summary_block(result), encoding="utf-8"); assets["summary_markdown"] = summary
+        return assets
+
+    def _render_hot_end(self, result: dict[str, Any]) -> dict[str, Path]:
+        """Compact evidence-first visuals for the Ni hot-end route."""
+        task_dir = self.results_root / result["taskid"] / "presentation"
+        task_dir.mkdir(parents=True, exist_ok=True)
+        os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
+        font = self._chart_font()
+        all_candidates = result.get("all_candidates") or result.get("initial_candidates") or []
+        shortlisted = result.get("initial_candidates") or []
+        nearest = result.get("nearest_candidates") or []
+        candidates = all_candidates
+        sampling = result.get("sampling") or {}
+        assets: dict[str, Path] = {}
+        stages = [
+            (str(item.get("label") or "筛选阶段"), int(item.get("count", 0)))
+            for item in (sampling.get("funnel_stages") or [])
+            if isinstance(item, dict)
+        ] or [("满足成分约束的候选", int(sampling.get("generated", 0))), ("综合优先短名单", len(result.get("initial_candidates", [])))]
+        counts = [count for _, count in stages]
+        maximum = max(counts) or 1
+        widths = [max(.30, .30 + .64 * (count / maximum) ** .34) for count in counts]
+        palette = ("#8FC6E4", "#69A8D0", "#4D8DBB", "#356F9E", "#234F7D")
+        fig, ax = plt.subplots(figsize=(10.8, 7.2), facecolor="#FFFFFF")
+        layer_height, layer_gap, cap_height = .90, .38, .24
+        for index, ((label, count), top_width) in enumerate(zip(stages, widths)):
+            bottom_width = max(.20, top_width * .78)
+            y_top = len(stages) - index * (layer_height + layer_gap)
+            y_bottom = y_top - layer_height
+            color = palette[min(index, len(palette) - 1)]
+            dark = tuple(value * .78 for value in to_rgb(color))
+            light = tuple(min(1, value + (1 - value) * .55) for value in to_rgb(color))
+            ax.add_patch(Ellipse((.5, y_bottom), width=bottom_width, height=cap_height, facecolor=dark, edgecolor="none", zorder=1))
+            ax.add_patch(Polygon([(.5-top_width/2, y_top), (.5+top_width/2, y_top), (.5+bottom_width/2, y_bottom), (.5-bottom_width/2, y_bottom)], closed=True, facecolor=color, edgecolor="none", zorder=2))
+            ax.add_patch(Ellipse((.5, y_top), width=top_width, height=cap_height, facecolor=light, edgecolor="white", linewidth=1.35, zorder=3))
+            ax.text(.5, (y_top+y_bottom)/2, label, ha="center", va="center", color="#203B55", fontproperties=font, fontsize=10, fontweight="bold", zorder=4)
+            retention = count / counts[0] if counts[0] else 0
+            ax.annotate(f"{count:,}（保留 {retention:.1%}）", xy=(.5+bottom_width/2, (y_top+y_bottom)/2), xytext=(1.08, (y_top+y_bottom)/2), ha="left", va="center", color="#425466", fontproperties=font, fontsize=11, fontweight="bold", arrowprops={"arrowstyle": "-", "color": "#94A3B8", "lw": 1.15})
+        bottom_y = len(stages) - (len(stages)-1) * (layer_height+layer_gap) - layer_height
+        fig.suptitle("高温镍基合金：候选筛选漏斗", x=.055, y=.98, ha="left", fontproperties=font, fontsize=17, fontweight="bold")
+        thresholds = sampling.get("screening_thresholds") or {}
+        support_note = f"来源参考合金 {int(sampling.get('source_anchors', 0))} 个；各阶段按当前筛选门槛逐层保留"
+        if thresholds:
+            support_note += "。"
+        fig.text(.055, .895, support_note, color="#5B6472", fontproperties=font, fontsize=9.5)
+        ax.set_xlim(-.02, 1.38); ax.set_ylim(bottom_y-.35, len(stages)+.36); ax.axis("off")
+        fig.tight_layout(rect=(0, 0, 1, .84))
+        path = task_dir / "hot_end_screening_funnel.png"; fig.savefig(path, dpi=220, facecolor=fig.get_facecolor(), bbox_inches="tight"); plt.close(fig); assets["hot_end_screening_funnel"] = path
+        if candidates:
+            fig, ax = plt.subplots(figsize=(10.5, 6.0), facecolor="#FFFFFF")
+            life = [item["creep_rupture"]["predicted_log10_hours"] for item in candidates]
+            uts = [item["ultimate_tensile_strength_MPa"]["mean"] for item in candidates]
+            score = [item["screening_score"] for item in candidates]
+            points = ax.scatter(life, uts, c=score, cmap="Blues", s=42, edgecolor="white", linewidth=.45)
+            top = (shortlisted or nearest or candidates)[0]
+            top_label = "当前优先候选" if shortlisted else "下一步优先评估"
+            ax.scatter([top["creep_rupture"]["predicted_log10_hours"]], [top["ultimate_tensile_strength_MPa"]["mean"]], marker="*", s=220, color="#E07A38", edgecolor="white", zorder=4)
+            ax.set_xlabel("预测蠕变断裂寿命 log10(h)", fontproperties=font); ax.set_ylabel("短时抗拉强度 UTS（MPa）", fontproperties=font)
+            ax.set_title("指定工况下的强度—寿命取舍", fontproperties=font, fontsize=15, weight="bold")
+            colorbar = fig.colorbar(points, ax=ax); colorbar.set_label("综合筛选分数", fontproperties=font)
+            ax.annotate(top_label, (top["creep_rupture"]["predicted_log10_hours"], top["ultimate_tensile_strength_MPa"]["mean"]), xytext=(8, 8), textcoords="offset points", fontproperties=font, color="#9A431D")
+            path = task_dir / "hot_end_strength_life_tradeoff.png"; fig.tight_layout(); fig.savefig(path, dpi=220, bbox_inches="tight"); plt.close(fig); assets["hot_end_strength_life_tradeoff"] = path
+            # 多个来源合金同时进入筛选时，成分对照图有助于追溯候选改动；
+            # 默认模板只有一个来源时，该图会重复候选表信息，因此不向用户展示。
+            if int(sampling.get("source_anchors", 0)) > 1:
+                anchor = top.get("source_anchor") or {}
+                anchor_composition = anchor.get("composition_wt_percent") or {}
+                candidate_composition = top.get("composition_wt_percent") or {}
+                elements = [element for element in candidate_composition if candidate_composition[element] >= .1 or anchor_composition.get(element, 0) >= .1]
+            else:
+                elements = []
+            if elements:
+                fig, ax = plt.subplots(figsize=(11.2, 6.1), facecolor="#FFFFFF")
+                locations = np.arange(len(elements)); width = .37
+                ax.bar(locations-width/2, [anchor_composition.get(element, 0) for element in elements], width, label="参考合金", color="#9DBAD1")
+                ax.bar(locations+width/2, [candidate_composition.get(element, 0) for element in elements], width, label=("优先候选" if shortlisted else "下一步优先评估"), color="#1F5B89")
+                ax.set_xticks(locations, elements); ax.set_ylabel("质量百分比（wt.%）", fontproperties=font)
+                ax.set_title(("优先候选" if shortlisted else "下一步优先评估候选") + "相对参考合金的配方调整", fontproperties=font, fontsize=15, weight="bold")
+                legend = ax.legend(); [label.set_fontproperties(font) for label in legend.get_texts()]
+                ax.text(.01, .97, f"参考合金：{anchor.get('alloy_name', '-')}", transform=ax.transAxes, va="top", fontproperties=font, color="#41617C")
+                path = task_dir / "hot_end_composition_traceability.png"; fig.tight_layout(); fig.savefig(path, dpi=220, bbox_inches="tight"); plt.close(fig); assets["hot_end_composition_traceability"] = path
+        from src.alloy_workflow.presentation import hot_end_summary_block
+        summary = task_dir / "summary.md"; summary.write_text(hot_end_summary_block(result), encoding="utf-8"); assets["summary_markdown"] = summary
         return assets
 
 

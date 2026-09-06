@@ -8,10 +8,15 @@ environment.  The service process itself must not import MatterSim.
 from __future__ import annotations
 
 import argparse
+import fcntl
+import gzip
 import itertools
 import json
 import os
 from pathlib import Path
+import pickle
+import shutil
+import tempfile
 
 
 def _arguments() -> argparse.Namespace:
@@ -25,6 +30,14 @@ def _arguments() -> argparse.Namespace:
         choices=("mp_api", "official"),
         default="mp_api",
         help="mp_api queries only competing phases for each candidate; official loads the full MatterGen reference.",
+    )
+    parser.add_argument(
+        "--reference-system",
+        default="",
+        help=(
+            "Optional parent chemical system for the official convex-hull cache, "
+            "for example Co-Cr-Fe-Mn-Ni. Candidate elements must be a subset."
+        ),
     )
     return parser.parse_args()
 
@@ -54,6 +67,163 @@ def _patch_mattergen_lmdb_loader() -> None:
         return result
 
     LMDBBackedReferenceDatasetImpl._build_num_entries_by_chemsys_reduced_formulas = build_index
+
+
+def _load_cached_mp2020_reference():
+    """Open the official MP2020 reference without unpacking it for every task.
+
+    MatterGen distributes this reference as an 833 MB gzip-compressed LMDB.
+    Its preset loader expands it to roughly 3.85 GB in a disposable directory
+    on each process invocation.  The service starts a fresh evaluator process
+    per request, so retain one read-only expanded LMDB under a service-owned
+    cache directory instead.  A file lock ensures concurrent first requests
+    prepare that cache only once.
+    """
+    from mattergen.evaluation.reference import presets
+    from mattergen.evaluation.reference.reference_dataset import ReferenceDataset
+    from mattergen.evaluation.reference.reference_dataset_serializer import (
+        LMDBBackedReferenceDatasetImpl,
+    )
+
+    cache_dir = Path(
+        os.environ.get("MATTERSIM_REFERENCE_CACHE_DIR", "/data/mattersim_reference_cache")
+    )
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache_file = cache_dir / "reference_MP2020correction"
+    reference_gzip = (
+        Path(presets.__file__).resolve().parent
+        / "../../../data-release/alex-mp/reference_MP2020correction.gz"
+    ).resolve()
+    if not reference_gzip.is_file():
+        raise RuntimeError(f"MatterGen MP2020 reference archive is missing: {reference_gzip}")
+
+    with (cache_dir / ".reference_MP2020correction.lock").open("a+") as lock:
+        fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+        if not cache_file.is_file():
+            staging_dir = Path(tempfile.mkdtemp(prefix="mp2020-", dir=cache_dir))
+            staging_file = staging_dir / cache_file.name
+            try:
+                with gzip.open(reference_gzip, "rb") as source, staging_file.open("wb") as target:
+                    shutil.copyfileobj(source, target, length=1024 * 1024)
+                os.replace(staging_file, cache_file)
+            finally:
+                shutil.rmtree(staging_dir, ignore_errors=True)
+        fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
+
+    return ReferenceDataset(
+        name="MP2020correction",
+        impl=LMDBBackedReferenceDatasetImpl(cache_file, cleanup_dir=False),
+    )
+
+
+def _canonical_chemical_system(chemical_system: str) -> str:
+    """Return the reference-LMDB spelling for a hyphen-separated element set."""
+    elements = [item.strip().capitalize() for item in chemical_system.split("-") if item.strip()]
+    if not elements:
+        raise ValueError("A chemical system must contain at least one element.")
+    return "-".join(sorted(set(elements)))
+
+
+def _load_cached_phase_diagram(reference, chemical_system: str):
+    """Load or build a service-owned official phase diagram for one system.
+
+    The expensive Qhull construction depends only on the reference dataset and
+    chemical system, never on a generated candidate.  Persisting it makes
+    repeated candidate evaluations use the same MP2020-corrected convex hull.
+    """
+    from mattergen.evaluation.utils.utils import expand_into_subsystems
+    from pymatgen.analysis.phase_diagram import PhaseDiagram
+
+    chemical_system = _canonical_chemical_system(chemical_system)
+    cache_root = Path(
+        os.environ.get("MATTERSIM_PHASE_DIAGRAM_CACHE_DIR", "/data/mattersim_phase_diagram_cache")
+    )
+    cache_root.mkdir(parents=True, exist_ok=True)
+    cache_file = cache_root / f"MP2020correction__{chemical_system}.pickle"
+    with (cache_root / f".{chemical_system}.lock").open("a+") as lock:
+        fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+        if cache_file.is_file():
+            with cache_file.open("rb") as handle:
+                payload = pickle.load(handle)
+            if (
+                isinstance(payload, dict)
+                and payload.get("schema_version") == 1
+                and payload.get("reference") == "MP2020correction"
+                and payload.get("chemical_system") == chemical_system
+                and payload.get("phase_diagram") is not None
+            ):
+                fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
+                return payload["phase_diagram"]
+            raise RuntimeError(f"Invalid cached MP2020 phase diagram: {cache_file}")
+
+        subsystems = expand_into_subsystems(chemical_system)
+        reference_entries = [
+            entry
+            for subsystem in subsystems
+            for key in ["-".join(sorted(subsystem))]
+            for entry in reference.entries_by_chemsys.get(key, [])
+            if entry.energy == entry.energy  # skip NaN-energy disordered entries
+        ]
+        if not reference_entries:
+            raise RuntimeError(f"No MP2020 reference entries found for {chemical_system}.")
+        phase_diagram = PhaseDiagram(reference_entries)
+        staging_file = cache_root / f".{chemical_system}.{os.getpid()}.pickle"
+        try:
+            with staging_file.open("wb") as handle:
+                pickle.dump(
+                    {
+                        "schema_version": 1,
+                        "reference": "MP2020correction",
+                        "chemical_system": chemical_system,
+                        "phase_diagram": phase_diagram,
+                    },
+                    handle,
+                    protocol=pickle.HIGHEST_PROTOCOL,
+                )
+            os.replace(staging_file, cache_file)
+        finally:
+            staging_file.unlink(missing_ok=True)
+        fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
+    return phase_diagram
+
+
+def _official_reference_results(reference, relaxed, total_energies, original_structures, reference_system: str):
+    """Evaluate candidates against persistent MP2020-corrected hulls."""
+    from pymatgen.io.ase import AseAtomsAdaptor
+
+    from mattergen.evaluation.utils.metrics_structure_summary import get_metrics_structure_summaries
+
+    pymatgen_structures = [
+        structure if hasattr(structure, "composition") else AseAtomsAdaptor.get_structure(structure)
+        for structure in relaxed
+    ]
+    summaries = get_metrics_structure_summaries(
+        structures=pymatgen_structures,
+        energies=total_energies,
+        original_structures=original_structures,
+    )
+    parent_system = _canonical_chemical_system(reference_system) if reference_system else ""
+    result = []
+    for summary in summaries:
+        candidate_system = _canonical_chemical_system(
+            "-".join(element.symbol for element in summary.entry.composition.elements)
+        )
+        hull_system = parent_system or candidate_system
+        if not set(candidate_system.split("-")).issubset(hull_system.split("-")):
+            raise RuntimeError(
+                f"Candidate system {candidate_system} is not a subset of requested hull {hull_system}."
+            )
+        phase_diagram = _load_cached_phase_diagram(reference, hull_system)
+        result.append(
+            {
+                "formation_energy_per_atom_ev": float(phase_diagram.get_form_energy_per_atom(summary.entry)),
+                "energy_above_hull_ev": float(phase_diagram.get_e_above_hull(summary.entry, allow_negative=True)),
+                "reference_dataset": "MatterGen MP2020correction (MP + Alexandria)",
+                "reference_chemical_system": hull_system,
+                "method": "MatterSim MLFF relaxation and energy; not DFT",
+            }
+        )
+    return result
 
 
 def _install_mp_api_pymatgen_compat() -> None:
@@ -260,8 +430,6 @@ def main() -> None:
 
     from pymatgen.core import Structure
 
-    from mattergen.evaluation.metrics.evaluator import MetricsEvaluator
-    from mattergen.evaluation.reference.presets import ReferenceMP2020Correction
     from mattergen.evaluation.utils.relaxation import relax_structures
 
     _patch_mattergen_lmdb_loader()
@@ -305,27 +473,14 @@ def main() -> None:
     if args.reference_mode == "mp_api":
         thermodynamics = _mp_api_reference_results(relaxed, total_energies, structures)
     else:
-        reference = ReferenceMP2020Correction()
-        evaluator = MetricsEvaluator.from_structures_and_energies(
-            structures=relaxed,
-            energies=total_energies,
-            original_structures=structures,
-            reference=reference,
-            stability_threshold=args.stability_threshold,
+        reference = _load_cached_mp2020_reference()
+        thermodynamics = _official_reference_results(
+            reference,
+            relaxed,
+            total_energies,
+            structures,
+            args.reference_system,
         )
-        summaries = evaluator.energy_capability._structure_summaries
-        e_above_hull = evaluator.energy_capability.energy_above_hull
-        thermodynamics = []
-        for index, summary in enumerate(summaries):
-            phase_diagram = evaluator.energy_capability._get_phase_diagram(summary.chemical_system)
-            thermodynamics.append(
-                {
-                    "formation_energy_per_atom_ev": float(phase_diagram.get_form_energy_per_atom(summary.entry)),
-                    "energy_above_hull_ev": float(e_above_hull[index]),
-                    "reference_dataset": "MatterGen MP2020correction (MP + Alexandria)",
-                    "method": "MatterSim MLFF relaxation and energy; not DFT",
-                }
-            )
 
     candidates = []
     for index, (path, structure, energy, thermo) in enumerate(zip(cif_paths, relaxed, total_energies, thermodynamics)):
@@ -341,6 +496,7 @@ def main() -> None:
                 "energy_above_hull_ev": thermo["energy_above_hull_ev"],
                 "is_stable_at_threshold": bool(thermo["energy_above_hull_ev"] <= args.stability_threshold),
                 "reference_dataset": thermo["reference_dataset"],
+                "reference_chemical_system": thermo.get("reference_chemical_system"),
                 "method": thermo["method"],
                 "preparation_traceability": thermo.get("preparation_traceability"),
             }

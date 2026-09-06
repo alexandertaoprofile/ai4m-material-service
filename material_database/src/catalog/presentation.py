@@ -577,7 +577,7 @@ def requirement_markdown(result: dict[str, Any]) -> str:
     ]
     lines = [
         "## 1. 需求与已知工况", "",
-        "以下仅列出本轮已提供、可用于材料比较的信息。", "",
+        "我先根据你已经描述的内容整理如下，后续会在这里逐步补全。", "",
     ]
     known_rows: list[tuple[str, str]] = []
     if names:
@@ -613,7 +613,7 @@ def requirement_markdown(result: dict[str, Any]) -> str:
         lines += ["| 信息维度 | 已掌握内容 |", "|---|---|"]
         lines += [f"| {label} | {value} |" for label, value in known_rows]
     else:
-        lines += ["当前尚未提供可用于比较的材料、工况或性能条件。"]
+        lines += ["你暂时不需要整理成材料参数；告诉我零件大致用途或使用环境，就可以从目录中开始为你比较。"]
 
     follow_up: list[tuple[str, str]] = []
     if not context.get("component"):
@@ -644,12 +644,36 @@ def analysis_markdown(result: dict[str, Any]) -> str:
 
 
 def resolution_markdown(result: dict[str, Any]) -> str:
+    if result.get("data_status", {}).get("outcome") == "catalogue_guided_start":
+        lines = [
+            "### 先从这几种已收录材料开始看",
+            "",
+            "你暂时不需要先给出性能指标。根据上文的结构与使用场景，我先从目录里准备了几种有来源记录的材料，方便你从熟悉的部位和方案开始判断。",
+            "",
+            "| 用途 | 起步候选 | 为什么先看它 |",
+            "|---|---|---|",
+        ]
+        for candidate in result.get("results", []):
+            guidance = candidate.get("guided_start") or {}
+            lines.append(
+                f"| {guidance.get('role') or '起步候选'} | {_candidate_identity(candidate)} | "
+                f"{guidance.get('reason') or '该材料在当前目录中有可继续核验的记录。'} |"
+            )
+        lines += [
+            "",
+            "下一步你只要补充其中任意一点就够了：零件主要承受拉压、弯曲还是摩擦接触；是否更看重轻量化、耐热或耐腐蚀；以及大致制造方式。",
+        ]
+        return "\n".join(lines)
     if result.get("data_status", {}).get("outcome") == "needs_screening_criteria":
         strategy = result.get("screening", {}).get("strategy", {})
         return "\n".join([
-            "### 还需要确认的信息",
+            "### 当前可先采用的比较方式",
             "",
-            strategy.get("description") or "已进入通用成熟材料初筛，但尚没有足以比较目录证据的条件。",
+            "当前还不能做带通过/不通过结论的目录筛选；先按下列材料路线收敛方案，再用关键工况核验。",
+            "",
+            exploratory_routes_markdown(result),
+            "",
+            "待确认项：" + (strategy.get("description") or "请补充能够区分候选的工况或性能条件。"),
         ])
     requested_constraints = result.get("constraints", {}).get("property_constraints") or []
     preferences = result.get("constraints", {}).get("preference_goals") or []
@@ -694,6 +718,52 @@ def resolution_markdown(result: dict[str, Any]) -> str:
         lines.append(f"| {row.get('input')} | {matched} | {status} |")
     if has_exact_match:
         lines += ["", "说明：下列性质仅对应所列产品状态和测试条件，不外推至同名的其他品牌、加工方式或材料状态。"]
+    if result.get("data_status", {}).get("outcome") in {"needs_literature_screening", "upstream_evidence_only"}:
+        lines += [
+            "", "### 目录外记录的下一步材料路线", "",
+            "目录尚未收录该记录，可先按以下路线明确待查证的替代方向与验证项，再建议进入文献筛选补齐来源。",
+            "", exploratory_routes_markdown(result),
+        ]
+    return "\n".join(lines)
+
+
+def exploratory_routes_markdown(result: dict[str, Any]) -> str:
+    """Offer useful engineering routes without presenting them as catalogue evidence.
+
+    This is intentionally a route-level response for an under-specified
+    request.  It neither injects material records into the result nor lets a
+    generic suggestion affect catalogue filtering, ranking, or release.
+    """
+    constraints = result.get("constraints") or {}
+    text = " ".join(str(value or "") for value in (
+        constraints.get("raw_requirement"),
+        (constraints.get("selection_context") or {}).get("application"),
+        (constraints.get("selection_context") or {}).get("component"),
+        (constraints.get("selection_context") or {}).get("manufacturing"),
+    ))
+    composite_structure = bool(re.search(r"碳纤维|主梁|泡沫|轻木|夹芯|蒙皮", text, re.IGNORECASE))
+    robot = "机器人" in text
+    if composite_structure:
+        rows = [
+            ("承力主梁", "碳纤维复合材料层合结构", "先比较轴向刚度、压缩/疲劳与层间剪切；确认铺层、纤维体积分数和连接区局部补强。"),
+            ("金属连接件", "铝合金连接件；存在高接触载荷或磨损时并行评估钛合金/不锈钢", "先比较连接区承压、疲劳、耐磨与碳纤维接触腐蚀隔离方案。"),
+            ("蒙皮与芯材", "结构泡沫或轻木夹芯体系", "先比较面外压缩、吸湿和胶接剥离；确认环境与阻燃要求。"),
+        ]
+    elif robot:
+        rows = [
+            ("轻量承力件", "铝合金与碳纤维复合材料两条路线并行", "用刚度/质量、疲劳和连接方式区分，而不是仅比较单一强度。"),
+            ("关节或连接区域", "铝合金为基线；高接触载荷时并行评估钛合金或不锈钢", "确认承压、磨损、润滑和电偶腐蚀边界。"),
+            ("热源附近部件", "导热金属骨架配合绝缘或复合材料结构", "确认热源功率、允许温升和散热路径后比较导热与热膨胀匹配。"),
+        ]
+    else:
+        rows = [
+            ("轻量承力", "铝合金与纤维增强复合材料", "先以刚度/质量、疲劳和连接可制造性建立比较表。"),
+            ("耐磨或高接触载荷", "不锈钢、工具钢或钛合金", "先确认接触应力、润滑与腐蚀环境，再确定硬度和表面处理口径。"),
+            ("导热或散热", "铝合金、铜合金或金属-复合材料组合", "先确认热源、允许温升及电绝缘需求，再比较导热与热膨胀。"),
+        ]
+    lines = ["| 部位/目标 | 可先评估的材料路线 | 优先核验项 |", "|---|---|---|"]
+    lines += [f"| {part} | {route} | {check} |" for part, route, check in rows]
+    lines += ["", "说明：以上是基于已描述场景的工程比较路线，不是目录已核验的材料牌号或工程放行结论。"]
     return "\n".join(lines)
 
 
@@ -758,6 +828,22 @@ def screening_funnel_rows(result: dict[str, Any]) -> list[tuple[str, int]]:
 def comparison_markdown(result: dict[str, Any]) -> str:
     requested_constraints = result.get("constraints", {}).get("property_constraints") or []
     preferences = result.get("constraints", {}).get("preference_goals") or []
+    if result.get("data_status", {}).get("outcome") == "catalogue_guided_start":
+        candidates = result.get("results", [])
+        lines = [
+            "## 3. 目录中的起步候选", "",
+            "下面列出的是已收录的材料记录与对应状态，方便先判断哪条路线更贴近你的零件；此时不按未提供的指标做淘汰。",
+            "",
+            "| 起步候选 | 产品状态 | 已收录性质 |",
+            "|---|---|---:|",
+        ]
+        for candidate in candidates:
+            material = candidate["material"]
+            lines.append(
+                f"| {_candidate_identity(candidate)} | {material.get('product_state') or '状态待补充'} | "
+                f"{len(candidate.get('available_properties') or [])} |"
+            )
+        return "\n".join(lines)
     if requested_constraints:
         candidates = result.get("results", [])
         lines = ["## 3. 证据覆盖与候选核验", "", "### 筛选漏斗", "", "| 条件步骤 | 保留候选数 |", "|---|---:|"]
@@ -800,14 +886,18 @@ def comparison_markdown(result: dict[str, Any]) -> str:
                 by_property.setdefault(str(item.get("property") or ""), []).append(item)
             for property_name, items in by_property.items():
                 item = next((entry for entry in items if entry.get("status") == "observed"), items[0])
+                # The comparison cell is a compact evidence list, not a
+                # per-row missing-data checklist.  Coverage gaps remain in
+                # the funnel above, while unavailable properties are omitted.
+                if item.get("status") != "observed":
+                    continue
                 observed = item.get("observed", {})
                 value = f"（{format_value(observed.get('value'), observed.get('unit'))}）" if observed else ""
-                status = "已收录" if item.get("status") == "observed" else "当前未收录"
                 directions = {entry.get("direction") for entry in items}
                 direction_note = "；方向待确认" if directions == {"maximize", "minimize"} else ""
-                evidence.append(f"{property_label(property_name)}：{status}{value}{direction_note}")
+                evidence.append(f"{property_label(property_name)}：已收录{value}{direction_note}")
             identity = _candidate_identity(candidate)
-            lines.append(f"| {candidate.get('preference_rank') or '-'} | {identity} | {'<br>'.join(evidence) or '缺少可比较证据'} |")
+            lines.append(f"| {candidate.get('preference_rank') or '-'} | {identity} | {'<br>'.join(evidence)} |")
         return "\n".join(lines)
     lines = ["## 3. 证据覆盖与候选核验", ""]
     lines += _upstream_evidence_markdown(result)
@@ -840,12 +930,12 @@ def comparison_markdown(result: dict[str, Any]) -> str:
         if result.get("data_status", {}).get("outcome") == "needs_screening_criteria":
             return "\n".join([
                 *lines,
-                "本轮尚未执行候选比较：系统不会在缺少目标工况和性能窗口时猜测或推荐材料。",
+                "目录硬筛选将在载荷、温度或至少一项量化性能条件明确后执行；上方已给出可先收敛方案的材料路线。",
             ])
         return "\n".join([
             *lines,
-            "本轮目录中未找到与指定材料、牌号或标准相符的已入库记录。",
-            "为避免误导，系统不会展示或推断其他材料作为替代候选。",
+            "当前目录暂未收录与指定材料、牌号或标准相符的可核验记录。",
+            "可先依据结论中的材料路线准备对比项，并补充来源或产品状态后继续核验。",
         ])
     return "\n".join(lines)
 
@@ -1237,14 +1327,24 @@ def conclusion_markdown(result: dict[str, Any]) -> str:
     outcome = result.get("data_status", {}).get("outcome")
     if candidate is None:
         if outcome == "needs_screening_criteria":
-            sentence = "针对当前需求，先补充材料牌号/体系、服役工况或至少一项关键性能指标后，才能形成有依据的材料选择。"
+            sentence = "针对当前需求，建议先按上方材料路线并行收敛部位方案；补充载荷、温度或至少一项量化性能指标后，即可把路线转为有依据的目录比较。"
         else:
-            sentence = "针对当前需求，目录暂未找到可核验的对应材料数据。建议进入文献筛选，补齐牌号、工况和来源后，再继续完成材料对比。"
+            sentence = "针对当前需求，当前目录暂未找到可核验的对应材料记录。可先按上方材料路线准备候选与验证项，建议进入文献筛选补齐牌号、产品状态、工况和来源后继续完成对比。"
         return "\n\n".join([
             "## 4. 结论", sentence,
-            "## 5. 材料性质汇总\n\n当前没有可作为材料事实展示的目录证据卡。",
+            "## 5. 材料性质汇总\n\n当前目录尚无可作为材料事实展示的证据卡；上述路线中的性能值将在取得对应材料状态和来源后逐项核验。",
         ])
     identity = _candidate_identity(candidate)
+    if outcome == "catalogue_guided_start":
+        guided = candidate.get("guided_start") or {}
+        role = guided.get("role") or "起步候选"
+        return "\n\n".join([
+            "## 4. 结论",
+            f"针对当前描述的场景，先把 {identity} 作为{role}的首轮对比材料。它来自当前目录的可追溯记录；下一步结合载荷、环境和制造方式，再一起判断是否保留。",
+            "## 5. 材料性质汇总",
+            material_data_card(candidate, candidate.get("evidence")),
+            "如果你愿意，可以直接用一句话描述零件怎么受力、是否需要轻量化或耐热，我会据此继续比较，不需要你先整理成材料指标。",
+        ])
     if not constraints.get("property_constraints") and not constraints.get("preference_goals"):
         sentence = (
             f"针对{scenario}，{condition}，已完成 {identity} 的材料索引核验；"

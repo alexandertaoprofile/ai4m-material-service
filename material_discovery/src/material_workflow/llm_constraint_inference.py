@@ -29,6 +29,63 @@ Hf Ta W Re Os Ir Pt Au Hg Tl Pb Bi Po At Rn Fr Ra Ac Th Pa U Np Pu Am Cm Bk Cf E
 """.split())
 
 
+def infer_element_system_from_text(payload: Mapping[str, Any]) -> dict[str, Any] | None:
+    """Provide a local, auditable start system for a named material direction.
+
+    This is intentionally narrower than the LLM fallback.  It covers material
+    directions that reliably imply a conventional inorganic starting family,
+    so a gateway outage cannot turn useful upstream context into a needless
+    clarification.  The result is a *starting exploration system*, not a
+    claimed final composition.
+    """
+    current, evidence = _context(payload)
+    text = f"{current}\n{evidence}".lower()
+    rules: tuple[tuple[tuple[str, ...], tuple[str, ...], str, str], ...] = (
+        (
+            (
+                "镍基高温合金", "镍基合金", "镍基", "ni-based superalloy",
+                "nickel-based superalloy", "nickel superalloy", "nih-",
+            ),
+            ("Ni", "Cr", "Co", "Al", "Ta", "W"),
+            "镍基高温合金起始探索体系",
+            "未收到可展开的候选成分表；按镍基高温合金常见 γ/γ′ 合金化元素归纳 Ni-Cr-Co-Al-Ta-W 起始体系。",
+        ),
+        (
+            ("sicoh", "si-co-h", "超低k", "低 k", "low-k", "low k", "混合键合", "hybrid bonding", "chiplet", "介质层", "介质材料"),
+            ("Si", "O", "C", "H"),
+            "低介电有机-无机杂化介质",
+            "从上游的低介电/混合键合介质方向归纳 Si-O-C-H 杂化起始体系。",
+        ),
+        (
+            ("氮化硅", "sin", "si-n"),
+            ("Si", "N"),
+            "氮化硅介质",
+            "从上游的氮化硅介质方向归纳 Si-N 起始体系。",
+        ),
+        (
+            ("二氧化硅", "sio2", "si-o"),
+            ("Si", "O"),
+            "二氧化硅介质",
+            "从上游的二氧化硅介质方向归纳 Si-O 起始体系。",
+        ),
+        (
+            ("光催化", "photocatal"),
+            ("Ti", "O"),
+            "氧化物光催化材料",
+            "从上游的氧化物光催化方向归纳 Ti-O 起始体系。",
+        ),
+    )
+    for signals, elements, material_family, reason in rules:
+        if any(signal in text for signal in signals):
+            return {
+                "allowed_elements": list(elements),
+                "material_family": material_family,
+                "reason": reason,
+                "confidence": "medium",
+            }
+    return None
+
+
 class GenerationInputRequired(ValueError):
     """The request is valid, but lacks a traceable material-generation start point."""
 
@@ -149,15 +206,20 @@ async def infer_element_system(payload: Mapping[str, Any]) -> dict[str, Any] | N
 
 async def enrich_payload_with_llm_elements(payload: Mapping[str, Any]) -> dict[str, Any] | None:
     """Attach an LLM proposal to the normal ``new_material`` contract."""
-    proposal = await infer_element_system(payload)
+    # A named material/application direction is already usable information.
+    # Resolve it locally first; this removes a network/credential dependency
+    # from normal continuation of an upstream materials task.
+    local_proposal = infer_element_system_from_text(payload)
+    proposal = local_proposal or await infer_element_system(payload)
     if not proposal:
         return None
     enriched = dict(payload)
     nested = dict(payload.get("new_material") or {}) if isinstance(payload.get("new_material"), Mapping) else {}
     nested["allowed_elements"] = proposal["allowed_elements"]
     notes = nested.get("notes") if isinstance(nested.get("notes"), list) else []
+    inference_source = "文本解析" if local_proposal else "LLM"
     nested["notes"] = [*notes, (
-        "元素体系由 LLM 根据当前任务及上游材料结论提出："
+        f"元素体系由{inference_source}根据当前任务及上游材料结论提出："
         f"{'-'.join(proposal['allowed_elements'])}（{proposal['material_family']}，{proposal['confidence']} 置信度）；"
         "作为起始探索体系，需在后续计算与实验中确认。"
     )]

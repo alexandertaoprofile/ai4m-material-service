@@ -1,0 +1,42 @@
+{
+  "source_id": "W14_ACTUAL_PERFORMANCE_REFERENCE_2026-08-26",
+  "source_kind": "user_verified_actual_performance_values",
+  "material_identity": "纯钨 W；300 K 实际性能参考值",
+  "condition": "弹性、模量与声速实际性能值按 300 K 对比",
+  "evidence_level": "actual_performance_reference",
+  "comparison_rows": [
+    {
+      "property": "C11 弹性常数",
+      "calculated_value": 513.7,
+      "reference_value": 522.0,
+      "unit": "GPa",
+      "relative_error_percent": 1.6
+    },
+    {
+      "property": "体积模量 K",
+      "calculated_value": 299.7,
+      "reference_value": 310.6,
+      "unit": "GPa",
+      "relative_error_percent": 3.5
+    },
+    {
+      "property": "剪切波声速 vs",
+      "calculated_value": 2816.0,
+      "reference_value": 2890.0,
+      "unit": "m/s",
+      "relative_error_percent": 2.6
+    },
+    {
+      "property": "纵波声速 vp",
+      "calculated_value": 5136.0,
+      "reference_value": 5220.0,
+      "unit": "m/s",
+      "relative_error_percent": 1.6
+    }
+  ],
+  "reported_scope": "0–900 K 小应变（弹性区间）；截图文字称典型耗时 1–3 小时。",
+  "consistency_notes": [
+    "300 K Cv 的实际性能参考值尚未纳入本轮对比；当前 MD 源目录的 W_300K_Cv_timeseries.dat 经现有脚本复算为 12.86 J/mol/K。",
+    "本记录为已核验的实际性能参考值；后续可继续补充文献、标准与测试条件，以完善来源卡。"
+  ]
+}

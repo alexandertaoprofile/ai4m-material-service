@@ -1,15 +1,20 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import main
 import src.team_config as team_config
 from src.alloy_workflow.contracts import requirement_plan
-from src.alloy_workflow.presentation import final_conclusion_block
+from src.alloy_workflow.application import AlloyOptimizationApplication
+from src.alloy_workflow.presentation import final_conclusion_block, hot_end_summary_block, planned_alloy_method_block
+from src.alloy_workflow.presentation import _embed_rocket_visuals, rocket_stainless_summary_block
 from src.alloy_workflow.microstructure_tendency import build_microstructure_tendency
+from src.alloy_workflow.runtime import AlloyRuntime
 
 
 class FakeWebSocket:
@@ -69,6 +74,19 @@ async def run_inline(function, *args, **kwargs):
 
 
 class AlloyServiceContractTest(unittest.TestCase):
+    def test_rocket_runtime_does_not_attach_hea_phase_classification(self) -> None:
+        runtime = AlloyRuntime.__new__(AlloyRuntime)
+        runtime.application = SimpleNamespace(propose_space=lambda _: (
+            {"taskid": "rocket-no-phase", "model_domain": "reusable_rocket_stainless", "initial_candidates": [{"candidate_id": "RSS-001"}]},
+            {"taskid": "rocket-no-phase"},
+        ))
+        runtime._render = lambda _: {}
+        runtime.save = lambda _: None
+
+        report = runtime.propose({"taskid": "rocket-no-phase"})
+
+        self.assertNotIn("microstructure_tendency", report)
+
     def test_final_report_ends_with_complete_optimal_candidate_card(self) -> None:
         report = final_conclusion_block({
             "model_evidence": {"model_version": "hea_mpea_mlp_v1", "data_type": "实验 HEA/MPEA 数据"},
@@ -175,6 +193,23 @@ class AlloyServiceContractTest(unittest.TestCase):
         self.assertEqual(len(visuals), 1)
         self.assertEqual(websocket.events, [("text", "\n图片发布失败，已改用本服务任务资产链接继续展示。\n")])
 
+    def test_alloy_chart_urls_use_the_existing_three_segment_public_path(self) -> None:
+        from tempfile import TemporaryDirectory
+        from src.alloy_workflow.assets import publish_png_assets
+
+        async def accepted_upload(_bucket: str, _key: str, _data: bytes) -> dict[str, int]:
+            return {"status": 200}
+
+        with TemporaryDirectory() as directory, patch.dict(os.environ, {"PICTURE_PUBLIC_BASE_URL": "https://assets.example/materials/modelfiles/image"}):
+            image = Path(directory) / "funnel.png"
+            image.write_bytes(b"png")
+            with patch("src.storage_utils.oss_upload", accepted_upload):
+                urls = asyncio.run(publish_png_assets("task-001", [{"name": "rocket_screening_funnel", "local_path": image}]))
+        self.assertEqual(
+            urls["rocket_screening_funnel"],
+            "https://assets.example/materials/modelfiles/image/task-001/alloy_composition_optimization/funnel.png",
+        )
+
     def test_unhandled_websocket_failure_uses_plain_text_notice(self) -> None:
         websocket = FakeWebSocket({"taskid": "failed-alloy", "idea": "设计高熵合金配比"})
         with patch.object(main, "_requirement_plan", side_effect=RuntimeError("计算执行器不可用")):
@@ -197,6 +232,196 @@ class AlloyServiceContractTest(unittest.TestCase):
         effective, plan = requirement_plan({"taskid": "parent-context", "idea": "继续", "project_idea": "生成一款高温高熵合金最优配比"})
         self.assertEqual(effective["model_domain"], "hea_mpea")
         self.assertEqual(plan["template"], "aerospace_high_temperature_hea_exploration")
+
+    def test_nickel_superalloy_request_uses_visible_platform_defaults(self) -> None:
+        effective, plan = requirement_plan({"taskid": "ni-guide", "idea": "为单晶镍基发动机叶片做蠕变寿命和成分筛选"})
+        self.assertEqual(effective["model_domain"], "ni_superalloy_hot_end")
+        self.assertEqual(plan["template"], "hot_end_ni_superalloy_screening")
+        self.assertEqual(plan["missing_required_inputs"], [])
+        self.assertEqual(effective["manufacturing_route"], "single_crystal")
+        self.assertEqual(effective["test_temperature_C"], 950)
+        self.assertEqual(effective["applied_stress_MPa"], 250)
+        self.assertEqual(
+            {item["field"] for item in plan["default_assumptions"]},
+            {
+                "element_bounds_wt_percent",
+                "manufacturing_route",
+                "heat_treatment",
+                "test_temperature_C",
+                "applied_stress_MPa",
+                "screening_thresholds",
+            },
+        )
+        self.assertEqual(
+            effective["screening_thresholds"],
+            {"uts_min_MPa": 900, "proof_strength_min_MPa": 500, "rupture_life_min_h": 250},
+        )
+
+    def test_hot_end_context_conditions_override_platform_defaults(self) -> None:
+        payload = {
+            "taskid": "ni-explicit-service-condition",
+            "idea": "第四/第五代单晶镍基高温合金叶片，要求在1100°C/200MPa条件下蠕变断裂寿命超过100小时。",
+        }
+        effective, plan = requirement_plan(payload)
+        self.assertEqual(effective["model_domain"], "ni_superalloy_hot_end")
+        self.assertEqual(effective["test_temperature_C"], 1100.0)
+        self.assertEqual(effective["applied_stress_MPa"], 200.0)
+        self.assertEqual(effective["screening_thresholds"]["rupture_life_min_h"], 100.0)
+        self.assertEqual(plan["field_provenance"]["test_temperature_C"], "upstream_context")
+        self.assertEqual(plan["field_provenance"]["applied_stress_MPa"], "upstream_context")
+        self.assertEqual(plan["field_provenance"]["screening_thresholds"], "upstream_context")
+        preview = planned_alloy_method_block(payload)
+        self.assertIn("1100.0 °C / 200.0 MPa", preview)
+        self.assertIn("蠕变寿命 ≥ 100.0 h", preview)
+
+    def test_hot_end_extrapolated_condition_keeps_reference_candidates_visible(self) -> None:
+        candidate = {
+            "candidate_id": "NIH-001",
+            "composition_wt_percent": {"Ni": 61.0, "Cr": 8.0, "Co": 7.0, "Al": 5.5, "Ta": 6.5, "W": 8.0, "Re": 4.0},
+            "source_anchor": {"alloy_name": "RENE N5"},
+            "ultimate_tensile_strength_MPa": {"mean": 720.0, "screening_MAE_MPa": 111.0},
+            "proof_strength_0p2_MPa": {"mean": 490.0, "screening_MAE_MPa": 86.0},
+            "creep_rupture": {"predicted_hours": 135.0, "screening_error_factor": 1.81, "predicted_log10_hours": 2.13},
+            "elongation_percent_auxiliary": {"elongation_percent": 8.0},
+            "applicability_domain": {"level": "inside"},
+            "screening_score": .8,
+        }
+        report = hot_end_summary_block({
+            "screening_conditions": {
+                "manufacturing_route": "single_crystal", "test_temperature_C": 1150, "applied_stress_MPa": 200,
+                "temperature_support": {"level": "extrapolated_reference", "label": "高于短时强度训练温区，作为工况外推参考", "reference_temperature_C": 1093},
+            },
+            "sampling": {"generated": 120, "funnel_stages": [{"label": "满足成分、路线与工况约束", "count": 120}, {"label": "综合排序优先短名单", "count": 0}]},
+            "initial_candidates": [], "reference_candidates": [candidate],
+        })
+        self.assertIn("工况外推参考候选", report)
+        self.assertIn("当前筛选门槛通过数为 0", report)
+        self.assertIn("NIH-001", report)
+        self.assertIn("高于短时强度训练温区", report)
+
+    def test_hot_end_handoff_includes_candidate_provenance_and_full_wt_percent_composition(self) -> None:
+        result = {
+            "model_version": "test", "initial_candidates": [{
+                "candidate_id": "NIH-111",
+                "source_anchor": {"alloy_name": "RENE N5"},
+                "composition_wt_percent": {"Ni": 61.32431, "Cr": 7.30404, "Co": 7.52456, "Al": 6.43728, "Ta": 6.4522, "W": 4.83848},
+                "ultimate_tensile_strength_MPa": {"mean": 960, "screening_MAE_MPa": 111},
+                "proof_strength_0p2_MPa": {"mean": 630, "screening_MAE_MPa": 86},
+                "creep_rupture": {"predicted_hours": 414.7},
+            }],
+            "screening_conditions": {"manufacturing_route": "single_crystal", "test_temperature_C": 950, "applied_stress_MPa": 250},
+        }
+        application = AlloyOptimizationApplication.__new__(AlloyOptimizationApplication)
+        application._enrich_hot_end(result, {})
+        handoff = result["user_conclusion"]
+        self.assertIn("NIH-111（基于 RENE N5 的镍基高温合金研发候选", handoff)
+        self.assertIn("元素体系：Ni-Cr-Co-Al-Ta-W", handoff)
+        self.assertIn("Ni 61.32431", handoff)
+        self.assertIn("Cr 7.30404", handoff)
+
+    def test_engine_high_temperature_creep_context_routes_to_nickel_hot_end(self) -> None:
+        effective, plan = requirement_plan({
+            "taskid": "engine-context-ni",
+            "idea": "根据上述资料做一个高温合金的配比设计",
+            "conversation_context": "火箭发动机极端高温工况，重点评估蠕变与持久寿命。",
+        })
+        self.assertEqual(effective["model_domain"], "ni_superalloy_hot_end")
+        self.assertEqual(plan["template"], "hot_end_ni_superalloy_screening")
+
+    def test_engine_high_temperature_without_nickel_name_routes_to_nickel_hot_end(self) -> None:
+        effective, plan = requirement_plan({
+            "taskid": "engine-high-temperature-ni",
+            "idea": "为航空发动机高温承力部件设计合金配比",
+        })
+        self.assertEqual(effective["model_domain"], "ni_superalloy_hot_end")
+        self.assertEqual(plan["template"], "hot_end_ni_superalloy_screening")
+
+    def test_explicit_hea_exploration_remains_hea_when_high_temperature_is_mentioned(self) -> None:
+        effective, plan = requirement_plan({
+            "taskid": "hea-exploration",
+            "idea": "探索高温多主元 HEA 的强度、硬度与相稳定性，设计 at.% 配比",
+        })
+        self.assertEqual(effective["model_domain"], "hea_mpea")
+        self.assertEqual(plan["template"], "aerospace_high_temperature_hea_exploration")
+
+    def test_unscoped_high_temperature_alloy_defaults_to_nickel_hot_end(self) -> None:
+        effective, plan = requirement_plan({
+            "taskid": "high-temperature-confirmation",
+            "idea": "做一个高温合金的配比设计",
+        })
+        self.assertEqual(effective["model_domain"], "ni_superalloy_hot_end")
+        self.assertEqual(plan["template"], "hot_end_ni_superalloy_screening")
+
+    def test_team_payload_keeps_prior_user_context_for_routing(self) -> None:
+        payload = team_config._payload_from_instruction([
+            {"role": "user", "content": "火箭发动机高温蠕变工况的合金设计需求"},
+            {"role": "assistant", "content": "请确认材料体系。"},
+            {"role": "user", "content": "根据上述资料做一个高温合金的配比设计"},
+        ], "history-ni", "tester", [])
+        effective, _plan = requirement_plan(payload)
+        self.assertEqual(effective["model_domain"], "ni_superalloy_hot_end")
+
+    def test_hot_end_websocket_runs_with_platform_defaults(self) -> None:
+        websocket = FakeWebSocket({"taskid": "ni-wait", "idea": "为单晶镍基发动机叶片做蠕变寿命和成分筛选"})
+        with (
+            patch.object(main, "_proposal", return_value=result("ni-wait")),
+            patch.object(main, "prepare_public_assets", fake_assets),
+            patch.object(main, "emit_result_content", fake_content),
+            patch.object(main.asyncio, "to_thread", run_inline),
+        ):
+            asyncio.run(main.start(websocket))
+        texts = [value for kind, value in websocket.events if kind == "text"]
+        events = [value for kind, value in websocket.events if kind == "json"]
+        self.assertEqual(texts[0], "[start]")
+        self.assertEqual(texts[-1], "[end]")
+        self.assertEqual(events[-1]["data"]["status"], "completed")
+        self.assertIn("950 °C / 250 MPa", "".join(str(item) for item in texts))
+
+    def test_reusable_rocket_stainless_request_uses_its_own_wt_percent_template(self) -> None:
+        effective, plan = requirement_plan({
+            "taskid": "rocket-guide", "idea": "为可回收火箭 LOX 贮箱设计低温奥氏体不锈钢配方",
+        })
+        self.assertEqual(effective["model_domain"], "reusable_rocket_stainless")
+        self.assertEqual(plan["template"], "reusable_rocket_stainless_screening")
+        self.assertEqual(effective["test_temperature_K"], 293)
+        self.assertIn("Cr", effective["element_bounds_wt_percent"])
+        self.assertIn("solution_treatment_temperature_K", effective["processing"])
+
+    def test_natural_reusable_rocket_stainless_phrase_routes_to_rocket_service(self) -> None:
+        effective, plan = requirement_plan({
+            "taskid": "rocket-natural-phrase",
+            "idea": "我想针对航空航天火箭的表面可回收壳体不锈钢做一个配比设计",
+        })
+        self.assertEqual(effective["model_domain"], "reusable_rocket_stainless")
+        self.assertEqual(plan["template"], "reusable_rocket_stainless_screening")
+
+    def test_rocket_stainless_page_uses_visible_conditions_and_customer_domain_label(self) -> None:
+        report = rocket_stainless_summary_block({
+            "mode": "short_time_tensile_screening",
+            "screening_conditions": {"test_temperature_K": 293, "processing": {"solution_treatment_temperature_K": 1323, "solution_treatment_time_s": 3600, "quench": "water"}, "low_temperature_verification_K": [90, 111]},
+            "requirement_interpretation": {"default_assumptions": [{"field": "test_temperature_K"}]},
+            "initial_candidates": [{"candidate_id": "RSS-001", "composition_wt_percent": {"Cr": 18.0, "Ni": 9.0, "N": .011, "Fe": 72.989}, "short_time_tensile": {"yield_0p2_MPa": {"mean": 250, "screening_MAE": 16.2}, "uts_MPa": {"mean": 600, "screening_MAE": 16.3}, "elongation_pct": {"mean": 60, "screening_MAE": 3.29}}, "applicability_domain": {"level": "inside", "nearest_training_composition_distance": 2.1}}],
+        })
+        self.assertIn("### 5. 筛选结果与候选卡", report)
+        self.assertNotIn("\n## ", report)
+        self.assertIn("{{VISUAL:rocket_screening_funnel}}", report)
+        self.assertIn("训练成分邻域内", report)
+        self.assertIn("N0.011", report)
+
+    def test_rocket_visual_tokens_become_public_markdown_images(self) -> None:
+        report = "{{VISUAL:rocket_screening_funnel}}\n{{VISUAL:rocket_strength_ductility_tradeoff}}\n{{VISUAL:rocket_composition_comparison}}"
+        visual_assets = [
+            {"name": name, "title": title, "description": "图表说明", "url": f"https://www.science42.tech/images/{name}.png"}
+            for name, title in (
+                ("rocket_screening_funnel", "候选筛选路径"),
+                ("rocket_strength_ductility_tradeoff", "强度—延性取舍"),
+                ("rocket_composition_comparison", "优先候选成分"),
+            )
+        ]
+        rendered = _embed_rocket_visuals(report, visual_assets)
+        self.assertNotIn("{{VISUAL:", rendered)
+        self.assertEqual(rendered.count("https://www.science42.tech/images/"), 3)
+        self.assertEqual(rendered.count("!["), 3)
 
     def test_explicit_multielement_alloy_summary_is_valid_context(self) -> None:
         effective, plan = requirement_plan({

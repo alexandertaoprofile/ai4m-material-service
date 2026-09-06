@@ -1,4 +1,4 @@
-"""高熵合金/多主元合金（HEA/MPEA）成分优化的上游 Agent 入口。
+"""材料配方设计与性能筛选的上游 Agent 入口。
 
 ``main.py`` 负责 HTTP/WebSocket 传输与前端事件协议；本模块只负责让 Alpha
 母服务以与直连入口相同的顺序调用合金工作流，不再携带无机晶体生成逻辑。
@@ -12,9 +12,9 @@ from typing import Any
 from alpha.actions import Action, UserRequirement
 from alpha.roles import Role
 
-from src.alloy_workflow.contracts import task_id as _taskid
+from src.alloy_workflow.contracts import requirement_plan as _requirement_plan, task_id as _taskid
 from src.alloy_workflow.identity import ACTION_DESCRIPTION, ACTION_NAME, ROLE_NAME, ROLE_PROFILE
-from src.alloy_workflow.presentation import emit_result_content, planned_alloy_method_block
+from src.alloy_workflow.presentation import emit_result_content, hot_end_input_guide_block, planned_alloy_method_block, stream_authoritative_markdown
 from src.alloy_workflow.protocol import prepare_public_assets
 from src.alloy_workflow.runtime import RUNTIME
 
@@ -23,7 +23,7 @@ RESULTS = RUNTIME.results_root
 _proposal = RUNTIME.propose
 
 FRONTEND_STEP_ID = "FILAMENT_SELECTION_OPTIMIZATION"
-FRONTEND_STEP_TITLE = "合金成分优化与候选初筛"
+FRONTEND_STEP_TITLE = "材料配方设计与性能筛选"
 
 
 async def execute_alloy_optimization(websocket: Any, payload: dict[str, Any]) -> dict[str, Any]:
@@ -61,25 +61,39 @@ def _payload_from_instruction(
     else:
         if isinstance(instruction, list):
             text = ""
+            user_history: list[str] = []
             # Alpha 历史中可能是 Message 对象；优先取最新用户内容，而不是
-            # ``str(Message)`` 或之前 Agent 的回复。
+            # ``str(Message)``。保留本轮此前的用户消息以继承已明确的部件和
+            # 服役机制；助手提出的备选材料不被写入用户约束。
             for item in reversed(instruction):
                 if isinstance(item, dict):
                     role, content = item.get("role"), item.get("content")
                 else:
                     role, content = getattr(item, "role", None), getattr(item, "content", None)
                 if content and (role in (None, "user") or str(role).lower().endswith("user")):
-                    text = str(content)
-                    break
+                    user_history.append(str(content))
+            if user_history:
+                text = user_history[0]
             if not text and instruction:
                 text = str(getattr(instruction[-1], "content", instruction[-1]))
+            try:
+                decoded = json.loads(text)
+                payload = decoded if isinstance(decoded, dict) else {"idea": text}
+            except json.JSONDecodeError:
+                payload = {"idea": text}
+            if len(user_history) > 1:
+                previous_user_context = list(reversed(user_history[1:]))
+                existing_context = payload.get("conversation_context")
+                payload["conversation_context"] = (
+                    previous_user_context + ([existing_context] if existing_context else [])
+                )
         else:
             text = str(instruction or "")
-        try:
-            decoded = json.loads(text)
-            payload = decoded if isinstance(decoded, dict) else {"idea": text}
-        except json.JSONDecodeError:
-            payload = {"idea": text}
+            try:
+                decoded = json.loads(text)
+                payload = decoded if isinstance(decoded, dict) else {"idea": text}
+            except json.JSONDecodeError:
+                payload = {"idea": text}
     payload.setdefault("taskid", str(taskid))
     payload.setdefault("user_name", str(user_name))
     payload.setdefault("file_metadata", file_metadata or [])
@@ -87,7 +101,7 @@ def _payload_from_instruction(
 
 
 class Coding(Action):
-    """将合金需求转换为经过初筛的候选配比及其展示结果。"""
+    """将已接入材料域的需求转换为候选配方及其展示结果。"""
 
     name: str = ACTION_NAME
     desc: str = ACTION_DESCRIPTION
@@ -98,19 +112,31 @@ class Coding(Action):
         payload = _payload_from_instruction(instruction, str(taskid), str(user_name), file_metadata)
         request_id = _taskid(payload)
 
-        # 阶段 1：在同步 HEA 用例开始前，保留母服务与前端既有的 progress 事件。
+        effective, plan = _requirement_plan(payload)
+        progress_description = ("正在整理芯片玻璃基板的氧化物配方与热机械筛选条件。" if effective.get("model_domain") == "chip_glass_thermomechanical_family_v1" else "正在整理高温镍基合金的工况与成分设计条件。" if effective.get("model_domain") == "ni_superalloy_hot_end" else "正在整理可回收火箭不锈钢的温度、工艺与配方边界。" if effective.get("model_domain") == "reusable_rocket_stainless" else "正在将需求映射为高熵/多主元合金的探索条件。")
         await websocket.send_json({
             "version": "1.0.0", "agent": "alloy_composition_optimization",
             "request_id": request_id, "type": "progress",
             "data": {
                 "id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID,
                 "title": FRONTEND_STEP_TITLE,
-                "status": "in_progress", "description": "正在将需求映射为可确认的高熵/多主元合金探索条件。",
+                "status": "in_progress", "description": progress_description,
             },
         })
-        await websocket.send_text(f"<<<CONTENT_START:{FRONTEND_STEP_ID}>>>")
-        await websocket.send_text(planned_alloy_method_block(payload))
-        await websocket.send_text(f"<<<CONTENT_END:{FRONTEND_STEP_ID}>>>")
+        await stream_authoritative_markdown(websocket, planned_alloy_method_block(payload), step_id=FRONTEND_STEP_ID)
+
+        if plan.get("requires_domain_confirmation"):
+            waiting = {"taskid": request_id, "status": "waiting_for_input", "service": "alloy-composition-optimization", "model_domain": "routing_confirmation", "requirement_interpretation": plan, "user_conclusion": "请确认采用高温镍基合金还是 HEA/MPEA 路线后开始配方筛选。"}
+            await websocket.send_json({"version": "1.0.0", "agent": "alloy_composition_optimization", "request_id": request_id, "type": "progress", "data": {"id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID, "title": FRONTEND_STEP_TITLE, "status": "completed", "description": "已识别高温合金任务，等待确认材料体系。"}})
+            await websocket.send_json({"version": "1.0.0", "agent": "alloy_composition_optimization", "request_id": request_id, "type": "result", "data": waiting})
+            return str(waiting["user_conclusion"])
+
+        if effective.get("model_domain") == "ni_superalloy_hot_end" and plan.get("missing_required_inputs"):
+            waiting = {"taskid": request_id, "status": "waiting_for_input", "service": "alloy-composition-optimization", "model_domain": "ni_superalloy_hot_end", "requirement_interpretation": plan, "user_conclusion": "已识别为高温镍基合金成分设计任务；补齐路线、热处理、温度、载荷和 wt.% 边界后即可开始条件筛选。"}
+            await websocket.send_json({"version": "1.0.0", "agent": "alloy_composition_optimization", "request_id": request_id, "type": "progress", "data": {"id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID, "title": FRONTEND_STEP_TITLE, "status": "completed", "description": "已识别高温镍基合金任务，等待补齐条件后开始计算。"}})
+            await stream_authoritative_markdown(websocket, hot_end_input_guide_block(plan), step_id=FRONTEND_STEP_ID)
+            await websocket.send_json({"version": "1.0.0", "agent": "alloy_composition_optimization", "request_id": request_id, "type": "result", "data": waiting})
+            return str(waiting["user_conclusion"])
 
         # 阶段 2—3：执行计算、准备展示资产并流式输出正文。
         result = await execute_alloy_optimization(websocket, payload)
@@ -120,11 +146,11 @@ class Coding(Action):
             "version": "1.0.0", "agent": "alloy_composition_optimization",
             "request_id": request_id, "type": "result", "data": result,
         })
-        return str(result.get("user_conclusion", "合金候选初筛完成。"))
+        return str(result.get("user_conclusion", "材料候选初筛完成。"))
 
 
 class AlloyCompositionOptimizationRole(Role):
-    """高熵合金/多主元合金（HEA/MPEA）配比优化专属 Agent。"""
+    """已接入材料域的配方设计与性能筛选 Agent。"""
 
     name: str = ROLE_NAME
     profile: str = ROLE_PROFILE

@@ -15,10 +15,19 @@ from .validation import write_validation_result
 logger = logging.getLogger("mattergen_workflow")
 
 
+def reference_mode() -> str:
+    """Return a validated thermodynamic reference mode for this service."""
+    configured = os.environ.get("MATTERSIM_REFERENCE_MODE", "official").strip().lower()
+    if configured in {"official", "mp_api"}:
+        return configured
+    logger.warning("[DISCOVERY] unknown MATTERSIM_REFERENCE_MODE=%r; using official", configured)
+    return "official"
+
+
 def mattersim_enabled() -> bool:
-    # The deployed MatterGen environment and MP API contract are now part of
-    # this service, so full-chain evaluation is the normal behavior.  Set 0
-    # only for an explicit generation-only/debug run.
+    # The deployed MatterGen environment is part of this service, so full-chain
+    # evaluation is the normal behavior. Set 0 only for a generation-only or
+    # diagnostic run.
     return os.environ.get("MATTERSIM_ENABLED", "1").lower() in {"1", "true", "yes"}
 
 
@@ -36,13 +45,16 @@ def _run(command: list[str]) -> subprocess.CompletedProcess[str]:
 
 
 def run_mattersim_evaluation(
-    candidates: Iterable[GeneratedCandidate], validation_dir: Path, *, enabled: bool | None = None
+    candidates: Iterable[GeneratedCandidate],
+    validation_dir: Path,
+    *,
+    enabled: bool | None = None,
+    reference_system: str = "",
 ) -> dict[str, dict]:
     """Run one batched MatterSim job and return results keyed by resolved CIF path.
 
-    This is opt-in because the official reference phase dataset is a large Git
-    LFS download.  Failures are persisted as a stage log and intentionally do
-    not convert a structurally valid candidate into a failed one.
+    Failures are persisted as a stage log and intentionally do not convert a
+    structurally valid candidate into a failed one.
     """
     candidates = list(candidates)
     if not candidates or not (mattersim_enabled() if enabled is None else enabled):
@@ -60,8 +72,14 @@ def run_mattersim_evaluation(
     env_prefix = os.environ.get("MATTERGEN_ENV_PREFIX", "/data/mamba/envs/mattergen-py310").strip()
     command = (["micromamba", "run", "-p", env_prefix] if env_prefix else []) + [
         "python", str(helper), "--output-dir", str(output_dir),
-        "--reference-mode", os.environ.get("MATTERSIM_REFERENCE_MODE", "mp_api"),
+        # The MP2020-corrected MatterGen reference is the default because it
+        # keeps the candidate and convex-hull reference in one compatible
+        # energy convention.  The lightweight ``mp_api`` path remains an
+        # explicit diagnostic fallback only.
+        "--reference-mode", reference_mode(),
     ]
+    if reference_system.strip():
+        command.extend(["--reference-system", reference_system.strip()])
     for cif_path in cif_paths:
         command.extend(["--input", str(cif_path)])
     try:
@@ -88,9 +106,13 @@ def run_mattersim_evaluation(
 
 
 def enrich_validations_with_mattersim(
-    validations: list[ValidationResult], candidates: list[GeneratedCandidate], validation_dir: Path
+    validations: list[ValidationResult],
+    candidates: list[GeneratedCandidate],
+    validation_dir: Path,
+    *,
+    reference_system: str = "",
 ) -> list[ValidationResult]:
-    results = run_mattersim_evaluation(candidates, validation_dir)
+    results = run_mattersim_evaluation(candidates, validation_dir, reference_system=reference_system)
     if not results:
         return validations
     candidates_by_id = {candidate.candidate_id: candidate for candidate in candidates}

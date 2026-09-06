@@ -7,6 +7,7 @@
 | `material_composition_optimization/` | 高熵合金/多主元合金（HEA/MPEA）及明确合金体系 | 成分空间、元素约束、代理评估、候选配比提议。 |
 | `material_database/` | 已有商品/牌号材料 | 目录检索、证据核验、性质比较；不生成新材料或配方。 |
 | `material_discovery/` | 数据库外无机晶体 | 生成、结构准入、热力学初筛和候选排序；不做已有材料查询或合金配比优化。 |
+| `material_validation/` | 难熔金属跨尺度性能计算与验证 | 对已有 W / 难熔金属候选按 DFT、MLIP、MD 与实验/文献证据链进行验证；首版为 W-14 标杆案例。 |
 
 ## 统一职责路线
 
@@ -39,6 +40,7 @@ src/team_config.py（服务级编排与角色适配）
 - [材料成分配比优化](material_composition_optimization/README.md)：另见其[代码审阅指南](material_composition_optimization/docs/alloy_composition_optimization_review_guide.md)与[清理审计](material_composition_optimization/docs/alloy_composition_optimization_cleanup_audit.md)。
 - [材料数据库](material_database/README.md)
 - [材料发现](material_discovery/README.md)
+- [难熔金属跨尺度性能计算与验证](material_validation/README.md)
 - [统一架构规范](docs/material_service_architecture_standard.md)
 
 ## 对齐状态
@@ -48,5 +50,6 @@ src/team_config.py（服务级编排与角色适配）
 | material_composition_optimization | `src/team_config.py`、`src/alloy_workflow/runtime.py` | `application.py`、`contracts.py`、`runner.py` | 已覆盖文本标记、PNG 资产与最终 result。 |
 | material_database | `src/team_config.py:MaterialMature` | `src/catalog/` | 已覆盖目录命中/未命中、资产和事件顺序。 |
 | material_discovery | `src/team_config.py:InorganicNewMaterialService` | `src/material_workflow/` | 已覆盖生成输入、角色注册、事件契约和服务边界。 |
+| material_validation | `src/team_config.py` | `application/`、`infrastructure/`、`presentation/` | 已覆盖 W 标杆请求、角色发现和流式事件边界；待 MLIP 证据导入后补性质图表回归。 |
 
 目录中的历史部署文件或旧英文兼容文件不等同于当前生产主链。删除它们前，应先在代码、启动器和外部调用方中提供引用审计证据。

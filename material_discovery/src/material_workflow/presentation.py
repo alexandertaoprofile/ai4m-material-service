@@ -233,33 +233,59 @@ def build_property_screening_card(result) -> str:
         "## 5. 候选性质初筛",
         f"以下为无机材料候选（成分式：{formula}）在本轮结构上的初筛结果。模型名称与版本已保留在任务记录中。",
         "",
-        "| 性质 | 数值 | 本轮条件与方法 | 证据等级 |",
+        "| 性质 | 数值 | 本轮条件、方法与解读 | 证据等级 |",
         "|---|---:|---|---|",
     ]
     if validation.density is not None:
         lines.append(f"| 密度 | {validation.density:.4f} g/cm³ | 当前候选结构；pymatgen 结构计算 | C：结构计算结果 |")
     if validation.formation_energy_per_atom is not None:
-        lines.append(f"| 形成能 | {validation.formation_energy_per_atom:.4f} eV/atom | 当前候选结构；MatterSim 松弛 | C：模型初筛 |")
+        lines.append(
+            f"| 形成能 | {validation.formation_energy_per_atom:.4f} eV/atom | "
+            "MatterSim 松弛；采用 MP2020 校正参考能量体系，仅作热力学初筛 | C：模型初筛 |"
+        )
     if validation.energy_above_hull is not None:
-        lines.append(f"| E_hull | {validation.energy_above_hull:.4f} eV/atom | MatterSim 松弛后与同元素竞争相比较 | C：模型初筛 |")
-    for item in predictions.values():
+        lines.append(
+            f"| E_hull | {validation.energy_above_hull:.4f} eV/atom | "
+            "MatterSim 松弛后相对于 MP2020 校正参考凸包；用于候选排序，需由统一 DFT 复核 | C：模型初筛 |"
+        )
+    band_gap = predictions.get("band_gap", {}).get("value")
+    near_metal = isinstance(band_gap, (int, float)) and float(band_gap) <= 0.05
+    bulk = predictions.get("bulk_modulus", {}).get("value")
+    shear = predictions.get("shear_modulus", {}).get("value")
+    elastic_caution = False
+    if isinstance(bulk, (int, float)) and isinstance(shear, (int, float)) and bulk > 0 and shear > 0:
+        poisson_ratio = (3 * bulk - 2 * shear) / (2 * (3 * bulk + shear))
+        elastic_caution = poisson_ratio > 0.45
+    for property_name, item in predictions.items():
         value = item.get("value")
         if not isinstance(value, (int, float)):
             continue
         number = f"{float(value):.4f}"
+        interpretation = ""
+        if property_name == "band_gap" and near_metal:
+            interpretation = "；接近零按金属/半金属候选解读，负值是回归越界，不作为负带隙"
+        elif property_name in {"electron_effective_mass", "hole_effective_mass"} and near_metal:
+            interpretation = "；带隙接近零，带边有效质量不用于该候选的载流子判断"
+        elif property_name == "dielectric_constant_x" and near_metal:
+            interpretation = "；近零带隙候选的介电单值不宜直接用于工程评价，仅保留模型记录"
+        elif property_name in {"bulk_modulus", "shear_modulus"} and elastic_caution:
+            interpretation = "；与另一弹性模量组合偏离常见金属范围，需以弹性张量或 DFT 复核"
         lines.append(
             f"| {item.get('label', '性质')} | {number} {item.get('unit', '')} | "
-            f"当前候选结构；{item.get('display_method', 'ALIGNN 性质快速预测')} | "
+            f"当前候选结构；{item.get('display_method', 'ALIGNN 性质快速预测')}{interpretation} | "
             f"{item.get('evidence_level', 'C：结构模型快速预测')} |"
         )
-    bulk = predictions.get("bulk_modulus", {}).get("value")
-    shear = predictions.get("shear_modulus", {}).get("value")
     if isinstance(bulk, (int, float)) and isinstance(shear, (int, float)) and bulk > 0 and shear > 0:
         chen_hardness = max(0.0, 2.0 * (((shear / bulk) ** 2 * shear) ** 0.585) - 3.0)
         low, high = chen_hardness * 0.65, chen_hardness * 1.35
+        hardness_note = (
+            "由低剪切模量输入经非负截断得到，不能解读为实际硬度为零；应先复核弹性模量"
+            if chen_hardness == 0 else
+            "由本轮体积/剪切模量按 Chen 经验式推导；±35% 初步区间"
+        )
         lines.append(
             f"| 硬度（估算） | {low:.2f}–{high:.2f} GPa | "
-            "由本轮体积/剪切模量按 Chen 经验式推导；±35% 初步区间 | D：工程估算 |"
+            f"{hardness_note} | D：工程估算 |"
         )
     return "\n".join(lines)
 
@@ -346,7 +372,7 @@ def planned_discovery_method_block(constraints) -> str:
         blocks.extend([
             "",
             "### 4.4 MatterSim 势函数松弛与相稳定性比较",
-            "MatterSim 机器学习原子间势用于在候选结构上进行几何松弛并计算形成能；随后以同元素体系竞争相为参照计算高于凸包能 E_hull。",
+            "MatterSim 机器学习原子间势用于在候选结构上进行几何松弛并计算形成能；随后以 MP2020 校正参考能量体系构建凸包并计算高于凸包能 E_hull。",
             "势能由局域原子环境贡献求和，原子力为势能对位置的负梯度；松弛寻找最低能量结构：",
             r"$$E_\theta(S)=\sum_i\varepsilon_\theta(\mathcal{N}_i),\qquad \mathbf{F}_i=-\nabla_{\mathbf{r}_i}E_\theta,\qquad S^*=\arg\min_S E_\theta(S)$$",
             "随后计算形成能，并与同元素体系竞争相构成的凸包基准比较：",
@@ -354,7 +380,7 @@ def planned_discovery_method_block(constraints) -> str:
             "",
             "| 输入 | 输出 | 定量用途 |",
             "|---|---|---|",
-            "| 通过结构检查的候选晶体 | 松弛后结构、形成能、高于凸包能 | 用于本轮候选的热力学初筛与排序 |",
+            "| 通过结构检查的候选晶体 | 松弛后结构、形成能、高于凸包能 | 与 MP2020 校正参考凸包一致的热力学初筛与排序 |",
         ])
     return "\n".join(blocks)
 

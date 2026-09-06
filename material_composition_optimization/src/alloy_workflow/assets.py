@@ -40,7 +40,7 @@ async def publish_png_assets(taskid: str, assets: list[dict]) -> dict[str, str]:
             continue
         object_key = f"materials/modelfiles/image/{task_key}/{pipeline}/{local_path.name}"
         result = await oss_upload("alpha", object_key, local_path.read_bytes())
-        if result.get("status") != 200:
+        if not isinstance(result, dict) or result.get("status") != 200:
             raise RuntimeError(f"MinIO upload failed for {local_path.name}: {result}")
         urls[str(item["name"])] = f"{public_base}/{task_key}/{pipeline}/{local_path.name}"
     return urls

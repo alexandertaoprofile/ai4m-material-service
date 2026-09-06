@@ -1,0 +1,20 @@
+{
+  "case_id": "w14_phase_i",
+  "material": {"formula": "W", "structure": "bcc"},
+  "status": "awaiting_evidence_import",
+  "purpose": "W-14 DeepMD MD validation reference case",
+  "required_evidence": {
+    "dft_dataset": ["structure set", "energy", "force", "stress", "split manifest"],
+    "mlip_training": ["input.json", "model artifact checksum", "train/validation/test metrics", "parity data"],
+    "md_validation": ["LAMMPS inputs", "raw outputs", "property derivation metadata"],
+    "literature": ["source identifier", "locator", "test condition", "unit"]
+  },
+  "supplementary_evidence": [
+    {
+      "source_id": "W14_ACTUAL_PERFORMANCE_REFERENCE_2026-08-26",
+      "path": "user_supplied_benchmark.json",
+      "role": "verified 300 K actual-performance comparison card"
+    }
+  ],
+  "import_rule": "Place imported artifacts under raw/, models/, and literature/ with checksums and source locators. Do not overwrite this manifest with unverified values."
+}

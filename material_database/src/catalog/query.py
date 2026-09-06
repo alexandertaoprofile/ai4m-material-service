@@ -435,7 +435,37 @@ class MatureMaterialCatalog:
         if names:
             candidates = [row for row in candidates if row["material_id"] in resolved_ids]
         if family_keys:
-            candidates = [row for row in candidates if normalize_name(row.get("family")) in family_keys]
+            # "镍基高温合金" / "nickel-based superalloy" is an application
+            # scope, not an exact manufacturer family.  The imported hot-
+            # temperature records deliberately keep their more specific source
+            # families (solution-strengthened Ni-Cr, precipitation-hardened
+            # Ni-based alloy, etc.), so equality would otherwise return zero
+            # candidates even when traceable records exist.  Scope expansion is
+            # limited to the high-temperature bundle *and* nickel-bearing source
+            # family; it does not invent a grade, alter evidence, or include a
+            # titanium/non-nickel record.
+            broad_nickel_scope = {
+                normalize_name("nickel-based superalloy"),
+                normalize_name("nickel based superalloy"),
+                normalize_name("镍基高温合金"),
+                normalize_name("镍基合金"),
+            }
+            wants_broad_nickel = bool(family_keys & broad_nickel_scope)
+            exact_family_keys = family_keys - broad_nickel_scope
+            def family_matches(row: dict[str, str]) -> bool:
+                exact = normalize_name(row.get("family")) in exact_family_keys
+                high_temp_nickel = (
+                    (
+                        row.get("material_id", "").startswith("MAT-1101-HT-")
+                        and "nickel" in str(row.get("family") or "").casefold()
+                    )
+                    # Retain already-curated records whose actual source
+                    # family is the broad term (notably IN718), even though
+                    # they pre-date the high-temperature bundle prefix.
+                    or normalize_name(row.get("family")) in broad_nickel_scope
+                )
+                return exact or (wants_broad_nickel and high_temp_nickel)
+            candidates = [row for row in candidates if family_matches(row)]
         if printing_consumables or additive_materials:
             def printable(row: dict[str, str]) -> bool:
                 text = " ".join(str(row.get(key) or "") for key in ("display_name", "family", "grade", "product_state", "process_metadata")).casefold()

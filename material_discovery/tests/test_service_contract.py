@@ -316,6 +316,35 @@ class InorganicNewMaterialServiceContractTest(unittest.TestCase):
         self.assertIn("继续执行新材料发现", current)
         self.assertIn("锂硫化物固态电解质", evidence)
 
+    def test_low_k_chiplet_context_uses_local_text_start_system(self) -> None:
+        """Useful upstream context must execute even when LLM inference is unavailable."""
+        payload = {
+            "taskid": "low-k-chiplet",
+            "idea": "基于以上力学性能指标开展材料筛选或配比优化",
+            "upstream_result": {
+                "material_direction": "面向超高密度 Chiplet 3D 混合键合的超低k有机-无机杂化介质材料",
+                "requirements": "兼顾导热、热膨胀、界面热阻与热机械应力",
+            },
+        }
+        with patch.object(llm_constraint_inference, "infer_element_system", return_value=None):
+            enriched, constraints = asyncio.run(llm_constraint_inference.resolve_generation_request(payload))
+
+        self.assertEqual(constraints.allowed_elements, ["Si", "O", "C", "H"])
+        self.assertEqual(enriched["new_material"]["allowed_elements"], ["Si", "O", "C", "H"])
+        self.assertTrue(any("文本解析" in note for note in constraints.notes))
+
+    def test_ni_superalloy_direction_gets_local_start_system_without_llm(self) -> None:
+        payload = {
+            "taskid": "nih-thin-handoff",
+            "idea": "基于NIH-1镍基合金成分为元素基底，启动高通量新晶体相结构生成，并计算热力学稳定性与电子结构特征。",
+        }
+        with patch.object(llm_constraint_inference, "infer_element_system", return_value=None):
+            enriched, constraints = asyncio.run(llm_constraint_inference.resolve_generation_request(payload))
+
+        self.assertEqual(constraints.allowed_elements, ["Ni", "Cr", "Co", "Al", "Ta", "W"])
+        self.assertEqual(enriched["new_material"]["allowed_elements"], ["Ni", "Cr", "Co", "Al", "Ta", "W"])
+        self.assertTrue(any("文本解析" in note for note in constraints.notes))
+
     def test_role_registers_only_discovery_action(self) -> None:
         role = team_config.InorganicNewMaterialDiscoveryRole()
         self.assertEqual(len(role.actions), 1)

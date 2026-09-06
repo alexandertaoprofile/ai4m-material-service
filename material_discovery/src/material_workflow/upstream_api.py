@@ -62,6 +62,21 @@ def result_summary(result) -> str:
         f"- 已生成候选：{len(result.generation.candidates)} 个",
         f"- 通过基础结构检查：{sum(item.is_valid is True for item in result.validations)} 个",
     ]
+    model_provenance = (result.generation.metadata or {}).get("model_provenance") or {}
+    if model_provenance.get("route") == "hea_v2_conditional":
+        training = model_provenance.get("training") or {}
+        splits = training.get("splits") or {}
+        lines.extend([
+            "",
+            "#### 本轮 HEA 条件生成模型",
+            "本轮针对 Co-Cr-Fe-Mn-Ni 使用 HEA MatterGen v2 的验证最优 checkpoint（epoch 18），并同时以元素集合和 E_hull 作为生成条件。",
+            (
+                "该模型从官方双条件 MatterGen 全参数微调而来；训练数据为 Cantor HEA DFT 的已弛豫 5–7 元、"
+                "最多 32 原子结构，按 chemical system 分组切分："
+                f"训练 {splits.get('train', '—')}、验证 {splits.get('validation', '—')}、测试 {splits.get('test', '—')} 条。"
+            ),
+            "本轮 E_hull 仍由后续 MatterSim + MP2020 凸包进行结构级初筛，不是生成器直接给出的 DFT 结论。",
+        ])
     if result.status != "ok":
         elements = " / ".join(result.constraints.allowed_elements) or "未能确定"
         return "\n".join(lines + [

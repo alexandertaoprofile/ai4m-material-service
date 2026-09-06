@@ -46,10 +46,11 @@ is one candidate (`MATTERGEN_DEFAULT_CANDIDATES=1`) to keep interactive runtime
 bounded. Structured callers may request 1–64 candidates.
 
 `energy_above_hull` supplied to MatterGen is a *generation condition*, not a
-validated property.  The post-generation values are labelled as
-MatterSim--MP hybrid estimates and can rank candidates for DFT.  They must not
-be represented as DFT, experimental stability, or proof of high-temperature,
-electrochemical, transport, or mechanical performance.
+validated property. The post-generation value is evaluated after MatterSim
+relaxation against the MP2020-corrected MatterGen reference hull and can rank
+candidates for DFT. It must not be represented as DFT, experimental stability,
+or proof of high-temperature, electrochemical, transport, or mechanical
+performance.
 
 ## Result Layout
 
@@ -76,6 +77,17 @@ results/new_material/<taskid>/
   the evidence and limitations of the returned conclusion.
 
 Set `MATTERSIM_ENABLED=0` only for an explicit generation-only/debug run.
-`MATTERSIM_REFERENCE_MODE=mp_api` is the default online-service mode; the
-full `official` reference mode is resource-heavy and not recommended on the
-current VM.
+`MATTERSIM_REFERENCE_MODE=official` is the default online-service mode. It
+uses the complete MP2020-corrected reference so the candidate and convex hull
+share a compatible energy convention. `mp_api` remains an explicit diagnostic
+fallback only and must not be used for customer-facing stability values.
+The first official run creates a persistent, read-only expanded LMDB cache
+(about 3.85 GB; default `/data/mattersim_reference_cache`) so later service
+requests do not unpack the reference archive again. Configure its persistent
+storage with `MATTERSIM_REFERENCE_CACHE_DIR`.
+The expensive convex hull is separately cached by allowed chemical system at
+`/data/mattersim_phase_diagram_cache` (override with
+`MATTERSIM_PHASE_DIAGRAM_CACHE_DIR`). The prewarm utility registers
+Co-Cr-Fe-Mn-Ni, Nb-Mo-Ta-W, Li-P-S, Li-P-S-Cl, and Li-La-Zr-O as the current
+common systems; a candidate that uses a subset of an allowed system reuses its
+parent-system hull.

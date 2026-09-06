@@ -5,6 +5,8 @@
 - `hea_mpea`：实验高熵合金/多主元合金（HEA/MPEA）；当前第一条训练线。
 - `conventional_alloy`：成熟常规合金；待商品材料数据清洗后独立训练。
 - `refractory_calculated`：NbCrVWZr 等计算/模型派生数据；严格独立于实验标签。
+- `ni_superalloy_hot_end`：剑桥高温镍基合金数据；在明确路线、热处理、温度和载荷后，联合比较短时强度与蠕变断裂寿命。
+- `reusable_rocket_stainless`：可回收火箭奥氏体不锈钢；在成分、固溶处理和 293–1273 K 条件下筛选短时强度—延性，低温自动转为 301/304L 参考与验证规划。
 
 因此该服务不是“把所有合金强行训练成一个模型”。不同数据生成机制、成分空间和测试条件会保留独立的适用域与不确定性；可共享的仅是元素特征与 API。
 
@@ -26,7 +28,7 @@ tmux new-session -d -s material-composition-optimization-1111 \
   '/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python main.py'
 ```
 
-服务由 tmux 启动；`/health` 中 `hea_runner_ready: true` 才表示可进行真实的高熵/多主元合金预测。旧 `start.sh` 与 Docker 文件不属于当前启动路径。
+服务由 tmux 启动；`/health` 的 `runner_ready` 会分别显示 HEA 与热端镍基 runner 是否就绪。旧 `start.sh` 与 Docker 文件不属于当前启动路径。
 
 ## 接口
 
@@ -56,4 +58,21 @@ tmux new-session -d -s material-composition-optimization-1111 \
 
 在隔离模型环境未创建或未完成训练前，接口返回明确的未就绪错误，不会制造预测结果。
 
-`/alloy/propose-space` 还会生成用户结果页资产：`summary.md`、候选强度—硬度散点图和筛后成分分位图。通过任务 manifest 的 `presentation` 字段或 `GET /alloy/tasks/{taskid}/assets/{asset_name}` 获取。
+热端镍基合金使用 wt.% 而不是 at.%；若 WebSocket 只收到“镍基/蠕变/单晶叶片”等需求，会先返回结构化补充清单，而不会擅自假设热处理或工况。完整请求例如：
+
+```json
+{
+  "taskid": "ni-hotend-001",
+  "idea": "为单晶镍基发动机叶片筛选 950°C、250 MPa 下的候选成分",
+  "alloy_optimization": {
+    "model_domain": "ni_superalloy_hot_end",
+    "manufacturing_route": "single_crystal",
+    "test_temperature_C": 950,
+    "applied_stress_MPa": 250,
+    "heat_treatment": "solution_stage_1_temp_C=1302; solution_stage_1_time_h=4; precipitation_stage_1_temp_C=982; precipitation_stage_1_time_h=5; precipitation_stage_2_temp_C=871; precipitation_stage_2_time_h=20",
+    "element_bounds_wt_percent": {"Ni": [55, 75], "Cr": [5, 12], "Al": [3, 8], "Ta": [0, 8], "W": [0, 12], "Ti": [0, 4], "Mo": [0, 5], "C": [0, 0.2], "B": [0, 0.1]}
+  }
+}
+```
+
+`/alloy/propose-space` 会生成用户结果页资产。HEA 为强度—硬度等图；热端镍基为候选筛选漏斗和短时强度—蠕变寿命对比图。通过任务 manifest 的 `presentation` 字段或 `GET /alloy/tasks/{taskid}/assets/{asset_name}` 获取。

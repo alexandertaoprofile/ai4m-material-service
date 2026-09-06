@@ -3,8 +3,10 @@ from __future__ import annotations
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from src.material_workflow.alignn import predict_candidate_properties, requested_properties
+from src.material_workflow.mattersim import reference_mode
 from src.material_workflow.presentation import build_property_screening_card
 from src.material_workflow.presentation import build_discovery_conclusion
 from src.material_workflow.ranking import rank_candidates
@@ -20,6 +22,12 @@ from src.material_workflow.schemas import (
 
 
 class AlignnPropertyScreeningTests(unittest.TestCase):
+    def test_stability_reference_defaults_to_official_mp2020_dataset(self) -> None:
+        with patch.dict("os.environ", {}, clear=True):
+            self.assertEqual(reference_mode(), "official")
+        with patch.dict("os.environ", {"MATTERSIM_REFERENCE_MODE": "mp_api"}, clear=True):
+            self.assertEqual(reference_mode(), "mp_api")
+
     def test_default_panel_and_explicit_property_are_selected(self) -> None:
         self.assertEqual(
             requested_properties({}, {"electron_effective_mass": None}),
@@ -134,6 +142,35 @@ class AlignnPropertyScreeningTests(unittest.TestCase):
         self.assertIn("未通过原因", summary)
         self.assertIn("未计算（结构未准入）", summary)
         self.assertIn("Mn–Cr", summary)
+
+    def test_near_metal_property_card_keeps_outputs_with_interpretation(self) -> None:
+        candidate = GeneratedCandidate(candidate_id="gen_0", formula_pretty="MnFeCoNi")
+        validation = ValidationResult(
+            candidate_id="gen_0",
+            status="ok",
+            is_valid=True,
+            formula_pretty="MnFeCoNi",
+            property_predictions={
+                "band_gap": {"label": "带隙", "value": -0.0077, "unit": "eV", "display_method": "ALIGNN 带隙快速预测"},
+                "bulk_modulus": {"label": "体积模量", "value": 162.44, "unit": "GPa", "display_method": "ALIGNN 弹性性质快速预测"},
+                "shear_modulus": {"label": "剪切模量", "value": 7.71, "unit": "GPa", "display_method": "ALIGNN 弹性性质快速预测"},
+                "dielectric_constant_x": {"label": "介电常数 εx", "value": 292.37, "unit": "无量纲", "display_method": "ALIGNN 介电性质快速预测"},
+                "electron_effective_mass": {"label": "电子有效质量", "value": -0.0002, "unit": "m0", "display_method": "ALIGNN 电子结构快速预测"},
+            },
+        )
+        result = NewMaterialPipelineResult(
+            taskid="near-metal",
+            status="ok",
+            constraints=GenerationConstraint(taskid="near-metal"),
+            generation=GenerationManifest(taskid="near-metal", status="ok", candidates=[candidate]),
+            validations=[validation],
+            ranked_candidates=[RankedCandidate(candidate=candidate, rank=1, score=1.0, validation=validation)],
+        )
+        card = build_property_screening_card(result)
+        self.assertIn("负值是回归越界", card)
+        self.assertIn("不宜直接用于工程评价", card)
+        self.assertIn("不用于该候选的载流子判断", card)
+        self.assertIn("不能解读为实际硬度为零", card)
 
 
 if __name__ == "__main__":

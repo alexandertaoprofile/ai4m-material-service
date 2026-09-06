@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.pyc
+results/
+upload/
+logs/
+data/reference_cases/*/raw/
+data/reference_cases/*/models/
