@@ -156,8 +156,18 @@ def build_mattergen_command(constraints: GenerationConstraint, output_dir: Path,
         sampling_steps = int(os.getenv("MATTERGEN_SAMPLING_STEPS", "100"))
         if sampling_steps < 1:
             raise ValueError("MATTERGEN_SAMPLING_STEPS must be positive")
+        local_checkpoint_root = os.getenv("MATTERGEN_LOCAL_CHECKPOINT_ROOT", "").strip()
+        if local_checkpoint_root:
+            model_path = Path(local_checkpoint_root).expanduser() / model
+            config_path = model_path / "config.yaml"
+            checkpoint_path = model_path / "checkpoints" / "last.ckpt"
+            if not config_path.is_file() or not checkpoint_path.is_file() or checkpoint_path.stat().st_size < 1024:
+                raise ValueError(f"Local MatterGen checkpoint is unavailable or still an LFS pointer: {model_path}")
+            model_argument = f"--model_path={model_path}"
+        else:
+            model_argument = f"--pretrained-name={model}"
         command.extend([
-            f"--pretrained-name={model}",
+            model_argument,
             f"--sampling_config_path={sampling_path}",
             f"--sampling_config_name={sampling_name}",
             # MatterGen requires the atomic-number D3PM schedule to use the
@@ -202,6 +212,21 @@ def _formula_from_cif(cif_path: Path) -> Optional[str]:
 
         return Structure.from_file(cif_path).composition.reduced_formula
     except Exception:
+        # The orchestration environment intentionally stays lightweight and
+        # may not include pymatgen.  MatterGen's ASE writer always emits the
+        # standard CIF sum field, so preserve the formula in the manifest
+        # without coupling the API process to the GPU environment.
+        try:
+            content = cif_path.read_text(encoding="utf-8", errors="replace")
+            match = re.search(
+                r"(?m)^_chemical_formula_sum\s+(?:\"([^\"]+)\"|'([^']+)'|(\S+))",
+                content,
+            )
+            if match:
+                value = next(item for item in match.groups() if item is not None)
+                return "".join(value.split()) or None
+        except (OSError, StopIteration):
+            pass
         return None
 
 
