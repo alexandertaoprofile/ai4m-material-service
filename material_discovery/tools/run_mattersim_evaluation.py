@@ -90,10 +90,15 @@ def _load_cached_mp2020_reference():
     )
     cache_dir.mkdir(parents=True, exist_ok=True)
     cache_file = cache_dir / "reference_MP2020correction"
+    configured_archive = os.environ.get("MATTERSIM_REFERENCE_ARCHIVE", "").strip()
     reference_gzip = (
-        Path(presets.__file__).resolve().parent
-        / "../../../data-release/alex-mp/reference_MP2020correction.gz"
-    ).resolve()
+        Path(configured_archive).expanduser().resolve()
+        if configured_archive
+        else (
+            Path(presets.__file__).resolve().parent
+            / "../../../data-release/alex-mp/reference_MP2020correction.gz"
+        ).resolve()
+    )
     if not reference_gzip.is_file():
         raise RuntimeError(f"MatterGen MP2020 reference archive is missing: {reference_gzip}")
 

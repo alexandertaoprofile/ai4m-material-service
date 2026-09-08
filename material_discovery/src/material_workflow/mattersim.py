@@ -70,7 +70,8 @@ def run_mattersim_evaluation(
     project_root = Path(__file__).resolve().parents[2]
     helper = project_root / "tools" / "run_mattersim_evaluation.py"
     env_prefix = os.environ.get("MATTERGEN_ENV_PREFIX", "/data/mamba/envs/mattergen-py310").strip()
-    command = (["micromamba", "run", "-p", env_prefix] if env_prefix else []) + [
+    micromamba = os.environ.get("MICROMAMBA_EXECUTABLE", "micromamba").strip() or "micromamba"
+    command = ([micromamba, "run", "-p", env_prefix] if env_prefix else []) + [
         "python", str(helper), "--output-dir", str(output_dir),
         # The MP2020-corrected MatterGen reference is the default because it
         # keeps the candidate and convex-hull reference in one compatible
