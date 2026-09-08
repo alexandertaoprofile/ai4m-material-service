@@ -23,6 +23,9 @@ ASSET_DOCS = {
     "glass_screening_funnel": "展示同家族来源锚点、局部氧化物扰动、性质门槛和优先短名单的实际保留数量。",
     "glass_cte_modulus_tradeoff": "每个点代表一个同家族玻璃候选；横轴为 CTE、纵轴为杨氏模量，星形为当前综合优先候选。",
     "glass_composition_traceability": "并排展示优先候选与其可追溯来源锚点的氧化物 mol% 配方；用于复核局部调整，不是全球玻璃成分窗口。",
+    "short_cf_screening_funnel": "展示短碳纤维 RVE 原始记录、输入预检、当前适用域、刚度矩阵正定性与优先短名单的实际保留数量。",
+    "short_cf_stiffness_anisotropy": "每个点代表一个短纤维 RVE 候选；横轴为横向模量 E22、纵轴为纵向模量 E11，颜色表示各向异性比 E11/E22。",
+    "short_cf_constitutive_card": "展示当前优先候选的六个弹性模量常数；完整 6×6 刚度矩阵与全部泊松比在结构化结果中可直接读取。",
 }
 ASSET_TITLES = {
     "screening_funnel": "候选筛选漏斗",
@@ -38,6 +41,9 @@ ASSET_TITLES = {
     "glass_screening_funnel": "玻璃基板候选筛选路径",
     "glass_cte_modulus_tradeoff": "CTE—杨氏模量取舍",
     "glass_composition_traceability": "优先候选与来源锚点的配方对照",
+    "short_cf_screening_funnel": "短碳纤维复合材料候选筛选路径",
+    "short_cf_stiffness_anisotropy": "纵向刚度—各向异性取舍",
+    "short_cf_constitutive_card": "优先候选的工程弹性常数",
 }
 logger = logging.getLogger("alloy.protocol")
 

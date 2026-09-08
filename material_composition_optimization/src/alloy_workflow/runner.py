@@ -20,6 +20,9 @@ class HEASurrogateRunner:
         self.executable = executable
 
     def ready(self, domain: str = "hea_mpea") -> bool:
+        if domain == "short_cf_thermomechanical_rve_v1":
+            required = (self.surrogate_root / "models/short_cf_thermomechanical_rve_v1_20260907/model.joblib",)
+            return (self.environment_prefix / "bin/python").is_file() and all(path.is_file() for path in required)
         if domain == "chip_glass_thermomechanical_family_v1":
             required = (
                 self.surrogate_root / "models/chip_glass_cte_family_v1_20260902/model.joblib",

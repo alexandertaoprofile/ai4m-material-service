@@ -29,7 +29,7 @@ class AlloyOptimizationApplication:
         constraints = contract(normalized)
         constraints["raw_scope"] = effective
         started = time.perf_counter()
-        operation = "propose_space" if effective.get("model_domain") == "chip_glass_thermomechanical_family_v1" else "propose"
+        operation = "propose_space" if effective.get("model_domain") in {"chip_glass_thermomechanical_family_v1", "short_cf_thermomechanical_rve_v1"} else "propose"
         result = self.runner.run(constraints["taskid"], operation, constraints)
         result.update({"taskid": constraints["taskid"], "status": "completed", "service": self.service_name, "elapsed_seconds": round(time.perf_counter() - started, 3)})
         self._enrich(result, plan)
@@ -43,6 +43,12 @@ class AlloyOptimizationApplication:
     def _enrich(self, result: dict[str, Any], plan: dict[str, Any]) -> None:
         if result.get("model_domain") == "chip_glass_thermomechanical_family_v1":
             self._enrich_chip_glass(result, plan)
+            return
+        if result.get("model_domain") == "short_cf_thermomechanical_rve_v1":
+            result["requirement_interpretation"] = plan
+            result["model_evidence"] = {"model_version":result.get("model_version"),"data_type":"945 条通过预检的 FAST_RF RVE 线弹性标签；5 种基体轮流完全留出。","validation":"9 个独立工程常数分别按留一基体交叉验证；基体名称不作为输入。"}
+            result["next_actions"] = ["确认基体弹性描述符与有效纤维长度/取向", "将正交各向异性刚度矩阵输入结构仿真", "补充真实打印件孔隙率、取向与力学试验以校准 RVE—实物偏差"]
+            result["user_conclusion"] = "当前候选用于短碳纤维增强热塑性复合材料的正交各向异性线弹性本构初筛；输出包含 9 个独立工程常数和正定刚度矩阵。"
             return
         if result.get("model_domain") == "ni_superalloy_hot_end":
             self._enrich_hot_end(result, plan)

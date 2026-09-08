@@ -42,6 +42,16 @@ _CHIP_GLASS_PATTERN = re.compile(
     r"chip.?glass|glass.?substrate|alumino.?borosilicate",
     re.IGNORECASE,
 )
+_SHORT_CF_PATTERN = re.compile(
+    r"短碳纤维|短纤维|碳纤维增强|CF.?增强|复合耗材|"
+    r"复合材料.*(?:刚度|模量|本构)|RVE|E11|各向异性|"
+    # Parent orchestration can split the original 3D short-fibre request into
+    # a follow-up carrying only these RVE input fields.  That combination is
+    # still unambiguously this route, rather than a generic composite query.
+    r"碳纤维(?:种类)?[^。；;]{0,80}(?:体分比|体积分数|有效长度|打印取向)|"
+    r"(?:体分比|体积分数)[^。；;]{0,80}(?:有效长度|打印取向)",
+    re.IGNORECASE,
+)
 
 
 def is_reusable_rocket_stainless_intent(text: str, scope: dict[str, Any]) -> bool:
@@ -60,6 +70,25 @@ def is_reusable_rocket_stainless_intent(text: str, scope: dict[str, Any]) -> boo
 
 def is_chip_glass_intent(text: str, scope: dict[str, Any]) -> bool:
     return scope.get("model_domain") == "chip_glass_thermomechanical_family_v1" or bool(_CHIP_GLASS_PATTERN.search(text))
+
+def is_short_cf_intent(text: str, scope: dict[str, Any]) -> bool:
+    return scope.get("model_domain") == "short_cf_thermomechanical_rve_v1" or bool(_SHORT_CF_PATTERN.search(text))
+
+
+def short_cf_matrix_from_text(text: str) -> str | None:
+    """Infer only unambiguous built-in thermoplastic matrix aliases from prose."""
+    lowered = text.casefold()
+    aliases = (
+        (("petg", "pet-g"), "PETG"),
+        (("pla",), "PLA"),
+        (("asa",), "ASA"),
+        (("abs",), "ABS"),
+        (("聚碳酸酯", "pc基体", "pc 基体"), "PC"),
+    )
+    for markers, matrix_name in aliases:
+        if any(marker in lowered for marker in markers):
+            return matrix_name
+    return None
 
 # 明确识别为航空/发动机热端镍基合金、但用户尚未给出工况时的首轮筛选模板。
 # 这些值是可见、可覆盖的平台默认工况，不是从用户文本中推断出的事实。
@@ -223,13 +252,14 @@ def contract(payload: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(scope, dict):
         raise ValueError("alloy_optimization must be an object")
     upstream_context, upstream_keys = upstream_requirement(payload)
-    if is_composite_material_request(upstream_context, scope):
+    short_cf_request = is_short_cf_intent(upstream_context, scope)
+    if is_composite_material_request(upstream_context, scope) and not short_cf_request:
         raise ValueError("本服务仅适用于单一金属合金的元素配比优化；包含树脂、纤维、填料或其他复合相的材料应使用复合材料专项流程")
     glass_request = is_chip_glass_intent(upstream_context, scope)
-    if not glass_request and not is_alloy_request(upstream_context, scope):
+    if not short_cf_request and not glass_request and not is_alloy_request(upstream_context, scope):
         raise ValueError("本服务仅处理合金/高温合金的成分或配比优化；已有材料查询请使用成熟材料服务，非合金新材料生成请使用新材料服务")
     domain = scope.get("model_domain", "hea_mpea")
-    if domain not in {"hea_mpea", "conventional_alloy", "refractory_calculated", "ni_superalloy_hot_end", "reusable_rocket_stainless", "chip_glass_thermomechanical_family_v1"}:
+    if domain not in {"hea_mpea", "conventional_alloy", "refractory_calculated", "ni_superalloy_hot_end", "reusable_rocket_stainless", "chip_glass_thermomechanical_family_v1", "short_cf_thermomechanical_rve_v1"}:
         raise ValueError("unsupported model_domain")
     common = {"taskid": task_id(payload), "raw_requirement": upstream_context, "upstream_context": upstream_context, "upstream_context_keys": upstream_keys, "model_domain": domain, "objectives": scope.get("objectives", {}), "constraints": scope.get("constraints", {})}
     if domain == "ni_superalloy_hot_end":
@@ -238,6 +268,8 @@ def contract(payload: dict[str, Any]) -> dict[str, Any]:
         return {**common, "composition_wt_percent": scope.get("composition_wt_percent"), "element_bounds_wt_percent": scope.get("element_bounds_wt_percent", {}), "test_temperature_K": scope.get("test_temperature_K"), "processing": scope.get("processing", {}), "component": scope.get("component"), "weld_state": scope.get("weld_state", "base_metal"), "thickness_mm": scope.get("thickness_mm"), "low_temperature_verification_K": scope.get("low_temperature_verification_K", [90, 111]), "verification_focus": scope.get("verification_focus", []), "num_candidates": scope.get("num_candidates", 40), "random_seed": scope.get("random_seed", 20260902)}
     if domain == "chip_glass_thermomechanical_family_v1":
         return {**common, "composition_basis": "mol_percent", "composition_mol_percent": scope.get("composition_mol_percent"), "oxide_bounds_mol_percent": scope.get("oxide_bounds_mol_percent", {}), "screening_thresholds": scope.get("screening_thresholds", {}), "num_candidates": scope.get("num_candidates", 80), "random_seed": scope.get("random_seed", 20260904), "application": scope.get("application", "芯片封装玻璃基板的热失配与挠曲初筛"), "service_options": scope.get("service_options", {})}
+    if domain == "short_cf_thermomechanical_rve_v1":
+        return {**common, "matrix_name": scope.get("matrix_name"), "matrix_properties": scope.get("matrix_properties", {}), "target_vf": scope.get("target_vf"), "fiber_length_mm": scope.get("fiber_length_mm"), "target_a11": scope.get("target_a11"), "num_candidates": scope.get("num_candidates", 40), "random_seed": scope.get("random_seed", 20260907), "screening_thresholds": scope.get("screening_thresholds", {})}
     return {**common, "composition": scope.get("composition"), "allowed_elements": scope.get("allowed_elements", []), "element_bounds_at_pct": scope.get("element_bounds_at_pct", {}), "processing_method": scope.get("processing_method"), "test_temperature_C": scope.get("test_temperature_C", 25)}
 
 
@@ -256,11 +288,20 @@ def hot_end_missing_fields(scope: dict[str, Any]) -> list[dict[str, str]]:
 def requirement_plan(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
     supplied = dict(payload.get("alloy_optimization") or payload.get("hea_optimization") or payload.get("constraints") or {})
     idea, upstream_keys = upstream_requirement(payload)
-    if is_composite_material_request(idea, supplied):
+    short_cf_intent = is_short_cf_intent(idea, supplied)
+    if is_composite_material_request(idea, supplied) and not short_cf_intent:
         raise ValueError("本服务仅适用于单一金属合金的元素配比优化；包含树脂、纤维、填料或其他复合相的材料应使用复合材料专项流程")
     glass_intent = is_chip_glass_intent(idea, supplied)
-    if not glass_intent and not is_alloy_request(idea, supplied):
+    if not short_cf_intent and not glass_intent and not is_alloy_request(idea, supplied):
         raise ValueError("本服务仅适用于合金或高温合金的成分优化，不适用于一般高温材料查询或非合金新材料生成")
+    if short_cf_intent:
+        inferred = {"model_domain":"short_cf_thermomechanical_rve_v1","matrix_name":"Bambu_PLA_Basic","target_vf":0.10,"fiber_length_mm":0.035,"target_a11":0.70,"num_candidates":40,"random_seed":20260907,"objectives":{"E11_MPa":{"goal":"maximize"},"anisotropy_ratio_E11_E22":{"goal":"maximize"}}}
+        matrix_from_text = short_cf_matrix_from_text(idea)
+        if matrix_from_text:
+            inferred["matrix_name"] = matrix_from_text
+        effective=dict(inferred); effective.update({key:value for key,value in supplied.items() if value not in (None,[],{},"")})
+        provenance={key:("user" if key in supplied and supplied[key] not in (None,[],{},"") else "upstream_context" if key == "matrix_name" and matrix_from_text else "platform_default") for key in effective}
+        return effective,{"parser":"rule_template_v0","raw_requirement":idea,"upstream_context_keys":upstream_keys,"template":"short_cf_thermomechanical_rve_screening","effective_model_input":effective,"field_provenance":provenance,"default_assumptions":[{"field":key,"value":inferred[key],"status":"platform_default"} for key in inferred if provenance[key]=="platform_default"],"questions_to_confirm":["可提供基体 E/ν/密度、实际体积分数、有效纤维长度和主方向取向，以替换默认 RVE 设计条件。"],"evidence_notice":"输出为固定 T300-like 短碳纤维、致密、完美界面 RVE 下的线弹性等效本构，不是强度或实物测试结果。"}
     if glass_intent:
         inferred = {"model_domain": "chip_glass_thermomechanical_family_v1", "composition_basis": "mol_percent", "num_candidates": 80, "random_seed": 20260904, "application": "芯片封装玻璃基板的热失配与挠曲初筛", "objectives": {"CTE_linear_0_to_300C": {"goal": "minimize"}, "young_modulus_GPa": {"goal": "maximize"}, "stress_optical_coefficient_nm_cm_per_MPa": {"goal": "minimize"}}, "screening_thresholds": {}}
         effective = dict(inferred)

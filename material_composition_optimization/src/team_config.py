@@ -113,7 +113,7 @@ class Coding(Action):
         request_id = _taskid(payload)
 
         effective, plan = _requirement_plan(payload)
-        progress_description = ("正在整理芯片玻璃基板的氧化物配方与热机械筛选条件。" if effective.get("model_domain") == "chip_glass_thermomechanical_family_v1" else "正在整理高温镍基合金的工况与成分设计条件。" if effective.get("model_domain") == "ni_superalloy_hot_end" else "正在整理可回收火箭不锈钢的温度、工艺与配方边界。" if effective.get("model_domain") == "reusable_rocket_stainless" else "正在将需求映射为高熵/多主元合金的探索条件。")
+        progress_description = ("正在整理短碳纤维 RVE 的基体、体积分数、有效长度和取向条件。" if effective.get("model_domain") == "short_cf_thermomechanical_rve_v1" else "正在整理芯片玻璃基板的氧化物配方与热机械筛选条件。" if effective.get("model_domain") == "chip_glass_thermomechanical_family_v1" else "正在整理高温镍基合金的工况与成分设计条件。" if effective.get("model_domain") == "ni_superalloy_hot_end" else "正在整理可回收火箭不锈钢的温度、工艺与配方边界。" if effective.get("model_domain") == "reusable_rocket_stainless" else "正在将需求映射为高熵/多主元合金的探索条件。")
         await websocket.send_json({
             "version": "1.0.0", "agent": "alloy_composition_optimization",
             "request_id": request_id, "type": "progress",

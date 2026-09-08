@@ -44,11 +44,12 @@ def _template_label(template: str) -> str:
         "hot_end_ni_superalloy_screening": "高温镍基合金成分设计与服役性能筛选模板",
         "reusable_rocket_stainless_screening": "可回收火箭不锈钢配方设计模板",
         "chip_glass_thermomechanical_local_screening": "芯片玻璃基板配方与热机械筛选模板",
+        "short_cf_thermomechanical_rve_screening": "短碳纤维复合材料本构筛选模板",
     }.get(template, template)
 
 
 def _runner_ready() -> dict[str, bool]:
-    return {"hea_mpea": RUNNER.ready("hea_mpea"), "ni_superalloy_hot_end": RUNNER.ready("ni_superalloy_hot_end"), "reusable_rocket_stainless": RUNNER.ready("reusable_rocket_stainless"), "chip_glass_thermomechanical_family_v1": RUNNER.ready("chip_glass_thermomechanical_family_v1")}
+    return {"hea_mpea": RUNNER.ready("hea_mpea"), "ni_superalloy_hot_end": RUNNER.ready("ni_superalloy_hot_end"), "reusable_rocket_stainless": RUNNER.ready("reusable_rocket_stainless"), "chip_glass_thermomechanical_family_v1": RUNNER.ready("chip_glass_thermomechanical_family_v1"), "short_cf_thermomechanical_rve_v1": RUNNER.ready("short_cf_thermomechanical_rve_v1")}
 
 
 def _proposal(payload: dict) -> dict:
@@ -81,7 +82,7 @@ def roles():
         profile: {
             "name": ROLE_NAME,
             "profile": profile,
-            "goal": "形成 HEA/MPEA、热端镍基、可回收火箭不锈钢或芯片玻璃基板的受约束候选配方、条件性能初筛和验证优先级建议。",
+            "goal": "形成 HEA/MPEA、热端镍基、可回收火箭不锈钢、芯片玻璃基板或短碳纤维复合材料的受约束候选与性能/本构初筛和验证优先级建议。",
             "constraints": SERVICE_BOUNDARY,
             "desc": ACTION_DESCRIPTION,
             "is_human": False,
@@ -116,14 +117,15 @@ def roles():
             "routing": {
                 "service_id": SERVICE_ID,
                 "priority": 1,
-                "match_when": "针对已接入材料域，需要生成受约束配方候选并比较模型支持性能时。高熵/多主元进入 HEA；发动机热端/蠕变进入镍基；可回收火箭不锈钢结构进入火箭不锈钢；芯片封装玻璃基板、低硼无碱玻璃或氧化物配方进入玻璃基板路线。",
-                "include_keywords": ["铁基合金", "铝基合金", "高熵合金", "多主元合金", "HEA", "MPEA", "高温合金", "镍基合金", "单晶镍基", "定向凝固", "蠕变", "Inconel", "CMSX", "Rene", "难熔合金", "合金配比", "合金成分", "元素比例", "原子百分比", "质量百分比", "wt.%", "添加量", "微量元素", "成分优化", "配比优化", "成分空间", "组分设计", "候选配比", "元素组成", "微观组织", "组织演变", "宏观性能", "热力学", "动力学", "Ni-Co-Cr", "Nb-Mo-Ta-W", "不锈钢", "火箭不锈钢", "航天火箭", "可回收壳体", "可回收外壳", "不锈钢壳体", "火箭外壳", "火箭贮箱", "承压壳体", "奥氏体不锈钢", "304L", "301LN", "30X", "玻璃基板", "芯片玻璃", "封装玻璃", "玻璃配方", "低硼无碱", "铝硼硅酸盐", "氧化物 mol%"],
-                "exclude_keywords": ["复合材料", "复材", "树脂", "环氧", "纤维", "碳纤维", "玻璃纤维", "填料", "增强相", "聚合物", "CFRP", "GFRP", "PEEK", "PEKK", "PEI", "PPS"],
+                "match_when": "针对已接入材料域，需要生成受约束候选并比较模型支持性能时。高熵/多主元进入 HEA；发动机热端/蠕变进入镍基；可回收火箭不锈钢结构进入火箭不锈钢；芯片封装玻璃基板进入玻璃路线；短碳纤维热塑性复合材料的线弹性本构进入短纤维 RVE 路线。",
+                "include_keywords": ["铁基合金", "铝基合金", "高熵合金", "多主元合金", "HEA", "MPEA", "高温合金", "镍基合金", "单晶镍基", "定向凝固", "蠕变", "Inconel", "CMSX", "Rene", "难熔合金", "合金配比", "合金成分", "元素比例", "原子百分比", "质量百分比", "wt.%", "添加量", "微量元素", "成分优化", "配比优化", "成分空间", "组分设计", "候选配比", "元素组成", "微观组织", "组织演变", "宏观性能", "热力学", "动力学", "Ni-Co-Cr", "Nb-Mo-Ta-W", "不锈钢", "火箭不锈钢", "航天火箭", "可回收壳体", "可回收外壳", "不锈钢壳体", "火箭外壳", "火箭贮箱", "承压壳体", "奥氏体不锈钢", "304L", "301LN", "30X", "玻璃基板", "芯片玻璃", "封装玻璃", "玻璃配方", "低硼无碱", "铝硼硅酸盐", "氧化物 mol%", "短碳纤维", "短纤维", "碳纤维增强", "复合耗材", "RVE", "E11", "正交各向异性"],
+                "exclude_keywords": ["环氧", "连续纤维", "玻璃纤维", "金属基复合", "陶瓷基复合", "CFRP", "GFRP", "PEEK", "PEKK", "PEI", "PPS"],
                 "model_routes": {
                     "hea_mpea": {"when": "出现 HEA/MPEA/高熵/多主元，或明确 at.% 多主元成分空间、强度—硬度与相稳定性探索", "input": "元素、at.% 边界、工艺和温度", "output": "屈服强度、硬度、相风险、数据适用域与候选排序"},
                     "ni_superalloy_hot_end": {"when": "出现高温合金、镍基高温合金、蠕变、持久寿命、单晶、定向凝固、涡轮/叶片、Inconel、CMSX 或 René；发动机与高温工况同时出现时优先进入此路线", "input": "元素 wt.% 边界、铸造/DS/单晶、热处理、温度、蠕变载荷", "output": "短时 UTS、0.2% proof strength、蠕变断裂寿命、延性辅助信息与候选排序"},
                     "reusable_rocket_stainless": {"when": "出现航天火箭与可回收壳体/外壳/贮箱不锈钢，或出现低温奥氏体不锈钢、301/304L、cryoforming 或 30X 背景", "input": "元素 wt.% 边界、目标温度、固溶处理、板厚和焊接状态", "output": "293–1273 K 短时屈服/UTS/延伸率筛选；低温参考与焊接、疲劳、LOX 验证优先级"},
                     "chip_glass_thermomechanical_family_v1": {"when": "出现芯片封装玻璃基板、低硼无碱铝硼硅酸盐、氧化物 mol% 配方、CTE/热失配/玻璃挠曲", "input": "氧化物 mol% 边界、CTE/E/SOC 目标或门槛、候选数；仿真时另输入层堆和热历史", "output": "CTE（0–300°C）、密度、E、SOC、两项黏度特征温度、同家族候选排序与来源锚点"},
+                    "short_cf_thermomechanical_rve_v1": {"when": "出现短碳纤维/短纤维增强热塑性复合材料、复合耗材、E11 或正交各向异性线弹性本构", "input": "基体名称或 E/ν/密度、纤维体积分数、有效纤维长度、主方向取向 a11、候选数", "output": "9 个独立工程常数、由互易关系导出的 3 个泊松比、6×6 正定刚度矩阵与候选排序"},
                 },
             },
             "recovered": False,
@@ -226,7 +228,7 @@ async def start(websocket:WebSocket):
             await websocket.send_json({"version":"1.0.0","agent":"alloy_composition_optimization","request_id":taskid,"type":"result","data":waiting})
             await websocket.send_text("[end]")
             return
-        runner_description = "正在通过芯片玻璃基板专项 runner 在同家族氧化物邻域内生成候选并预测热机械性质。" if effective.get("model_domain") == "chip_glass_thermomechanical_family_v1" else "正在通过隔离的高温镍基合金专项 runner 进行受约束候选筛选与条件预测。" if effective.get("model_domain") == "ni_superalloy_hot_end" else "正在通过可回收火箭不锈钢专项 runner 进行候选筛选与短时拉伸预测。" if effective.get("model_domain") == "reusable_rocket_stainless" else "正在通过隔离的高熵/多主元合金（HEA/MPEA）专项 runner 进行采样和批量预测。"
+        runner_description = "正在通过短碳纤维 RVE 专项 runner 生成正交各向异性线弹性本构候选。" if effective.get("model_domain") == "short_cf_thermomechanical_rve_v1" else "正在通过芯片玻璃基板专项 runner 在同家族氧化物邻域内生成候选并预测热机械性质。" if effective.get("model_domain") == "chip_glass_thermomechanical_family_v1" else "正在通过隔离的高温镍基合金专项 runner 进行受约束候选筛选与条件预测。" if effective.get("model_domain") == "ni_superalloy_hot_end" else "正在通过可回收火箭不锈钢专项 runner 进行候选筛选与短时拉伸预测。" if effective.get("model_domain") == "reusable_rocket_stainless" else "正在通过隔离的高熵/多主元合金（HEA/MPEA）专项 runner 进行采样和批量预测。"
         await websocket.send_json({"version":"1.0.0","agent":"alloy_composition_optimization","request_id":taskid,"type":"progress","data":{"id":FRONTEND_STEP_ID,"stepId":FRONTEND_STEP_ID,"title":FRONTEND_STEP_TITLE,"status":"in_progress","description":runner_description}})
         result=await asyncio.to_thread(_proposal,payload); result["_summary_path"]=RESULTS/taskid/"presentation"/"summary.md"
         public_urls,asset_docs,_asset_titles,visual_assets=await prepare_public_assets(websocket,taskid,result,RESULTS)

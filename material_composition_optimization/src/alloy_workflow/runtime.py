@@ -76,7 +76,7 @@ class AlloyRuntime:
     def _chart_font(self) -> FontProperties:
         if not self.chart_font_path.is_file():
             raise RuntimeError(f"Chinese chart font is unavailable: {self.chart_font_path}")
-        chart_text = "候选筛选路径相风险通过性能与不确定性通过最终可比候选保留率候选数量强度硬度最优候选训练数据范围内边界附近范围外强度门槛硬度门槛预测屈服强度MPa元素含量at最优候选精确配方与可继续探索区间P5P50P95元素成分预测组织倾向示意非真实显微图像固溶体基体潜在第二相金属间化合物风险标记晶界混相风险数据适用域置信度模型初筛探索性单相主导较高低中等候选合金截面规则化材料图形用于表达实际相形貌尺度空间位置SSIM0123456789NiCoCrAlTiNbMoTaW—；.%（）"
+        chart_text = "候选筛选路径相风险通过性能与不确定性通过最终可比候选保留率候选数量强度硬度最优候选训练数据范围内边界附近范围外强度门槛硬度门槛预测屈服强度MPa元素含量at最优候选精确配方与可继续探索区间P5P50P95元素成分预测组织倾向示意非真实显微图像固溶体基体潜在第二相金属间化合物风险标记晶界混相风险数据适用域置信度模型初筛探索性单相主导较高低中等候选合金截面规则化材料图形用于表达实际相形貌尺度空间位置短碳纤维热塑性复合材料局部配比参数域本构可用优先验证搜索窗口有效长度固定致密完美界面输入均位于验证域预测刚度矩阵最小特征值大于可作为有限元线弹性输入按排序保留前组工程常数GPaT300样式线弹性0123456789NiCoCrAlTiNbMoTaW—；.%（）"
         font_file = FT2Font(str(self.chart_font_path))
         missing = sorted({char for char in chart_text if not char.isspace() and not font_file.get_char_index(ord(char))})
         if missing:
@@ -96,6 +96,8 @@ class AlloyRuntime:
             return self._render_rocket_stainless(result)
         if result.get("model_domain") == "chip_glass_thermomechanical_family_v1":
             return self._render_chip_glass(result)
+        if result.get("model_domain") == "short_cf_thermomechanical_rve_v1":
+            return self._render_short_cf(result)
         task_dir = self.results_root / result["taskid"] / "presentation"
         task_dir.mkdir(parents=True, exist_ok=True)
         os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
@@ -430,6 +432,59 @@ class AlloyRuntime:
         summary = task_dir / "summary.md"; summary.write_text(glass_summary_block(result), encoding="utf-8"); assets["summary_markdown"] = summary
         return assets
 
+    def _render_short_cf(self, result: dict[str, Any]) -> dict[str, Path]:
+        """Render short-CF RVE results with the established 1111 chart grammar."""
+        task_dir = self.results_root / result["taskid"] / "presentation"
+        task_dir.mkdir(parents=True, exist_ok=True)
+        os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
+        font = self._chart_font(); assets: dict[str, Path] = {}
+        candidates = result.get("all_candidates") or result.get("initial_candidates") or []
+        sampling = result.get("sampling") or {}
+        stages = [(str(x.get("label") or "筛选阶段"), int(x.get("count", 0)), str(x.get("description") or "")) for x in sampling.get("funnel_stages", [])]
+        if not stages:
+            total = int(sampling.get("generated", len(candidates)))
+            feasible = int(sampling.get("feasible", len(candidates)))
+            stages = [("局部配比候选", total, "围绕用户给定的 Vf、有效长度和取向窗口生成。"), ("RVE 参数域内", total, "基体描述符、Vf、有效长度和 a11 均位于已验证范围。"), ("线弹性本构可用", feasible, "预测刚度矩阵正定，可作为有限元线弹性输入。"), ("E11 优先验证", len(result.get("initial_candidates") or []), "以纵向模量 E11 排序，保留前 5 组配比。")]
+        counts = [count for _, count, _ in stages]; maximum = max(counts) or 1
+        widths = [.30 if count <= 0 else .30 + .64 * (count / maximum) for count in counts]
+        palette = ("#8FC6E4", "#69A8D0", "#4D8DBB", "#356F9E", "#234F7D")
+        fig, ax = plt.subplots(figsize=(10.8, 7.2), facecolor="#FFFFFF")
+        layer_height, layer_gap, cap_height = .90, .38, .24
+        for index, ((label, count, description), top_width) in enumerate(zip(stages, widths)):
+            bottom_width = max(.20, top_width * .78); y_top = len(stages) - index * (layer_height + layer_gap); y_bottom = y_top - layer_height
+            color = palette[min(index, len(palette)-1)]; dark = tuple(v*.78 for v in to_rgb(color)); light = tuple(min(1, v+(1-v)*.55) for v in to_rgb(color))
+            ax.add_patch(Ellipse((.5, y_bottom), width=bottom_width, height=cap_height, facecolor=dark, edgecolor="none", zorder=1))
+            ax.add_patch(Polygon([(.5-top_width/2,y_top),(.5+top_width/2,y_top),(.5+bottom_width/2,y_bottom),(.5-bottom_width/2,y_bottom)], closed=True, facecolor=color, edgecolor="none", zorder=2))
+            ax.add_patch(Ellipse((.5,y_top), width=top_width, height=cap_height, facecolor=light, edgecolor="white", linewidth=1.35, zorder=3))
+            mid_y = (y_top + y_bottom) / 2
+            ax.text(.5, mid_y + .12, label, ha="center", va="center", color="#203B55", fontproperties=font, fontsize=10.5, fontweight="bold", zorder=4)
+            ax.text(.5, mid_y - .16, description, ha="center", va="center", color="#294761", fontproperties=font, fontsize=7.4, zorder=4, wrap=True)
+            ax.annotate(f"{count:,}（保留 {count / counts[0]:.1%}）",xy=(.5+bottom_width/2,(y_top+y_bottom)/2),xytext=(1.08,(y_top+y_bottom)/2),ha="left",va="center",color="#425466",fontproperties=font,fontsize=11,fontweight="bold",arrowprops={"arrowstyle":"-","color":"#94A3B8","lw":1.15})
+        bottom_y = len(stages)-(len(stages)-1)*(layer_height+layer_gap)-layer_height
+        fig.suptitle("短碳纤维复合材料：配比筛选路径",x=.055,y=.98,ha="left",fontproperties=font,fontsize=17,fontweight="bold")
+        fig.text(.055,.895,"从当前基体和配比窗口出发；每层说明保留该候选的工程依据",color="#5B6472",fontproperties=font,fontsize=9.5)
+        ax.set_xlim(-.02,1.38); ax.set_ylim(bottom_y-.35,len(stages)+.36); ax.axis("off")
+        path=task_dir/"short_cf_screening_funnel.png"; fig.tight_layout(rect=(0,0,1,.86)); fig.savefig(path,dpi=220,bbox_inches="tight"); plt.close(fig); assets["short_cf_screening_funnel"]=path
+        if candidates:
+            def constants(item: dict[str, Any]) -> dict[str, float]: return item.get("predicted_engineering_constants") or {}
+            e11=np.array([constants(x).get("E11_MPa",0)/1000 for x in candidates]); e22=np.array([constants(x).get("E22_MPa",0)/1000 for x in candidates]); anis=np.divide(e11,e22,out=np.zeros_like(e11),where=e22>0)
+            fig,ax=plt.subplots(figsize=(9.6,5.8),facecolor="#FFFFFF")
+            points=ax.scatter(e22,e11,c=anis,cmap="Blues",s=48,edgecolor="white",linewidth=.5)
+            top=(result.get("initial_candidates") or candidates)[0]; c=constants(top); tx,ty=c.get("E22_MPa",0)/1000,c.get("E11_MPa",0)/1000
+            ax.scatter([tx],[ty],marker="*",s=240,color="#E07A38",edgecolor="white",zorder=4,label="当前优先候选")
+            ax.set_xlabel("横向模量 E22（GPa）",fontproperties=font); ax.set_ylabel("纵向模量 E11（GPa）",fontproperties=font); ax.set_title("短纤维候选的纵向刚度—各向异性取舍",fontproperties=font,fontsize=15,fontweight="bold")
+            legend=ax.legend(); [x.set_fontproperties(font) for x in legend.get_texts()]; cb=fig.colorbar(points,ax=ax); cb.set_label("E11 / E22",fontproperties=font)
+            self._apply_chart_font(ax,font); ax.grid(alpha=.16); ax.set_axisbelow(True); ax.spines[["top","right"]].set_visible(False)
+            path=task_dir/"short_cf_stiffness_anisotropy.png"; fig.tight_layout(); fig.savefig(path,dpi=220,bbox_inches="tight"); plt.close(fig); assets["short_cf_stiffness_anisotropy"]=path
+            labels=["E11","E22","E33","G12","G13","G23"]; values=[c.get(f"{name}_MPa",0)/1000 for name in labels]
+            fig,ax=plt.subplots(figsize=(9.6,5.4),facecolor="#FFFFFF"); bars=ax.bar(labels,values,color=["#1F5B89","#4D8DBB","#69A8D0","#8FC6E4","#8FC6E4","#8FC6E4"])
+            ax.bar_label(bars,labels=[f"{v:.2f}" for v in values],padding=3,fontsize=9); ax.set_ylabel("等效弹性常数（GPa）",fontproperties=font); ax.set_title("优先候选的正交各向异性工程常数",fontproperties=font,fontsize=15,fontweight="bold")
+            self._apply_chart_font(ax,font); ax.grid(axis="y",alpha=.16); ax.set_axisbelow(True); ax.spines[["top","right"]].set_visible(False)
+            path=task_dir/"short_cf_constitutive_card.png"; fig.tight_layout(); fig.savefig(path,dpi=220,bbox_inches="tight"); plt.close(fig); assets["short_cf_constitutive_card"]=path
+        from src.alloy_workflow.presentation import short_cf_summary_block
+        summary=task_dir/"summary.md"; summary.write_text(short_cf_summary_block(result),encoding="utf-8"); assets["summary_markdown"]=summary
+        return assets
+
     def _render_hot_end(self, result: dict[str, Any]) -> dict[str, Path]:
         """Compact evidence-first visuals for the Ni hot-end route."""
         task_dir = self.results_root / result["taskid"] / "presentation"
@@ -449,7 +504,10 @@ class AlloyRuntime:
         ] or [("满足成分约束的候选", int(sampling.get("generated", 0))), ("综合优先短名单", len(result.get("initial_candidates", [])))]
         counts = [count for _, count in stages]
         maximum = max(counts) or 1
-        widths = [max(.30, .30 + .64 * (count / maximum) ** .34) for count in counts]
+        # Keep the zero-candidate layer visible, but preserve the actual
+        # retention difference between every non-zero screening stage.  The
+        # former 0.34 power made 120 → 99 → 75 look nearly unchanged.
+        widths = [.30 if count <= 0 else .30 + .64 * (count / maximum) for count in counts]
         palette = ("#8FC6E4", "#69A8D0", "#4D8DBB", "#356F9E", "#234F7D")
         fig, ax = plt.subplots(figsize=(10.8, 7.2), facecolor="#FFFFFF")
         layer_height, layer_gap, cap_height = .90, .38, .24

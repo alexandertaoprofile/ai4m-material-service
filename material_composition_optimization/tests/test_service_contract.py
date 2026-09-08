@@ -11,7 +11,7 @@ import main
 import src.team_config as team_config
 from src.alloy_workflow.contracts import requirement_plan
 from src.alloy_workflow.application import AlloyOptimizationApplication
-from src.alloy_workflow.presentation import final_conclusion_block, hot_end_summary_block, planned_alloy_method_block
+from src.alloy_workflow.presentation import final_conclusion_block, hot_end_summary_block, planned_alloy_method_block, short_cf_summary_block, _embed_short_cf_visuals
 from src.alloy_workflow.presentation import _embed_rocket_visuals, rocket_stainless_summary_block
 from src.alloy_workflow.microstructure_tendency import build_microstructure_tendency
 from src.alloy_workflow.runtime import AlloyRuntime
@@ -422,6 +422,47 @@ class AlloyServiceContractTest(unittest.TestCase):
         self.assertNotIn("{{VISUAL:", rendered)
         self.assertEqual(rendered.count("https://www.science42.tech/images/"), 3)
         self.assertEqual(rendered.count("!["), 3)
+
+    def test_short_cf_page_uses_the_existing_1111_screening_sequence(self) -> None:
+        candidate = {
+            "candidate_id": "SCF-001", "matrix_name": "Bambu_PLA_Basic",
+            "inputs": {"target_vf": .10, "fiber_length_mm": .035, "target_a11": .70},
+            "predicted_engineering_constants": {"E11_MPa": 5200, "E22_MPa": 3300, "E33_MPa": 3280, "G12_MPa": 1200, "G13_MPa": 1190, "G23_MPa": 1100, "V12": .35, "V13": .34, "V23": .40},
+            "physical_consistency": {"positive_definite_stiffness": True, "min_stiffness_eigenvalue_MPa": 1090},
+            "stiffness_matrix_MPa": [[7000, 2100, 2100], [2100, 4500, 2200], [2100, 2200, 4480]],
+        }
+        report = short_cf_summary_block({
+            "screening_conditions": {"matrix_name": "Bambu_PLA_Basic", "target_centre": {"target_vf": .10, "fiber_length_mm": .035, "target_a11": .70}, "local_candidate_windows": {"target_vf": [.065, .135], "fiber_length_mm": [.027, .043], "target_a11": [.57, .83]}, "rve_assumptions": "固定纤维 RVE"},
+            "sampling": {"generated": 40, "feasible": 40, "funnel_stages": [{"label": "RVE 适用域候选", "count": 40}, {"label": "综合优先短名单", "count": 5}]},
+            "initial_candidates": [candidate], "user_conclusion": "用于有限元线弹性本构初值。",
+        })
+        self.assertIn("### 5. 筛选结果与候选卡", report)
+        self.assertIn("### 5.1 筛选过程", report)
+        self.assertIn("{{VISUAL:short_cf_screening_funnel}}", report)
+        self.assertIn("### 5.2 优先候选", report)
+        self.assertIn("正定：通过", report)
+
+    def test_short_cf_visual_tokens_become_public_markdown_images(self) -> None:
+        report = "{{VISUAL:short_cf_screening_funnel}}\n{{VISUAL:short_cf_stiffness_anisotropy}}\n{{VISUAL:short_cf_constitutive_card}}"
+        assets = [{"name": name, "title": title, "description": "图表说明", "url": f"https://www.science42.tech/images/{name}.png"} for name, title in (("short_cf_screening_funnel", "候选筛选路径"), ("short_cf_stiffness_anisotropy", "刚度取舍"), ("short_cf_constitutive_card", "本构卡"))]
+        rendered = _embed_short_cf_visuals(report, assets)
+        self.assertNotIn("{{VISUAL:", rendered)
+        self.assertEqual(rendered.count("https://www.science42.tech/images/"), 3)
+        self.assertEqual(rendered.count("!["), 3)
+
+    def test_short_cf_petg_prose_routes_and_selects_petg_profile(self) -> None:
+        effective, plan = requirement_plan({"taskid": "short-cf-petg", "idea": "针对碳纤维增强耗材做一个配比，针对PETG基体"})
+        self.assertEqual(effective["model_domain"], "short_cf_thermomechanical_rve_v1")
+        self.assertEqual(effective["matrix_name"], "PETG")
+        self.assertEqual(plan["field_provenance"]["matrix_name"], "upstream_context")
+
+    def test_short_cf_follow_up_with_rve_fields_keeps_the_composite_route(self) -> None:
+        effective, _plan = requirement_plan({
+            "taskid": "short-cf-follow-up",
+            "idea": "请提供或确认初始输入参数：PETG基体弹性模量/泊松比/密度，碳纤维种类与体分比范围、纤维有效长度、打印取向等。",
+        })
+        self.assertEqual(effective["model_domain"], "short_cf_thermomechanical_rve_v1")
+        self.assertEqual(effective["matrix_name"], "PETG")
 
     def test_explicit_multielement_alloy_summary_is_valid_context(self) -> None:
         effective, plan = requirement_plan({

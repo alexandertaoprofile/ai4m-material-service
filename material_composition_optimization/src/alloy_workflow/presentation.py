@@ -147,6 +147,24 @@ def planned_alloy_method_block(payload: dict[str, Any]) -> str:
             "其中 $s_j$ 由用户选择的最小化/最大化目标决定；排序只在当前同家族局部候选之间比较。",
             "", "### 4. 输出定义及验证路径", "输出 CTE、密度、E、SOC 和两项黏度特征温度及其家族内验证误差。泊松比、k(T)、Cp(T)、层堆、厚度、约束和热历史在后续封装仿真中单独输入。",
         ])
+    if effective.get("model_domain") == "short_cf_thermomechanical_rve_v1":
+        matrix = effective.get("matrix_name") or "用户给定基体"
+        return "\n".join([
+            "### 短碳纤维复合材料线弹性本构筛选", "", "### 1. 问题描述",
+            "针对短碳纤维增强热塑性复合材料，在已验证 FAST_RF RVE 的参数邻域内生成候选，并输出可供结构仿真初筛的正交各向异性线弹性常数。", "",
+            "### 2. 变量与约束", "| 符号/变量 | 定义 | 本轮设定 |", "|---|---|---|",
+            f"| 基体 | 弹性模量、泊松比、密度 | {matrix}（或由用户直接给定） |",
+            f"| $V_f$ | 纤维体积分数 | {float(effective.get('target_vf', 0)):.3f} |",
+            f"| $L_f$ | 有效纤维长度 | {float(effective.get('fiber_length_mm', 0)):.3f} mm |",
+            f"| $a_{{11}}$ | 主方向取向因子 | {float(effective.get('target_a11', 0)):.3f} |", "",
+            "### 3. 计划计算链与模型定义", "### 3.1 RVE 输入与响应",
+            r"$$\mathbf{x}=(E_m,\nu_m,\rho_m,V_f,L_f,a_{11})\quad\longrightarrow\quad \hat{\mathbf{y}}=(E_{11},E_{22},E_{33},G_{12},G_{13},G_{23},\nu_{12},\nu_{13},\nu_{23})$$",
+            "九个独立工程常数由多项式 Ridge 代理模型分别预测；基体名称不直接作为模型特征。", "### 3.2 互易关系与本构一致性",
+            r"$$\nu_{21}=\nu_{12}E_{22}/E_{11},\quad \nu_{31}=\nu_{13}E_{33}/E_{11},\quad \nu_{32}=\nu_{23}E_{33}/E_{22},\quad \mathbf{C}=\mathbf{S}^{-1}$$",
+            r"将工程常数组装为柔度矩阵 $\mathbf{S}$，仅保留刚度矩阵 $\mathbf{C}$ 正定的候选。",
+            "### 3.3 数据范围与验证", "数据为 980 条 FAST_RF RVE 记录，经纤维数预检后保留 945 条，覆盖 Bambu PLA Basic、PETG HF、ABS、ASA、PC 五种基体。基体名称用于读取已记录描述符；也可直接提供 $E_m$、$\nu_m$、$\rho_m$。九个输出均按留一基体交叉验证。", "",
+            "### 4. 输出定义及验证路径", "输出完整工程常数、6×6 刚度矩阵和正定性检查。固定纤维牌号、致密、完美界面、线弹性是当前模型假设；孔隙、界面脱粘、失效、强度与打印路径效应必须由实测或更高保真模型校准。",
+        ])
     if effective.get("model_domain") == "reusable_rocket_stainless":
         return _rocket_plan_block(effective)
     if effective.get("model_domain") == "ni_superalloy_hot_end":
@@ -664,6 +682,49 @@ def glass_summary_block(result: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def short_cf_summary_block(result: dict[str, Any]) -> str:
+    """User-facing orthotropic-elasticity report for the short-CF RVE route."""
+    sampling = result.get("sampling") or {}
+    candidates = result.get("initial_candidates") or []
+    conditions = result.get("screening_conditions") or {}
+    matrix_name = conditions.get("matrix_name") or "用户给定基体"
+    lines = [
+        "### 5. 筛选结果与候选卡",
+        f"针对短碳纤维增强热塑性复合材料，在 **{matrix_name}** 基体与固定短碳纤维 RVE 条件下，筛选可用于结构仿真初值的正交各向异性线弹性本构候选。",
+        f"共保留 **{len(candidates)}** 个满足 RVE 参数范围且刚度矩阵正定的候选进入优先验证队列。",
+        "候选围绕用户给定的体积分数、有效纤维长度与取向中心值作局部扰动；排序只比较当前基体和当前 RVE 参数窗口内的候选。",
+        "", "### 5.1 筛选过程", "| 阶段 | 数量 | 说明 |", "|---|---:|---|"]
+    stages = sampling.get("funnel_stages") or []
+    if stages:
+        lines += [f"| {x.get('label', '筛选阶段')} | {int(x.get('count', 0))} | {x.get('description', '按当前条件保留。')} |" for x in stages]
+    else:
+        lines += [f"| 局部配比候选 | {int(sampling.get('generated', 0))} | 围绕用户给定的 Vf、有效长度和取向窗口生成。 |", f"| RVE 参数域内 | {int(sampling.get('generated', 0))} | 基体描述符、Vf、有效长度和 a11 均位于已验证范围。 |", f"| 线弹性本构可用 | {int(sampling.get('feasible', 0))} | 由预测工程常数构建正定刚度矩阵，可作为有限元线弹性输入。 |"]
+    lines += ["", "当前服务先以纵向模量作为排序目标：", "", r"$$J=z(E_{11}),\qquad z(E_{11})=\frac{E_{11}-\mu_{E_{11}}}{\sigma_{E_{11}}}$$", "", "其中 $\mu_{E_{11}}$ 与 $\sigma_{E_{11}}$ 仅由本次局部候选池计算；$E_{11}/E_{22}$ 用于观察取向带来的刚度各向异性，而不是额外的通过门槛。", "", "{{VISUAL:short_cf_screening_funnel}}", "", "### 5.2 优先候选", "| 排名 | 基体 | Vf | 有效纤维长度 | a11 | E11 | E22 | E11/E22 |", "|---:|---|---:|---:|---:|---:|---:|---:|"]
+    for index, item in enumerate(candidates[:5], 1):
+        c = item.get("predicted_engineering_constants") or {}; inp = item.get("inputs") or {}
+        e11, e22 = float(c.get("E11_MPa", 0)), float(c.get("E22_MPa", 0))
+        lines.append(f"| {index} | {item.get('matrix_name', inp.get('matrix_name', '用户给定基体'))} | {float(inp.get('target_vf', 0)):.3f} | {float(inp.get('fiber_length_mm', 0)):.3f} mm | {float(inp.get('target_a11', 0)):.3f} | {e11/1000:.2f} GPa | {e22/1000:.2f} GPa | {e11/e22 if e22 else float('nan'):.2f} |")
+    if candidates:
+        top = candidates[0]; c = top.get("predicted_engineering_constants") or {}; inp = top.get("inputs") or {}; consistency = top.get("physical_consistency") or {}
+        stiffness = top.get("stiffness_matrix_MPa") or []
+        matrix_preview = "；".join("[" + ", ".join(f"{float(v):.0f}" for v in row[:3]) + ", …]" for row in stiffness[:3]) if stiffness else "未生成"
+        validation = top.get("validation") or {}
+        def mae(name: str, unit: str) -> str:
+            metrics = (validation.get(name) or {}).get("leave_one_matrix_out") or (validation.get(name) or {}).get("metrics") or validation.get(name) or {}
+            value = metrics.get("MAE") if isinstance(metrics, dict) else None
+            return f"{float(value):.4f} {unit}" if value is not None else "当前目录未收录"
+        lines += ["", "短名单中星形候选代表当前 $E_{11}$ 排名第一项。图中较高的 $E_{11}/E_{22}$ 表示更强的主方向刚度差异；是否接受该差异应由实际载荷方向和结构仿真边界决定。", "", "{{VISUAL:short_cf_stiffness_anisotropy}}", "", "#### 优先候选的完整本构卡", "| 项目 | 当前结果 |", "|---|---|",
+                  f"| 候选编号 | {top.get('candidate_id', '-')} |", f"| 基体与设计变量 | {top.get('matrix_name', inp.get('matrix_name', '用户给定基体'))}；Vf={float(inp.get('target_vf', 0)):.3f}；有效长度={float(inp.get('fiber_length_mm', 0)):.3f} mm；a11={float(inp.get('target_a11', 0)):.3f} |",
+                  f"| 纵向模量 | E11={float(c.get('E11_MPa', 0))/1000:.3f} GPa |", f"| 横向模量 | E22={float(c.get('E22_MPa', 0))/1000:.3f} GPa；E33={float(c.get('E33_MPa', 0))/1000:.3f} GPa |",
+                  f"| 剪切模量 | G12={float(c.get('G12_MPa', 0))/1000:.3f}；G13={float(c.get('G13_MPa', 0))/1000:.3f}；G23={float(c.get('G23_MPa', 0))/1000:.3f} GPa |",
+                  f"| 泊松比 | ν12={float(c.get('V12', 0)):.4f}；ν13={float(c.get('V13', 0)):.4f}；ν23={float(c.get('V23', 0)):.4f}；其余方向由互易关系导出 |",
+                  f"| 留一基体验证 MAE | E11：{mae('E11_MPa', 'MPa')}；E22：{mae('E22_MPa', 'MPa')}；G12：{mae('G12_MPa', 'MPa')}；ν12：{mae('V12', '')} |",
+                  f"| 本构物理一致性 | 刚度矩阵正定：{'通过' if consistency.get('positive_definite_stiffness') else '未通过'}；最小特征值 {float(consistency.get('min_stiffness_eigenvalue_MPa', 0)):.2f} MPa |",
+                  f"| 刚度矩阵 C（MPa）预览 | {matrix_preview} |", "", r"有限元输入使用工程常数或完整刚度矩阵均可；两者应满足 $\boldsymbol{\sigma}=\mathbf{C}\boldsymbol{\varepsilon}$，且坐标 1 轴与纤维主方向一致。", "", "{{VISUAL:short_cf_constitutive_card}}"]
+    lines += ["", "#### 结论", str(result.get("user_conclusion") or "当前候选可作为有限元中的正交各向异性线弹性本构初值，并应由打印件孔隙率、取向与力学试验校准。"), "建议先用当前完整刚度矩阵完成首轮结构刚度与变形敏感性分析，再以同一打印路径下的孔隙率、纤维取向和拉伸/剪切试验更新基体与界面条件。"]
+    return "\n".join(lines)
+
+
 def hot_end_summary_block(result: dict[str, Any]) -> str:
     """Customer-facing report for a conditional Ni-superalloy screening run."""
     conditions = result.get("screening_conditions") or {}
@@ -781,6 +842,17 @@ def _embed_glass_visuals(narrative: str, visual_assets: list[dict[str, str]] | N
     return narrative
 
 
+def _embed_short_cf_visuals(narrative: str, visual_assets: list[dict[str, str]] | None) -> str:
+    assets = {str(item.get("name")): item for item in visual_assets or []}
+    for name in ("short_cf_screening_funnel", "short_cf_stiffness_anisotropy", "short_cf_constitutive_card"):
+        token = f"{{{{VISUAL:{name}}}}}"; item = assets.get(name)
+        if not item or not str(item.get("url") or "").strip():
+            narrative = narrative.replace(token, ""); continue
+        title = str(item.get("title") or name); description = str(item.get("description") or "")
+        narrative = narrative.replace(token, f"#### {title}\n\n{description}\n\n![{title}]({item['url']})")
+    return narrative
+
+
 async def emit_result_content(websocket: Any, result: dict[str, Any], *, step_id: str = "FILAMENT_SELECTION_OPTIMIZATION", visual_assets: list[dict[str, str]] | None = None) -> None:
     """Stream LLM-rendered narrative/table like adjacent services, with safe fallback."""
     path = result.get("_summary_path")
@@ -791,6 +863,8 @@ async def emit_result_content(websocket: Any, result: dict[str, Any], *, step_id
         rendered_content = _embed_rocket_visuals(fallback, visual_assets)
     elif result.get("model_domain") == "chip_glass_thermomechanical_family_v1":
         rendered_content = _embed_glass_visuals(fallback, visual_assets)
+    elif result.get("model_domain") == "short_cf_thermomechanical_rve_v1":
+        rendered_content = _embed_short_cf_visuals(fallback, visual_assets)
     else:
         visuals = visual_assets_block(visual_assets)
         rendered_content = _place_visuals_before_conclusion(fallback, visuals)
