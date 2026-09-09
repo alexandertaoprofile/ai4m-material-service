@@ -613,6 +613,12 @@ async def emit_presentation_assets(websocket, result, *, step_id: str = "FILAMEN
     if not assets:
         logger.warning("[new-material-assets] no presentation assets taskid=%s", result.taskid)
         return ""
+    if os.getenv("AI4M_LOCAL_ONLY", "false").strip().lower() in {"1", "true", "yes", "on"}:
+        logger.info(
+            "[new-material-assets] remote publishing disabled; assets remain available through the local task route taskid=%s",
+            result.taskid,
+        )
+        return ""
     taskid = str(result.taskid).replace("/", "_")
     pipeline = "inorganic_new_material"
     jobid = taskid or "job"

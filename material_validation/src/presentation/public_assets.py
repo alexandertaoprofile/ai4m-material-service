@@ -16,6 +16,8 @@ async def publish_png_assets(taskid: str, assets: list[dict[str, Any]]) -> dict[
     Credentials are intentionally deployment-only.  A failure is surfaced to
     the caller, which then retains the existing task-asset fallback.
     """
+    if os.getenv("AI4M_LOCAL_ONLY", "false").strip().lower() in {"1", "true", "yes", "on"}:
+        raise RuntimeError("remote asset publishing is disabled in local-only mode")
     required = ("MINIO_ENDPOINT", "MINIO_ACCESS_KEY_ID", "MINIO_ACCESS_KEY_SECRET")
     missing = [key for key in required if not os.getenv(key)]
     if missing:
