@@ -84,16 +84,25 @@ def requested_properties(target_properties: dict, validation_targets: dict) -> t
 
 
 def _run_alignn(model_name: str, cif_path: Path, timeout_sec: int) -> float:
+    micromamba = os.environ.get("MICROMAMBA_EXECUTABLE", "micromamba").strip() or "micromamba"
+    environment_prefix = os.environ.get("ALIGNN_ENV_PREFIX", "").strip()
     environment_name = os.environ.get("ALIGNN_ENV", "alignn-gpu-test")
+    environment_command = (
+        [micromamba, "run", "-p", environment_prefix]
+        if environment_prefix
+        else [micromamba, "run", "-n", environment_name]
+    )
     command = [
-        "micromamba", "run", "-n", environment_name,
+        *environment_command,
         "python", "-m", "alignn.pretrained",
         "--model_name", model_name,
         "--file_format", "cif",
         "--file_path", str(cif_path),
     ]
+    environment = os.environ.copy()
+    environment.setdefault("DGLBACKEND", "pytorch")
     completed = subprocess.run(
-        command, text=True, capture_output=True, check=False, timeout=timeout_sec,
+        command, text=True, capture_output=True, check=False, timeout=timeout_sec, env=environment,
     )
     output = (completed.stdout or "") + ("\n" + completed.stderr if completed.stderr else "")
     if completed.returncode != 0:
@@ -154,7 +163,7 @@ def predict_candidate_properties(
         "status": "ok" if predictions else "unavailable",
         "requested_properties": list(property_names),
         "completed_properties": sorted(predictions),
-        "environment": os.environ.get("ALIGNN_ENV", "alignn-gpu-test"),
+        "environment": os.environ.get("ALIGNN_ENV_PREFIX") or os.environ.get("ALIGNN_ENV", "alignn-gpu-test"),
     }
     return validation
 
