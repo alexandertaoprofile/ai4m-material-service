@@ -26,6 +26,9 @@ ASSET_DOCS = {
     "short_cf_screening_funnel": "展示短碳纤维 RVE 原始记录、输入预检、当前适用域、刚度矩阵正定性与优先短名单的实际保留数量。",
     "short_cf_stiffness_anisotropy": "每个点代表一个短纤维 RVE 候选；横轴为横向模量 E22、纵轴为纵向模量 E11，颜色表示各向异性比 E11/E22。",
     "short_cf_constitutive_card": "展示当前优先候选的六个弹性模量常数；完整 6×6 刚度矩阵与全部泊松比在结构化结果中可直接读取。",
+    "perovskite_screening_funnel": "展示可追溯的钙钛矿训练组分如何按 220 K 与 300 K 的低电输运响应收缩为验证短名单。",
+    "perovskite_transport_tradeoff": "每个点代表一个文档化组分；横轴为 300 K 的 ln[sigmaT]，越低表示当前输运代理下更优，星形为优先项。",
+    "perovskite_response_curve": "展示优先候选在 170–330 K 的预测 ln[sigmaT] 曲线及经验 Q90 误差带；不是寿命曲线。",
 }
 ASSET_TITLES = {
     "screening_funnel": "候选筛选漏斗",
@@ -44,6 +47,9 @@ ASSET_TITLES = {
     "short_cf_screening_funnel": "短碳纤维复合材料候选筛选路径",
     "short_cf_stiffness_anisotropy": "纵向刚度—各向异性取舍",
     "short_cf_constitutive_card": "优先候选的工程弹性常数",
+    "perovskite_screening_funnel": "钙钛矿候选筛选路径",
+    "perovskite_transport_tradeoff": "电输运响应—有效 Ea 取舍",
+    "perovskite_response_curve": "优先候选的变温电输运响应",
 }
 logger = logging.getLogger("alloy.protocol")
 

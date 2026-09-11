@@ -113,6 +113,29 @@ class MatureMaterialServiceTest(unittest.TestCase):
         self.assertEqual(result["screening"]["summary"]["candidates_evaluated"], 1)
         self.assertEqual(result["screening"]["summary"]["eligible_candidates"], 1)
 
+    def test_copper_hot_wall_grade_pack_is_queryable_with_source_curve(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            service = self._service(Path(temporary))
+            payload = {
+                "taskid": "unit-copper-grcop84", "idea": "核验 GRCop-84 在 900 K 的导热率",
+                "mature_material": {"material_queries": ["GRCop-84"], "service_temperature_C": 626.85,
+                    "property_constraints": [{"property": "thermal_conductivity", "operator": ">=", "value": 250, "unit": "W/(m·K)"}]},
+            }
+            result = asyncio.run(service.run(service.contract(payload)))
+        candidate = result["results"][0]
+        self.assertEqual(candidate["material"]["material_id"], "MAT-CU-GRCOP84")
+        self.assertTrue(candidate["eligible"])
+        self.assertEqual(candidate["evidence"][0]["observed"]["coverage"], "interpolated_within_range")
+
+    def test_copper_narloy_z_keeps_low_cycle_fatigue_source_points(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            service = self._service(Path(temporary))
+            result = asyncio.run(service.run(service.contract({"taskid": "unit-copper-narloy", "idea": "查询 NARloy-Z 低周疲劳", "mature_material": {"material_queries": ["NARloy-Z"]}})))
+        properties = result["results"][0]["available_properties"]
+        lcf = [item for item in properties if item["property"] == "low_cycle_fatigue_life"]
+        self.assertEqual(len(lcf), 7)
+        self.assertEqual(lcf[0]["unit"], "cycles")
+
     def test_catalogue_screening_presentation_uses_funnel_and_distribution_assets(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             service = self._service(Path(temporary))

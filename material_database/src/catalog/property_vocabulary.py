@@ -41,6 +41,7 @@ PROPERTY_VOCABULARY = (
     ("surface_roughness_ra", "表面粗糙度 Ra", ("表面粗糙度", "粗糙度", "Ra"), r"(?:μm|um)", "μm"),
     ("material_cost", "单位质量成本", ("单位质量成本", "材料成本", "成本"), r"(?:USD|\$)\s*/\s*kg", "USD/kg"),
     ("fatigue_strength", "疲劳强度", ("疲劳强度", "疲劳极限"), r"MPa", "MPa"),
+    ("low_cycle_fatigue_life", "低周疲劳寿命", ("低周疲劳寿命", "低周疲劳", "LCF寿命"), r"(?:cycles|次)", "cycles"),
     # This is deliberately qualitative: oxidation resistance has no single
     # transferable unit across mass-gain, scale-spallation and exposure tests.
     # Recognising it makes an unrecorded requirement visible as a data gap;

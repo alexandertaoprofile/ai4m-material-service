@@ -5,6 +5,7 @@ import time
 from typing import Any
 
 from src.alloy_workflow.contracts import contract, requirement_plan
+from src.alloy_workflow.fallback import generic_fallback_result
 from src.alloy_workflow.runner import HEASurrogateRunner
 
 
@@ -21,7 +22,13 @@ class AlloyOptimizationApplication:
         self.service_name = service_name
 
     def propose_space(self, payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
-        effective, plan = requirement_plan(payload)
+        try:
+            effective, plan = requirement_plan(payload)
+        except ValueError as exc:
+            # The gateway has already selected this service.  Return a clearly
+            # bounded formulation-design result instead of surfacing a raw
+            # routing exception to the customer.
+            return generic_fallback_result(payload, str(exc), self.service_name)
         if plan.get("requires_domain_confirmation"):
             raise ValueError("请先确认采用高温镍基合金还是 HEA/MPEA 路线后开始配方筛选")
         normalized = dict(payload)
@@ -29,7 +36,7 @@ class AlloyOptimizationApplication:
         constraints = contract(normalized)
         constraints["raw_scope"] = effective
         started = time.perf_counter()
-        operation = "propose_space" if effective.get("model_domain") in {"chip_glass_thermomechanical_family_v1", "short_cf_thermomechanical_rve_v1"} else "propose"
+        operation = "propose_space" if effective.get("model_domain") in {"chip_glass_thermomechanical_family_v1", "short_cf_thermomechanical_rve_v1", "perovskite_transport_stability_v2"} else "propose"
         result = self.runner.run(constraints["taskid"], operation, constraints)
         result.update({"taskid": constraints["taskid"], "status": "completed", "service": self.service_name, "elapsed_seconds": round(time.perf_counter() - started, 3)})
         self._enrich(result, plan)
@@ -49,6 +56,15 @@ class AlloyOptimizationApplication:
             result["model_evidence"] = {"model_version":result.get("model_version"),"data_type":"945 条通过预检的 FAST_RF RVE 线弹性标签；5 种基体轮流完全留出。","validation":"9 个独立工程常数分别按留一基体交叉验证；基体名称不作为输入。"}
             result["next_actions"] = ["确认基体弹性描述符与有效纤维长度/取向", "将正交各向异性刚度矩阵输入结构仿真", "补充真实打印件孔隙率、取向与力学试验以校准 RVE—实物偏差"]
             result["user_conclusion"] = "当前候选用于短碳纤维增强热塑性复合材料的正交各向异性线弹性本构初筛；输出包含 9 个独立工程常数和正定刚度矩阵。"
+            return
+        if result.get("model_domain") == "perovskite_transport_stability_v2":
+            result["requirement_interpretation"] = plan
+            result["model_evidence"] = {"model_version": result.get("model_version"), "data_type": "65 个可追溯 Cs/FA/MA–Pb(I,Br)3 组分、1105 条 170–330 K 变温输运记录。", "validation": "嵌套留一组分（LOCO）：曲线 MAE 1.07 ln[sigmaT]，R² 0.7837；Ea_low MAE 0.072 eV、Ea_high MAE 0.060 eV。"}
+            result["next_actions"] = ["在短名单上实测温变电导/离子迁移响应", "再以湿热、光照和偏压老化验证器件稳定性", "需要寿命预测时补充带环境条件的 T80/分解数据"]
+            result["user_conclusion"] = "本轮按低 ln[sigma(T)T] 电输运响应筛选可追溯钙钛矿配比；它是高稳定性实验的优先级输入，不是器件寿命或 PCE 预测。"
+            return
+        if result.get("model_domain") == "copper_hot_end_local_composition_v1":
+            self._enrich_copper_local(result, plan)
             return
         if result.get("model_domain") == "ni_superalloy_hot_end":
             self._enrich_hot_end(result, plan)
@@ -72,8 +88,8 @@ class AlloyOptimizationApplication:
     def _enrich_chip_glass(self, result: dict[str, Any], plan: dict[str, Any]) -> None:
         result["requirement_interpretation"] = plan
         result["model_evidence"] = {"model_version": result.get("model_version"), "data_type": "US20250026678 低硼无碱铝硼硅酸盐玻璃的可追溯组分与热机械记录；候选仅作同家族局部扰动。", "validation": {"CTE_0_300C": "MAE 0.048 ppm/K", "density": "MAE 0.0045 g/cm³", "young_modulus": "MAE 0.244 GPa", "SOC": "MAE 0.112 nm/cm/MPa"}}
-        result["next_actions"] = ["确认候选与来源锚点的制样窗口", "实测同批泊松比、k(T)、Cp(T)", "输入实际层堆、厚度、边界和热历史后计算残余应力与翘曲"]
-        result["downstream_handoff_text"] = "候选保留氧化物 mol% 配方、来源锚点、六项玻璃侧预测和适用域，可作为实验设计与后续受限优化的初始池。"
+        result["next_actions"] = ["以 D 级 ν/k(T)/Cp(T) 完成首轮敏感性仿真", "实测同批泊松比、k(T)、Cp(T) 以替换 D 级估算", "输入实际层堆、厚度、边界和热历史后计算残余应力与翘曲"]
+        result["downstream_handoff_text"] = "候选保留氧化物 mol% 配方、来源锚点、六项已验证玻璃侧预测与三项带 ± 不确定度的 D 级仿真初值；D 级估算不进入候选排序，可作为实验设计与后续受限优化的初始池。"
 
     def _enrich_rocket_stainless(self, result: dict[str, Any], plan: dict[str, Any]) -> None:
         result["requirement_interpretation"] = plan
@@ -139,3 +155,20 @@ class AlloyOptimizationApplication:
             result["user_conclusion"] = "当前元素边界与工况下未形成可比较的候选；请放宽边界或检查路线、热处理、温度与载荷是否落在数据支持范围。"
         result["next_actions"] = ["确认优先候选的成分与热处理", "开展 CALPHAD 相稳定性和氧化风险筛查", "对前 2–3 个候选进行蠕变/拉伸验证"]
         result["downstream_handoff_text"] = "候选由已有高温镍基合金锚点的局部扰动生成，保留来源锚点和适用域信息；可用于下一步严格热力学与试验计划。"
+
+    def _enrich_copper_local(self, result: dict[str, Any], plan: dict[str, Any]) -> None:
+        result["requirement_interpretation"] = plan
+        validation = result.get("validation") or {}
+        result["model_evidence"] = {"model_version": result.get("model_version"), "data_type": "177 条来源审计后的铜合金短时拉伸记录；主模型仅使用 Cu-Cr-Nb-Zr-Ag-Al-O-Ni-Fe-Ti 主域和显式工艺状态。室温 %IACS 采用独立的 Gorsse CC0 全工艺字段辅助数据集。", "validation": {"UTS": validation.get("uts"), "0.2%_yield": validation.get("yield"), "room_temperature_IACS_auxiliary": result.get("auxiliary_validation")}}
+        candidates = result.get("initial_candidates") or []
+        if candidates:
+            top = candidates[0]; tensile = top["short_time_tensile"]
+            comp = "；".join(f"{key} {float(value):g}" for key, value in top["composition_wt_percent"].items() if float(value) > 0)
+            iacs = ((top.get("additional_properties") or {}).get("electrical_conductivity_percent_IACS") or {}).get("mean")
+            aux_text = f"；室温 %IACS（C 级辅助预测）{float(iacs):.1f}" if iacs is not None else ""
+            strength_level = tensile["ultimate_tensile_strength_MPa"].get("evidence_level", "B")
+            result["user_conclusion"] = f"在给定工艺状态和温度下，优先进入验证的局部候选为 {top['candidate_id']}（{comp} wt.%）：短时 UTS 筛选值 {tensile['ultimate_tensile_strength_MPa']['mean']:.0f} MPa、0.2% 屈服筛选值 {tensile['yield_0p2_MPa']['mean']:.0f} MPa{aux_text}。{strength_level} 级强度结果反映成分、状态和温度的联合适用域；C/D 级附加性质仅用于工艺窗口和验证规划。"
+        else:
+            result["user_conclusion"] = "当前边界未生成物理有序的局部候选；请收窄到主元素域并确认工艺状态。"
+        result["next_actions"] = ["确认候选的实际制造/热处理状态和目标温度", "对前 2–3 个候选开展同状态短时拉伸与室温电导复测", "以热导/CTE/硬度 D 级区间制定验证计划；低周疲劳、蠕变在补齐载荷与温度边界后建立独立试验关卡"]
+        result["downstream_handoff_text"] = "交接内容包含 wt.% 配比、工艺状态、温度、独立分组验证误差和来源锚点；后续优化必须保留主域与状态条件。"

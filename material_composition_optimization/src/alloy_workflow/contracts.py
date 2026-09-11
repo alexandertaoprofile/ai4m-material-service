@@ -38,8 +38,8 @@ _HEA_EXPLORATION_PATTERN = re.compile(
     re.IGNORECASE,
 )
 _CHIP_GLASS_PATTERN = re.compile(
-    r"玻璃基板|封装玻璃|芯片玻璃|玻璃配方|低硼无碱|铝硼硅酸盐玻璃|"
-    r"chip.?glass|glass.?substrate|alumino.?borosilicate",
+    r"玻璃基板|玻璃芯基板|玻璃核基板|封装玻璃|芯片玻璃|玻璃配方|低硼无碱|铝硼硅酸盐玻璃|"
+    r"chip.?glass|glass.?core.?substrate|glass.?substrate|alumino.?borosilicate",
     re.IGNORECASE,
 )
 _SHORT_CF_PATTERN = re.compile(
@@ -52,6 +52,72 @@ _SHORT_CF_PATTERN = re.compile(
     r"(?:体分比|体积分数)[^。；;]{0,80}(?:有效长度|打印取向)",
     re.IGNORECASE,
 )
+_PEROVSKITE_PATTERN = re.compile(
+    r"钙钛矿|perovskite|卤化物钙钛矿|Cs/FA/MA|Cs.*FA.*MA|碘溴|I/Br|"
+    r"离子迁移|离子电导|电输运稳定|变温电导",
+    re.IGNORECASE,
+)
+_COPPER_HOT_END_PATTERN = re.compile(
+    r"GRCop[ -]?(?:42|84)|NARloy[ -]?Z|CuCrZr|Cu-?1Cr|铜基(?:合金)?|"
+    r"再生冷却|燃烧室(?:内衬|壁)?|液氢|甲烷冷却|热流密度|铜合金", re.IGNORECASE,
+)
+
+
+def _is_negated_material_mention(text: str, start: int) -> bool:
+    """Whether the material token at ``start`` is explicitly excluded.
+
+    This intentionally reads the words *before* a token, so ``不锈钢`` is not
+    confused with a negated "锈钢" material mention.  It accepts short Chinese
+    clauses such as ``不做玻璃基板`` and ``不考虑使用镍基合金``.
+    """
+    prefix = text[max(0, start - 48):start]
+    direct_negation = re.search(
+        r"(?:不(?:做|选|采用|选用|使用|考虑|需要|选择|包含|含|含有|进入|要)|不是|不属于|不适用|"
+        r"排除|禁止|避免|无|非)\s*(?:[、，,：:（）()\-—/\s]|使用|采用|作为){0,12}$",
+        prefix,
+        re.IGNORECASE,
+    )
+    if direct_negation:
+        return True
+
+    # A single request can negate a compound material name, e.g.
+    # ``不考虑使用短碳纤维复合耗材``.  Regexes for a domain may match both
+    # ``短碳纤维`` and the later ``复合耗材``; allow the negation to cover the
+    # rest of that short clause, while stopping at a sentence boundary.
+    return bool(re.search(
+        r"(?:不(?:做|选|采用|选用|使用|考虑|需要|选择|包含|含|含有|进入|要)|不是|不属于|不适用|"
+        r"排除|禁止|避免|无|非)[^。；;\n]{0,40}$",
+        prefix,
+        re.IGNORECASE,
+    ))
+
+
+def _has_active_pattern(pattern: re.Pattern[str], text: str) -> bool:
+    return any(not _is_negated_material_mention(text, match.start()) for match in pattern.finditer(text))
+
+
+def _has_active_literal(text: str, literal: str) -> bool:
+    start = text.casefold().find(literal.casefold())
+    while start >= 0:
+        if not _is_negated_material_mention(text, start):
+            return True
+        start = text.casefold().find(literal.casefold(), start + len(literal))
+    return False
+
+
+def is_copper_hot_end_intent(text: str, scope: dict[str, Any]) -> bool:
+    return scope.get("model_domain") == "copper_hot_end_local_composition_v1" or _has_active_pattern(_COPPER_HOT_END_PATTERN, text)
+
+
+def is_copper_local_composition_intent(text: str, scope: dict[str, Any]) -> bool:
+    """Keep named-grade evidence queries separate from bounded composition design."""
+    if scope.get("model_domain") == "copper_hot_end_local_composition_v1":
+        return True
+    if not is_copper_hot_end_intent(text, scope):
+        return False
+    if any(key in scope for key in ("composition_wt_percent", "element_bounds_wt_percent", "processing_state")):
+        return True
+    return bool(re.search(r"配比|成分(?:设计|优化|筛选|生成)?|组分|wt\.?%|含量|局部(?:优化|配比)", text, re.IGNORECASE))
 
 
 def is_reusable_rocket_stainless_intent(text: str, scope: dict[str, Any]) -> bool:
@@ -60,19 +126,22 @@ def is_reusable_rocket_stainless_intent(text: str, scope: dict[str, Any]) -> boo
         return True
     lowered = text.casefold()
     explicit_terms = ("可回收火箭", "火箭贮箱", "火箭壳体", "低温不锈钢", "奥氏体不锈钢", "304l", "301ln", "cryoforming", "30x")
-    if any(term in lowered for term in explicit_terms):
+    if any(_has_active_literal(text, term) for term in explicit_terms):
         return True
-    rocket = any(term in lowered for term in ("火箭", "航天器", "航天飞行器"))
-    stainless = any(term in lowered for term in ("不锈钢", "stainless"))
-    reusable_structure = any(term in lowered for term in ("可回收", "回收", "贮箱", "壳体", "外壳", "承压壳", "表面壳"))
+    rocket = any(_has_active_literal(text, term) for term in ("火箭", "航天器", "航天飞行器"))
+    stainless = any(_has_active_literal(text, term) for term in ("不锈钢", "stainless"))
+    reusable_structure = any(_has_active_literal(text, term) for term in ("可回收", "回收", "贮箱", "壳体", "外壳", "承压壳", "表面壳"))
     return rocket and stainless and reusable_structure
 
 
 def is_chip_glass_intent(text: str, scope: dict[str, Any]) -> bool:
-    return scope.get("model_domain") == "chip_glass_thermomechanical_family_v1" or bool(_CHIP_GLASS_PATTERN.search(text))
+    return scope.get("model_domain") == "chip_glass_thermomechanical_family_v1" or _has_active_pattern(_CHIP_GLASS_PATTERN, text)
 
 def is_short_cf_intent(text: str, scope: dict[str, Any]) -> bool:
-    return scope.get("model_domain") == "short_cf_thermomechanical_rve_v1" or bool(_SHORT_CF_PATTERN.search(text))
+    return scope.get("model_domain") == "short_cf_thermomechanical_rve_v1" or _has_active_pattern(_SHORT_CF_PATTERN, text)
+
+def is_perovskite_intent(text: str, scope: dict[str, Any]) -> bool:
+    return scope.get("model_domain") == "perovskite_transport_stability_v2" or _has_active_pattern(_PEROVSKITE_PATTERN, text)
 
 
 def short_cf_matrix_from_text(text: str) -> str | None:
@@ -142,17 +211,33 @@ def _hot_end_context_overrides(text: str) -> dict[str, Any]:
 
 
 def is_composite_material_request(text: str, scope: dict[str, Any]) -> bool:
-    """Reject composite systems before an element-only alloy model is selected."""
+    """Identify a requested composite material, respecting explicit exclusions.
+
+    A request such as ``不含树脂、纤维、填料或复合相`` describes a
+    *monolithic* alloy boundary.  The former keyword-only check treated this
+    sentence as a composite request and rejected the exact task it was meant
+    to admit.  Keep the rule intentionally local: a negation in the short
+    clause immediately before the matched material term is sufficient to
+    exclude that term from composite routing.
+    """
     scope_text = json.dumps(scope, ensure_ascii=False, default=str)
-    return bool(_COMPOSITE_MATERIAL_PATTERN.search(f"{text}\n{scope_text}"))
+    combined = f"{text}\n{scope_text}"
+    for match in _COMPOSITE_MATERIAL_PATTERN.finditer(combined):
+        # Reuse the same clause-aware negation semantics as specialist
+        # routing.  Thus “不包含碳纤维材料” and “不要树脂、纤维、填料” are
+        # material exclusions, rather than an affirmative composite signal.
+        if _is_negated_material_mention(combined, match.start()):
+            continue
+        return True
+    return False
 
 
 def is_ni_hot_end_intent(text: str, scope: dict[str, Any]) -> bool:
     """Recognize hot-section nickel-alloy tasks from material or service cues."""
     if scope.get("model_domain") == "ni_superalloy_hot_end":
         return True
-    return bool(_NI_HOT_END_PATTERN.search(text)) or bool(
-        _ENGINE_PATTERN.search(text) and _HIGH_TEMPERATURE_PATTERN.search(text)
+    return _has_active_pattern(_NI_HOT_END_PATTERN, text) or bool(
+        _has_active_pattern(_ENGINE_PATTERN, text) and _has_active_pattern(_HIGH_TEMPERATURE_PATTERN, text)
     )
 
 
@@ -161,7 +246,7 @@ def is_hea_exploration_intent(text: str, scope: dict[str, Any]) -> bool:
     if scope.get("model_domain") == "hea_mpea":
         return True
     lowered = text.casefold()
-    explicit_system = any(token in lowered for token in ("hea", "mpea", "高熵", "多主元"))
+    explicit_system = any(_has_active_literal(text, token) for token in ("hea", "mpea", "高熵", "多主元"))
     composition_intent = any(token in lowered for token in ("配比", "成分", "元素比例", "原子百分比", "at.%", "优化", "筛选", "设计"))
     detected_elements = {
         symbol.casefold()
@@ -204,10 +289,33 @@ def context_text(value: Any, limit: int = 12000) -> str:
             except (TypeError, json.JSONDecodeError):
                 chunks.append(text)
         elif isinstance(item, dict):
+            # Conversation history is evidence of what has already happened,
+            # not a new material request.  In particular, an earlier assistant
+            # refusal may say "树脂/纤维/复合材料" and must never reverse a
+            # later user statement such as "不含树脂、纤维、填料".  Retain only
+            # user-authored message content when an envelope carries roles.
+            role = str(item.get("role") or item.get("speaker") or "").strip().casefold()
+            if role in {"assistant", "system", "tool", "function", "agent", "bot"}:
+                return
             for key in ("idea", "content", "text", "query", "requirement", "summary", "message", "project_idea", "conversation_context", "upstream_result", "material_conclusion", "history", "messages", "conversation", "upstream_context", "previous_results"):
                 if item.get(key) is not None:
                     visit(item[key])
         elif isinstance(item, list):
+            # A role-labelled conversation may contain contradictory historic
+            # user turns.  The current turn is the last user message; earlier
+            # material systems must not be allowed to steer this request.
+            role_messages = [
+                child for child in item
+                if isinstance(child, dict)
+                and str(child.get("role") or child.get("speaker") or "").strip().casefold()
+            ]
+            if role_messages:
+                latest_user = next((child for child in reversed(role_messages)
+                                    if str(child.get("role") or child.get("speaker") or "").strip().casefold()
+                                    in {"user", "human", "customer"}), None)
+                if latest_user is not None:
+                    visit(latest_user)
+                return
             for child in item:
                 visit(child)
 
@@ -216,7 +324,14 @@ def context_text(value: Any, limit: int = 12000) -> str:
 
 
 def upstream_requirement(payload: dict[str, Any]) -> tuple[str, list[str]]:
-    keys = [key for key in ("idea", "content", "query", "project_idea", "conversation_context", "upstream_result", "material_conclusion", "history", "messages", "conversation", "upstream_context", "previous_results") if payload.get(key) is not None]
+    # A direct user request always takes precedence over an accumulated
+    # transcript or an upstream agent report.  This prevents stale rejection
+    # language from becoming a routing signal on a follow-up turn.
+    direct_keys = [key for key in ("idea", "content", "query", "project_idea") if payload.get(key) is not None]
+    direct_text = context_text({key: payload[key] for key in direct_keys})
+    if direct_text:
+        return direct_text, direct_keys
+    keys = [key for key in ("conversation_context", "upstream_result", "material_conclusion", "history", "messages", "conversation", "upstream_context", "previous_results") if payload.get(key) is not None]
     return context_text({key: payload[key] for key in keys}), keys
 
 
@@ -229,6 +344,8 @@ def is_alloy_request(text: str, scope: dict[str, Any]) -> bool:
     if is_reusable_rocket_stainless_intent(text, scope):
         return True
     if is_ni_hot_end_intent(text, scope):
+        return True
+    if is_copper_hot_end_intent(text, scope):
         return True
     hea_system = is_hea_exploration_intent(text, scope)
     composition_intent = any(token in lowered for token in ("配比", "成分", "元素比例", "原子百分比", "at.%", "优化"))
@@ -253,23 +370,28 @@ def contract(payload: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("alloy_optimization must be an object")
     upstream_context, upstream_keys = upstream_requirement(payload)
     short_cf_request = is_short_cf_intent(upstream_context, scope)
+    perovskite_request = is_perovskite_intent(upstream_context, scope)
     if is_composite_material_request(upstream_context, scope) and not short_cf_request:
         raise ValueError("本服务仅适用于单一金属合金的元素配比优化；包含树脂、纤维、填料或其他复合相的材料应使用复合材料专项流程")
     glass_request = is_chip_glass_intent(upstream_context, scope)
-    if not short_cf_request and not glass_request and not is_alloy_request(upstream_context, scope):
+    if not short_cf_request and not glass_request and not perovskite_request and not is_alloy_request(upstream_context, scope):
         raise ValueError("本服务仅处理合金/高温合金的成分或配比优化；已有材料查询请使用成熟材料服务，非合金新材料生成请使用新材料服务")
     domain = scope.get("model_domain", "hea_mpea")
-    if domain not in {"hea_mpea", "conventional_alloy", "refractory_calculated", "ni_superalloy_hot_end", "reusable_rocket_stainless", "chip_glass_thermomechanical_family_v1", "short_cf_thermomechanical_rve_v1"}:
+    if domain not in {"hea_mpea", "conventional_alloy", "refractory_calculated", "ni_superalloy_hot_end", "copper_hot_end_local_composition_v1", "reusable_rocket_stainless", "chip_glass_thermomechanical_family_v1", "short_cf_thermomechanical_rve_v1", "perovskite_transport_stability_v2"}:
         raise ValueError("unsupported model_domain")
     common = {"taskid": task_id(payload), "raw_requirement": upstream_context, "upstream_context": upstream_context, "upstream_context_keys": upstream_keys, "model_domain": domain, "objectives": scope.get("objectives", {}), "constraints": scope.get("constraints", {})}
     if domain == "ni_superalloy_hot_end":
         return {**common, "composition_wt_percent": scope.get("composition_wt_percent"), "element_bounds_wt_percent": scope.get("element_bounds_wt_percent", {}), "manufacturing_route": scope.get("manufacturing_route"), "heat_treatment": scope.get("heat_treatment"), "test_temperature_C": scope.get("test_temperature_C"), "applied_stress_MPa": scope.get("applied_stress_MPa"), "screening_thresholds": scope.get("screening_thresholds", {}), "casting_gradient_K_per_mm": scope.get("casting_gradient_K_per_mm"), "num_candidates": scope.get("num_candidates", 120), "random_seed": scope.get("random_seed", 20260901)}
+    if domain == "copper_hot_end_local_composition_v1":
+        return {**common, "composition_wt_percent": scope.get("composition_wt_percent"), "composition_family": scope.get("composition_family", "GRCop_type_Cu_Cr_Nb"), "element_bounds_wt_percent": scope.get("element_bounds_wt_percent", {}), "processing_state": scope.get("processing_state", "as_received"), "test_temperature_C": scope.get("test_temperature_C", 25), "ambient_process": scope.get("ambient_process", {}), "num_candidates": scope.get("num_candidates", 12), "random_seed": scope.get("random_seed", 20260911)}
     if domain == "reusable_rocket_stainless":
         return {**common, "composition_wt_percent": scope.get("composition_wt_percent"), "element_bounds_wt_percent": scope.get("element_bounds_wt_percent", {}), "test_temperature_K": scope.get("test_temperature_K"), "processing": scope.get("processing", {}), "component": scope.get("component"), "weld_state": scope.get("weld_state", "base_metal"), "thickness_mm": scope.get("thickness_mm"), "low_temperature_verification_K": scope.get("low_temperature_verification_K", [90, 111]), "verification_focus": scope.get("verification_focus", []), "num_candidates": scope.get("num_candidates", 40), "random_seed": scope.get("random_seed", 20260902)}
     if domain == "chip_glass_thermomechanical_family_v1":
         return {**common, "composition_basis": "mol_percent", "composition_mol_percent": scope.get("composition_mol_percent"), "oxide_bounds_mol_percent": scope.get("oxide_bounds_mol_percent", {}), "screening_thresholds": scope.get("screening_thresholds", {}), "num_candidates": scope.get("num_candidates", 80), "random_seed": scope.get("random_seed", 20260904), "application": scope.get("application", "芯片封装玻璃基板的热失配与挠曲初筛"), "service_options": scope.get("service_options", {})}
     if domain == "short_cf_thermomechanical_rve_v1":
         return {**common, "matrix_name": scope.get("matrix_name"), "matrix_properties": scope.get("matrix_properties", {}), "target_vf": scope.get("target_vf"), "fiber_length_mm": scope.get("fiber_length_mm"), "target_a11": scope.get("target_a11"), "num_candidates": scope.get("num_candidates", 40), "random_seed": scope.get("random_seed", 20260907), "screening_thresholds": scope.get("screening_thresholds", {})}
+    if domain == "perovskite_transport_stability_v2":
+        return {**common, "composition": scope.get("composition"), "fractions": scope.get("fractions", {}), "temperatures_K": scope.get("temperatures_K", [170, 220, 300, 330]), "num_candidates": scope.get("num_candidates", 5), "screening_thresholds": scope.get("screening_thresholds", {})}
     return {**common, "composition": scope.get("composition"), "allowed_elements": scope.get("allowed_elements", []), "element_bounds_at_pct": scope.get("element_bounds_at_pct", {}), "processing_method": scope.get("processing_method"), "test_temperature_C": scope.get("test_temperature_C", 25)}
 
 
@@ -289,10 +411,21 @@ def requirement_plan(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str,
     supplied = dict(payload.get("alloy_optimization") or payload.get("hea_optimization") or payload.get("constraints") or {})
     idea, upstream_keys = upstream_requirement(payload)
     short_cf_intent = is_short_cf_intent(idea, supplied)
-    if is_composite_material_request(idea, supplied) and not short_cf_intent:
-        raise ValueError("本服务仅适用于单一金属合金的元素配比优化；包含树脂、纤维、填料或其他复合相的材料应使用复合材料专项流程")
+    perovskite_intent = is_perovskite_intent(idea, supplied)
     glass_intent = is_chip_glass_intent(idea, supplied)
-    if not short_cf_intent and not glass_intent and not is_alloy_request(idea, supplied):
+    rocket_intent = is_reusable_rocket_stainless_intent(idea, supplied)
+    copper_hot_end_intent = is_copper_hot_end_intent(idea, supplied)
+    copper_local_intent = is_copper_local_composition_intent(idea, supplied)
+    hot_end_intent = is_ni_hot_end_intent(idea, supplied)
+    # A concrete requested specialist material is stronger evidence than a
+    # generic material word used in an exclusion clause.  This keeps requests
+    # such as “玻璃基板，不包含碳纤维” and “30X 不锈钢，排除树脂/纤维” on
+    # their intended trained routes.
+    specialist_intent = any((short_cf_intent, perovskite_intent, glass_intent,
+                             rocket_intent, copper_hot_end_intent, hot_end_intent))
+    if is_composite_material_request(idea, supplied) and not specialist_intent:
+        raise ValueError("本服务仅适用于单一金属合金的元素配比优化；包含树脂、纤维、填料或其他复合相的材料应使用复合材料专项流程")
+    if not short_cf_intent and not glass_intent and not perovskite_intent and not is_alloy_request(idea, supplied):
         raise ValueError("本服务仅适用于合金或高温合金的成分优化，不适用于一般高温材料查询或非合金新材料生成")
     if short_cf_intent:
         inferred = {"model_domain":"short_cf_thermomechanical_rve_v1","matrix_name":"Bambu_PLA_Basic","target_vf":0.10,"fiber_length_mm":0.035,"target_a11":0.70,"num_candidates":40,"random_seed":20260907,"objectives":{"E11_MPa":{"goal":"maximize"},"anisotropy_ratio_E11_E22":{"goal":"maximize"}}}
@@ -308,15 +441,27 @@ def requirement_plan(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str,
         effective.update({key: value for key, value in supplied.items() if value not in (None, [], {}, "")})
         provenance = {key: ("user" if key in supplied and supplied[key] not in (None, [], {}, "") else "platform_default") for key in effective}
         return effective, {"parser": "rule_template_v0", "raw_requirement": idea, "upstream_context_keys": upstream_keys, "template": "chip_glass_thermomechanical_local_screening", "effective_model_input": effective, "field_provenance": provenance, "default_assumptions": [{"field": key, "value": inferred[key], "status": "platform_default"} for key in inferred if provenance[key] == "platform_default"], "questions_to_confirm": ["可提供实际氧化物 mol% 边界、目标 CTE/E/SOC 门槛、玻璃厚度、层堆和温度循环，以替换默认探索条件。"], "evidence_notice": "候选只在低硼无碱玻璃家族的可追溯局部邻域内生成；残余应力和翘曲须结合层堆与热历史计算。"}
-    rocket_intent = is_reusable_rocket_stainless_intent(idea, supplied)
+    if perovskite_intent:
+        inferred = {"model_domain": "perovskite_transport_stability_v2", "temperatures_K": [170, 220, 300, 330], "num_candidates": 5, "objectives": {"ln_sigmaT_220K": {"goal": "minimize"}, "ln_sigmaT_300K": {"goal": "minimize"}}}
+        effective = dict(inferred); effective.update({key: value for key, value in supplied.items() if value not in (None, [], {}, "")})
+        provenance = {key: ("user" if key in supplied and supplied[key] not in (None, [], {}, "") else "platform_default") for key in effective}
+        return effective, {"parser": "rule_template_v0", "raw_requirement": idea, "upstream_context_keys": upstream_keys, "template": "perovskite_transport_stability_grid_screening", "effective_model_input": effective, "field_provenance": provenance, "default_assumptions": [{"field": key, "value": inferred[key], "status": "platform_default"} for key in inferred if provenance[key] == "platform_default"], "questions_to_confirm": ["可提供目标温度、偏压、湿度、光照和寿命定义；这些条件不在当前输运模型中。"], "evidence_notice": "模型输出 ln[sigma(T)T] 与有效 Ea 的输运代理；不输出器件 T80、PCE 或环境分解寿命。"}
     if rocket_intent:
         inferred = {"model_domain": "reusable_rocket_stainless", "element_bounds_wt_percent": {"Cr": [16.5, 19.5], "Ni": [8.5, 12.0], "Mn": [0.8, 2.0], "Si": [0.2, 0.8], "C": [0.02, 0.08], "N": [0.01, 0.08]}, "test_temperature_K": 293, "processing": {"material_state": "solution_annealed", "solution_treatment_temperature_K": 1323, "solution_treatment_time_s": 3600, "quench": "water", "product_form_code": 1, "melting_route_code": 1}, "component": "可回收火箭贮箱或承压壳体（母材）", "weld_state": "base_metal", "low_temperature_verification_K": [90, 111], "verification_focus": ["cryogenic_toughness", "weld", "fatigue", "LOX_compatibility"], "num_candidates": 40, "objectives": {"yield_strength": 1, "uts": 1, "elongation": 1}}
         effective = dict(inferred)
         effective.update({key: value for key, value in supplied.items() if value not in (None, [], {}, "")})
         provenance = {key: ("user" if key in supplied and supplied[key] not in (None, [], {}, "") else "platform_default") for key in effective}
         return effective, {"parser": "rule_template_v0", "raw_requirement": idea, "upstream_context_keys": upstream_keys, "template": "reusable_rocket_stainless_screening", "effective_model_input": effective, "field_provenance": provenance, "default_assumptions": [{"field": key, "value": inferred[key], "status": "platform_default"} for key in inferred if provenance[key] == "platform_default"], "questions_to_confirm": ["可继续提供目标温度、板厚、焊接状态、成分 wt.% 边界和实际热处理，以替换本轮可见默认条件。"], "evidence_notice": "293–1273 K 输出为短时拉伸候选筛选；更低温度转为 301/304L 参考和验证规划。"}
+    if copper_local_intent:
+        inferred = {"model_domain":"copper_hot_end_local_composition_v1", "composition_family":"GRCop_type_Cu_Cr_Nb", "element_bounds_wt_percent":{"Cu":[84,94],"Cr":[4,9],"Nb":[4,7],"Zr":[0,1],"Ag":[0,2],"Al":[0,.2],"O":[0,.2],"Ni":[0,.2],"Fe":[0,.2],"Ti":[0,.5]}, "processing_state":"as_received", "test_temperature_C":25, "ambient_process":{"solution_temperature_K":1233,"solution_time_h":2,"cold_reduction_pct":50,"aged":True,"aging_temperature_K":723,"aging_time_h":2,"secondary_thermomechanical_process":False}, "num_candidates":12, "random_seed":20260911, "objectives":{"ultimate_tensile_strength_MPa":{"goal":"maximize"},"yield_0p2_MPa":{"goal":"maximize"}}}
+        effective = dict(inferred); effective.update({key:value for key,value in supplied.items() if key != "ambient_process" and value not in (None,[],{},"")})
+        if isinstance(supplied.get("ambient_process"), dict):
+            effective["ambient_process"] = {**inferred["ambient_process"], **supplied["ambient_process"]}
+        provenance = {key:("user" if key in supplied and supplied[key] not in (None,[],{},"") else "platform_default") for key in effective}
+        return effective,{"parser":"rule_template_v0","raw_requirement":idea,"upstream_context_keys":upstream_keys,"template":"copper_hot_end_conditioned_local_composition_screening","effective_model_input":effective,"field_provenance":provenance,"default_assumptions":[{"field":key,"value":inferred[key],"status":"platform_default"} for key in inferred if provenance[key]=="platform_default"],"questions_to_confirm":["可补充目标温度、实际热处理和各元素 wt.% 边界，以替换 GRCop 型默认成分空间并收窄结果区间。"],"evidence_notice":"B 级仅用于成分、工艺状态和温度均在联合适用域内的短时强度直接预测；状态/温度外推会降为 C 级。室温 %IACS 为 C 级辅助预测；热导、硬度、密度和 CTE 是带区间的 D 级工程估算，不参与排序或硬筛选。疲劳与蠕变仍需载荷、温度和寿命定义后独立验证。"}
+    if copper_hot_end_intent:
+        raise ValueError("已有铜基牌号、状态与性质核验请使用 1105 成熟材料目录；1111 仅处理明确的铜基新配比/成分优化任务")
     hea_intent = is_hea_exploration_intent(idea, supplied)
-    hot_end_intent = is_ni_hot_end_intent(idea, supplied)
     if hot_end_intent:
         inferred = {
             "model_domain": "ni_superalloy_hot_end", "num_candidates": 120,

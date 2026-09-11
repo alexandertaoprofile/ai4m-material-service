@@ -76,7 +76,7 @@ class AlloyRuntime:
     def _chart_font(self) -> FontProperties:
         if not self.chart_font_path.is_file():
             raise RuntimeError(f"Chinese chart font is unavailable: {self.chart_font_path}")
-        chart_text = "候选筛选路径相风险通过性能与不确定性通过最终可比候选保留率候选数量强度硬度最优候选训练数据范围内边界附近范围外强度门槛硬度门槛预测屈服强度MPa元素含量at最优候选精确配方与可继续探索区间P5P50P95元素成分预测组织倾向示意非真实显微图像固溶体基体潜在第二相金属间化合物风险标记晶界混相风险数据适用域置信度模型初筛探索性单相主导较高低中等候选合金截面规则化材料图形用于表达实际相形貌尺度空间位置短碳纤维热塑性复合材料局部配比参数域本构可用优先验证搜索窗口有效长度固定致密完美界面输入均位于验证域预测刚度矩阵最小特征值大于可作为有限元线弹性输入按排序保留前组工程常数GPaT300样式线弹性0123456789NiCoCrAlTiNbMoTaW—；.%（）"
+        chart_text = "候选筛选路径相风险通过性能与不确定性通过最终可比候选保留率候选数量强度硬度最优候选训练数据范围内边界附近范围外强度门槛硬度门槛预测屈服强度抗拉局部配比成分锚点短时物理顺序MPa元素含量at最优候选精确配方与可继续探索区间P5P50P95元素成分预测组织倾向示意非真实显微图像固溶体基体潜在第二相金属间化合物风险标记晶界混相风险数据适用域置信度模型初筛探索性单相主导较高低中等候选合金截面规则化材料图形用于表达实际相形貌尺度空间位置短碳纤维热塑性复合材料局部配比参数域本构可用优先验证搜索窗口有效长度固定致密完美界面输入均位于验证域预测刚度矩阵最小特征值大于可作为有限元线弹性输入按排序保留前组工程常数高稳定性钙钛矿可追溯组分网格温区比较低电输运响应候选池短名单排序依据不是器件寿命电输运响应有效描述符温度经验误差带越低越优当前优先项变温离子输运验证组分铜基热端牌号状态来源覆盖指标门槛记录筛选漏斗热导率屈服强度工程插值当前目录未收录WmKCuGRCopNARloyZrAgGPaT300样式线弹性0123456789NiCoCrAlTiNbMoTaWCsFAMAPbIBr—；.%（）σ[]@"
         font_file = FT2Font(str(self.chart_font_path))
         missing = sorted({char for char in chart_text if not char.isspace() and not font_file.get_char_index(ord(char))})
         if missing:
@@ -90,6 +90,8 @@ class AlloyRuntime:
             label.set_fontproperties(font)
 
     def _render(self, result: dict[str, Any]) -> dict[str, Path]:
+        if result.get("model_domain") == "generic_composition_design_fallback_v1":
+            return self._render_generic_composition_fallback(result)
         if result.get("model_domain") == "ni_superalloy_hot_end":
             return self._render_hot_end(result)
         if result.get("model_domain") == "reusable_rocket_stainless":
@@ -98,6 +100,12 @@ class AlloyRuntime:
             return self._render_chip_glass(result)
         if result.get("model_domain") == "short_cf_thermomechanical_rve_v1":
             return self._render_short_cf(result)
+        if result.get("model_domain") == "perovskite_transport_stability_v2":
+            return self._render_perovskite(result)
+        if result.get("model_domain") == "copper_hot_end_evidence_v1":
+            return self._render_copper_hot_end(result)
+        if result.get("model_domain") == "copper_hot_end_local_composition_v1":
+            return self._render_copper_hot_end_local(result)
         task_dir = self.results_root / result["taskid"] / "presentation"
         task_dir.mkdir(parents=True, exist_ok=True)
         os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
@@ -287,6 +295,102 @@ class AlloyRuntime:
         summary = task_dir / "summary.md"
         summary.write_text("\n".join(["### 合金配比探索结果", "", final_conclusion_block(result)]), encoding="utf-8")
         assets["summary_markdown"] = summary
+        return assets
+
+    def _render_generic_composition_fallback(self, result: dict[str, Any]) -> dict[str, Path]:
+        """Use the normal tokenized PNG path for untrained-domain fallback."""
+        task_dir = self.results_root / result["taskid"] / "presentation"
+        task_dir.mkdir(parents=True, exist_ok=True)
+        os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
+        from src.alloy_workflow.presentation import generic_composition_fallback_summary_block
+        font = self._chart_font(); assets: dict[str, Path] = {}
+        stages = (result.get("sampling") or {}).get("funnel_stages") or []
+        if stages:
+            fig, ax = plt.subplots(figsize=(10.8, 6.3), facecolor="#FFFFFF")
+            count = len(stages); palette = ("#9ECCE1", "#78ADD0", "#467BAA")
+            widths = [.92 - index * (.46 / max(1, count - 1)) for index in range(count)]
+            for index, (stage, top_width) in enumerate(zip(stages, widths)):
+                bottom_width = max(.26, top_width * .80); y_top = count - index * 1.25; y_bottom = y_top - .86
+                color = palette[min(index, len(palette) - 1)]; dark = tuple(value * .78 for value in to_rgb(color)); light = tuple(min(1, value + (1 - value) * .55) for value in to_rgb(color))
+                ax.add_patch(Ellipse((.5, y_bottom), width=bottom_width, height=.24, facecolor=dark, edgecolor="none", zorder=1))
+                ax.add_patch(Polygon([(.5-top_width/2,y_top),(.5+top_width/2,y_top),(.5+bottom_width/2,y_bottom),(.5-bottom_width/2,y_bottom)], closed=True, facecolor=color, edgecolor="none", zorder=2))
+                ax.add_patch(Ellipse((.5,y_top), width=top_width, height=.24, facecolor=light, edgecolor="white", linewidth=1.3, zorder=3))
+                ax.text(.5, (y_top+y_bottom)/2, str(stage.get("label") or "方案阶段"), ha="center", va="center", color="#203B55", fontproperties=font, fontsize=11, fontweight="bold", zorder=4)
+                ax.annotate("保留", xy=(.5+bottom_width/2,(y_top+y_bottom)/2), xytext=(1.04,(y_top+y_bottom)/2), ha="left", va="center", color="#425466", fontproperties=font, fontsize=10, arrowprops={"arrowstyle":"-", "color":"#94A3B8", "lw":1.1})
+            fig.suptitle("通用配比方案：探索到验证路径", x=.055, y=.98, ha="left", fontproperties=font, fontsize=17, fontweight="bold")
+            fig.text(.055, .895, "当前材料体系未命中专项训练模型；图示为大模型/规则辅助的探索流程，不表示性能筛选通过。", color="#5B6472", fontproperties=font, fontsize=9.5)
+            bottom_y = count - (count - 1) * 1.25 - .86
+            ax.set_xlim(-.02, 1.30); ax.set_ylim(bottom_y-.35, count+.35); ax.axis("off"); fig.tight_layout(rect=(0,0,1,.84))
+            path = task_dir / "generic_composition_funnel.png"; fig.savefig(path, dpi=220, facecolor=fig.get_facecolor(), bbox_inches="tight"); plt.close(fig); assets["generic_composition_funnel"] = path
+        summary = task_dir / "summary.md"; summary.write_text(generic_composition_fallback_summary_block(result), encoding="utf-8"); assets["summary_markdown"] = summary
+        return assets
+
+    def _render_copper_hot_end(self, result: dict[str, Any]) -> dict[str, Path]:
+        """Use the same funnel + comparison + tokenized-summary path as 1111 alloy domains."""
+        task_dir = self.results_root / result["taskid"] / "presentation"
+        task_dir.mkdir(parents=True, exist_ok=True)
+        os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
+        from src.alloy_workflow.presentation import copper_hot_end_summary_block
+        font = self._chart_font(); assets: dict[str, Path] = {}
+        candidates = result.get("initial_candidates") or []
+        stages = (result.get("sampling") or {}).get("funnel_stages") or []
+        if stages:
+            counts = [max(0, int(stage.get("count", 0))) for stage in stages]; maximum = max(counts) or 1
+            fig, ax = plt.subplots(figsize=(9.6, 5.6), facecolor="#FFFFFF")
+            widths = [.32 + .60 * (count / maximum) ** .35 for count in counts]
+            for index, (stage, count, width) in enumerate(zip(stages, counts, widths)):
+                top = len(stages) - index * 1.25; bottom = top - .82; lower = max(.20, width * .78)
+                color = ("#8FC5D9", "#3E7EA4", "#2C5E84")[min(index,2)]
+                ax.add_patch(Polygon([(.5-width/2,top),(.5+width/2,top),(.5+lower/2,bottom),(.5-lower/2,bottom)], closed=True, facecolor=color, edgecolor="white", linewidth=1.2))
+                ax.text(.5,(top+bottom)/2,f"{stage.get('label','筛选阶段')}\n{count} 个",ha="center",va="center",fontproperties=font,fontsize=12,color="#FFFFFF",weight="bold")
+            ax.set_xlim(0,1); ax.set_ylim(-.15,len(stages)+.3); ax.axis("off")
+            ax.set_title("铜基热端合金：来源覆盖到门槛筛选", fontproperties=font, fontsize=17, color="#193B5A", pad=16)
+            path=task_dir/"copper_hot_end_funnel.png"; fig.tight_layout(); fig.savefig(path,dpi=220,facecolor=fig.get_facecolor(),bbox_inches="tight"); plt.close(fig); assets["copper_hot_end_funnel"]=path
+        if candidates:
+            names=[str(row.get("alloy_name","-")) for row in candidates]
+            k=[(row.get("thermal_conductivity") or {}).get("value") for row in candidates]
+            ys=[(row.get("yield_strength") or {}).get("value") for row in candidates]
+            positions=np.arange(len(names)); fig,(axk,axy)=plt.subplots(1,2,figsize=(12,5.4),facecolor="#FFFFFF")
+            for ax,values,title,unit,threshold in ((axk,k,"热导率","W/(m·K)", (result.get("screening_conditions") or {}).get("screening_thresholds",{}).get("thermal_conductivity_min_W_mK")),(axy,ys,"屈服强度","MPa", (result.get("screening_conditions") or {}).get("screening_thresholds",{}).get("yield_strength_min_MPa"))):
+                numeric=[float(value) if value is not None else 0 for value in values]; colors=["#2E769E" if value is not None else "#D4DCE3" for value in values]
+                ax.bar(positions,numeric,color=colors,width=.64); ax.set_xticks(positions,names,rotation=24,ha="right",fontproperties=font); ax.set_ylabel(unit,fontproperties=font); ax.set_title(title,fontproperties=font,color="#193B5A",fontsize=15); ax.grid(axis="y",alpha=.2)
+                if threshold is not None: ax.axhline(float(threshold),color="#C65B4B",linestyle="--",linewidth=1.3)
+                for pos,value in zip(positions,values): ax.text(pos, max(numeric)*.03 if value is None else float(value), "未收录" if value is None else f"{float(value):.0f}",ha="center",va="bottom",fontproperties=font,fontsize=9,color="#65788A")
+            fig.suptitle("相同目标温度下的来源记录对比",fontproperties=font,fontsize=17,color="#193B5A",y=1.02)
+            path=task_dir/"copper_hot_end_property_comparison.png"; fig.tight_layout(); fig.savefig(path,dpi=220,facecolor=fig.get_facecolor(),bbox_inches="tight"); plt.close(fig); assets["copper_hot_end_property_comparison"]=path
+        summary=task_dir/"summary.md"; summary.write_text(copper_hot_end_summary_block(result),encoding="utf-8"); assets["summary_markdown"]=summary
+        return assets
+
+    def _render_copper_hot_end_local(self, result: dict[str, Any]) -> dict[str, Path]:
+        task_dir = self.results_root / result["taskid"] / "presentation"; task_dir.mkdir(parents=True, exist_ok=True)
+        os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
+        from src.alloy_workflow.presentation import copper_hot_end_local_summary_block
+        font = self._chart_font(); assets: dict[str, Path] = {}
+        candidates = result.get("all_candidates") or result.get("initial_candidates") or []
+        stages = [(str(item.get("label") or "筛选阶段"), int(item.get("count", 0))) for item in ((result.get("sampling") or {}).get("funnel_stages") or [])]
+        if stages:
+            counts = [count for _, count in stages]; maximum = max(counts) or 1; widths = [max(.30, .30 + .64 * (count / maximum) ** .34) for count in counts]
+            fig, ax = plt.subplots(figsize=(10.8, 7.2), facecolor="#FFFFFF")
+            palette = ("#8FC6E4", "#69A8D0", "#4D8DBB", "#356F9E", "#234F7D")
+            for index, ((label, count), width) in enumerate(zip(stages, widths)):
+                bottom = max(.20, width * .78); top_y = len(stages) - index * 1.24; bottom_y = top_y - .86; color = palette[min(index, len(palette)-1)]
+                dark = tuple(value*.78 for value in to_rgb(color)); light = tuple(min(1, value+(1-value)*.55) for value in to_rgb(color))
+                ax.add_patch(Ellipse((.5,bottom_y), width=bottom, height=.24, facecolor=dark, edgecolor="none", zorder=1)); ax.add_patch(Polygon([(.5-width/2,top_y),(.5+width/2,top_y),(.5+bottom/2,bottom_y),(.5-bottom/2,bottom_y)], closed=True, facecolor=color, edgecolor="none", zorder=2)); ax.add_patch(Ellipse((.5,top_y), width=width, height=.24, facecolor=light, edgecolor="white", linewidth=1.3, zorder=3))
+                ax.text(.5,(top_y+bottom_y)/2,label,ha="center",va="center",fontproperties=font,fontsize=10,color="#203B55",weight="bold",zorder=4); ax.annotate(f"{count:,}（保留 {count / counts[0]:.1%}）" if counts[0] else str(count),xy=(.5+bottom/2,(top_y+bottom_y)/2),xytext=(1.08,(top_y+bottom_y)/2),ha="left",va="center",fontproperties=font,fontsize=11,color="#425466",arrowprops={"arrowstyle":"-","color":"#94A3B8","lw":1.15})
+            fig.suptitle("铜基热壁合金：局部配比筛选漏斗",x=.055,y=.98,ha="left",fontproperties=font,fontsize=17,fontweight="bold"); fig.text(.055,.895,"按元素边界、物理强度顺序与训练成分邻域逐层保留",fontproperties=font,fontsize=9.5,color="#5B6472")
+            base_y = len(stages) - (len(stages)-1)*1.24 -.86; ax.set_xlim(-.02,1.38); ax.set_ylim(base_y-.35,len(stages)+.36); ax.axis("off")
+            path = task_dir / "copper_local_screening_funnel.png"; fig.tight_layout(rect=(0,0,1,.84)); fig.savefig(path,dpi=220,facecolor=fig.get_facecolor(),bbox_inches="tight"); plt.close(fig); assets["copper_local_screening_funnel"] = path
+        if candidates:
+            fig, ax = plt.subplots(figsize=(8.8, 5.8), facecolor="#FFFFFF"); used: set[str] = set(); styles={"inside":("#1F77B4","训练邻域内"),"boundary":("#F28E2B","数据边界附近")}
+            for item in candidates:
+                tensile=item["short_time_tensile"]; level=(item.get("applicability_domain") or {}).get("level","boundary"); color,label=styles.get(level,styles["boundary"]); ax.scatter(tensile["yield_0p2_MPa"]["mean"],tensile["ultimate_tensile_strength_MPa"]["mean"],s=54,color=color,alpha=.78,edgecolor="white",linewidth=.6,label=label if level not in used else None); used.add(level)
+            top=(result.get("initial_candidates") or candidates)[0]; tensile=top["short_time_tensile"]; ax.scatter(tensile["yield_0p2_MPa"]["mean"],tensile["ultimate_tensile_strength_MPa"]["mean"],marker="*",s=250,color="#D62728",edgecolor="white",linewidth=1,label="优先候选",zorder=4)
+            ax.set_xlabel("预测 0.2% 屈服强度（MPa）",fontproperties=font); ax.set_ylabel("预测短时 UTS（MPa）",fontproperties=font); ax.set_title("候选短时强度比较",fontproperties=font,fontsize=15); legend=ax.legend(); [label.set_fontproperties(font) for label in legend.get_texts()]; self._apply_chart_font(ax,font); ax.grid(alpha=.16); ax.set_axisbelow(True); ax.spines[["top","right"]].set_visible(False)
+            path=task_dir/"copper_local_strength_tradeoff.png"; fig.tight_layout(); fig.savefig(path,dpi=220,facecolor=fig.get_facecolor(),bbox_inches="tight"); plt.close(fig); assets["copper_local_strength_tradeoff"] = path
+            composition=top.get("composition_wt_percent") or {}; names=[key for key,value in composition.items() if float(value)>0]; values=[float(composition[key]) for key in names]
+            fig,ax=plt.subplots(figsize=(10,5),facecolor="#FFFFFF"); colors=plt.cm.tab20(np.linspace(0,1,len(names))); ax.bar(names,values,color=colors); ax.set_ylabel("质量百分比（wt.%）",fontproperties=font); ax.set_title("优先候选成分与来源锚点可追溯性",fontproperties=font,fontsize=15); ax.tick_params(axis="x",rotation=35); self._apply_chart_font(ax,font); ax.grid(axis="y",alpha=.16); ax.set_axisbelow(True); ax.spines[["top","right"]].set_visible(False)
+            path=task_dir/"copper_local_composition_traceability.png"; fig.tight_layout(); fig.savefig(path,dpi=220,facecolor=fig.get_facecolor(),bbox_inches="tight"); plt.close(fig); assets["copper_local_composition_traceability"] = path
+        summary = task_dir / "summary.md"; summary.write_text(copper_hot_end_local_summary_block(result), encoding="utf-8"); assets["summary_markdown"] = summary
         return assets
 
     def _render_rocket_stainless(self, result: dict[str, Any]) -> dict[str, Path]:
@@ -483,6 +587,29 @@ class AlloyRuntime:
             path=task_dir/"short_cf_constitutive_card.png"; fig.tight_layout(); fig.savefig(path,dpi=220,bbox_inches="tight"); plt.close(fig); assets["short_cf_constitutive_card"]=path
         from src.alloy_workflow.presentation import short_cf_summary_block
         summary=task_dir/"summary.md"; summary.write_text(short_cf_summary_block(result),encoding="utf-8"); assets["summary_markdown"]=summary
+        return assets
+
+    def _render_perovskite(self, result: dict[str, Any]) -> dict[str, Path]:
+        task_dir = self.results_root / result["taskid"] / "presentation"; task_dir.mkdir(parents=True, exist_ok=True)
+        os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib"); font=self._chart_font(); assets: dict[str, Path]={}
+        candidates=result.get("all_candidates") or []; shortlist=result.get("initial_candidates") or []
+        stages=[(x.get("label","筛选阶段"),int(x.get("count",0)),x.get("description","")) for x in (result.get("sampling") or {}).get("funnel_stages",[])]
+        if stages:
+            counts=[x[1] for x in stages]; maximum=max(counts) or 1; widths=[.30+.64*c/maximum for c in counts]
+            fig,ax=plt.subplots(figsize=(10.8,7.0),facecolor="#fff")
+            for i,((label,count,desc),w) in enumerate(zip(stages,widths)):
+                y=len(stages)-i*1.28; b=max(.2,w*.78); color=("#8FC6E4","#69A8D0","#4D8DBB","#234F7D")[min(i,3)]
+                ax.add_patch(Polygon([(.5-w/2,y),(.5+w/2,y),(.5+b/2,y-.88),(.5-b/2,y-.88)],closed=True,facecolor=color,edgecolor="none")); ax.add_patch(Ellipse((.5,y),w,.22,facecolor="#CBE5F2",edgecolor="white")); ax.text(.5,y-.36,label,ha="center",fontproperties=font,fontsize=11,fontweight="bold"); ax.text(.5,y-.59,desc,ha="center",fontproperties=font,fontsize=7.2,wrap=True); ax.annotate(f"{count}（保留 {count/counts[0]:.1%}）",xy=(.5+b/2,y-.44),xytext=(1.08,y-.44),fontproperties=font,fontsize=10,arrowprops={"arrowstyle":"-","color":"#94A3B8"})
+            fig.suptitle("高稳定性钙钛矿：候选筛选路径",x=.055,y=.98,ha="left",fontproperties=font,fontsize=17,fontweight="bold"); fig.text(.055,.895,"排序依据为低 ln[σ(T)T] 电输运响应；不等同于器件寿命",fontproperties=font,fontsize=9.5,color="#5B6472"); ax.set_xlim(-.02,1.42); ax.set_ylim(.0,len(stages)+.5); ax.axis("off")
+            path=task_dir/"perovskite_screening_funnel.png"; fig.tight_layout(rect=(0,0,1,.86)); fig.savefig(path,dpi=220,bbox_inches="tight"); plt.close(fig); assets["perovskite_screening_funnel"]=path
+        if candidates:
+            x=np.array([c["ln_sigmaT_300K"] for c in candidates]); y=np.array([c["Ea_low_eV"] for c in candidates]); fig,ax=plt.subplots(figsize=(9.6,5.8),facecolor="#fff"); ax.scatter(x,y,c=[c["ln_sigmaT_220K"] for c in candidates],cmap="Blues",s=48,edgecolor="white",linewidth=.5); top=shortlist[0] if shortlist else candidates[0]; ax.scatter([top["ln_sigmaT_300K"]],[top["Ea_low_eV"]],marker="*",s=240,color="#E07A38",edgecolor="white",label="当前优先候选"); ax.set_xlabel("ln[σT] @ 300 K（越低越优）",fontproperties=font); ax.set_ylabel("有效 Ea_low（eV）",fontproperties=font); ax.set_title("电输运响应—有效 Ea 描述符",fontproperties=font,fontsize=15,fontweight="bold"); leg=ax.legend(); [t.set_fontproperties(font) for t in leg.get_texts()]; self._apply_chart_font(ax,font); ax.grid(alpha=.16); ax.spines[["top","right"]].set_visible(False); path=task_dir/"perovskite_transport_tradeoff.png"; fig.tight_layout(); fig.savefig(path,dpi=220,bbox_inches="tight"); plt.close(fig); assets["perovskite_transport_tradeoff"]=path
+            fig,ax=plt.subplots(figsize=(9.6,5.8),facecolor="#fff")
+            for c in shortlist[:3]:
+                curve=c["predicted_transport"]["curve"]; tx=[p["temperature_K"] for p in curve]; ty=[p["predicted_ln_sigmaT"] for p in curve]; ax.plot(tx,ty,label=c["formula"],lw=2); q=float(c["predicted_transport"].get("uncertainty_q90_abs",{}).get("curve_ln_sigmaT",0)); ax.fill_between(tx,np.array(ty)-q,np.array(ty)+q,alpha=.09)
+            ax.set_xlabel("温度（K）",fontproperties=font); ax.set_ylabel("预测 ln[σ(T)T]",fontproperties=font); ax.set_title("优先候选的变温电输运响应（含 Q90 经验误差带）",fontproperties=font,fontsize=15,fontweight="bold"); leg=ax.legend(); [t.set_fontproperties(font) for t in leg.get_texts()]; self._apply_chart_font(ax,font); ax.grid(alpha=.16); ax.spines[["top","right"]].set_visible(False); path=task_dir/"perovskite_response_curve.png"; fig.tight_layout(); fig.savefig(path,dpi=220,bbox_inches="tight"); plt.close(fig); assets["perovskite_response_curve"]=path
+        from src.alloy_workflow.presentation import perovskite_summary_block
+        summary=task_dir/"summary.md"; summary.write_text(perovskite_summary_block(result),encoding="utf-8"); assets["summary_markdown"]=summary
         return assets
 
     def _render_hot_end(self, result: dict[str, Any]) -> dict[str, Path]:

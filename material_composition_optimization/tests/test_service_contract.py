@@ -484,6 +484,13 @@ class AlloyServiceContractTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "单一金属合金"):
             requirement_plan(payload)
 
+    def test_explicit_exclusion_of_composite_phases_does_not_reject_monolithic_copper_alloy(self) -> None:
+        effective, _plan = requirement_plan({
+            "taskid": "copper-monolithic-boundary",
+            "idea": "候选为 CuCrZr、GRCop-84 与 NARloy-Z 等铜基单合金，体系内不含树脂、纤维、填料、涂层或复合相。",
+        })
+        self.assertNotEqual(effective.get("model_domain"), "short_cf_thermomechanical_rve_v1")
+
     def test_role_and_discovery_use_shared_descriptions(self) -> None:
         from src.alloy_workflow.identity import ACTION_DESCRIPTION, ROLE_PROFILE
         role = next(iter(main.roles().values()))

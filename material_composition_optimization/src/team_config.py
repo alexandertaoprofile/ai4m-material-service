@@ -13,6 +13,7 @@ from alpha.actions import Action, UserRequirement
 from alpha.roles import Role
 
 from src.alloy_workflow.contracts import requirement_plan as _requirement_plan, task_id as _taskid
+from src.alloy_workflow.fallback import generic_fallback_plan
 from src.alloy_workflow.identity import ACTION_DESCRIPTION, ACTION_NAME, ROLE_NAME, ROLE_PROFILE
 from src.alloy_workflow.presentation import emit_result_content, hot_end_input_guide_block, planned_alloy_method_block, stream_authoritative_markdown
 from src.alloy_workflow.protocol import prepare_public_assets
@@ -112,8 +113,11 @@ class Coding(Action):
         payload = _payload_from_instruction(instruction, str(taskid), str(user_name), file_metadata)
         request_id = _taskid(payload)
 
-        effective, plan = _requirement_plan(payload)
-        progress_description = ("正在整理短碳纤维 RVE 的基体、体积分数、有效长度和取向条件。" if effective.get("model_domain") == "short_cf_thermomechanical_rve_v1" else "正在整理芯片玻璃基板的氧化物配方与热机械筛选条件。" if effective.get("model_domain") == "chip_glass_thermomechanical_family_v1" else "正在整理高温镍基合金的工况与成分设计条件。" if effective.get("model_domain") == "ni_superalloy_hot_end" else "正在整理可回收火箭不锈钢的温度、工艺与配方边界。" if effective.get("model_domain") == "reusable_rocket_stainless" else "正在将需求映射为高熵/多主元合金的探索条件。")
+        try:
+            effective, plan = _requirement_plan(payload)
+        except ValueError as exc:
+            effective, plan = generic_fallback_plan(payload, str(exc))
+        progress_description = ("当前材料体系未覆盖专项训练模型，正在生成明确标注边界的大模型/规则辅助通用配比方案。" if effective.get("model_domain") == "generic_composition_design_fallback_v1" else "正在按工艺状态和温度筛选铜基热壁合金的局部配比。" if effective.get("model_domain") == "copper_hot_end_local_composition_v1" else "正在整理钙钛矿的 A 位/卤素位组分与变温电输运稳定性筛选条件。" if effective.get("model_domain") == "perovskite_transport_stability_v2" else "正在整理短碳纤维 RVE 的基体、体积分数、有效长度和取向条件。" if effective.get("model_domain") == "short_cf_thermomechanical_rve_v1" else "正在整理芯片玻璃基板的氧化物配方与热机械筛选条件。" if effective.get("model_domain") == "chip_glass_thermomechanical_family_v1" else "正在整理高温镍基合金的工况与成分设计条件。" if effective.get("model_domain") == "ni_superalloy_hot_end" else "正在整理可回收火箭不锈钢的温度、工艺与配方边界。" if effective.get("model_domain") == "reusable_rocket_stainless" else "正在将需求映射为高熵/多主元合金的探索条件。")
         await websocket.send_json({
             "version": "1.0.0", "agent": "alloy_composition_optimization",
             "request_id": request_id, "type": "progress",
