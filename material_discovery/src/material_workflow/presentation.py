@@ -156,7 +156,8 @@ def render_presentation_assets(result) -> dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
     helper = Path(__file__).resolve().parents[2] / "tools" / "render_new_material_assets.py"
     env_prefix = os.environ.get("MATTERGEN_ENV_PREFIX", "/data/mamba/envs/mattergen-py310").strip()
-    command = (["micromamba", "run", "-p", env_prefix] if env_prefix else []) + [
+    micromamba = os.environ.get("MICROMAMBA_EXECUTABLE", "micromamba").strip() or "micromamba"
+    command = ([micromamba, "run", "-p", env_prefix] if env_prefix else []) + [
         "python", str(helper), "--manifest", str(manifest_path), "--output-dir", str(output_dir),
     ]
     environment = os.environ.copy()

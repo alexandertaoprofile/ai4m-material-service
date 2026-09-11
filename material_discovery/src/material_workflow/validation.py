@@ -70,7 +70,8 @@ def _validate_in_mattergen_environment(candidate: GeneratedCandidate) -> Validat
     project_root = Path(__file__).resolve().parents[2]
     helper = project_root / "tools" / "run_pymatgen_validation.py"
     env_prefix = os.environ.get("MATTERGEN_ENV_PREFIX", "/data/mamba/envs/mattergen-py310").strip()
-    command = (["micromamba", "run", "-p", env_prefix] if env_prefix else []) + [
+    micromamba = os.environ.get("MICROMAMBA_EXECUTABLE", "micromamba").strip() or "micromamba"
+    command = ([micromamba, "run", "-p", env_prefix] if env_prefix else []) + [
         "python", str(helper), "--input", str(candidate.cif_path), "--candidate-id", candidate.candidate_id,
     ]
     timeout = int(os.environ.get("PYMATGEN_VALIDATION_TIMEOUT_SEC", "120"))
