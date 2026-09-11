@@ -618,7 +618,20 @@ async def emit_presentation_assets(websocket, result, *, step_id: str = "FILAMEN
             "[new-material-assets] remote publishing disabled; assets remain available through the local task route taskid=%s",
             result.taskid,
         )
-        return ""
+        base_url = os.getenv(
+            "DISCOVERY_ASSET_PUBLIC_BASE_URL",
+            f"http://127.0.0.1:{os.getenv('PORT', '1115')}",
+        ).rstrip("/")
+        taskid = str(result.taskid).replace("/", "_")
+        markdown_images = []
+        for asset in assets:
+            path = Path(asset.get("path") or "")
+            if not path.is_file() or path.suffix.lower() not in {".png", ".gif", ".jpg", ".jpeg", ".webp"}:
+                continue
+            title = str(asset.get("title") or asset.get("name") or path.stem)
+            url = f"{base_url}/new-material/tasks/{taskid}/assets/{path.name}"
+            markdown_images.append(f"#### {title}\n\n![{title}]({url})")
+        return "\n\n".join(markdown_images)
     taskid = str(result.taskid).replace("/", "_")
     pipeline = "inorganic_new_material"
     jobid = taskid or "job"

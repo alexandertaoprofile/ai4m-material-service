@@ -66,17 +66,23 @@ def _local_asset_url(websocket: Any, item: dict[str, Any]) -> str:
 
 async def prepare_public_assets(websocket: Any, taskid: str, result: dict[str, Any], results_root: Path) -> tuple[dict[str, str], dict[str, str], dict[str, str], list[dict[str, str]]]:
     assets = [{"name": item["name"], "local_path": results_root / taskid / "presentation" / Path(item["url"]).name} for item in result["presentation"]["assets"]]
-    try:
-        public_urls = await publish_png_assets(taskid, assets)
-    except Exception as exc:
-        # Do not suppress charts just because MinIO is unavailable.  The task
-        # asset endpoint remains part of the existing HTTP contract.
+    local_only = os.getenv("AI4M_LOCAL_ONLY", "false").strip().lower() in {"1", "true", "yes", "on"}
+    if local_only:
         public_urls = {item["name"]: _local_asset_url(websocket, item) for item in result["presentation"]["assets"]}
-        print(f"[ALLOY][{taskid}] MinIO publication failed; using local task-asset URLs", flush=True)
-        logger.exception("MinIO publication failed; using local task-asset URLs taskid=%s", taskid)
-        await websocket.send_text("\n图片发布失败，已改用本服务任务资产链接继续展示。\n")
+        print(f"[ALLOY][{taskid}] local-only mode; using task-asset URLs", flush=True)
+        logger.info("remote asset publication disabled taskid=%s", taskid)
     else:
-        print(f"[ALLOY][{taskid}] published PNG assets count={len(public_urls)} names={sorted(public_urls)}", flush=True)
-        logger.info("published %s alloy PNG asset(s) taskid=%s", len(public_urls), taskid)
+        try:
+            public_urls = await publish_png_assets(taskid, assets)
+        except Exception as exc:
+            # Do not suppress charts just because MinIO is unavailable.  The task
+            # asset endpoint remains part of the existing HTTP contract.
+            public_urls = {item["name"]: _local_asset_url(websocket, item) for item in result["presentation"]["assets"]}
+            print(f"[ALLOY][{taskid}] MinIO publication failed; using local task-asset URLs", flush=True)
+            logger.exception("MinIO publication failed; using local task-asset URLs taskid=%s", taskid)
+            await websocket.send_text("\n图片发布失败，已改用本服务任务资产链接继续展示。\n")
+        else:
+            print(f"[ALLOY][{taskid}] published PNG assets count={len(public_urls)} names={sorted(public_urls)}", flush=True)
+            logger.info("published %s alloy PNG asset(s) taskid=%s", len(public_urls), taskid)
     visual_assets = [{"name": item["name"], "url": public_urls[item["name"]], "title": ASSET_TITLES.get(item["name"], item["name"]), "description": ASSET_DOCS.get(item["name"], "")} for item in result["presentation"]["assets"] if item["name"] in public_urls]
     return public_urls, ASSET_DOCS, ASSET_TITLES, visual_assets

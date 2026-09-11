@@ -93,6 +93,10 @@ class InorganicNewMaterialDiscoveryAction(Action):
     async def _stream_authoritative_markdown(llm, websocket, step_id: str, markdown: str) -> None:
         """Token-stream program-authored Markdown through the established renderer."""
         await websocket.send_text(f"<<<CONTENT_START:{step_id}>>>")
+        if os.getenv("DISCOVERY_PRESENTATION_LLM", "true").strip().lower() not in {"1", "true", "yes", "on"}:
+            await websocket.send_text(markdown.rstrip() + "\n")
+            await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
+            return
         relay_prompt = (
             "你是无机新材料服务的 Markdown 流式转发器。下方内容由程序根据已保存的计算结果生成。"
             "请通过 token 流逐字输出标签内部的 Markdown，不得改写、删减、补充、翻译数值或输出标签本身。\n"
@@ -101,12 +105,14 @@ class InorganicNewMaterialDiscoveryAction(Action):
             "</AUTHORITATIVE_MARKDOWN>"
         )
         try:
-            await stream_llm_response(
+            streamed = await stream_llm_response(
                 llm,
                 [llm._default_system_msg(), llm._user_msg(relay_prompt)],
                 websocket=websocket,
                 logger_obj=logger,
             )
+            if not streamed.strip():
+                await websocket.send_text(markdown.rstrip() + "\n")
         except Exception:
             await websocket.send_text(markdown.rstrip() + "\n")
         finally:
