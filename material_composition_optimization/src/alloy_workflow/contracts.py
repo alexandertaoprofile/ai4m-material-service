@@ -178,6 +178,25 @@ def is_hea_exploration_intent(text: str, scope: dict[str, Any]) -> bool:
     )
 
 
+def explicit_alloy_elements(text: str) -> list[str]:
+    """Return supported alloy symbols explicitly named in natural-language context."""
+    canonical = {
+        symbol.casefold(): symbol
+        for symbol in ("Al", "Co", "Cr", "Cu", "Fe", "Hf", "Mn", "Mo", "Nb", "Ni", "Ta", "Ti", "V", "W", "Zr")
+    }
+    matches = re.findall(
+        r"(?<![A-Za-z])(?:Al|Co|Cr|Cu|Fe|Hf|Mn|Mo|Nb|Ni|Ta|Ti|V|W|Zr)(?![a-z])",
+        text,
+        flags=re.IGNORECASE,
+    )
+    elements: list[str] = []
+    for match in matches:
+        symbol = canonical[match.casefold()]
+        if symbol not in elements:
+            elements.append(symbol)
+    return elements
+
+
 def task_id(payload: dict[str, Any]) -> str:
     external_taskid = str(payload.get("taskid") or f"alloy-{datetime.now(timezone.utc):%Y%m%d%H%M%S}").strip()
     if not external_taskid or len(external_taskid) > 512:
@@ -369,7 +388,24 @@ def requirement_plan(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str,
         template = "generic_hea_exploration"
         inferred = {"model_domain": "hea_mpea", "allowed_elements": ["Co", "Cr", "Fe", "Mn", "Ni"], "element_bounds_at_pct": {"Co": [10, 30], "Cr": [10, 30], "Fe": [10, 30], "Mn": [10, 30], "Ni": [10, 30]}, "processing_method": "CAST", "test_temperature_C": 25, "screening_mode": "conservative_adaptive", "objectives": {"yield_strength_MPa": {"goal": "maximize"}, "phase_risk": {"goal": "minimize"}}}
         questions = ["请确认目标服役温度、允许元素体系、工艺和成本约束。"]
+    context_overrides = {}
+    named_elements = explicit_alloy_elements(idea)
+    if len(named_elements) >= 3:
+        center = 100.0 / len(named_elements)
+        bounds = [round(max(0.0, center - 10.0), 2), round(min(100.0, center + 10.0), 2)]
+        context_overrides = {
+            "allowed_elements": named_elements,
+            "element_bounds_at_pct": {element: list(bounds) for element in named_elements},
+        }
     effective = dict(inferred)
+    effective.update(context_overrides)
     effective.update({key: value for key, value in supplied.items() if value not in (None, [], {}, "")})
-    provenance = {key: ("user" if key in supplied and supplied[key] not in (None, [], {}, "") else "template_inference") for key in effective}
+    provenance = {
+        key: (
+            "user" if key in supplied and supplied[key] not in (None, [], {}, "")
+            else "upstream_context" if key in context_overrides
+            else "template_inference"
+        )
+        for key in effective
+    }
     return effective, {"parser": "rule_template_v0", "raw_requirement": idea, "upstream_context_keys": upstream_keys, "template": template, "effective_model_input": effective, "field_provenance": provenance, "default_assumptions": [{"field": key, "value": value, "status": "requires_confirmation"} for key, value in inferred.items() if provenance[key] == "template_inference"], "questions_to_confirm": questions, "evidence_notice": "Template inference is exploratory only, not an engineering conclusion."}

@@ -472,6 +472,16 @@ class AlloyServiceContractTest(unittest.TestCase):
         self.assertEqual(effective["allowed_elements"], ["Ni", "Co", "Cr", "Al", "Ti"])
         self.assertEqual(plan["template"], "aerospace_high_temperature_hea_exploration")
 
+    def test_explicit_hea_elements_override_template_defaults(self) -> None:
+        effective, plan = requirement_plan({
+            "taskid": "co-cr-fe-mn-ni",
+            "idea": "探索 Co-Cr-Fe-Mn-Ni 高熵合金的候选配比。",
+        })
+        self.assertEqual(effective["allowed_elements"], ["Co", "Cr", "Fe", "Mn", "Ni"])
+        self.assertEqual(set(effective["element_bounds_at_pct"]), {"Co", "Cr", "Fe", "Mn", "Ni"})
+        self.assertEqual(plan["template"], "aerospace_high_temperature_hea_exploration")
+        self.assertEqual(plan["field_provenance"]["allowed_elements"], "upstream_context")
+
     def test_composite_material_is_rejected_even_with_metal_element_bounds(self) -> None:
         payload = {
             "taskid": "metal-fiber-composite",
