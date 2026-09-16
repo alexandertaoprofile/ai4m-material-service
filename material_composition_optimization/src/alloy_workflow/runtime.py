@@ -106,6 +106,8 @@ class AlloyRuntime:
             return self._render_copper_hot_end(result)
         if result.get("model_domain") == "copper_hot_end_local_composition_v1":
             return self._render_copper_hot_end_local(result)
+        if result.get("model_domain") == "aerospace_aluminum_composition_v1":
+            return self._render_aerospace_aluminum(result)
         task_dir = self.results_root / result["taskid"] / "presentation"
         task_dir.mkdir(parents=True, exist_ok=True)
         os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
@@ -698,5 +700,16 @@ class AlloyRuntime:
         summary = task_dir / "summary.md"; summary.write_text(hot_end_summary_block(result), encoding="utf-8"); assets["summary_markdown"] = summary
         return assets
 
+
+    def _render_aerospace_aluminum(self, result: dict[str, Any]) -> dict[str, Path]:
+        task_dir=self.results_root/result["taskid"] / "presentation"; task_dir.mkdir(parents=True,exist_ok=True); os.environ.setdefault("MPLCONFIGDIR","/tmp/matplotlib")
+        from src.alloy_workflow.presentation import aerospace_aluminum_summary_block
+        font=self._chart_font(); assets:dict[str,Path]={}; rows=result.get("initial_candidates") or []; stages=(result.get("sampling") or {}).get("funnel_stages") or []
+        if stages:
+            labels=[str(x.get("label","筛选阶段")) for x in stages]; values=[int(x.get("count",0)) for x in stages]; fig,ax=plt.subplots(figsize=(9,5),facecolor="#fff"); ax.barh(labels,values,color=["#8FC6E4","#5E9BC4","#285B89"][:len(labels)]); ax.invert_yaxis(); ax.set_xlabel("候选数量",fontproperties=font); ax.set_title("航空铝合金：候选筛选路径",fontproperties=font); self._apply_chart_font(ax,font); ax.grid(axis="x",alpha=.16); path=task_dir/"aluminum_screening_funnel.png"; fig.tight_layout(); fig.savefig(path,dpi=180,bbox_inches="tight"); plt.close(fig); assets["aluminum_screening_funnel"]=path
+        if rows:
+            uts=[x["predicted_properties"]["uts_MPa"] for x in rows]; el=[x["predicted_properties"]["elongation_pct"] for x in rows]; ys=[x["predicted_properties"]["yield_strength_MPa"] for x in rows]; fig,ax=plt.subplots(figsize=(8,5),facecolor="#fff"); im=ax.scatter(el,uts,c=ys,cmap="Blues",s=60,edgecolor="white"); ax.scatter([el[0]],[uts[0]],marker="*",s=220,color="#E07A38",label="优先候选"); ax.set_xlabel("预测延伸率（%）",fontproperties=font); ax.set_ylabel("预测 UTS（MPa）",fontproperties=font); ax.set_title("强度—延伸率候选比较",fontproperties=font); ax.legend(prop=font); self._apply_chart_font(ax,font); cb=fig.colorbar(im,ax=ax); cb.set_label("预测 YS（MPa）",fontproperties=font); path=task_dir/"aluminum_strength_ductility_tradeoff.png"; fig.tight_layout(); fig.savefig(path,dpi=180,bbox_inches="tight"); plt.close(fig); assets["aluminum_strength_ductility_tradeoff"]=path
+            c=rows[0]["composition_wt_percent"]; names=[e for e,v in c.items() if float(v)>.001]; fig,ax=plt.subplots(figsize=(9,4.5),facecolor="#fff"); ax.bar(names,[c[e] for e in names],color=plt.cm.tab20(np.linspace(0,1,len(names)))); ax.set_ylabel("质量百分比（wt.%）",fontproperties=font); ax.set_title("优先候选成分卡",fontproperties=font); ax.tick_params(axis="x",rotation=35); self._apply_chart_font(ax,font); path=task_dir/"aluminum_composition_card.png"; fig.tight_layout(); fig.savefig(path,dpi=180,bbox_inches="tight"); plt.close(fig); assets["aluminum_composition_card"]=path
+        summary=task_dir/"summary.md"; summary.write_text(aerospace_aluminum_summary_block(result),encoding="utf-8"); assets["summary_markdown"]=summary; return assets
 
 RUNTIME = AlloyRuntime()

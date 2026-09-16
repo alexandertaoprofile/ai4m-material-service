@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 from typing import Any
 
 from starlette.websockets import WebSocketDisconnect
@@ -39,6 +40,30 @@ async def stream_llm_response(llm: Any, messages: list[dict[str, str]], websocke
     """
     stream = await llm.acompletion_text(messages, timeout=30)
     chunks: list[str] = []
+    opening_buffer = ""
+    opening_pending = True
+
+    def clean_opening(text: str) -> str:
+        """Drop a known relay artefact without touching Markdown body text."""
+        return re.sub(r"^\s*\}\}\s*(?=#+\s)", "", text)
+
+    async def forward(text: str) -> bool:
+        nonlocal opening_buffer, opening_pending
+        if opening_pending:
+            opening_buffer += text
+            # Wait briefly so a split ``}}`` + ``###`` artefact can be
+            # recognised before either fragment reaches the frontend.
+            compact = opening_buffer.lstrip()
+            if len(compact) < 4 and not compact.startswith("#"):
+                return True
+            opening_pending = False
+            text = clean_opening(opening_buffer)
+            opening_buffer = ""
+        if not text:
+            return True
+        chunks.append(text)
+        return await _send_text(websocket, text)
+
     iterator = stream.__aiter__()
     try:
         while True:
@@ -57,10 +82,14 @@ async def stream_llm_response(llm: Any, messages: list[dict[str, str]], websocke
             except (AttributeError, IndexError, TypeError):
                 logger.warning("unable to read an LLM stream chunk", exc_info=True)
             if text:
-                chunks.append(text)
-                if not await _send_text(websocket, text):
+                if not await forward(text):
                     break
     finally:
+        if opening_pending and opening_buffer:
+            trailing = clean_opening(opening_buffer)
+            if trailing:
+                chunks.append(trailing)
+                await _send_text(websocket, trailing)
         close = getattr(stream, "aclose", None)
         if callable(close):
             try:

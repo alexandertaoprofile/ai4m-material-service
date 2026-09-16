@@ -1,5 +1,6 @@
 from src.alloy_workflow.contracts import (
     is_copper_hot_end_intent,
+    is_aerospace_aluminum_intent,
     is_chip_glass_intent,
     is_ni_hot_end_intent,
     is_perovskite_intent,
@@ -66,6 +67,25 @@ def test_explicitly_excluded_material_domains_do_not_become_routing_signals():
 
 def test_non_negated_stainless_word_remains_an_active_material_signal():
     assert is_reusable_rocket_stainless_intent("针对 Starship 30X 奥氏体不锈钢壳体做配方筛选。", {})
+
+
+def test_minimal_starship_request_reaches_rocket_stainless_template():
+    text = "为星舰30X不锈钢设计成分配比，密度约 7800 kg/m³。"
+    assert not is_aerospace_aluminum_intent(text, {})
+    effective, plan = requirement_plan({"idea": text})
+    assert effective["model_domain"] == "reusable_rocket_stainless"
+    assert plan["template"] == "reusable_rocket_stainless_screening"
+
+
+def test_density_7800_does_not_match_a_7xxx_aluminum_grade():
+    steel_text = (
+        "针对不锈钢、碳钢和合金钢做配比筛选；以铁基为主体，"
+        "密度约 7800 kg/m³，比较硬度和强度。"
+    )
+    assert not is_aerospace_aluminum_intent(steel_text, {})
+    effective, _ = requirement_plan({"idea": steel_text})
+    assert effective["model_domain"] != "aerospace_aluminum_composition_v1"
+    assert is_aerospace_aluminum_intent("针对 7075-T6 航空铝合金做配比筛选。", {})
 
 
 def test_requested_specialist_domain_wins_over_excluded_material_terms():

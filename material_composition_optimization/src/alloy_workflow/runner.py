@@ -23,6 +23,9 @@ class HEASurrogateRunner:
         if domain == "copper_hot_end_local_composition_v1":
             required = (self.surrogate_root / "models/copper_hot_end_local_composition_v1_20260911/model.joblib",)
             return (self.environment_prefix / "bin/python").is_file() and all(path.is_file() for path in required)
+        if domain == "aerospace_aluminum_composition_v1":
+            required = (self.surrogate_root / "models/aerospace_aluminum_composition_v1_20260914/model.joblib",)
+            return (self.environment_prefix / "bin/python").is_file() and all(path.is_file() for path in required)
         if domain == "perovskite_transport_stability_v2":
             required = (self.surrogate_root / "pure_zero_shot_v2/model_artifact.json", self.surrogate_root / "pure_zero_shot_v2/predict_joint.py")
             return (self.environment_prefix / "bin/python").is_file() and all(path.is_file() for path in required)

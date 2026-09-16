@@ -42,6 +42,13 @@ class FormulaExtractionTests(unittest.TestCase):
         self.assertEqual(constraint.allowed_elements, ["Nb", "Mo", "Ta", "W"])
         self.assertEqual(constraint.target_properties["energy_above_hull"], 0.05)
 
+    def test_from_scratch_structure_generation_takes_precedence_over_composition_words(self):
+        with self.assertRaisesRegex(ValueError, "无法确定待生成的元素体系"):
+            constraint_from_payload({
+                "taskid": "alloy-structure-intent",
+                "idea": "在成分空间与晶体结构空间中从头结构生成一批候选材料。",
+            })
+
 
 if __name__ == "__main__":
     unittest.main()

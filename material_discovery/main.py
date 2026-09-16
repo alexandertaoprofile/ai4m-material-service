@@ -1,5 +1,6 @@
 import os
 import json
+import hashlib
 import re
 import uvicorn
 import asyncio
@@ -94,6 +95,14 @@ app.add_middleware(
 )
 
 ORCHESTRATOR = InorganicNewMaterialService()
+_NATIVE_IDEA_LOG_LIMIT = 4_000
+
+
+def _native_idea_trace(value: object, *, limit: int = _NATIVE_IDEA_LOG_LIMIT) -> tuple[str, int, str, bool]:
+    """Log the received top-level ``idea`` itself, rather than a preview wrapper."""
+    encoded = json.dumps(value, ensure_ascii=False, default=str, separators=(",", ":"))
+    truncated = len(encoded) > limit
+    return encoded[:limit], len(encoded), hashlib.sha256(encoded.encode("utf-8")).hexdigest()[:16], truncated
 
 @app.websocket("/start")
 @app.websocket("/new-material/start")
@@ -119,6 +128,12 @@ async def websocket_endpoint(websocket: WebSocket):
         context_keys = [key for key in ("idea", "content", "query", "history", "messages", "conversation", "upstream_context", "previous_results") if init_data.get(key) is not None]
         context_preview = re.sub(r"\s+", " ", json.dumps({key: init_data[key] for key in context_keys}, ensure_ascii=False))[:600]
         print(f"[WS /new-material/start] upstream received: session_taskid={taskid} material_taskid={embedded_taskid} user={user_name} files={len(file_metadata)} keys={context_keys} preview={context_preview!r}")
+        native_idea, native_idea_chars, native_idea_sha256, native_idea_truncated = _native_idea_trace(init_data.get("idea"))
+        print(
+            f"[WS /new-material/start] native_idea type={type(init_data.get('idea')).__name__} "
+            f"json_chars={native_idea_chars} sha256_16={native_idea_sha256} "
+            f"truncated={native_idea_truncated} value={native_idea}"
+        )
 
         # Preserve the full envelope for the action's existing context parser.
         # Passing only ``idea`` used to discard separately supplied history and

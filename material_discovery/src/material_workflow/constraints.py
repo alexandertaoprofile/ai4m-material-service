@@ -295,7 +295,10 @@ def _is_alloy_structure_generation_request(text: str) -> bool:
     intent and use the supplied/upstream element system as its constraint.
     """
     lower = text.lower()
-    return any(term in text for term in ("新材料结构生成", "生成候选结构", "候选晶体结构", "晶体结构生成", "生成晶体结构")) or any(
+    return any(term in text for term in (
+        "新材料结构生成", "生成候选结构", "候选晶体结构", "晶体结构生成", "生成晶体结构",
+        "从头结构生成", "从头计算", "晶体结构空间", "新型候选材料结构",
+    )) or any(
         term in lower for term in ("mattergen", "crystal structure generation", "structure generation")
     )
 

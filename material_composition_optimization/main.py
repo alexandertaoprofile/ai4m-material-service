@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import logging
 import os
@@ -21,7 +22,7 @@ from src.alloy_workflow.presentation import emit_result_content, hot_end_input_g
 from src.alloy_workflow.contracts import requirement_plan as _requirement_plan, task_id as _taskid, upstream_requirement as _upstream_requirement
 from src.alloy_workflow.fallback import generic_fallback_plan, generic_fallback_result
 from src.alloy_workflow.identity import ACTION_DESCRIPTION, ACTION_NAME, ROLE_NAME, ROLE_PROFILE, SERVICE_BOUNDARY, SERVICE_ID
-from src.alloy_workflow.protocol import prepare_public_assets
+from src.alloy_workflow.protocol import prepare_public_assets, result_event_data
 from src.alloy_workflow.runtime import RUNTIME
 
 SERVICE_ROOT = Path(__file__).resolve().parent
@@ -32,9 +33,17 @@ FRONTEND_STEP_TITLE = "材料配方设计与性能筛选"
 RESULTS = RUNTIME.results_root
 RUNNER = RUNTIME.runner
 APPLICATION = RUNTIME.application
+_NATIVE_IDEA_LOG_LIMIT = 4_000
 app = FastAPI(title="Material Composition Optimization Service", version="0.2.0")
 logger = logging.getLogger("alloy.service")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=False, allow_methods=["*"], allow_headers=["*"])
+
+
+def _native_idea_trace(value: object, *, limit: int = _NATIVE_IDEA_LOG_LIMIT) -> tuple[str, int, str, bool]:
+    """Log the received top-level ``idea`` itself, rather than a context preview."""
+    encoded = json.dumps(value, ensure_ascii=False, default=str, separators=(",", ":"))
+    truncated = len(encoded) > limit
+    return encoded[:limit], len(encoded), hashlib.sha256(encoded.encode("utf-8")).hexdigest()[:16], truncated
 
 
 def _template_label(template: str) -> str:
@@ -47,11 +56,12 @@ def _template_label(template: str) -> str:
         "chip_glass_thermomechanical_local_screening": "芯片玻璃基板配方与热机械筛选模板",
         "short_cf_thermomechanical_rve_screening": "短碳纤维复合材料本构筛选模板",
         "perovskite_transport_stability_grid_screening": "高稳定性钙钛矿电输运配比初筛模板",
+        "aerospace_aluminum_wt_percent_screening": "航空铝合金 wt.% 配方与室温性能筛选模板",
     }.get(template, template)
 
 
 def _runner_ready() -> dict[str, bool]:
-    return {"hea_mpea": RUNNER.ready("hea_mpea"), "ni_superalloy_hot_end": RUNNER.ready("ni_superalloy_hot_end"), "reusable_rocket_stainless": RUNNER.ready("reusable_rocket_stainless"), "chip_glass_thermomechanical_family_v1": RUNNER.ready("chip_glass_thermomechanical_family_v1"), "short_cf_thermomechanical_rve_v1": RUNNER.ready("short_cf_thermomechanical_rve_v1"), "perovskite_transport_stability_v2": RUNNER.ready("perovskite_transport_stability_v2")}
+    return {"hea_mpea": RUNNER.ready("hea_mpea"), "ni_superalloy_hot_end": RUNNER.ready("ni_superalloy_hot_end"), "reusable_rocket_stainless": RUNNER.ready("reusable_rocket_stainless"), "chip_glass_thermomechanical_family_v1": RUNNER.ready("chip_glass_thermomechanical_family_v1"), "short_cf_thermomechanical_rve_v1": RUNNER.ready("short_cf_thermomechanical_rve_v1"), "perovskite_transport_stability_v2": RUNNER.ready("perovskite_transport_stability_v2"), "aerospace_aluminum_composition_v1": RUNNER.ready("aerospace_aluminum_composition_v1")}
 
 
 def _safe_requirement_plan(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -91,7 +101,7 @@ def roles():
         profile: {
             "name": ROLE_NAME,
             "profile": profile,
-            "goal": "形成 HEA/MPEA、热端镍基、可回收火箭不锈钢、芯片玻璃基板、短碳纤维复合材料或卤化物钙钛矿的受约束候选、模型支持性能/本构或电输运稳定性初筛，以及验证优先级建议。",
+            "goal": "形成 HEA/MPEA、热端镍基、火箭不锈钢、芯片玻璃、短碳纤维、钙钛矿或航空铝合金的受约束候选、模型支持性能/本构或电输运稳定性初筛，以及验证优先级建议。",
             "constraints": SERVICE_BOUNDARY,
             "desc": ACTION_DESCRIPTION,
             "is_human": False,
@@ -126,7 +136,7 @@ def roles():
             "routing": {
                 "service_id": SERVICE_ID,
                 "priority": 1,
-                "match_when": "针对已接入材料域，需要生成受约束候选并比较模型支持性能时。高熵/多主元进入 HEA；发动机热端/蠕变进入镍基；可回收火箭不锈钢结构进入火箭不锈钢；芯片封装玻璃基板进入玻璃路线；短碳纤维热塑性复合材料进入短纤维 RVE；卤化物钙钛矿进入电输运稳定性初筛。",
+                "match_when": "针对已接入材料域，需要生成受约束候选并比较模型支持性能时。高熵/多主元进入 HEA；发动机热端/蠕变进入镍基；航空铝合金/Al-Li 进入 wt.% 成分—工艺类别室温性能筛选；其余专项按材料体系路由。",
                 "include_keywords": ["铁基合金", "铝基合金", "高熵合金", "多主元合金", "HEA", "MPEA", "高温合金", "镍基合金", "单晶镍基", "定向凝固", "蠕变", "Inconel", "CMSX", "Rene", "难熔合金", "合金配比", "合金成分", "元素比例", "原子百分比", "质量百分比", "wt.%", "添加量", "微量元素", "成分优化", "配比优化", "成分空间", "组分设计", "候选配比", "元素组成", "微观组织", "组织演变", "宏观性能", "热力学", "动力学", "Ni-Co-Cr", "Nb-Mo-Ta-W", "不锈钢", "火箭不锈钢", "航天火箭", "可回收壳体", "可回收外壳", "不锈钢壳体", "火箭外壳", "火箭贮箱", "承压壳体", "奥氏体不锈钢", "304L", "301LN", "30X", "玻璃基板", "芯片玻璃", "封装玻璃", "玻璃配方", "低硼无碱", "铝硼硅酸盐", "氧化物 mol%", "短碳纤维", "短纤维", "碳纤维增强", "复合耗材", "RVE", "E11", "正交各向异性", "钙钛矿", "perovskite", "卤化物钙钛矿", "碘溴", "离子迁移", "电输运稳定"],
                 "exclude_keywords": ["环氧", "连续纤维", "玻璃纤维", "金属基复合", "陶瓷基复合", "CFRP", "GFRP", "PEEK", "PEKK", "PEI", "PPS"],
                 "model_routes": {
@@ -136,6 +146,7 @@ def roles():
                     "chip_glass_thermomechanical_family_v1": {"when": "出现芯片封装玻璃基板、低硼无碱铝硼硅酸盐、氧化物 mol% 配方、CTE/热失配/玻璃挠曲", "input": "氧化物 mol% 边界、CTE/E/SOC 目标或门槛、候选数；仿真时另输入层堆和热历史", "output": "CTE（0–300°C）、密度、E、SOC、两项黏度特征温度、同家族候选排序与来源锚点"},
                     "short_cf_thermomechanical_rve_v1": {"when": "出现短碳纤维/短纤维增强热塑性复合材料、复合耗材、E11 或正交各向异性线弹性本构", "input": "基体名称或 E/ν/密度、纤维体积分数、有效纤维长度、主方向取向 a11、候选数", "output": "9 个独立工程常数、由互易关系导出的 3 个泊松比、6×6 正定刚度矩阵与候选排序"},
                     "perovskite_transport_stability_v2": {"when": "出现 Cs/FA/MA–Pb(I,Br)3、卤化物钙钛矿、碘溴配比或离子/电输运稳定性", "input": "目标温度（170–330 K）与短名单数量", "output": "ln[sigma(T)T] 变温曲线、有效 Ea、经验不确定度、可追溯组分短名单；不输出器件寿命或 PCE"},
+                    "aerospace_aluminum_composition_v1": {"when": "出现航空铝合金、铝锂/Al-Li、AA2xxx/6xxx/7xxx 或 2024/6061/7050/7075 的新配比与性能筛选", "input": "元素 wt.% 边界、已记录工艺类别、候选数", "output": "名义室温 UTS、0.2% 屈服强度、延伸率、组成留出误差与适用域；不输出精确热处理制度"},
                 },
             },
             "recovered": False,
@@ -213,6 +224,13 @@ async def start(websocket:WebSocket):
         # show Uvicorn's logger but may not attach handlers to child loggers.
         print(f"[WS /alloy/start] preflight taskid={_taskid(payload)} keys={context_keys} context_chars={len(context)} preview={context_preview!r}", flush=True)
         logger.info("WS preflight taskid=%s keys=%s context_chars=%s preview=%r", _taskid(payload), context_keys, len(context), context_preview)
+        native_idea, native_idea_chars, native_idea_sha256, native_idea_truncated = _native_idea_trace(payload.get("idea"))
+        print(
+            f"[WS /alloy/start] native_idea type={type(payload.get('idea')).__name__} "
+            f"json_chars={native_idea_chars} sha256_16={native_idea_sha256} "
+            f"truncated={native_idea_truncated} value={native_idea}",
+            flush=True,
+        )
         effective,plan=_safe_requirement_plan(payload); taskid=_taskid(payload)
         print(f"[WS /alloy/start] upstream received taskid={taskid} peer={peer} keys={context_keys} context_chars={len(context)} preview={context_preview!r}", flush=True)
         print(f"[ALLOY][{taskid}] accepted template={plan.get('template')!r} domain={effective.get('model_domain')!r}", flush=True)
@@ -244,7 +262,7 @@ async def start(websocket:WebSocket):
             await websocket.send_json({"version":"1.0.0","agent":"alloy_composition_optimization","request_id":taskid,"type":"result","data":waiting})
             await websocket.send_text("[end]")
             return
-        runner_description = "当前材料体系尚未覆盖专项训练模型，正在生成明确标注边界的大模型/规则辅助通用配比方案。" if effective.get("model_domain") == "generic_composition_design_fallback_v1" else "正在通过钙钛矿专项 runner 在可追溯 Cs/FA/MA–Pb(I,Br)3 组分网格内进行变温电输运稳定性初筛。" if effective.get("model_domain") == "perovskite_transport_stability_v2" else "正在通过短碳纤维 RVE 专项 runner 生成正交各向异性线弹性本构候选。" if effective.get("model_domain") == "short_cf_thermomechanical_rve_v1" else "正在通过芯片玻璃基板专项 runner 在同家族氧化物邻域内生成候选并预测热机械性质。" if effective.get("model_domain") == "chip_glass_thermomechanical_family_v1" else "正在通过隔离的高温镍基合金专项 runner 进行受约束候选筛选与条件预测。" if effective.get("model_domain") == "ni_superalloy_hot_end" else "正在通过可回收火箭不锈钢专项 runner 进行候选筛选与短时拉伸预测。" if effective.get("model_domain") == "reusable_rocket_stainless" else "正在通过隔离的高熵/多主元合金（HEA/MPEA）专项 runner 进行采样和批量预测。"
+        runner_description = "当前材料体系尚未覆盖专项训练模型，正在生成明确标注边界的大模型/规则辅助通用配比方案。" if effective.get("model_domain") == "generic_composition_design_fallback_v1" else "正在按航空铝合金 wt.% 成分与已记录工艺类别生成候选并预测名义室温强度—延伸率。" if effective.get("model_domain") == "aerospace_aluminum_composition_v1" else "正在通过钙钛矿专项 runner 在可追溯 Cs/FA/MA–Pb(I,Br)3 组分网格内进行变温电输运稳定性初筛。" if effective.get("model_domain") == "perovskite_transport_stability_v2" else "正在通过短碳纤维 RVE 专项 runner 生成正交各向异性线弹性本构候选。" if effective.get("model_domain") == "short_cf_thermomechanical_rve_v1" else "正在通过芯片玻璃基板专项 runner 在同家族氧化物邻域内生成候选并预测热机械性质。" if effective.get("model_domain") == "chip_glass_thermomechanical_family_v1" else "正在通过隔离的高温镍基合金专项 runner 进行受约束候选筛选与条件预测。" if effective.get("model_domain") == "ni_superalloy_hot_end" else "正在通过可回收火箭不锈钢专项 runner 进行候选筛选与短时拉伸预测。" if effective.get("model_domain") == "reusable_rocket_stainless" else "正在通过隔离的高熵/多主元合金（HEA/MPEA）专项 runner 进行采样和批量预测。"
         await websocket.send_json({"version":"1.0.0","agent":"alloy_composition_optimization","request_id":taskid,"type":"progress","data":{"id":FRONTEND_STEP_ID,"stepId":FRONTEND_STEP_ID,"title":FRONTEND_STEP_TITLE,"status":"in_progress","description":runner_description}})
         result=await asyncio.to_thread(_proposal,payload); result["_summary_path"]=RESULTS/taskid/"presentation"/"summary.md"
         public_urls,asset_docs,_asset_titles,visual_assets=await prepare_public_assets(websocket,taskid,result,RESULTS)
@@ -252,7 +270,11 @@ async def start(websocket:WebSocket):
         # 前端把同一资产渲染两次。
         await emit_result_content(websocket,result,step_id=FRONTEND_STEP_ID,visual_assets=visual_assets)
         result.pop("_summary_path",None)
-        await websocket.send_json({"version":"1.0.0","agent":"alloy_composition_optimization","request_id":taskid,"type":"result","data":result})
+        await websocket.send_json({
+            "version": "1.0.0", "agent": "alloy_composition_optimization",
+            "request_id": taskid, "type": "result", "data": result_event_data(result),
+            "meta": {"step_id": FRONTEND_STEP_ID, "ui": {"visible": False}},
+        })
         await websocket.send_text("[end]")
         print(f"[ALLOY][{taskid}] completed generated={result.get('sampling', {}).get('generated', 0)} feasible={result.get('sampling', {}).get('feasible', 0)} assets={len(result.get('presentation', {}).get('assets', []))}", flush=True)
     except WebSocketDisconnect as exc:

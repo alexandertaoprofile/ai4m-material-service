@@ -43,6 +43,15 @@ def infer_element_system_from_text(payload: Mapping[str, Any]) -> dict[str, Any]
     rules: tuple[tuple[tuple[str, ...], tuple[str, ...], str, str], ...] = (
         (
             (
+                "航天箭体外壳", "火箭箭体外壳", "火箭外壳", "低温贮箱",
+                "cryogenic rocket", "rocket tank", "launch vehicle shell",
+            ),
+            ("Al", "Li", "Cu", "Mg", "Ag"),
+            "轻量化铝锂合金起始探索体系",
+            "从箭体外壳的低密度、低温服役与高比强度目标归纳 Al-Li-Cu-Mg-Ag 起始体系；高温抗氧化作为后续筛选关注点。",
+        ),
+        (
+            (
                 "镍基高温合金", "镍基合金", "镍基", "ni-based superalloy",
                 "nickel-based superalloy", "nickel superalloy", "nih-",
             ),
@@ -83,6 +92,35 @@ def infer_element_system_from_text(payload: Mapping[str, Any]) -> dict[str, Any]
                 "reason": reason,
                 "confidence": "medium",
             }
+    return None
+
+
+def _parse_json_object(content: str) -> dict[str, Any] | None:
+    """Recover the one JSON object required from a constrained LLM reply.
+
+    Some compatible gateways wrap otherwise valid JSON in a Markdown code
+    fence or prepend a short sentence.  Recovering that object keeps a useful
+    upstream material direction from failing solely because of presentation
+    formatting; the element and field validation below remains authoritative.
+    """
+    text = (content or "").strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.IGNORECASE)
+        text = re.sub(r"\s*```$", "", text).strip()
+    try:
+        parsed = json.loads(text)
+        return parsed if isinstance(parsed, dict) else None
+    except json.JSONDecodeError:
+        pass
+
+    decoder = json.JSONDecoder()
+    for start in (match.start() for match in re.finditer(r"\{", text)):
+        try:
+            parsed, _end = decoder.raw_decode(text[start:])
+        except json.JSONDecodeError:
+            continue
+        if isinstance(parsed, dict):
+            return parsed
     return None
 
 
@@ -173,8 +211,8 @@ async def infer_element_system(payload: Mapping[str, Any]) -> dict[str, Any] | N
             timeout=float(os.getenv("NEW_MATERIAL_LLM_TIMEOUT_SECONDS", "20")),
         )
         content = ((response.choices[0].message.content if response.choices else "") or "").strip()
-        parsed = json.loads(content)
-        raw_elements = parsed.get("allowed_elements", []) if isinstance(parsed, dict) else []
+        parsed = _parse_json_object(content)
+        raw_elements = parsed.get("allowed_elements", []) if parsed else []
         if not isinstance(raw_elements, list):
             return None
         elements: list[str] = []

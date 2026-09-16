@@ -74,6 +74,17 @@ async def run_inline(function, *args, **kwargs):
 
 
 class AlloyServiceContractTest(unittest.TestCase):
+    def test_native_idea_trace_logs_the_top_level_value_without_context_preview(self) -> None:
+        text, total, digest, truncated = main._native_idea_trace("以 Ni-Cr-Co-Al 为元素体系进行配比筛选")
+        self.assertEqual(text, '"以 Ni-Cr-Co-Al 为元素体系进行配比筛选"')
+        self.assertEqual(total, len(text))
+        self.assertEqual(len(digest), 16)
+        self.assertFalse(truncated)
+
+        object_text, _, _, _ = main._native_idea_trace({"text": "筛选", "alloy_optimization": {"allowed_elements": ["Ni", "Cr"]}})
+        self.assertIn('"allowed_elements"', object_text)
+        self.assertNotIn('"idea":', object_text)
+
     def test_rocket_runtime_does_not_attach_hea_phase_classification(self) -> None:
         runtime = AlloyRuntime.__new__(AlloyRuntime)
         runtime.application = SimpleNamespace(propose_space=lambda _: (

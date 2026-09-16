@@ -61,6 +61,15 @@ _COPPER_HOT_END_PATTERN = re.compile(
     r"GRCop[ -]?(?:42|84)|NARloy[ -]?Z|CuCrZr|Cu-?1Cr|铜基(?:合金)?|"
     r"再生冷却|燃烧室(?:内衬|壁)?|液氢|甲烷冷却|热流密度|铜合金", re.IGNORECASE,
 )
+_AEROSPACE_ALUMINUM_PATTERN = re.compile(
+    r"航空铝|航空航天铝|铝锂|Al[ -]?(?:Li|Cu|Zn|Mg)|铝合金|AA(?:2|5|6|7)\d{3}|"
+    # A bare 2xxx/7xxx alloy designation is allowed (e.g. 2024, 7075-T6),
+    # but a four-digit physical value must not be treated as a grade.  In
+    # particular, density expressions such as ``7800 kg/m³`` previously
+    # matched the 7xxx branch and incorrectly routed steel to aluminum.
+    r"(?<![\d.])(?:2[0-9]{3}|7[0-9]{3})(?![\d.]|\s*(?:kg|g|MPa|GPa|Pa|K|N|%|m(?:m|³|3))|[-/.]\d)",
+    re.IGNORECASE,
+)
 
 
 def _is_negated_material_mention(text: str, start: int) -> bool:
@@ -142,6 +151,9 @@ def is_short_cf_intent(text: str, scope: dict[str, Any]) -> bool:
 
 def is_perovskite_intent(text: str, scope: dict[str, Any]) -> bool:
     return scope.get("model_domain") == "perovskite_transport_stability_v2" or _has_active_pattern(_PEROVSKITE_PATTERN, text)
+
+def is_aerospace_aluminum_intent(text: str, scope: dict[str, Any]) -> bool:
+    return scope.get("model_domain") == "aerospace_aluminum_composition_v1" or _has_active_pattern(_AEROSPACE_ALUMINUM_PATTERN, text)
 
 
 def short_cf_matrix_from_text(text: str) -> str | None:
@@ -371,13 +383,20 @@ def contract(payload: dict[str, Any]) -> dict[str, Any]:
     upstream_context, upstream_keys = upstream_requirement(payload)
     short_cf_request = is_short_cf_intent(upstream_context, scope)
     perovskite_request = is_perovskite_intent(upstream_context, scope)
+    aluminum_request = is_aerospace_aluminum_intent(upstream_context, scope)
     if is_composite_material_request(upstream_context, scope) and not short_cf_request:
         raise ValueError("本服务仅适用于单一金属合金的元素配比优化；包含树脂、纤维、填料或其他复合相的材料应使用复合材料专项流程")
     glass_request = is_chip_glass_intent(upstream_context, scope)
-    if not short_cf_request and not glass_request and not perovskite_request and not is_alloy_request(upstream_context, scope):
+    specialist_request = any((
+        short_cf_request, glass_request, perovskite_request, aluminum_request,
+        is_reusable_rocket_stainless_intent(upstream_context, scope),
+        is_copper_hot_end_intent(upstream_context, scope),
+        is_ni_hot_end_intent(upstream_context, scope),
+    ))
+    if not specialist_request and not is_alloy_request(upstream_context, scope):
         raise ValueError("本服务仅处理合金/高温合金的成分或配比优化；已有材料查询请使用成熟材料服务，非合金新材料生成请使用新材料服务")
     domain = scope.get("model_domain", "hea_mpea")
-    if domain not in {"hea_mpea", "conventional_alloy", "refractory_calculated", "ni_superalloy_hot_end", "copper_hot_end_local_composition_v1", "reusable_rocket_stainless", "chip_glass_thermomechanical_family_v1", "short_cf_thermomechanical_rve_v1", "perovskite_transport_stability_v2"}:
+    if domain not in {"hea_mpea", "conventional_alloy", "refractory_calculated", "ni_superalloy_hot_end", "copper_hot_end_local_composition_v1", "reusable_rocket_stainless", "chip_glass_thermomechanical_family_v1", "short_cf_thermomechanical_rve_v1", "perovskite_transport_stability_v2", "aerospace_aluminum_composition_v1"}:
         raise ValueError("unsupported model_domain")
     common = {"taskid": task_id(payload), "raw_requirement": upstream_context, "upstream_context": upstream_context, "upstream_context_keys": upstream_keys, "model_domain": domain, "objectives": scope.get("objectives", {}), "constraints": scope.get("constraints", {})}
     if domain == "ni_superalloy_hot_end":
@@ -392,6 +411,8 @@ def contract(payload: dict[str, Any]) -> dict[str, Any]:
         return {**common, "matrix_name": scope.get("matrix_name"), "matrix_properties": scope.get("matrix_properties", {}), "target_vf": scope.get("target_vf"), "fiber_length_mm": scope.get("fiber_length_mm"), "target_a11": scope.get("target_a11"), "num_candidates": scope.get("num_candidates", 40), "random_seed": scope.get("random_seed", 20260907), "screening_thresholds": scope.get("screening_thresholds", {})}
     if domain == "perovskite_transport_stability_v2":
         return {**common, "composition": scope.get("composition"), "fractions": scope.get("fractions", {}), "temperatures_K": scope.get("temperatures_K", [170, 220, 300, 330]), "num_candidates": scope.get("num_candidates", 5), "screening_thresholds": scope.get("screening_thresholds", {})}
+    if domain == "aerospace_aluminum_composition_v1":
+        return {**common, "composition_wt_percent": scope.get("composition_wt_percent"), "element_bounds_wt_percent": scope.get("element_bounds_wt_percent", {}), "processing_category": scope.get("processing_category", "Solutionised + Artificially peak aged"), "num_candidates": scope.get("num_candidates", 12), "random_seed": scope.get("random_seed", 20260914)}
     return {**common, "composition": scope.get("composition"), "allowed_elements": scope.get("allowed_elements", []), "element_bounds_at_pct": scope.get("element_bounds_at_pct", {}), "processing_method": scope.get("processing_method"), "test_temperature_C": scope.get("test_temperature_C", 25)}
 
 
@@ -412,6 +433,7 @@ def requirement_plan(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str,
     idea, upstream_keys = upstream_requirement(payload)
     short_cf_intent = is_short_cf_intent(idea, supplied)
     perovskite_intent = is_perovskite_intent(idea, supplied)
+    aluminum_intent = is_aerospace_aluminum_intent(idea, supplied)
     glass_intent = is_chip_glass_intent(idea, supplied)
     rocket_intent = is_reusable_rocket_stainless_intent(idea, supplied)
     copper_hot_end_intent = is_copper_hot_end_intent(idea, supplied)
@@ -421,11 +443,11 @@ def requirement_plan(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str,
     # generic material word used in an exclusion clause.  This keeps requests
     # such as “玻璃基板，不包含碳纤维” and “30X 不锈钢，排除树脂/纤维” on
     # their intended trained routes.
-    specialist_intent = any((short_cf_intent, perovskite_intent, glass_intent,
+    specialist_intent = any((short_cf_intent, perovskite_intent, aluminum_intent, glass_intent,
                              rocket_intent, copper_hot_end_intent, hot_end_intent))
     if is_composite_material_request(idea, supplied) and not specialist_intent:
         raise ValueError("本服务仅适用于单一金属合金的元素配比优化；包含树脂、纤维、填料或其他复合相的材料应使用复合材料专项流程")
-    if not short_cf_intent and not glass_intent and not perovskite_intent and not is_alloy_request(idea, supplied):
+    if not specialist_intent and not is_alloy_request(idea, supplied):
         raise ValueError("本服务仅适用于合金或高温合金的成分优化，不适用于一般高温材料查询或非合金新材料生成")
     if short_cf_intent:
         inferred = {"model_domain":"short_cf_thermomechanical_rve_v1","matrix_name":"Bambu_PLA_Basic","target_vf":0.10,"fiber_length_mm":0.035,"target_a11":0.70,"num_candidates":40,"random_seed":20260907,"objectives":{"E11_MPa":{"goal":"maximize"},"anisotropy_ratio_E11_E22":{"goal":"maximize"}}}
@@ -446,6 +468,11 @@ def requirement_plan(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str,
         effective = dict(inferred); effective.update({key: value for key, value in supplied.items() if value not in (None, [], {}, "")})
         provenance = {key: ("user" if key in supplied and supplied[key] not in (None, [], {}, "") else "platform_default") for key in effective}
         return effective, {"parser": "rule_template_v0", "raw_requirement": idea, "upstream_context_keys": upstream_keys, "template": "perovskite_transport_stability_grid_screening", "effective_model_input": effective, "field_provenance": provenance, "default_assumptions": [{"field": key, "value": inferred[key], "status": "platform_default"} for key in inferred if provenance[key] == "platform_default"], "questions_to_confirm": ["可提供目标温度、偏压、湿度、光照和寿命定义；这些条件不在当前输运模型中。"], "evidence_notice": "模型输出 ln[sigma(T)T] 与有效 Ea 的输运代理；不输出器件 T80、PCE 或环境分解寿命。"}
+    if aluminum_intent:
+        inferred = {"model_domain":"aerospace_aluminum_composition_v1", "processing_category":"Solutionised + Artificially peak aged", "num_candidates":12, "random_seed":20260914, "element_bounds_wt_percent":{}, "objectives":{"uts_MPa":{"goal":"maximize"},"yield_strength_MPa":{"goal":"maximize"},"elongation_pct":{"goal":"maximize"}}}
+        effective = dict(inferred); effective.update({key:value for key,value in supplied.items() if value not in (None, [], {}, "")})
+        provenance={key:("user" if key in supplied and supplied[key] not in (None,[],{},"") else "platform_default") for key in effective}
+        return effective,{"parser":"rule_template_v0","raw_requirement":idea,"upstream_context_keys":upstream_keys,"template":"aerospace_aluminum_wt_percent_screening","effective_model_input":effective,"field_provenance":provenance,"default_assumptions":[{"field":key,"value":inferred[key],"status":"platform_default"} for key in inferred if provenance[key]=="platform_default"],"questions_to_confirm":["可提供目标牌号族、各元素 wt.% 边界和已知工艺类别，以收窄局部候选。"],"evidence_notice":"模型输出名义室温 UTS、YS 和延伸率；未包含具体时效/固溶温度与时间，不能作为热处理优化模型。Al-Li 子域仅作局部参考。"}
     if rocket_intent:
         inferred = {"model_domain": "reusable_rocket_stainless", "element_bounds_wt_percent": {"Cr": [16.5, 19.5], "Ni": [8.5, 12.0], "Mn": [0.8, 2.0], "Si": [0.2, 0.8], "C": [0.02, 0.08], "N": [0.01, 0.08]}, "test_temperature_K": 293, "processing": {"material_state": "solution_annealed", "solution_treatment_temperature_K": 1323, "solution_treatment_time_s": 3600, "quench": "water", "product_form_code": 1, "melting_route_code": 1}, "component": "可回收火箭贮箱或承压壳体（母材）", "weld_state": "base_metal", "low_temperature_verification_K": [90, 111], "verification_focus": ["cryogenic_toughness", "weld", "fatigue", "LOX_compatibility"], "num_candidates": 40, "objectives": {"yield_strength": 1, "uts": 1, "elongation": 1}}
         effective = dict(inferred)

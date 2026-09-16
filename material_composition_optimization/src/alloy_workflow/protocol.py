@@ -29,6 +29,9 @@ ASSET_DOCS = {
     "perovskite_screening_funnel": "展示可追溯的钙钛矿训练组分如何按 220 K 与 300 K 的低电输运响应收缩为验证短名单。",
     "perovskite_transport_tradeoff": "每个点代表一个文档化组分；横轴为 300 K 的 ln[sigmaT]，越低表示当前输运代理下更优，星形为优先项。",
     "perovskite_response_curve": "展示优先候选在 170–330 K 的预测 ln[sigmaT] 曲线及经验 Q90 误差带；不是寿命曲线。",
+    "aluminum_screening_funnel": "展示航空铝合金候选从局部 wt.% 成分生成、工艺类别匹配到训练成分邻域保留的数量；用于确认本轮没有把远域成分写成已验证候选。",
+    "aluminum_strength_ductility_tradeoff": "每个点代表一个航空铝合金候选；横轴为预测延伸率、纵轴为预测 UTS，颜色表示预测 0.2% 屈服强度，星形为当前优先项。",
+    "aluminum_composition_card": "展示优先候选的元素质量百分比；该成分是当前工艺类别与训练邻域内的试制优先项，不是已定型牌号或热处理制度。",
 }
 ASSET_TITLES = {
     "screening_funnel": "候选筛选漏斗",
@@ -50,8 +53,40 @@ ASSET_TITLES = {
     "perovskite_screening_funnel": "钙钛矿候选筛选路径",
     "perovskite_transport_tradeoff": "电输运响应—有效 Ea 取舍",
     "perovskite_response_curve": "优先候选的变温电输运响应",
+    "aluminum_screening_funnel": "航空铝合金候选筛选路径",
+    "aluminum_strength_ductility_tradeoff": "强度—延伸率候选比较",
+    "aluminum_composition_card": "优先候选成分卡（wt.%）",
 }
 logger = logging.getLogger("alloy.protocol")
+
+
+def result_event_data(result: dict[str, Any]) -> dict[str, Any]:
+    """Return a compact, non-renderable handoff for the terminal WS event.
+
+    The complete numerical result is retained in the task manifest/API and the
+    customer sees the complete Markdown report in the content stream.  Sending
+    the entire nested result on a chat-facing ``result`` event causes some
+    Alpha parent views to stringify internal fields such as ``model_evidence``
+    and ``presentation`` into the conversation.
+    """
+    candidates = result.get("initial_candidates") or []
+    top = candidates[0] if isinstance(candidates, list) and candidates and isinstance(candidates[0], dict) else {}
+    sampling = result.get("sampling") or {}
+    taskid = str(result.get("taskid") or "")
+    return {
+        "taskid": taskid,
+        "status": result.get("status", "completed"),
+        "service": result.get("service", "alloy-composition-optimization"),
+        "model_domain": result.get("model_domain"),
+        "model_version": result.get("model_version"),
+        "user_conclusion": result.get("user_conclusion"),
+        "sampling": {
+            "generated": sampling.get("generated"),
+            "feasible": sampling.get("feasible"),
+        },
+        "priority_candidate_id": top.get("candidate_id") or top.get("formula"),
+        "full_result_endpoint": f"/alloy/tasks/{taskid}" if taskid else None,
+    }
 
 
 def _local_asset_url(websocket: Any, item: dict[str, Any]) -> str:

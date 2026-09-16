@@ -196,6 +196,16 @@ def planned_alloy_method_block(payload: dict[str, Any]) -> str:
             "其中 $z(\cdot)$ 仅在当前 65 个可追溯候选中标准化；较高的 $J$ 对应较低的联合输运响应。", "",
             "### 4. 输出定义及验证路径", "输出变温 $\ln[\sigma(T)T]$、有效 $E_{a,low}/E_{a,high}$、曲线经验 Q90 误差带与优先配比短名单。短名单用于安排变温电导、离子迁移和偏压验证；湿热/光照老化、相分离、器件 T80 与 PCE 应在相应实验条件下独立验证。",
         ])
+    if effective.get("model_domain") == "aerospace_aluminum_composition_v1":
+        processing = effective.get("processing_category", "Solutionised + Artificially peak aged")
+        bounds = effective.get("element_bounds_wt_percent") or {}
+        bound_text = "；".join(f"{e} {v[0]}–{v[1]} wt.%" for e, v in bounds.items() if isinstance(v, (list, tuple)) and len(v) == 2) or "以来源记录的航空铝合金局部成分邻域生成"
+        return "\n".join([
+            "### 1. 问题描述", "针对航空铝合金的名义室温强度—延伸率权衡，在可追溯 wt.% 成分与工艺类别联合邻域内生成局部候选。", "",
+            "### 2. 变量与约束", "| 符号/变量 | 定义 | 本轮设定 |", "|---|---|---|", "| $\\mathbf{c}_{wt.\\%}$ | 25 元素质量百分比向量 | " + bound_text + "；总和 100 wt.% |", f"| $p$ | 离散工艺类别 | {processing} |", "| $T$ | 性能标签条件 | 名义室温；具体测试温度待由试验确认 |", "",
+            "### 3. 计划计算链与模型定义", "### 3.1 成分闭合与局部候选生成", "候选从同工艺类别的来源成分锚点出发，对主要合金元素进行受限局部扰动，Al 自动平衡：", r"$$c_{Al}=100-\sum_{i\ne Al}c_i,\qquad c_i\ge0$$", "### 3.2 成分—工艺类别响应关系", r"$$\mathcal{F}(\mathbf{c}_{wt.\%},p)\rightarrow(UTS,YS_{0.2},A)$$", "ExtraTrees 模型分别输出抗拉强度、0.2% 屈服强度和延伸率；同一成分的不同工艺记录整体留出验证。", "### 3.3 候选综合排序", r"$$J=z(UTS)+z(YS_{0.2})+0.25z(A)$$", "",
+            "### 4. 输出定义及验证路径", "输出名义室温 UTS、0.2% 屈服强度、延伸率、组成留出误差和成分邻域标记。优先候选进入同工艺类别下的成分试制与拉伸验证；当前数据未含具体固溶/时效温度与时间，相关参数在下一轮试验中补充。",
+        ])
     if effective.get("model_domain") == "copper_hot_end_evidence_v1":
         threshold = effective.get("screening_thresholds") or {}
         return "\n".join([
@@ -206,6 +216,33 @@ def planned_alloy_method_block(payload: dict[str, Any]) -> str:
             f"| 热导率门槛 | {threshold.get('thermal_conductivity_min_W_mK', '未设')} W/(m·K) |",
             f"| 屈服强度门槛 | {threshold.get('yield_strength_min_MPa', '未设')} MPa |", "",
             "服务不把稀疏资料训练成任意 Cu-Cr-Nb-Ag-Zr 配比的性能预测；原始资料未覆盖的性质会显示为‘当前目录未收录’，温度点之间仅显示为工程插值且不作为缺失指标的放行依据。",
+        ])
+    if effective.get("model_domain") == "copper_hot_end_local_composition_v1":
+        bounds = effective.get("element_bounds_wt_percent") or {}
+        bound_text = "；".join(
+            f"{element} {values[0]}–{values[1]} wt.%"
+            for element, values in bounds.items()
+            if isinstance(values, (list, tuple)) and len(values) == 2
+        ) or "以用户给定的 Cu 基成分边界为准"
+        process = effective.get("processing_state") or "as_received"
+        return "\n".join([
+            "### 铜基热壁合金局部配比筛选", "",
+            "### 1. 问题描述",
+            f"针对铜基再生冷却热壁的局部新配比探索，在 **{float(effective.get('test_temperature_C', 25)):.0f} °C**、**{process}** 状态下生成 Cu–Cr–Nb 型候选，并比较短时 UTS 与 0.2% 屈服强度。", "",
+            "### 2. 变量与约束", "| 符号/变量 | 定义 | 本轮设定 |", "|---|---|---|",
+            "| $\\mathbf{c}_{wt.\\%}$ | 合金元素质量百分比向量 | " + bound_text + "；Cu 为平衡元素 |",
+            f"| $s,T$ | 工艺状态与评价温度 | {process}；{float(effective.get('test_temperature_C', 25)):.0f} °C |",
+            "| 候选范围 | 成分—状态联合适用域 | 仅作 GRCop 型 Cu–Cr–Nb 局部扰动 |", "",
+            "### 3. 计划计算链与模型定义", "### 3.1 质量分数闭合与候选生成",
+            r"$$c_{Cu}=100-\sum_{i\ne Cu}c_i,\qquad c_i\in[l_i,u_i]$$",
+            "候选仅在可追溯 Cu 基训练成分邻域内局部生成；不把该模型扩展为任意铜合金的自由配方预测。", "",
+            "### 3.2 成分—工艺—温度响应关系",
+            r"$$\mathcal{F}(\mathbf{c}_{wt.\%},s,T)\rightarrow\left(UTS,YS_{0.2},AD\right)$$",
+            "输出短时 UTS、0.2% 屈服强度和联合适用域标记 $AD$。室温 %IACS 为 C 级辅助结果；热导率、硬度、密度和 CTE 以 D 级区间用于仿真准备，不参与排序。", "",
+            "### 3.3 候选排序", r"$$J=w_u z(UTS)+w_y z(YS_{0.2})$$",
+            "优先保留成分、状态和温度均处于联合训练域内的候选。", "",
+            "### 4. 输出定义及验证路径",
+            "输出候选 wt.%、短时 UTS、0.2% 屈服、适用域及带等级的辅助热物性。热壁服役仍需结合热流、冷却剂、应变—寿命与保载条件进行疲劳和蠕变验证。",
         ])
     if effective.get("model_domain") == "reusable_rocket_stainless":
         return _rocket_plan_block(effective)
@@ -1081,6 +1118,25 @@ def _embed_perovskite_visuals(narrative: str, visual_assets: list[dict[str, str]
         narrative = narrative.replace(token, f"#### {title}\n\n{desc}\n\n![{title}]({item['url']})")
     return narrative
 
+def aerospace_aluminum_summary_block(result: dict[str, Any]) -> str:
+    candidates=result.get("initial_candidates") or []; validation=result.get("validation") or {}; process=(result.get("screening_conditions") or {}).get("processing_category","-")
+    lines=["### 5. 筛选结果与候选卡","针对航空铝合金，在已记录的 **wt.% 成分—工艺类别** 联合邻域内生成局部候选；以下预测对应名义室温。","","### 5.1 筛选过程","| 阶段 | 保留数量 | 说明 |","|---|---:|---|"]
+    lines += [f"| {x.get('label','筛选阶段')} | {int(x.get('count',0))} | 成分闭合、工艺类别已记录并处于训练成分邻域。 |" for x in ((result.get('sampling') or {}).get('funnel_stages') or [])]
+    lines += ["",r"$$J=z(UTS)+z(YS)+0.25z(A)$$","","排序仅用于当前候选池的试制优先级，不替代牌号、热处理和产品形态验证。","","{{VISUAL:aluminum_screening_funnel}}","","### 5.2 优先候选","| 排名 | 成分（wt.%） | 工艺类别 | UTS | 0.2% YS | 延伸率 |","|---:|---|---|---:|---:|---:|"]
+    for row in candidates[:5]:
+        c="；".join(f"{e} {v:.3f}" for e,v in row.get("composition_wt_percent",{}).items() if float(v)>.001); p=row.get("predicted_properties") or {}; lines.append(f"| {row.get('rank','-')} | {c} | {row.get('processing_category','-')} | {p.get('uts_MPa',0):.1f} MPa | {p.get('yield_strength_MPa',0):.1f} MPa | {p.get('elongation_pct',0):.2f}% |")
+    if candidates:
+        p=candidates[0].get("predicted_properties") or {}; mae=lambda k,u: f"{float(((validation.get(k)or{}).get('overall')or{}).get('mae',0)):.3f} {u}"
+        lines += ["","{{VISUAL:aluminum_strength_ductility_tradeoff}}","","#### 优先候选的完整性质卡","| 项目 | 当前结果 |","|---|---|",f"| 工艺类别 | {process} |", "| 成分基准 | 元素质量百分比（wt.%），总和 100 wt.% |",f"| UTS | {p.get('uts_MPa',0):.1f} MPa；组成留出 MAE {mae('uts_MPa','MPa')} |",f"| 0.2% 屈服强度 | {p.get('yield_strength_MPa',0):.1f} MPa；组成留出 MAE {mae('yield_strength_MPa','MPa')} |",f"| 延伸率 | {p.get('elongation_pct',0):.2f}%；组成留出 MAE {mae('elongation_pct','%')} |","| 验证边界 | 不含具体固溶/时效温度与时间；Al-Li 子域仅作局部参考。 |","","{{VISUAL:aluminum_composition_card}}"]
+    lines += ["","#### 结论",str(result.get("user_conclusion") or "优先候选可进入同一工艺类别下的成分试制与室温拉伸验证。")]
+    return "\n".join(lines)
+
+def _embed_aluminum_visuals(narrative: str, visual_assets: list[dict[str, str]] | None) -> str:
+    assets={str(x.get("name")):x for x in visual_assets or []}
+    for name in ("aluminum_screening_funnel","aluminum_strength_ductility_tradeoff","aluminum_composition_card"):
+        item=assets.get(name); token=f"{{{{VISUAL:{name}}}}}"; narrative=narrative.replace(token, f"#### {item.get('title',name)}\n\n![{item.get('title',name)}]({item['url']})" if item and item.get("url") else "")
+    return narrative
+
 
 async def emit_result_content(websocket: Any, result: dict[str, Any], *, step_id: str = "FILAMENT_SELECTION_OPTIMIZATION", visual_assets: list[dict[str, str]] | None = None) -> None:
     """Stream LLM-rendered narrative/table like adjacent services, with safe fallback."""
@@ -1096,6 +1152,8 @@ async def emit_result_content(websocket: Any, result: dict[str, Any], *, step_id
         rendered_content = _embed_rocket_visuals(fallback, visual_assets)
     elif result.get("model_domain") == "chip_glass_thermomechanical_family_v1":
         rendered_content = _embed_glass_visuals(fallback, visual_assets)
+    elif result.get("model_domain") == "aerospace_aluminum_composition_v1":
+        rendered_content = _embed_aluminum_visuals(fallback, visual_assets)
     elif result.get("model_domain") == "short_cf_thermomechanical_rve_v1":
         rendered_content = _embed_short_cf_visuals(fallback, visual_assets)
     elif result.get("model_domain") == "perovskite_transport_stability_v2":

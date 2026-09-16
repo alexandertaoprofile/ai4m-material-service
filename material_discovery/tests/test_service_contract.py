@@ -110,6 +110,17 @@ class _FakeTeam:
 
 
 class InorganicNewMaterialServiceContractTest(unittest.TestCase):
+    def test_native_idea_trace_logs_the_top_level_value_without_preview_wrapper(self) -> None:
+        text, total, digest, truncated = main._native_idea_trace("以 Ni-Cr-Co-Al 为元素体系进行筛选")
+        self.assertEqual(text, '"以 Ni-Cr-Co-Al 为元素体系进行筛选"')
+        self.assertEqual(total, len(text))
+        self.assertEqual(len(digest), 16)
+        self.assertFalse(truncated)
+
+        object_text, _, _, _ = main._native_idea_trace({"text": "筛选", "new_material": {"allowed_elements": ["Ni", "Cr"]}})
+        self.assertIn('"allowed_elements"', object_text)
+        self.assertNotIn('"idea":', object_text)
+
     def test_retrieval_progress_event_matches_frontend_bar_schema(self) -> None:
         event = presentation.build_retrieval_progress_payload(
             "progress-task",
@@ -346,6 +357,46 @@ class InorganicNewMaterialServiceContractTest(unittest.TestCase):
         self.assertEqual(constraints.allowed_elements, ["Ni", "Cr", "Co", "Al", "Ta", "W"])
         self.assertEqual(enriched["new_material"]["allowed_elements"], ["Ni", "Cr", "Co", "Al", "Ta", "W"])
         self.assertTrue(any("文本解析" in note for note in constraints.notes))
+
+    def test_rocket_shell_direction_gets_a_visible_local_start_system(self) -> None:
+        payload = {
+            "taskid": "rocket-shell-structure",
+            "idea": (
+                "针对航天箭体外壳目标性能（超高强、耐低温、耐高温氧、低密度），"
+                "在元素空间或晶体结构空间中进行高通量筛选与从头计算，生成新型候选材料结构。"
+            ),
+        }
+        with patch.object(llm_constraint_inference, "infer_element_system", return_value=None):
+            enriched, constraints = asyncio.run(llm_constraint_inference.resolve_generation_request(payload))
+
+        self.assertEqual(constraints.allowed_elements, ["Al", "Li", "Cu", "Mg", "Ag"])
+        self.assertEqual(enriched["new_material"]["allowed_elements"], ["Al", "Li", "Cu", "Mg", "Ag"])
+        self.assertTrue(any("文本解析" in note for note in constraints.notes))
+
+    def test_llm_json_recovery_accepts_a_fenced_proposal(self) -> None:
+        proposal = llm_constraint_inference._parse_json_object(
+            "```json\n{\"allowed_elements\":[\"Al\",\"Li\"],\"confidence\":\"low\"}\n```"
+        )
+        self.assertEqual(proposal["allowed_elements"], ["Al", "Li"])
+
+    def test_structure_intent_with_composition_words_uses_llm_fallback(self) -> None:
+        async def fake_inference(_payload):
+            return {
+                "allowed_elements": ["Ti", "Al", "V", "Mo"],
+                "material_family": "航天轻质合金起始探索体系",
+                "reason": "由轻量化与耐温目标归纳。",
+                "confidence": "low",
+            }
+
+        payload = {
+            "taskid": "mixed-composition-structure-intent",
+            "idea": "在成分空间中高通量筛选，并从头结构生成一批新型候选材料结构。",
+        }
+        with patch.object(llm_constraint_inference, "infer_element_system", fake_inference):
+            _, constraints = asyncio.run(llm_constraint_inference.resolve_generation_request(payload))
+
+        self.assertEqual(constraints.allowed_elements, ["Ti", "Al", "V", "Mo"])
+        self.assertTrue(any("LLM" in note for note in constraints.notes))
 
     def test_role_registers_only_discovery_action(self) -> None:
         role = team_config.InorganicNewMaterialDiscoveryRole()

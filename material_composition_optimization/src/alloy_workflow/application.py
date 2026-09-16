@@ -66,6 +66,12 @@ class AlloyOptimizationApplication:
         if result.get("model_domain") == "copper_hot_end_local_composition_v1":
             self._enrich_copper_local(result, plan)
             return
+        if result.get("model_domain") == "aerospace_aluminum_composition_v1":
+            result["requirement_interpretation"] = plan
+            result["model_evidence"] = {"model_version": result.get("model_version"), "data_type": "Mendeley CC BY 4.0 铝合金数据：1,154 条记录、398 个闭合 wt.% 成分、10 类工艺状态。", "validation": result.get("validation")}
+            result["next_actions"] = ["在同一工艺类别下制备优先候选并做室温拉伸", "记录实际固溶/时效温度和时间", "Al-Li 目标单独补充成分—工艺—性能数据"]
+            result["user_conclusion"] = "当前短名单用于航空铝合金的 wt.% 成分与既有工艺类别联合初筛；UTS、YS 和延伸率须由同状态试样验证，且不作为热处理制度优化结论。"
+            return
         if result.get("model_domain") == "ni_superalloy_hot_end":
             self._enrich_hot_end(result, plan)
             return
