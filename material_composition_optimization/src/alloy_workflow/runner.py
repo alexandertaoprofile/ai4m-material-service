@@ -128,8 +128,14 @@ class HEASurrogateRunner:
 
     def tensile_shadow_ready(self) -> bool:
         python = Path(os.getenv("UNIFIED_TENSILE_PYTHON", "/home/ubuntu/miniconda3/bin/python"))
-        runner = self.surrogate_root / "tools/unified_alloy_tensile_shadow_runner.py"
-        runtime = self.surrogate_root / "models/unified_alloy_tensile_v2_20260921/runtime"
+        runner = Path(os.getenv(
+            "UNIFIED_TENSILE_RUNNER",
+            str(self.surrogate_root / "tools/unified_alloy_tensile_shadow_runner.py"),
+        ))
+        runtime = Path(os.getenv(
+            "UNIFIED_TENSILE_RUNTIME_ROOT",
+            str(self.surrogate_root / "models/unified_alloy_tensile_v2_20260921/runtime"),
+        ))
         return python.is_file() and runner.is_file() and (runtime / "assets/model_state.pt").is_file()
 
     def submit_tensile_shadow(self, taskid: str, specialist_result: dict[str, Any]) -> Future[dict[str, Any]] | None:
@@ -175,9 +181,19 @@ class HEASurrogateRunner:
             manifest.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
             return record
         python = os.getenv("UNIFIED_TENSILE_PYTHON", "/home/ubuntu/miniconda3/bin/python")
-        command = [python, str(self.surrogate_root / "tools/unified_alloy_tensile_shadow_runner.py"),
+        shadow_runner = os.getenv(
+            "UNIFIED_TENSILE_RUNNER",
+            str(self.surrogate_root / "tools/unified_alloy_tensile_shadow_runner.py"),
+        )
+        diagnostic_enabled = os.getenv(
+            "UNIFIED_TENSILE_DIAGNOSTIC_OUTSIDE_SUPPORT_ENABLED", "1"
+        ).strip().casefold() not in {"0", "false", "no", "off"}
+        command = [python, shadow_runner,
                    "--request", str(request), "--response", str(response), "--mode", "shadow",
                    "--service-comparison", "--threads", "1"]
+        if diagnostic_enabled:
+            command.append("--diagnostic-outside-support")
+        record["diagnostic_outside_support_enabled"] = diagnostic_enabled
         env = dict(os.environ)
         for variable in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
             env[variable] = "1"

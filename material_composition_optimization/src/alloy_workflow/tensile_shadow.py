@@ -24,19 +24,31 @@ FUTURE_PRIMARY_PRESENTATION = {
         "model_label": "统一合金物理约束 Transformer（航空铝合金域）",
         "transformer_properties": ["0.2% 屈服强度", "抗拉强度"],
         "specialist_properties": ["延伸率", "成分适用域", "工艺类别证据"],
-        "oof_error_MPa": {"yield_strength_0p2": 57.4, "ultimate_tensile_strength": 46.7},
+        "evaluation": {
+            "protocol": "frozen_composition_group_test_selected_single_seed",
+            "metric": "MAE_MPa",
+            "values": {"yield_strength_0p2": 57.4, "ultimate_tensile_strength": 46.7},
+        },
     },
     "reusable_rocket_stainless": {
         "model_label": "统一合金物理约束 Transformer（奥氏体不锈钢域）",
         "transformer_properties": ["0.2% 屈服强度", "抗拉强度"],
         "specialist_properties": ["延伸率", "深冷参考层", "焊接/疲劳/LOX 验证路径"],
-        "oof_error_MPa": {"yield_strength_0p2": 19.5, "ultimate_tensile_strength": 27.6},
+        "evaluation": {
+            "protocol": "frozen_composition_group_test_selected_single_seed",
+            "metric": "MAE_MPa",
+            "values": {"yield_strength_0p2": 19.5, "ultimate_tensile_strength": 27.6},
+        },
     },
     "ni_superalloy_hot_end": {
         "model_label": "统一合金物理约束 Transformer（镍基高温合金域）",
         "transformer_properties": ["0.2% 屈服/规定塑性延伸强度", "短时抗拉强度"],
         "specialist_properties": ["蠕变断裂寿命", "延伸率辅助指标", "牌号/路线/热处理证据"],
-        "oof_error_MPa": {"yield_strength_0p2": 90.5, "ultimate_tensile_strength": 156.6},
+        "evaluation": {
+            "protocol": "frozen_composition_group_test_selected_single_seed",
+            "metric": "MAE_MPa",
+            "values": {"yield_strength_0p2": 90.5, "ultimate_tensile_strength": 156.6},
+        },
     },
 }
 
