@@ -38,6 +38,10 @@ class AlloyOptimizationApplication:
         started = time.perf_counter()
         operation = "propose_space" if effective.get("model_domain") in {"chip_glass_thermomechanical_family_v1", "short_cf_thermomechanical_rve_v1", "perovskite_transport_stability_v2"} else "propose"
         result = self.runner.run(constraints["taskid"], operation, constraints)
+        # Fire-and-record only: formal candidates, ranking, Markdown and charts
+        # continue to use the specialist result while the unified Transformer
+        # is evaluated privately against the same resolved candidate batch.
+        self.runner.submit_tensile_shadow(constraints["taskid"], result)
         result.update({"taskid": constraints["taskid"], "status": "completed", "service": self.service_name, "elapsed_seconds": round(time.perf_counter() - started, 3)})
         self._enrich(result, plan)
         return result, constraints

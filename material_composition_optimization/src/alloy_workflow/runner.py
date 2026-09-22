@@ -8,8 +8,19 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import threading
+import time
+import uuid
+from copy import deepcopy
+from concurrent.futures import Future, ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
+
+from src.alloy_workflow.tensile_shadow import (
+    SHADOW_DOMAINS,
+    build_comparison_items,
+    future_primary_presentation,
+)
 
 
 class HEASurrogateRunner:
@@ -18,6 +29,10 @@ class HEASurrogateRunner:
         self.surrogate_root = surrogate_root
         self.environment_prefix = environment_prefix
         self.executable = executable
+        workers = max(1, min(2, int(os.getenv("UNIFIED_TENSILE_SHADOW_WORKERS", "1"))))
+        queue_size = max(workers, int(os.getenv("UNIFIED_TENSILE_SHADOW_QUEUE", "8")))
+        self._shadow_pool = ThreadPoolExecutor(max_workers=workers, thread_name_prefix="unified-tensile-shadow")
+        self._shadow_slots = threading.BoundedSemaphore(queue_size)
 
     def ready(self, domain: str = "hea_mpea") -> bool:
         if domain == "copper_hot_end_local_composition_v1":
@@ -110,3 +125,96 @@ class HEASurrogateRunner:
         if not data.get("ok"):
             raise RuntimeError(data.get("error", "HEA runner failed"))
         return data["result"]
+
+    def tensile_shadow_ready(self) -> bool:
+        python = Path(os.getenv("UNIFIED_TENSILE_PYTHON", "/home/ubuntu/miniconda3/bin/python"))
+        runner = self.surrogate_root / "tools/unified_alloy_tensile_shadow_runner.py"
+        runtime = self.surrogate_root / "models/unified_alloy_tensile_v2_20260921/runtime"
+        return python.is_file() and runner.is_file() and (runtime / "assets/model_state.pt").is_file()
+
+    def submit_tensile_shadow(self, taskid: str, specialist_result: dict[str, Any]) -> Future[dict[str, Any]] | None:
+        """Queue a private comparison without delaying or mutating the formal result."""
+        enabled = os.getenv("UNIFIED_TENSILE_SHADOW_ENABLED", "1").strip().casefold() not in {"0", "false", "no", "off"}
+        if not enabled or specialist_result.get("model_domain") not in SHADOW_DOMAINS:
+            return None
+        if not self._shadow_slots.acquire(blocking=False):
+            self._write_shadow_notice(taskid, "queue_full", specialist_result.get("model_domain"))
+            return None
+        # The application enriches the formal result immediately after this
+        # submission.  Freeze a private copy so the background thread never
+        # races with presentation mutations.
+        future = self._shadow_pool.submit(self.run_tensile_shadow_sync, taskid, deepcopy(specialist_result))
+        future.add_done_callback(lambda _future: self._shadow_slots.release())
+        return future
+
+    def run_tensile_shadow_sync(self, taskid: str, specialist_result: dict[str, Any]) -> dict[str, Any]:
+        domain = str(specialist_result.get("model_domain") or "")
+        items = build_comparison_items(specialist_result)
+        batch_id = f"{time.time_ns()}-{uuid.uuid4().hex[:8]}"
+        # The model subprocess runs with ``cwd=hea_surrogate``.  Resolve the
+        # task path before crossing that process boundary; production normally
+        # configures ALLOY_RESULTS_ROOT as a path relative to the 1111 service.
+        batch_dir = (self.results_root / taskid / "shadow" / batch_id).resolve()
+        batch_dir.mkdir(parents=True, exist_ok=False)
+        request = batch_dir / "request.json"
+        response = batch_dir / "response.json"
+        manifest = batch_dir / "manifest.json"
+        request.write_text(json.dumps({"items": items}, ensure_ascii=False, indent=2), encoding="utf-8")
+        started = time.perf_counter()
+        record: dict[str, Any] = {
+            "status": "skipped_no_candidates" if not items else "running",
+            "mode": "shadow",
+            "public_effect": False,
+            "formal_result_mutated": False,
+            "domain": domain,
+            "batch_id": batch_id,
+            "item_count": len(items),
+            "future_primary_presentation": future_primary_presentation(domain),
+        }
+        if not items:
+            manifest.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+            return record
+        python = os.getenv("UNIFIED_TENSILE_PYTHON", "/home/ubuntu/miniconda3/bin/python")
+        command = [python, str(self.surrogate_root / "tools/unified_alloy_tensile_shadow_runner.py"),
+                   "--request", str(request), "--response", str(response), "--mode", "shadow",
+                   "--service-comparison", "--threads", "1"]
+        env = dict(os.environ)
+        for variable in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
+            env[variable] = "1"
+        try:
+            completed = subprocess.run(
+                command, cwd=self.surrogate_root, capture_output=True, text=True,
+                timeout=int(os.getenv("UNIFIED_TENSILE_SHADOW_TIMEOUT_SECONDS", "60")), env=env,
+            )
+            payload = json.loads(response.read_text(encoding="utf-8")) if response.is_file() else {"ok": False, "error": "response_missing"}
+            comparisons = payload.get("comparisons") or []
+            statuses: dict[str, int] = {}
+            for row in comparisons:
+                status = str(row.get("status") or "unknown")
+                statuses[status] = statuses.get(status, 0) + 1
+            record.update({
+                "status": "completed" if completed.returncode == 0 and payload.get("ok") else "failed",
+                "elapsed_seconds": round(time.perf_counter() - started, 4),
+                "returncode": completed.returncode,
+                "comparison_status_counts": statuses,
+                "response_ok": bool(payload.get("ok")),
+                "stderr_tail": completed.stderr[-2000:],
+            })
+        except Exception as exc:  # shadow failures must remain private and non-blocking
+            record.update({
+                "status": "failed",
+                "elapsed_seconds": round(time.perf_counter() - started, 4),
+                "error_type": type(exc).__name__,
+                "error": str(exc),
+            })
+        manifest.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+        return record
+
+    def _write_shadow_notice(self, taskid: str, status: str, domain: Any) -> None:
+        directory = (self.results_root / taskid / "shadow").resolve()
+        directory.mkdir(parents=True, exist_ok=True)
+        path = directory / f"notice-{time.time_ns()}.json"
+        path.write_text(json.dumps({
+            "status": status, "mode": "shadow", "public_effect": False,
+            "formal_result_mutated": False, "domain": domain,
+        }, ensure_ascii=False, indent=2), encoding="utf-8")
