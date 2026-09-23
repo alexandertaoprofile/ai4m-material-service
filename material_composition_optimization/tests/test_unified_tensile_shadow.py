@@ -41,14 +41,24 @@ def test_stainless_shadow_preserves_resolved_process_and_temperature():
             "processing": {"quench": "water", "product_form_code": 1, "solution_treatment_temperature_K": 1323},
             "platform_defaults_used": ["processing.quench"],
         },
+        "search_space": {
+            "element_bounds_wt_percent": {
+                "Cr": [16.5, 19.5], "Ni": [8.5, 12.0], "Mn": [0.8, 2.0],
+                "Si": [0.2, 0.8], "C": [0.02, 0.08], "N": [0.01, 0.08],
+            },
+        },
         "all_candidates": [{
             "candidate_id": "RSS-1", "composition_wt_percent": {"Fe": 70.0, "Cr": 18.0, "Ni": 10.0, "Mn": 2.0},
             "short_time_tensile": {"yield_0p2_MPa": {"mean": 280.0}, "uts_MPa": {"mean": 590.0}, "elongation_pct": {"mean": 35.0}},
+            "applicability_domain": {"level": "boundary", "nearest_training_composition_distance": 3.1},
         }],
     }
     item = build_comparison_items(result)[0]
     assert item["actual_inputs"]["processing"]["solution_treatment_temperature_K"] == 1323
     assert item["legacy_properties"] == {"yield_0p2_MPa": 280.0, "uts_MPa": 590.0}
+    assert item["composition_semantics"]["omitted_interpretation"] == "not_in_search_space_not_confirmed_zero"
+    assert {"P", "S"}.issubset(item["composition_semantics"]["not_in_search_space"])
+    assert item["specialist_applicability_domain"]["level"] == "boundary"
 
 
 def test_nickel_shadow_keeps_creep_out_of_transformer_property_projection():

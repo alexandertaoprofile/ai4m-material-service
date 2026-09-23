@@ -86,10 +86,26 @@ def main() -> None:
             if row.get("status") not in {"predicted", "diagnostic_outside_support"}
         ]
         reason_counts: dict[str, int] = {}
+        canonical_level_counts: dict[str, int] = {}
+        full_atomic_level_counts: dict[str, int] = {}
+        trace_reporting_counts: dict[str, int] = {}
         for row in comparisons:
             audit = ((row.get("shadow_result") or {}).get("input_audit") or {})
             for reason in audit.get("review_reasons") or []:
                 reason_counts[str(reason)] = reason_counts.get(str(reason), 0) + 1
+            canonical = row.get("canonical_composition_support_audit") or {}
+            if canonical:
+                level = str(canonical.get("canonical_chemistry_level") or "unknown")
+                canonical_level_counts[level] = canonical_level_counts.get(level, 0) + 1
+                full_level = str(
+                    (canonical.get("transformer_full_atomic_domain") or {}).get("level")
+                    or "unknown"
+                )
+                full_atomic_level_counts[full_level] = full_atomic_level_counts.get(full_level, 0) + 1
+                trace_status = str(
+                    (canonical.get("trace_reporting") or {}).get("status") or "unknown"
+                )
+                trace_reporting_counts[trace_status] = trace_reporting_counts.get(trace_status, 0) + 1
         # A strict shadow gate is expected to skip unsupported candidates.  An
         # operational pass therefore means the complete formal batch was
         # audited without mutation; prediction coverage is reported separately
@@ -115,6 +131,9 @@ def main() -> None:
                 if comparisons else 0.0
             ),
             "shadow_review_reason_counts": reason_counts,
+            "canonical_chemistry_level_counts": canonical_level_counts,
+            "transformer_full_atomic_tier_counts": full_atomic_level_counts,
+            "trace_reporting_status_counts": trace_reporting_counts,
             "first_strict_prediction": (
                 predicted[0].get("internal_property_projection_MPa") if predicted else None
             ),

@@ -1,0 +1,2174 @@
+{
+  "method": {
+    "current_transformer": "full atomic-fraction Hellinger distance; absent fields are numerically zero",
+    "current_specialist": "Euclidean distance after median imputation and z-score scaling over 21 wt.% solute fields",
+    "canonical_proposal": "separate field provenance from chemistry; compare core alloy chemistry on a fixed projection, and compare explicit N only to N-positive references"
+  },
+  "training_support": {
+    "transformer_stainless_compositions": 150,
+    "transformer_stainless_n_positive_compositions": 31,
+    "n_p_s_patterns": {
+      "N=1|P=1|S=1": 31,
+      "N=0|P=1|S=1": 106,
+      "N=0|P=0|S=0": 13
+    },
+    "full_threshold_p95": 0.02140771862061755,
+    "full_threshold_p95_recalibrated_check": 0.021407718620617525,
+    "full_threshold_p99_recalibrated": 0.02956087326708902,
+    "core_threshold_p95_recalibrated": 0.012254023207765924,
+    "core_threshold_p99_recalibrated": 0.01987393179017706,
+    "core_n_threshold_p95_recalibrated": 0.01459988955354445,
+    "core_n_threshold_p99_recalibrated": 0.016999614717078684,
+    "core_training_nn_quantiles": {
+      "0.5": 0.004776160636699922,
+      "0.9": 0.00930581218881095,
+      "0.95": 0.012254023207765924,
+      "0.99": 0.01987393179017706
+    },
+    "core_n_training_nn_quantiles": {
+      "0.5": 0.006304816737193556,
+      "0.9": 0.012074930141729745,
+      "0.95": 0.01459988955354445,
+      "0.99": 0.016999614717078684
+    }
+  },
+  "candidate_summary": {
+    "count": 20,
+    "specialist_inside": 2,
+    "specialist_boundary": 18,
+    "specialist_outside": 0,
+    "transformer_full_inside": 0,
+    "transformer_full_boundary": 3,
+    "transformer_full_outside": 17,
+    "canonical_core_inside": 13,
+    "canonical_core_boundary": 6,
+    "canonical_core_outside": 1,
+    "canonical_core_n_reported_inside": 10,
+    "canonical_core_n_reported_boundary": 3,
+    "canonical_core_n_reported_outside": 7
+  },
+  "candidates": [
+    {
+      "request_id": "RSS-020",
+      "composition_semantics": {
+        "basis": "wt_percent",
+        "balance_element": "Fe",
+        "sampled_or_fixed_elements": [
+          "C",
+          "Cr",
+          "Mn",
+          "N",
+          "Ni",
+          "Si"
+        ],
+        "balance_elements": [
+          "Fe"
+        ],
+        "not_in_specialist_search_space": [
+          "Al",
+          "B",
+          "Co",
+          "Cu",
+          "Mo",
+          "Nb",
+          "P",
+          "Pb",
+          "S",
+          "Sn",
+          "Ta",
+          "Ti",
+          "V",
+          "W",
+          "Zr"
+        ],
+        "zero_confirmation_available": false
+      },
+      "specialist_standardized_wt_domain": {
+        "distance": 2.152541455798234,
+        "review_threshold_p95": 2.7158140041486316,
+        "block_threshold_p99": 3.9671539149400585,
+        "level": "inside"
+      },
+      "transformer_full_atomic_domain": {
+        "distance": 0.03566129606576161,
+        "threshold_p95": 0.02140771862061755,
+        "threshold_p99_recalibrated": 0.02956087326708902,
+        "level": "outside",
+        "nearest_reference_positive_elements": [
+          "C",
+          "Cr",
+          "Fe",
+          "Mn",
+          "Ni",
+          "P",
+          "S",
+          "Si"
+        ]
+      },
+      "canonical_core_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C"
+        ],
+        "distance": 0.005137975634999663,
+        "threshold_p95_recalibrated": 0.012254023207765924,
+        "threshold_p99_recalibrated": 0.01987393179017706,
+        "level": "inside"
+      },
+      "canonical_core_n_reported_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C",
+          "N"
+        ],
+        "reference_policy": "compare N-specified candidates only with N-positive training compositions",
+        "distance": 0.009732981931162458,
+        "threshold_p95_recalibrated": 0.01459988955354445,
+        "threshold_p99_recalibrated": 0.016999614717078684,
+        "level": "inside",
+        "nearest_reference_positive_elements": [
+          "Al",
+          "B",
+          "C",
+          "Co",
+          "Cr",
+          "Cu",
+          "Fe",
+          "Mn",
+          "Mo",
+          "N",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si",
+          "Ti",
+          "V"
+        ]
+      }
+    },
+    {
+      "request_id": "RSS-013",
+      "composition_semantics": {
+        "basis": "wt_percent",
+        "balance_element": "Fe",
+        "sampled_or_fixed_elements": [
+          "C",
+          "Cr",
+          "Mn",
+          "N",
+          "Ni",
+          "Si"
+        ],
+        "balance_elements": [
+          "Fe"
+        ],
+        "not_in_specialist_search_space": [
+          "Al",
+          "B",
+          "Co",
+          "Cu",
+          "Mo",
+          "Nb",
+          "P",
+          "Pb",
+          "S",
+          "Sn",
+          "Ta",
+          "Ti",
+          "V",
+          "W",
+          "Zr"
+        ],
+        "zero_confirmation_available": false
+      },
+      "specialist_standardized_wt_domain": {
+        "distance": 2.4638023510890683,
+        "review_threshold_p95": 2.7158140041486316,
+        "block_threshold_p99": 3.9671539149400585,
+        "level": "inside"
+      },
+      "transformer_full_atomic_domain": {
+        "distance": 0.032769549574381766,
+        "threshold_p95": 0.02140771862061755,
+        "threshold_p99_recalibrated": 0.02956087326708902,
+        "level": "outside",
+        "nearest_reference_positive_elements": [
+          "C",
+          "Cr",
+          "Fe",
+          "Mn",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si"
+        ]
+      },
+      "canonical_core_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C"
+        ],
+        "distance": 0.017182955323914575,
+        "threshold_p95_recalibrated": 0.012254023207765924,
+        "threshold_p99_recalibrated": 0.01987393179017706,
+        "level": "boundary"
+      },
+      "canonical_core_n_reported_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C",
+          "N"
+        ],
+        "reference_policy": "compare N-specified candidates only with N-positive training compositions",
+        "distance": 0.01969609189653329,
+        "threshold_p95_recalibrated": 0.01459988955354445,
+        "threshold_p99_recalibrated": 0.016999614717078684,
+        "level": "outside",
+        "nearest_reference_positive_elements": [
+          "Al",
+          "B",
+          "C",
+          "Cr",
+          "Cu",
+          "Fe",
+          "Mn",
+          "Mo",
+          "N",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si",
+          "Ti"
+        ]
+      }
+    },
+    {
+      "request_id": "RSS-011",
+      "composition_semantics": {
+        "basis": "wt_percent",
+        "balance_element": "Fe",
+        "sampled_or_fixed_elements": [
+          "C",
+          "Cr",
+          "Mn",
+          "N",
+          "Ni",
+          "Si"
+        ],
+        "balance_elements": [
+          "Fe"
+        ],
+        "not_in_specialist_search_space": [
+          "Al",
+          "B",
+          "Co",
+          "Cu",
+          "Mo",
+          "Nb",
+          "P",
+          "Pb",
+          "S",
+          "Sn",
+          "Ta",
+          "Ti",
+          "V",
+          "W",
+          "Zr"
+        ],
+        "zero_confirmation_available": false
+      },
+      "specialist_standardized_wt_domain": {
+        "distance": 3.4124827703304756,
+        "review_threshold_p95": 2.7158140041486316,
+        "block_threshold_p99": 3.9671539149400585,
+        "level": "boundary"
+      },
+      "transformer_full_atomic_domain": {
+        "distance": 0.031562850745927136,
+        "threshold_p95": 0.02140771862061755,
+        "threshold_p99_recalibrated": 0.02956087326708902,
+        "level": "outside",
+        "nearest_reference_positive_elements": [
+          "C",
+          "Cr",
+          "Fe",
+          "Mn",
+          "Ni",
+          "P",
+          "S",
+          "Si"
+        ]
+      },
+      "canonical_core_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C"
+        ],
+        "distance": 0.005967967599688242,
+        "threshold_p95_recalibrated": 0.012254023207765924,
+        "threshold_p99_recalibrated": 0.01987393179017706,
+        "level": "inside"
+      },
+      "canonical_core_n_reported_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C",
+          "N"
+        ],
+        "reference_policy": "compare N-specified candidates only with N-positive training compositions",
+        "distance": 0.00920121495494153,
+        "threshold_p95_recalibrated": 0.01459988955354445,
+        "threshold_p99_recalibrated": 0.016999614717078684,
+        "level": "inside",
+        "nearest_reference_positive_elements": [
+          "Al",
+          "B",
+          "C",
+          "Cr",
+          "Cu",
+          "Fe",
+          "Mn",
+          "Mo",
+          "N",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si",
+          "Ti"
+        ]
+      }
+    },
+    {
+      "request_id": "RSS-010",
+      "composition_semantics": {
+        "basis": "wt_percent",
+        "balance_element": "Fe",
+        "sampled_or_fixed_elements": [
+          "C",
+          "Cr",
+          "Mn",
+          "N",
+          "Ni",
+          "Si"
+        ],
+        "balance_elements": [
+          "Fe"
+        ],
+        "not_in_specialist_search_space": [
+          "Al",
+          "B",
+          "Co",
+          "Cu",
+          "Mo",
+          "Nb",
+          "P",
+          "Pb",
+          "S",
+          "Sn",
+          "Ta",
+          "Ti",
+          "V",
+          "W",
+          "Zr"
+        ],
+        "zero_confirmation_available": false
+      },
+      "specialist_standardized_wt_domain": {
+        "distance": 3.9223905717372016,
+        "review_threshold_p95": 2.7158140041486316,
+        "block_threshold_p99": 3.9671539149400585,
+        "level": "boundary"
+      },
+      "transformer_full_atomic_domain": {
+        "distance": 0.03832740777950276,
+        "threshold_p95": 0.02140771862061755,
+        "threshold_p99_recalibrated": 0.02956087326708902,
+        "level": "outside",
+        "nearest_reference_positive_elements": [
+          "C",
+          "Cr",
+          "Fe",
+          "Mn",
+          "Ni",
+          "P",
+          "S",
+          "Si"
+        ]
+      },
+      "canonical_core_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C"
+        ],
+        "distance": 0.022469574707559302,
+        "threshold_p95_recalibrated": 0.012254023207765924,
+        "threshold_p99_recalibrated": 0.01987393179017706,
+        "level": "outside"
+      },
+      "canonical_core_n_reported_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C",
+          "N"
+        ],
+        "reference_policy": "compare N-specified candidates only with N-positive training compositions",
+        "distance": 0.02806783635772404,
+        "threshold_p95_recalibrated": 0.01459988955354445,
+        "threshold_p99_recalibrated": 0.016999614717078684,
+        "level": "outside",
+        "nearest_reference_positive_elements": [
+          "Al",
+          "B",
+          "C",
+          "Cr",
+          "Cu",
+          "Fe",
+          "Mn",
+          "Mo",
+          "N",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si",
+          "Ti"
+        ]
+      }
+    },
+    {
+      "request_id": "RSS-017",
+      "composition_semantics": {
+        "basis": "wt_percent",
+        "balance_element": "Fe",
+        "sampled_or_fixed_elements": [
+          "C",
+          "Cr",
+          "Mn",
+          "N",
+          "Ni",
+          "Si"
+        ],
+        "balance_elements": [
+          "Fe"
+        ],
+        "not_in_specialist_search_space": [
+          "Al",
+          "B",
+          "Co",
+          "Cu",
+          "Mo",
+          "Nb",
+          "P",
+          "Pb",
+          "S",
+          "Sn",
+          "Ta",
+          "Ti",
+          "V",
+          "W",
+          "Zr"
+        ],
+        "zero_confirmation_available": false
+      },
+      "specialist_standardized_wt_domain": {
+        "distance": 3.5442991839865625,
+        "review_threshold_p95": 2.7158140041486316,
+        "block_threshold_p99": 3.9671539149400585,
+        "level": "boundary"
+      },
+      "transformer_full_atomic_domain": {
+        "distance": 0.029724989894418317,
+        "threshold_p95": 0.02140771862061755,
+        "threshold_p99_recalibrated": 0.02956087326708902,
+        "level": "outside",
+        "nearest_reference_positive_elements": [
+          "C",
+          "Cr",
+          "Fe",
+          "Mn",
+          "Ni",
+          "P",
+          "S",
+          "Si"
+        ]
+      },
+      "canonical_core_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C"
+        ],
+        "distance": 0.01097934151092354,
+        "threshold_p95_recalibrated": 0.012254023207765924,
+        "threshold_p99_recalibrated": 0.01987393179017706,
+        "level": "inside"
+      },
+      "canonical_core_n_reported_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C",
+          "N"
+        ],
+        "reference_policy": "compare N-specified candidates only with N-positive training compositions",
+        "distance": 0.015415782188597465,
+        "threshold_p95_recalibrated": 0.01459988955354445,
+        "threshold_p99_recalibrated": 0.016999614717078684,
+        "level": "boundary",
+        "nearest_reference_positive_elements": [
+          "Al",
+          "B",
+          "C",
+          "Cr",
+          "Cu",
+          "Fe",
+          "Mn",
+          "Mo",
+          "N",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si",
+          "Ti"
+        ]
+      }
+    },
+    {
+      "request_id": "RSS-003",
+      "composition_semantics": {
+        "basis": "wt_percent",
+        "balance_element": "Fe",
+        "sampled_or_fixed_elements": [
+          "C",
+          "Cr",
+          "Mn",
+          "N",
+          "Ni",
+          "Si"
+        ],
+        "balance_elements": [
+          "Fe"
+        ],
+        "not_in_specialist_search_space": [
+          "Al",
+          "B",
+          "Co",
+          "Cu",
+          "Mo",
+          "Nb",
+          "P",
+          "Pb",
+          "S",
+          "Sn",
+          "Ta",
+          "Ti",
+          "V",
+          "W",
+          "Zr"
+        ],
+        "zero_confirmation_available": false
+      },
+      "specialist_standardized_wt_domain": {
+        "distance": 3.3164403288015474,
+        "review_threshold_p95": 2.7158140041486316,
+        "block_threshold_p99": 3.9671539149400585,
+        "level": "boundary"
+      },
+      "transformer_full_atomic_domain": {
+        "distance": 0.03245328397934985,
+        "threshold_p95": 0.02140771862061755,
+        "threshold_p99_recalibrated": 0.02956087326708902,
+        "level": "outside",
+        "nearest_reference_positive_elements": [
+          "C",
+          "Cr",
+          "Fe",
+          "Mn",
+          "Ni",
+          "P",
+          "S",
+          "Si"
+        ]
+      },
+      "canonical_core_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C"
+        ],
+        "distance": 0.008850724570825965,
+        "threshold_p95_recalibrated": 0.012254023207765924,
+        "threshold_p99_recalibrated": 0.01987393179017706,
+        "level": "inside"
+      },
+      "canonical_core_n_reported_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C",
+          "N"
+        ],
+        "reference_policy": "compare N-specified candidates only with N-positive training compositions",
+        "distance": 0.014595843760950192,
+        "threshold_p95_recalibrated": 0.01459988955354445,
+        "threshold_p99_recalibrated": 0.016999614717078684,
+        "level": "inside",
+        "nearest_reference_positive_elements": [
+          "Al",
+          "B",
+          "C",
+          "Cr",
+          "Cu",
+          "Fe",
+          "Mn",
+          "Mo",
+          "N",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si",
+          "Ti"
+        ]
+      }
+    },
+    {
+      "request_id": "RSS-009",
+      "composition_semantics": {
+        "basis": "wt_percent",
+        "balance_element": "Fe",
+        "sampled_or_fixed_elements": [
+          "C",
+          "Cr",
+          "Mn",
+          "N",
+          "Ni",
+          "Si"
+        ],
+        "balance_elements": [
+          "Fe"
+        ],
+        "not_in_specialist_search_space": [
+          "Al",
+          "B",
+          "Co",
+          "Cu",
+          "Mo",
+          "Nb",
+          "P",
+          "Pb",
+          "S",
+          "Sn",
+          "Ta",
+          "Ti",
+          "V",
+          "W",
+          "Zr"
+        ],
+        "zero_confirmation_available": false
+      },
+      "specialist_standardized_wt_domain": {
+        "distance": 2.749183646197189,
+        "review_threshold_p95": 2.7158140041486316,
+        "block_threshold_p99": 3.9671539149400585,
+        "level": "boundary"
+      },
+      "transformer_full_atomic_domain": {
+        "distance": 0.0291902961271312,
+        "threshold_p95": 0.02140771862061755,
+        "threshold_p99_recalibrated": 0.02956087326708902,
+        "level": "boundary",
+        "nearest_reference_positive_elements": [
+          "C",
+          "Cr",
+          "Fe",
+          "Mn",
+          "Ni",
+          "P",
+          "S",
+          "Si"
+        ]
+      },
+      "canonical_core_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C"
+        ],
+        "distance": 0.007539170627806538,
+        "threshold_p95_recalibrated": 0.012254023207765924,
+        "threshold_p99_recalibrated": 0.01987393179017706,
+        "level": "inside"
+      },
+      "canonical_core_n_reported_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C",
+          "N"
+        ],
+        "reference_policy": "compare N-specified candidates only with N-positive training compositions",
+        "distance": 0.016887687363476643,
+        "threshold_p95_recalibrated": 0.01459988955354445,
+        "threshold_p99_recalibrated": 0.016999614717078684,
+        "level": "boundary",
+        "nearest_reference_positive_elements": [
+          "Al",
+          "B",
+          "C",
+          "Co",
+          "Cr",
+          "Cu",
+          "Fe",
+          "Mn",
+          "Mo",
+          "N",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si",
+          "Ti",
+          "V"
+        ]
+      }
+    },
+    {
+      "request_id": "RSS-012",
+      "composition_semantics": {
+        "basis": "wt_percent",
+        "balance_element": "Fe",
+        "sampled_or_fixed_elements": [
+          "C",
+          "Cr",
+          "Mn",
+          "N",
+          "Ni",
+          "Si"
+        ],
+        "balance_elements": [
+          "Fe"
+        ],
+        "not_in_specialist_search_space": [
+          "Al",
+          "B",
+          "Co",
+          "Cu",
+          "Mo",
+          "Nb",
+          "P",
+          "Pb",
+          "S",
+          "Sn",
+          "Ta",
+          "Ti",
+          "V",
+          "W",
+          "Zr"
+        ],
+        "zero_confirmation_available": false
+      },
+      "specialist_standardized_wt_domain": {
+        "distance": 3.3769410049650896,
+        "review_threshold_p95": 2.7158140041486316,
+        "block_threshold_p99": 3.9671539149400585,
+        "level": "boundary"
+      },
+      "transformer_full_atomic_domain": {
+        "distance": 0.03377607092752242,
+        "threshold_p95": 0.02140771862061755,
+        "threshold_p99_recalibrated": 0.02956087326708902,
+        "level": "outside",
+        "nearest_reference_positive_elements": [
+          "C",
+          "Cr",
+          "Fe",
+          "Mn",
+          "Ni",
+          "P",
+          "S",
+          "Si"
+        ]
+      },
+      "canonical_core_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C"
+        ],
+        "distance": 0.015184774162990215,
+        "threshold_p95_recalibrated": 0.012254023207765924,
+        "threshold_p99_recalibrated": 0.01987393179017706,
+        "level": "boundary"
+      },
+      "canonical_core_n_reported_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C",
+          "N"
+        ],
+        "reference_policy": "compare N-specified candidates only with N-positive training compositions",
+        "distance": 0.020549261660240237,
+        "threshold_p95_recalibrated": 0.01459988955354445,
+        "threshold_p99_recalibrated": 0.016999614717078684,
+        "level": "outside",
+        "nearest_reference_positive_elements": [
+          "Al",
+          "B",
+          "C",
+          "Cr",
+          "Cu",
+          "Fe",
+          "Mn",
+          "Mo",
+          "N",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si",
+          "Ti"
+        ]
+      }
+    },
+    {
+      "request_id": "RSS-004",
+      "composition_semantics": {
+        "basis": "wt_percent",
+        "balance_element": "Fe",
+        "sampled_or_fixed_elements": [
+          "C",
+          "Cr",
+          "Mn",
+          "N",
+          "Ni",
+          "Si"
+        ],
+        "balance_elements": [
+          "Fe"
+        ],
+        "not_in_specialist_search_space": [
+          "Al",
+          "B",
+          "Co",
+          "Cu",
+          "Mo",
+          "Nb",
+          "P",
+          "Pb",
+          "S",
+          "Sn",
+          "Ta",
+          "Ti",
+          "V",
+          "W",
+          "Zr"
+        ],
+        "zero_confirmation_available": false
+      },
+      "specialist_standardized_wt_domain": {
+        "distance": 3.5220070251486266,
+        "review_threshold_p95": 2.7158140041486316,
+        "block_threshold_p99": 3.9671539149400585,
+        "level": "boundary"
+      },
+      "transformer_full_atomic_domain": {
+        "distance": 0.03320041353794685,
+        "threshold_p95": 0.02140771862061755,
+        "threshold_p99_recalibrated": 0.02956087326708902,
+        "level": "outside",
+        "nearest_reference_positive_elements": [
+          "C",
+          "Cr",
+          "Fe",
+          "Mn",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si"
+        ]
+      },
+      "canonical_core_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C"
+        ],
+        "distance": 0.007944513719522294,
+        "threshold_p95_recalibrated": 0.012254023207765924,
+        "threshold_p99_recalibrated": 0.01987393179017706,
+        "level": "inside"
+      },
+      "canonical_core_n_reported_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C",
+          "N"
+        ],
+        "reference_policy": "compare N-specified candidates only with N-positive training compositions",
+        "distance": 0.012298226456664643,
+        "threshold_p95_recalibrated": 0.01459988955354445,
+        "threshold_p99_recalibrated": 0.016999614717078684,
+        "level": "inside",
+        "nearest_reference_positive_elements": [
+          "Al",
+          "B",
+          "C",
+          "Cr",
+          "Cu",
+          "Fe",
+          "Mn",
+          "Mo",
+          "N",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si",
+          "Ti"
+        ]
+      }
+    },
+    {
+      "request_id": "RSS-014",
+      "composition_semantics": {
+        "basis": "wt_percent",
+        "balance_element": "Fe",
+        "sampled_or_fixed_elements": [
+          "C",
+          "Cr",
+          "Mn",
+          "N",
+          "Ni",
+          "Si"
+        ],
+        "balance_elements": [
+          "Fe"
+        ],
+        "not_in_specialist_search_space": [
+          "Al",
+          "B",
+          "Co",
+          "Cu",
+          "Mo",
+          "Nb",
+          "P",
+          "Pb",
+          "S",
+          "Sn",
+          "Ta",
+          "Ti",
+          "V",
+          "W",
+          "Zr"
+        ],
+        "zero_confirmation_available": false
+      },
+      "specialist_standardized_wt_domain": {
+        "distance": 3.8659308416556466,
+        "review_threshold_p95": 2.7158140041486316,
+        "block_threshold_p99": 3.9671539149400585,
+        "level": "boundary"
+      },
+      "transformer_full_atomic_domain": {
+        "distance": 0.038937634453269025,
+        "threshold_p95": 0.02140771862061755,
+        "threshold_p99_recalibrated": 0.02956087326708902,
+        "level": "outside",
+        "nearest_reference_positive_elements": [
+          "C",
+          "Cr",
+          "Fe",
+          "Mn",
+          "Ni",
+          "P",
+          "S",
+          "Si"
+        ]
+      },
+      "canonical_core_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C"
+        ],
+        "distance": 0.0175959086238045,
+        "threshold_p95_recalibrated": 0.012254023207765924,
+        "threshold_p99_recalibrated": 0.01987393179017706,
+        "level": "boundary"
+      },
+      "canonical_core_n_reported_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C",
+          "N"
+        ],
+        "reference_policy": "compare N-specified candidates only with N-positive training compositions",
+        "distance": 0.024974459181346366,
+        "threshold_p95_recalibrated": 0.01459988955354445,
+        "threshold_p99_recalibrated": 0.016999614717078684,
+        "level": "outside",
+        "nearest_reference_positive_elements": [
+          "Al",
+          "B",
+          "C",
+          "Co",
+          "Cr",
+          "Cu",
+          "Fe",
+          "Mn",
+          "Mo",
+          "N",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si",
+          "Ti",
+          "V"
+        ]
+      }
+    },
+    {
+      "request_id": "RSS-001",
+      "composition_semantics": {
+        "basis": "wt_percent",
+        "balance_element": "Fe",
+        "sampled_or_fixed_elements": [
+          "C",
+          "Cr",
+          "Mn",
+          "N",
+          "Ni",
+          "Si"
+        ],
+        "balance_elements": [
+          "Fe"
+        ],
+        "not_in_specialist_search_space": [
+          "Al",
+          "B",
+          "Co",
+          "Cu",
+          "Mo",
+          "Nb",
+          "P",
+          "Pb",
+          "S",
+          "Sn",
+          "Ta",
+          "Ti",
+          "V",
+          "W",
+          "Zr"
+        ],
+        "zero_confirmation_available": false
+      },
+      "specialist_standardized_wt_domain": {
+        "distance": 3.9512675740103878,
+        "review_threshold_p95": 2.7158140041486316,
+        "block_threshold_p99": 3.9671539149400585,
+        "level": "boundary"
+      },
+      "transformer_full_atomic_domain": {
+        "distance": 0.041338495586943434,
+        "threshold_p95": 0.02140771862061755,
+        "threshold_p99_recalibrated": 0.02956087326708902,
+        "level": "outside",
+        "nearest_reference_positive_elements": [
+          "C",
+          "Cr",
+          "Fe",
+          "Mn",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si"
+        ]
+      },
+      "canonical_core_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C"
+        ],
+        "distance": 0.018507917080288178,
+        "threshold_p95_recalibrated": 0.012254023207765924,
+        "threshold_p99_recalibrated": 0.01987393179017706,
+        "level": "boundary"
+      },
+      "canonical_core_n_reported_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C",
+          "N"
+        ],
+        "reference_policy": "compare N-specified candidates only with N-positive training compositions",
+        "distance": 0.02365316769937198,
+        "threshold_p95_recalibrated": 0.01459988955354445,
+        "threshold_p99_recalibrated": 0.016999614717078684,
+        "level": "outside",
+        "nearest_reference_positive_elements": [
+          "Al",
+          "B",
+          "C",
+          "Cr",
+          "Cu",
+          "Fe",
+          "Mn",
+          "Mo",
+          "N",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si",
+          "Ti"
+        ]
+      }
+    },
+    {
+      "request_id": "RSS-019",
+      "composition_semantics": {
+        "basis": "wt_percent",
+        "balance_element": "Fe",
+        "sampled_or_fixed_elements": [
+          "C",
+          "Cr",
+          "Mn",
+          "N",
+          "Ni",
+          "Si"
+        ],
+        "balance_elements": [
+          "Fe"
+        ],
+        "not_in_specialist_search_space": [
+          "Al",
+          "B",
+          "Co",
+          "Cu",
+          "Mo",
+          "Nb",
+          "P",
+          "Pb",
+          "S",
+          "Sn",
+          "Ta",
+          "Ti",
+          "V",
+          "W",
+          "Zr"
+        ],
+        "zero_confirmation_available": false
+      },
+      "specialist_standardized_wt_domain": {
+        "distance": 2.9538453817552375,
+        "review_threshold_p95": 2.7158140041486316,
+        "block_threshold_p99": 3.9671539149400585,
+        "level": "boundary"
+      },
+      "transformer_full_atomic_domain": {
+        "distance": 0.03826163158648503,
+        "threshold_p95": 0.02140771862061755,
+        "threshold_p99_recalibrated": 0.02956087326708902,
+        "level": "outside",
+        "nearest_reference_positive_elements": [
+          "C",
+          "Cr",
+          "Fe",
+          "Mn",
+          "Ni",
+          "P",
+          "S",
+          "Si"
+        ]
+      },
+      "canonical_core_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C"
+        ],
+        "distance": 0.01463496112908778,
+        "threshold_p95_recalibrated": 0.012254023207765924,
+        "threshold_p99_recalibrated": 0.01987393179017706,
+        "level": "boundary"
+      },
+      "canonical_core_n_reported_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C",
+          "N"
+        ],
+        "reference_policy": "compare N-specified candidates only with N-positive training compositions",
+        "distance": 0.021493114284497843,
+        "threshold_p95_recalibrated": 0.01459988955354445,
+        "threshold_p99_recalibrated": 0.016999614717078684,
+        "level": "outside",
+        "nearest_reference_positive_elements": [
+          "Al",
+          "B",
+          "C",
+          "Co",
+          "Cr",
+          "Cu",
+          "Fe",
+          "Mn",
+          "Mo",
+          "N",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si",
+          "Ti",
+          "V"
+        ]
+      }
+    },
+    {
+      "request_id": "RSS-018",
+      "composition_semantics": {
+        "basis": "wt_percent",
+        "balance_element": "Fe",
+        "sampled_or_fixed_elements": [
+          "C",
+          "Cr",
+          "Mn",
+          "N",
+          "Ni",
+          "Si"
+        ],
+        "balance_elements": [
+          "Fe"
+        ],
+        "not_in_specialist_search_space": [
+          "Al",
+          "B",
+          "Co",
+          "Cu",
+          "Mo",
+          "Nb",
+          "P",
+          "Pb",
+          "S",
+          "Sn",
+          "Ta",
+          "Ti",
+          "V",
+          "W",
+          "Zr"
+        ],
+        "zero_confirmation_available": false
+      },
+      "specialist_standardized_wt_domain": {
+        "distance": 3.8868228626814467,
+        "review_threshold_p95": 2.7158140041486316,
+        "block_threshold_p99": 3.9671539149400585,
+        "level": "boundary"
+      },
+      "transformer_full_atomic_domain": {
+        "distance": 0.04054969493612805,
+        "threshold_p95": 0.02140771862061755,
+        "threshold_p99_recalibrated": 0.02956087326708902,
+        "level": "outside",
+        "nearest_reference_positive_elements": [
+          "C",
+          "Cr",
+          "Fe",
+          "Mn",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si"
+        ]
+      },
+      "canonical_core_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C"
+        ],
+        "distance": 0.01588239652222393,
+        "threshold_p95_recalibrated": 0.012254023207765924,
+        "threshold_p99_recalibrated": 0.01987393179017706,
+        "level": "boundary"
+      },
+      "canonical_core_n_reported_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C",
+          "N"
+        ],
+        "reference_policy": "compare N-specified candidates only with N-positive training compositions",
+        "distance": 0.022698920292845953,
+        "threshold_p95_recalibrated": 0.01459988955354445,
+        "threshold_p99_recalibrated": 0.016999614717078684,
+        "level": "outside",
+        "nearest_reference_positive_elements": [
+          "Al",
+          "B",
+          "C",
+          "Cr",
+          "Cu",
+          "Fe",
+          "Mn",
+          "Mo",
+          "N",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si",
+          "Ti"
+        ]
+      }
+    },
+    {
+      "request_id": "RSS-007",
+      "composition_semantics": {
+        "basis": "wt_percent",
+        "balance_element": "Fe",
+        "sampled_or_fixed_elements": [
+          "C",
+          "Cr",
+          "Mn",
+          "N",
+          "Ni",
+          "Si"
+        ],
+        "balance_elements": [
+          "Fe"
+        ],
+        "not_in_specialist_search_space": [
+          "Al",
+          "B",
+          "Co",
+          "Cu",
+          "Mo",
+          "Nb",
+          "P",
+          "Pb",
+          "S",
+          "Sn",
+          "Ta",
+          "Ti",
+          "V",
+          "W",
+          "Zr"
+        ],
+        "zero_confirmation_available": false
+      },
+      "specialist_standardized_wt_domain": {
+        "distance": 3.105717764998689,
+        "review_threshold_p95": 2.7158140041486316,
+        "block_threshold_p99": 3.9671539149400585,
+        "level": "boundary"
+      },
+      "transformer_full_atomic_domain": {
+        "distance": 0.029256045806208074,
+        "threshold_p95": 0.02140771862061755,
+        "threshold_p99_recalibrated": 0.02956087326708902,
+        "level": "boundary",
+        "nearest_reference_positive_elements": [
+          "C",
+          "Cr",
+          "Fe",
+          "Mn",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si"
+        ]
+      },
+      "canonical_core_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C"
+        ],
+        "distance": 0.009303671980502564,
+        "threshold_p95_recalibrated": 0.012254023207765924,
+        "threshold_p99_recalibrated": 0.01987393179017706,
+        "level": "inside"
+      },
+      "canonical_core_n_reported_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C",
+          "N"
+        ],
+        "reference_policy": "compare N-specified candidates only with N-positive training compositions",
+        "distance": 0.010363092633077142,
+        "threshold_p95_recalibrated": 0.01459988955354445,
+        "threshold_p99_recalibrated": 0.016999614717078684,
+        "level": "inside",
+        "nearest_reference_positive_elements": [
+          "Al",
+          "B",
+          "C",
+          "Cr",
+          "Cu",
+          "Fe",
+          "Mn",
+          "Mo",
+          "N",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si",
+          "Ti"
+        ]
+      }
+    },
+    {
+      "request_id": "RSS-005",
+      "composition_semantics": {
+        "basis": "wt_percent",
+        "balance_element": "Fe",
+        "sampled_or_fixed_elements": [
+          "C",
+          "Cr",
+          "Mn",
+          "N",
+          "Ni",
+          "Si"
+        ],
+        "balance_elements": [
+          "Fe"
+        ],
+        "not_in_specialist_search_space": [
+          "Al",
+          "B",
+          "Co",
+          "Cu",
+          "Mo",
+          "Nb",
+          "P",
+          "Pb",
+          "S",
+          "Sn",
+          "Ta",
+          "Ti",
+          "V",
+          "W",
+          "Zr"
+        ],
+        "zero_confirmation_available": false
+      },
+      "specialist_standardized_wt_domain": {
+        "distance": 3.34501325818985,
+        "review_threshold_p95": 2.7158140041486316,
+        "block_threshold_p99": 3.9671539149400585,
+        "level": "boundary"
+      },
+      "transformer_full_atomic_domain": {
+        "distance": 0.03482853442648805,
+        "threshold_p95": 0.02140771862061755,
+        "threshold_p99_recalibrated": 0.02956087326708902,
+        "level": "outside",
+        "nearest_reference_positive_elements": [
+          "C",
+          "Cr",
+          "Fe",
+          "Mn",
+          "Ni",
+          "P",
+          "S",
+          "Si"
+        ]
+      },
+      "canonical_core_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C"
+        ],
+        "distance": 0.009283172989773684,
+        "threshold_p95_recalibrated": 0.012254023207765924,
+        "threshold_p99_recalibrated": 0.01987393179017706,
+        "level": "inside"
+      },
+      "canonical_core_n_reported_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C",
+          "N"
+        ],
+        "reference_policy": "compare N-specified candidates only with N-positive training compositions",
+        "distance": 0.014320773288858146,
+        "threshold_p95_recalibrated": 0.01459988955354445,
+        "threshold_p99_recalibrated": 0.016999614717078684,
+        "level": "inside",
+        "nearest_reference_positive_elements": [
+          "Al",
+          "B",
+          "C",
+          "Co",
+          "Cr",
+          "Cu",
+          "Fe",
+          "Mn",
+          "Mo",
+          "N",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si",
+          "Ti",
+          "V"
+        ]
+      }
+    },
+    {
+      "request_id": "RSS-002",
+      "composition_semantics": {
+        "basis": "wt_percent",
+        "balance_element": "Fe",
+        "sampled_or_fixed_elements": [
+          "C",
+          "Cr",
+          "Mn",
+          "N",
+          "Ni",
+          "Si"
+        ],
+        "balance_elements": [
+          "Fe"
+        ],
+        "not_in_specialist_search_space": [
+          "Al",
+          "B",
+          "Co",
+          "Cu",
+          "Mo",
+          "Nb",
+          "P",
+          "Pb",
+          "S",
+          "Sn",
+          "Ta",
+          "Ti",
+          "V",
+          "W",
+          "Zr"
+        ],
+        "zero_confirmation_available": false
+      },
+      "specialist_standardized_wt_domain": {
+        "distance": 2.9116790178112764,
+        "review_threshold_p95": 2.7158140041486316,
+        "block_threshold_p99": 3.9671539149400585,
+        "level": "boundary"
+      },
+      "transformer_full_atomic_domain": {
+        "distance": 0.03616982216352943,
+        "threshold_p95": 0.02140771862061755,
+        "threshold_p99_recalibrated": 0.02956087326708902,
+        "level": "outside",
+        "nearest_reference_positive_elements": [
+          "C",
+          "Cr",
+          "Fe",
+          "Mn",
+          "Ni",
+          "P",
+          "S",
+          "Si"
+        ]
+      },
+      "canonical_core_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C"
+        ],
+        "distance": 0.010324071612358711,
+        "threshold_p95_recalibrated": 0.012254023207765924,
+        "threshold_p99_recalibrated": 0.01987393179017706,
+        "level": "inside"
+      },
+      "canonical_core_n_reported_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C",
+          "N"
+        ],
+        "reference_policy": "compare N-specified candidates only with N-positive training compositions",
+        "distance": 0.016598806797774174,
+        "threshold_p95_recalibrated": 0.01459988955354445,
+        "threshold_p99_recalibrated": 0.016999614717078684,
+        "level": "boundary",
+        "nearest_reference_positive_elements": [
+          "Al",
+          "B",
+          "C",
+          "Cr",
+          "Cu",
+          "Fe",
+          "Mn",
+          "Mo",
+          "N",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si",
+          "Ti"
+        ]
+      }
+    },
+    {
+      "request_id": "RSS-008",
+      "composition_semantics": {
+        "basis": "wt_percent",
+        "balance_element": "Fe",
+        "sampled_or_fixed_elements": [
+          "C",
+          "Cr",
+          "Mn",
+          "N",
+          "Ni",
+          "Si"
+        ],
+        "balance_elements": [
+          "Fe"
+        ],
+        "not_in_specialist_search_space": [
+          "Al",
+          "B",
+          "Co",
+          "Cu",
+          "Mo",
+          "Nb",
+          "P",
+          "Pb",
+          "S",
+          "Sn",
+          "Ta",
+          "Ti",
+          "V",
+          "W",
+          "Zr"
+        ],
+        "zero_confirmation_available": false
+      },
+      "specialist_standardized_wt_domain": {
+        "distance": 2.780517022206759,
+        "review_threshold_p95": 2.7158140041486316,
+        "block_threshold_p99": 3.9671539149400585,
+        "level": "boundary"
+      },
+      "transformer_full_atomic_domain": {
+        "distance": 0.03282103147916628,
+        "threshold_p95": 0.02140771862061755,
+        "threshold_p99_recalibrated": 0.02956087326708902,
+        "level": "outside",
+        "nearest_reference_positive_elements": [
+          "C",
+          "Cr",
+          "Fe",
+          "Mn",
+          "Ni",
+          "P",
+          "S",
+          "Si"
+        ]
+      },
+      "canonical_core_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C"
+        ],
+        "distance": 0.009744912202554695,
+        "threshold_p95_recalibrated": 0.012254023207765924,
+        "threshold_p99_recalibrated": 0.01987393179017706,
+        "level": "inside"
+      },
+      "canonical_core_n_reported_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C",
+          "N"
+        ],
+        "reference_policy": "compare N-specified candidates only with N-positive training compositions",
+        "distance": 0.011739678329370756,
+        "threshold_p95_recalibrated": 0.01459988955354445,
+        "threshold_p99_recalibrated": 0.016999614717078684,
+        "level": "inside",
+        "nearest_reference_positive_elements": [
+          "Al",
+          "B",
+          "C",
+          "Co",
+          "Cr",
+          "Cu",
+          "Fe",
+          "Mn",
+          "Mo",
+          "N",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si",
+          "Ti",
+          "V"
+        ]
+      }
+    },
+    {
+      "request_id": "RSS-016",
+      "composition_semantics": {
+        "basis": "wt_percent",
+        "balance_element": "Fe",
+        "sampled_or_fixed_elements": [
+          "C",
+          "Cr",
+          "Mn",
+          "N",
+          "Ni",
+          "Si"
+        ],
+        "balance_elements": [
+          "Fe"
+        ],
+        "not_in_specialist_search_space": [
+          "Al",
+          "B",
+          "Co",
+          "Cu",
+          "Mo",
+          "Nb",
+          "P",
+          "Pb",
+          "S",
+          "Sn",
+          "Ta",
+          "Ti",
+          "V",
+          "W",
+          "Zr"
+        ],
+        "zero_confirmation_available": false
+      },
+      "specialist_standardized_wt_domain": {
+        "distance": 3.8975121001779787,
+        "review_threshold_p95": 2.7158140041486316,
+        "block_threshold_p99": 3.9671539149400585,
+        "level": "boundary"
+      },
+      "transformer_full_atomic_domain": {
+        "distance": 0.03447110759002723,
+        "threshold_p95": 0.02140771862061755,
+        "threshold_p99_recalibrated": 0.02956087326708902,
+        "level": "outside",
+        "nearest_reference_positive_elements": [
+          "C",
+          "Cr",
+          "Fe",
+          "Mn",
+          "Ni",
+          "P",
+          "S",
+          "Si"
+        ]
+      },
+      "canonical_core_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C"
+        ],
+        "distance": 0.011589428147936816,
+        "threshold_p95_recalibrated": 0.012254023207765924,
+        "threshold_p99_recalibrated": 0.01987393179017706,
+        "level": "inside"
+      },
+      "canonical_core_n_reported_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C",
+          "N"
+        ],
+        "reference_policy": "compare N-specified candidates only with N-positive training compositions",
+        "distance": 0.012277422521467385,
+        "threshold_p95_recalibrated": 0.01459988955354445,
+        "threshold_p99_recalibrated": 0.016999614717078684,
+        "level": "inside",
+        "nearest_reference_positive_elements": [
+          "Al",
+          "B",
+          "C",
+          "Cr",
+          "Cu",
+          "Fe",
+          "Mn",
+          "Mo",
+          "N",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si",
+          "Ti"
+        ]
+      }
+    },
+    {
+      "request_id": "RSS-006",
+      "composition_semantics": {
+        "basis": "wt_percent",
+        "balance_element": "Fe",
+        "sampled_or_fixed_elements": [
+          "C",
+          "Cr",
+          "Mn",
+          "N",
+          "Ni",
+          "Si"
+        ],
+        "balance_elements": [
+          "Fe"
+        ],
+        "not_in_specialist_search_space": [
+          "Al",
+          "B",
+          "Co",
+          "Cu",
+          "Mo",
+          "Nb",
+          "P",
+          "Pb",
+          "S",
+          "Sn",
+          "Ta",
+          "Ti",
+          "V",
+          "W",
+          "Zr"
+        ],
+        "zero_confirmation_available": false
+      },
+      "specialist_standardized_wt_domain": {
+        "distance": 3.739482220501367,
+        "review_threshold_p95": 2.7158140041486316,
+        "block_threshold_p99": 3.9671539149400585,
+        "level": "boundary"
+      },
+      "transformer_full_atomic_domain": {
+        "distance": 0.0367140938483933,
+        "threshold_p95": 0.02140771862061755,
+        "threshold_p99_recalibrated": 0.02956087326708902,
+        "level": "outside",
+        "nearest_reference_positive_elements": [
+          "C",
+          "Cr",
+          "Fe",
+          "Mn",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si"
+        ]
+      },
+      "canonical_core_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C"
+        ],
+        "distance": 0.005742855132853784,
+        "threshold_p95_recalibrated": 0.012254023207765924,
+        "threshold_p99_recalibrated": 0.01987393179017706,
+        "level": "inside"
+      },
+      "canonical_core_n_reported_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C",
+          "N"
+        ],
+        "reference_policy": "compare N-specified candidates only with N-positive training compositions",
+        "distance": 0.009016960896203926,
+        "threshold_p95_recalibrated": 0.01459988955354445,
+        "threshold_p99_recalibrated": 0.016999614717078684,
+        "level": "inside",
+        "nearest_reference_positive_elements": [
+          "Al",
+          "B",
+          "C",
+          "Cr",
+          "Cu",
+          "Fe",
+          "Mn",
+          "Mo",
+          "N",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si",
+          "Ti"
+        ]
+      }
+    },
+    {
+      "request_id": "RSS-015",
+      "composition_semantics": {
+        "basis": "wt_percent",
+        "balance_element": "Fe",
+        "sampled_or_fixed_elements": [
+          "C",
+          "Cr",
+          "Mn",
+          "N",
+          "Ni",
+          "Si"
+        ],
+        "balance_elements": [
+          "Fe"
+        ],
+        "not_in_specialist_search_space": [
+          "Al",
+          "B",
+          "Co",
+          "Cu",
+          "Mo",
+          "Nb",
+          "P",
+          "Pb",
+          "S",
+          "Sn",
+          "Ta",
+          "Ti",
+          "V",
+          "W",
+          "Zr"
+        ],
+        "zero_confirmation_available": false
+      },
+      "specialist_standardized_wt_domain": {
+        "distance": 2.759638943134756,
+        "review_threshold_p95": 2.7158140041486316,
+        "block_threshold_p99": 3.9671539149400585,
+        "level": "boundary"
+      },
+      "transformer_full_atomic_domain": {
+        "distance": 0.027249315537620524,
+        "threshold_p95": 0.02140771862061755,
+        "threshold_p99_recalibrated": 0.02956087326708902,
+        "level": "boundary",
+        "nearest_reference_positive_elements": [
+          "C",
+          "Cr",
+          "Fe",
+          "Mn",
+          "Ni",
+          "P",
+          "S",
+          "Si"
+        ]
+      },
+      "canonical_core_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C"
+        ],
+        "distance": 0.007873405304902176,
+        "threshold_p95_recalibrated": 0.012254023207765924,
+        "threshold_p99_recalibrated": 0.01987393179017706,
+        "level": "inside"
+      },
+      "canonical_core_n_reported_domain": {
+        "elements": [
+          "Fe",
+          "Cr",
+          "Ni",
+          "Mn",
+          "Si",
+          "C",
+          "N"
+        ],
+        "reference_policy": "compare N-specified candidates only with N-positive training compositions",
+        "distance": 0.012785141091623329,
+        "threshold_p95_recalibrated": 0.01459988955354445,
+        "threshold_p99_recalibrated": 0.016999614717078684,
+        "level": "inside",
+        "nearest_reference_positive_elements": [
+          "Al",
+          "B",
+          "C",
+          "Cr",
+          "Cu",
+          "Fe",
+          "Mn",
+          "Mo",
+          "N",
+          "Nb",
+          "Ni",
+          "P",
+          "S",
+          "Si",
+          "Ti"
+        ]
+      }
+    }
+  ],
+  "interpretation": {
+    "formal_release_authorized": false,
+    "why": "The candidate generator does not establish whether omitted P/S and other trace elements are measured zero or merely outside its search schema. The frozen Transformer still consumes those omissions as exact zeros."
+  }
+}
