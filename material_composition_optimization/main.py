@@ -156,7 +156,15 @@ def roles():
     }
 
 @app.get("/health")
-def health(): return {"status":"ok","runner_ready":_runner_ready(),"runner_prefix":str(RUNNER.environment_prefix),"unified_tensile_shadow_ready":RUNNER.tensile_shadow_ready()}
+def health():
+    shadow = RUNNER.tensile_shadow_health()
+    return {
+        "status": "ok",
+        "runner_ready": _runner_ready(),
+        "runner_prefix": str(RUNNER.environment_prefix),
+        "unified_tensile_shadow_ready": bool(shadow.get("ready")),
+        "unified_tensile_shadow_health": shadow,
+    }
 @app.post("/alloy/requirements/preview")
 def requirement_preview(payload:dict=Body(...)): return _safe_requirement_plan(payload)[1]
 @app.post("/alloy/propose-space")

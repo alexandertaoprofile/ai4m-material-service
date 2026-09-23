@@ -44,3 +44,31 @@
 不锈钢还必须先统一微量元素语义：专项搜索空间未生成 P/S，而训练域多数记录含 P/S；未生成、未报告与确认为零不得互相替代。正式接管前需要在原始来源层补齐报告状态/缺失掩码，重算适用域并做完整成分留出验证。诊断回放不能替代这项工作。
 
 影子请求现为不锈钢候选附带字段状态：搜索空间内元素记为采样或用户固定、Fe 记为平衡元素、显式 `[0,0]` 才记为固定零，未进入搜索空间的 P/S 等元素记为 `not_in_search_space_not_confirmed_zero`。共同审计统一采用三档口径：p95 内为 `inside`、p95–p99 为 `boundary`、超过 p99 为 `outside`。模型各自的训练支持集仍分别保留，不能因为距离名称一致就假定两个模型拥有相同数据覆盖。
+
+## 2026-09-23 production release contract
+
+The deployable mode is deliberately shadow-only; it is not a global model
+switch. Formal UTS/YS ownership remains with the aluminum, stainless-steel,
+and nickel-superalloy specialists. The unified Transformer is private,
+non-ranking, and non-display for all three domains. This policy is returned by
+the internal runner and is not configurable through a public request.
+
+GET /health now performs a real strict aluminum inference on first use and
+then caches the result for UNIFIED_TENSILE_HEALTH_TTL_SECONDS (default 300
+seconds). Readiness therefore covers the wrapper, raw-input adapter, artifact
+hash validation, weight loading, encoding, and prediction. A shadow health
+failure sets unified_tensile_shadow_ready=false while the overall service and
+specialist runtimes remain available.
+
+The release replay is stored in
+reports/unified_alloy_tensile_shadow_release_verification_20260923.json.
+All three specialist batches completed, and their formal result digests were
+unchanged. Strict coverage was 2/3 for aluminum, 0/20 for stainless steel, and
+20/20 for nickel. Stainless diagnostic predictions are retained only for
+engineering comparison; they remain unauthorized for display, ranking, or
+formal release. The release replay therefore authorizes deployment of the
+isolated shadow path, not promotion of Transformer values to primary output.
+
+The shared model runner now rejects missing or unknown model_domain values
+with a structured error before importing any model runtime. It no longer
+falls back silently to the HEA dispatcher.
