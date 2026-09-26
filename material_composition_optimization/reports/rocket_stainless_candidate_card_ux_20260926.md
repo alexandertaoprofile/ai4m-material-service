@@ -15,7 +15,8 @@
 - `tests/test_rocket_candidate_card.py`：1 passed。
 - 对已有真实任务 `rocket-current-markdown-20260904` 通过最终内容发出函数的替身流捕获重放；核对 RSS-021、Cr 16.6%、N 0.014%、YS 241 MPa、UTS 634 MPa、延伸率 60.8%、三张图表嵌入、无未替换视觉 token 和 `NaN`。重放使用占位 HTTPS 图链，只验证 Markdown 结构，不上传资产。
 - `git diff --check` 通过。
-- 完整 `tests/test_service_contract.py` 在收集时被现有环境缺少 `google.generativeai` 阻断；另一 Python 环境缺少 `uvicorn`。此依赖问题与候选卡修改无关，但合并/发布前须在完整服务环境重跑。
+- 使用运行中 1111 服务的 Python 环境执行现有卡片定向契约测试：1 passed。完整 `tests.test_service_contract` 运行 36 项，其中 34 项通过，2 项仍报错：测试环境缺少 MinIO 发布变量，以及既有铜基牌号路由预期与实现不一致；这两处文件均未在本分支修改。
+- 其他通用 Python 环境分别缺少 `google.generativeai` 或 `uvicorn`，因此不能据此判断契约测试结果；以服务实际环境的结果为准。
 
 ## 合并与发布
 
