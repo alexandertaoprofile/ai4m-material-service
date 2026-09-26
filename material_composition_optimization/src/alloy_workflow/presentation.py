@@ -22,6 +22,32 @@ def _composition_text(composition: dict[str, Any]) -> str:
     return " ".join(f"{element}{number(value)}" for element, value in composition.items())
 
 
+def _rocket_composition_text(composition: dict[str, Any], *, include_symbols: bool = False) -> str:
+    """Describe candidate inputs without interpreting absent elements as measured zero."""
+    names = {
+        "Fe": "铁", "Cr": "铬", "Ni": "镍", "Mn": "锰", "Si": "硅",
+        "Mo": "钼", "Cu": "铜", "C": "碳", "N": "氮", "P": "磷",
+        "S": "硫", "Nb": "铌", "Ti": "钛", "Al": "铝", "V": "钒",
+    }
+    preferred = ("Fe", "Cr", "Ni", "Mn", "Si", "Mo", "Cu", "C", "N", "P", "S")
+    elements = [*preferred, *sorted(set(composition) - set(preferred))]
+    parts = []
+    for element in elements:
+        if element not in composition:
+            continue
+        try:
+            amount = float(composition[element])
+        except (TypeError, ValueError):
+            continue
+        if not math.isfinite(amount) or amount <= 0:
+            continue
+        value = f"{amount:.3f}" if amount < 0.1 else f"{amount:.1f}"
+        name = names.get(element, element)
+        label = f"{name}（{element}）" if include_symbols and name != element else name
+        parts.append(f"{label}{'约' if element == 'Fe' else ''}{value}%")
+    return "；".join(parts) if parts else "当前候选未记录成分"
+
+
 def _heat_treatment_text(value: Any) -> str:
     """Turn the persisted stage string into the customer-facing process card."""
     text = str(value or "").strip()
@@ -51,7 +77,8 @@ def _rocket_process_text(value: Any) -> str:
     duration = value.get("solution_treatment_time_s")
     quench = {"water": "水淬", "air": "空冷"}.get(str(value.get("quench") or ""), "待确认")
     if temperature is not None and duration is not None:
-        return f"固溶退火：{float(temperature):.0f} K × {float(duration):.0f} s；{quench}"
+        kelvin, seconds = float(temperature), float(duration)
+        return f"固溶退火：{kelvin:.0f} K（约 {kelvin - 273.15:.0f} °C），保温 {seconds:.0f} s（{seconds / 3600:g} h）；{quench}"
     return "固溶退火状态待确认"
 
 
@@ -1221,29 +1248,39 @@ def rocket_stainless_summary_block(result: dict[str, Any]) -> str:
         f"共保留 **{len(priority_candidates)}** 个训练成分邻域内候选进入优先验证队列。",
         "", "### 5.1 筛选过程", "| 阶段 | 数量 | 说明 |", "|---|---:|---|", *stage_rows,
         "", "{{VISUAL:rocket_screening_funnel}}", "", "### 5.2 优先候选",
-        "| 排名 | 成分（wt.%） | 0.2% 屈服强度 | UTS（最大承载） | 延伸率 | 成分覆盖情况 |",
-        "|---:|---|---:|---:|---:|---|",
+        "| 排名 | 候选 | 配方概览（质量占比） | 0.2% 屈服强度 | UTS（最大承载） | 延伸率 | 成分覆盖情况 |",
+        "|---:|---|---|---:|---:|---:|---|",
     ]
     for rank, item in enumerate(priority_candidates, 1):
         tensile = item["short_time_tensile"]
         domain = {"inside": "训练成分邻域内", "boundary": "训练边界附近"}.get((item.get("applicability_domain") or {}).get("level"), "范围外")
-        lines.append(f"| {rank} | {_composition_text(item.get('composition_wt_percent') or {})} | {tensile['yield_0p2_MPa']['mean']:.0f} MPa | {tensile['uts_MPa']['mean']:.0f} MPa | {tensile['elongation_pct']['mean']:.1f}% | {domain} |")
+        lines.append(f"| {rank} | {item['candidate_id']} | {_rocket_composition_text(item.get('composition_wt_percent') or {})} | {tensile['yield_0p2_MPa']['mean']:.0f} MPa | {tensile['uts_MPa']['mean']:.0f} MPa | {tensile['elongation_pct']['mean']:.1f}% | {domain} |")
     top = priority_candidates[0] if priority_candidates else None
     if top:
         tensile = top["short_time_tensile"]
         domain = top.get("applicability_domain") or {}
         domain_label = {"inside": "训练成分邻域内", "boundary": "训练边界附近，需复核", "outside": "训练范围外"}.get(domain.get("level"), "当前未记录")
+        try:
+            test_temperature = float(conditions["test_temperature_K"])
+            temperature_text = f"{test_temperature:.0f} K（约 {test_temperature - 273.15:.0f} °C）"
+        except (KeyError, TypeError, ValueError):
+            temperature_text = "测试温度待确认"
         lines += [
-            "", "{{VISUAL:rocket_strength_ductility_tradeoff}}", "", "#### 优先候选的完整性质卡", "| 项目 | 当前结果 |", "|---|---|",
-            f"| 候选编号 | {top['candidate_id']} |",
-            f"| 成分 | {_composition_text(top.get('composition_wt_percent') or {})}（wt.%） |",
-            f"| 适用工况 | {conditions.get('test_temperature_K', '-')} K；{_rocket_process_text(conditions.get('processing'))} |",
-            f"| 0.2% 屈服强度 | {tensile['yield_0p2_MPa']['mean']:.0f} MPa；分组验证 MAE {tensile['yield_0p2_MPa']['screening_MAE']:.1f} MPa |",
-            f"| UTS（最大承载） | {tensile['uts_MPa']['mean']:.0f} MPa；分组验证 MAE {tensile['uts_MPa']['screening_MAE']:.1f} MPa |",
-            f"| 延伸率 | {tensile['elongation_pct']['mean']:.1f}%；分组验证 MAE {tensile['elongation_pct']['screening_MAE']:.2f}% |",
-            f"| 成分覆盖情况 | {domain_label}；最近训练成分距离 {domain.get('nearest_training_composition_distance', '-')} |",
+            "", "{{VISUAL:rocket_strength_ductility_tradeoff}}", "",
+            "### 奥氏体不锈钢｜本次优选配方",
+            f"**{top['candidate_id']} 是什么配比？** 这是本次筛选出的铁基奥氏体不锈钢候选，按质量百分比（wt.%）计：{_rocket_composition_text(top.get('composition_wt_percent') or {}, include_symbols=True)}。铁为平衡元素；这些数值是候选设计输入，不是某个现成牌号的实测化学成分。",
+            "", "| 适用条件与范围 | 本次筛选采用 |", "|---|---|",
+            f"| 拉伸评价温度 | {temperature_text} |",
+            f"| 材料处理状态 | {_rocket_process_text(conditions.get('processing'))} |",
+            f"| 成分适用域 | {domain_label}；表示该配比与已收录训练成分相近，不代替实物验证 |",
+            "", "**在上述条件下，模型预测了哪些性质？**",
+            "", "| 短时拉伸性质 | 该候选的模型预测 | 模型历史分组验证 MAE |", "|---|---:|---:|",
+            f"| 0.2% 屈服强度（开始产生永久变形） | {tensile['yield_0p2_MPa']['mean']:.0f} MPa | {tensile['yield_0p2_MPa']['screening_MAE']:.1f} MPa |",
+            f"| 抗拉强度 UTS（最大承载） | {tensile['uts_MPa']['mean']:.0f} MPa | {tensile['uts_MPa']['screening_MAE']:.1f} MPa |",
+            f"| 断后延伸率（拉断前可伸长程度） | {tensile['elongation_pct']['mean']:.1f}% | {tensile['elongation_pct']['screening_MAE']:.2f} 个百分点 |",
+            "", "历史分组验证 MAE 是模型在留出材料状态上的平均绝对误差，**不是这组候选的实测值或单点误差范围**。未列出的元素不表示已有实测零含量。",
             "", "{{VISUAL:rocket_composition_comparison}}", "", "#### 结论",
-            f"在上述工况下，优先评估 **{top['candidate_id']}**。下一步按实际冷作量、板厚和焊接状态完成母材/焊缝拉伸，并开展低温韧性、疲劳与 LOX 相容性验证。",
+            f"在上述工况下，优先评估 **{top['candidate_id']}**。这张卡给出的是短时拉伸筛选值；实际冷作量、板厚、焊接状态及低温韧性、疲劳、LOX 相容性仍需通过相应样件试验确认。",
         ]
     return "\n".join(lines)
 
