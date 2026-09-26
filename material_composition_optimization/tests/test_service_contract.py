@@ -417,7 +417,13 @@ class AlloyServiceContractTest(unittest.TestCase):
         self.assertNotIn("\n## ", report)
         self.assertIn("{{VISUAL:rocket_screening_funnel}}", report)
         self.assertIn("训练成分邻域内", report)
-        self.assertIn("N0.011", report)
+        self.assertIn("### 奥氏体不锈钢｜本次优选配方", report)
+        self.assertIn("铁（Fe）约73.0%", report)
+        self.assertIn("氮（N）0.011%", report)
+        self.assertIn("293 K（约 20 °C）", report)
+        self.assertIn("| 短时拉伸性质 | 该候选的模型预测 | 模型历史分组验证 MAE |", report)
+        self.assertIn("不是这组候选的实测值或单点误差范围", report)
+        self.assertNotIn("Cr18.0 Ni9.0", report)
 
     def test_rocket_visual_tokens_become_public_markdown_images(self) -> None:
         report = "{{VISUAL:rocket_screening_funnel}}\n{{VISUAL:rocket_strength_ductility_tradeoff}}\n{{VISUAL:rocket_composition_comparison}}"
