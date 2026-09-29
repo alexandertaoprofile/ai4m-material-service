@@ -1,6 +1,7 @@
 """Application use cases for HEA/MPEA candidate evaluation and proposal."""
 from __future__ import annotations
 
+import math
 import time
 from typing import Any
 
@@ -37,13 +38,33 @@ class AlloyOptimizationApplication:
         constraints["raw_scope"] = effective
         started = time.perf_counter()
         operation = "propose_space" if effective.get("model_domain") in {"chip_glass_thermomechanical_family_v1", "short_cf_thermomechanical_rve_v1", "perovskite_transport_stability_v2"} else "propose"
-        result = self.runner.run(constraints["taskid"], operation, constraints)
+        from src.alloy_workflow.recipe_primary import bootstrap_constraints
+        result = self.runner.run(constraints["taskid"], operation, bootstrap_constraints(constraints))
         # Fire-and-record only: formal candidates, ranking, Markdown and charts
         # continue to use the specialist result while the unified Transformer
         # is evaluated privately against the same resolved candidate batch.
         self.runner.submit_tensile_shadow(constraints["taskid"], result)
         result.update({"taskid": constraints["taskid"], "status": "completed", "service": self.service_name, "elapsed_seconds": round(time.perf_counter() - started, 3)})
         self._enrich(result, plan)
+        from src.alloy_workflow.recipe_primary import mode_for, promote
+        recipe_mode = mode_for(result.get("model_domain"))
+        if recipe_mode == "primary":
+            try:
+                promoted = promote(self.runner, result, constraints)
+                if promoted is not None:
+                    return promoted, constraints
+            except Exception as exc:
+                # Keep an explicit legacy result, never label a failed/new
+                # calculation as Transformer or overwrite its prediction.
+                result["recipe_release"] = {
+                    "mode": "legacy", "requested_mode": "primary",
+                    "fallback_reason": type(exc).__name__,
+                }
+        # Resolved conditions/provenance are available only after enrichment.
+        # This is a private copy, not a replacement for the formal result.
+        submit_recipe = getattr(self.runner, "submit_recipe_shadow", None)
+        if callable(submit_recipe) and recipe_mode == "shadow":
+            submit_recipe(constraints["taskid"], result)
         return result, constraints
 
     def evaluate(self, payload: dict[str, Any], candidates: list[Any] | None = None) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -106,6 +127,12 @@ class AlloyOptimizationApplication:
         result["model_evidence"] = {"model_version": result.get("model_version", "reusable_rocket_austenitic_design_v2_extratrees"), "data_type": "公开奥氏体不锈钢成分—固溶处理—温度短时拉伸数据；低温 301/304L 记录单独保留为参考层。", "validation": {"0.2%_yield": "3-fold 完整热机械状态 GroupKFold：R² 0.769，MAE 16.2 MPa", "UTS": "R² 0.922，MAE 16.3 MPa", "elongation": "R² 0.833，MAE 3.29%"}}
         result["nonlinear_response_function"] = {"name": "reusable_rocket_austenitic_design_v2_extratrees", "meaning": "成分 wt.%、固溶处理和温度到短时拉伸性能的条件筛选。", "mathematical_form": "F(composition_wt_pct, solution_treatment, T) -> {yield, UTS, elongation, applicability_domain}", "input": {"composition_wt_percent": "Fe 平衡的元素 wt.%", "test_temperature_K": "293–1273 K", "processing": "固溶温度、时间、淬冷、产品形态和熔炼路线代码"}, "output": {"yield/UTS/elongation": "预测均值与 GroupKFold MAE", "applicability_domain": "成分邻域状态"}}
         if result.get("mode") == "cryogenic_reference":
+            # Unreported reference properties remain missing, not zero; REST
+            # JSON cannot carry the NaN produced by tabular source readers.
+            for record in result.get("cryogenic_reference", {}).get("nearest_records", []):
+                for key, value in record.items():
+                    if isinstance(value, float) and not math.isfinite(value):
+                        record[key] = None
             result["user_conclusion"] = "该目标温度已进入低温验证优先模式：服务返回 301/304L 可追溯参考与试验路径，不将公开代理材料写成自由配方或 30X 性能预测。"
             result["next_actions"] = ["确定 301/304L 基准状态", "开展目标温度母材拉伸", "补齐焊缝/HAZ 韧性和疲劳验证", "评估 LOX 相容性"]
             return

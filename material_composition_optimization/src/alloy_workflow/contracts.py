@@ -10,6 +10,8 @@ import re
 from datetime import datetime, timezone
 from typing import Any
 
+from src.alloy_workflow.identity import SUPPORTED_MODEL_DOMAINS
+
 
 _COMPOSITE_MATERIAL_PATTERN = re.compile(
     r"复合材料|复材|树脂|环氧|纤维|碳纤维|玻璃纤维|填料|增强相|聚合物|"
@@ -38,7 +40,7 @@ _HEA_EXPLORATION_PATTERN = re.compile(
     re.IGNORECASE,
 )
 _CHIP_GLASS_PATTERN = re.compile(
-    r"玻璃基板|玻璃芯基板|玻璃核基板|封装玻璃|芯片玻璃|玻璃配方|低硼无碱|铝硼硅酸盐玻璃|"
+    r"玻璃基板|玻璃芯基板|玻璃核基板|封装玻璃|芯片玻璃|低硼无碱|铝硼硅酸盐玻璃|"
     r"chip.?glass|glass.?core.?substrate|glass.?substrate|alumino.?borosilicate",
     re.IGNORECASE,
 )
@@ -80,6 +82,12 @@ def _is_negated_material_mention(text: str, start: int) -> bool:
     clauses such as ``不做玻璃基板`` and ``不考虑使用镍基合金``.
     """
     prefix = text[max(0, start - 48):start]
+    switches = list(re.finditer(
+        r"改(?:用|做|为|成)|而是(?:用|选|做)?|[，,；;。]\s*(?:针对|选用|采用|选择|使用)",
+        prefix,
+    ))
+    if switches:
+        prefix = prefix[switches[-1].end():]
     direct_negation = re.search(
         r"(?:不(?:做|选|采用|选用|使用|考虑|需要|选择|包含|含|含有|进入|要)|不是|不属于|不适用|"
         r"排除|禁止|避免|无|非)\s*(?:[、，,：:（）()\-—/\s]|使用|采用|作为){0,12}$",
@@ -133,6 +141,10 @@ def is_reusable_rocket_stainless_intent(text: str, scope: dict[str, Any]) -> boo
     """Recognize natural descriptions of reusable rocket stainless structures."""
     if scope.get("model_domain") == "reusable_rocket_stainless":
         return True
+    # Confirmed product-language alias for the 30X rocket-stainless workflow.
+    # This does not reinterpret scrap/recycled-feedstock requests as 30X.
+    if _has_active_pattern(re.compile(r"可回收(?:的|型|式|用)?\s*不锈钢", re.IGNORECASE), text):
+        return True
     lowered = text.casefold()
     explicit_terms = ("可回收火箭", "火箭贮箱", "火箭壳体", "低温不锈钢", "奥氏体不锈钢", "304l", "301ln", "cryoforming", "30x")
     if any(_has_active_literal(text, term) for term in explicit_terms):
@@ -147,6 +159,9 @@ def is_chip_glass_intent(text: str, scope: dict[str, Any]) -> bool:
     return scope.get("model_domain") == "chip_glass_thermomechanical_family_v1" or _has_active_pattern(_CHIP_GLASS_PATTERN, text)
 
 def is_short_cf_intent(text: str, scope: dict[str, Any]) -> bool:
+    unsupported = re.compile(r"连续(?:碳|玻璃)?纤维|长(?:碳|玻璃)?纤维|热固(?:性)?|环氧|epoxy|continuous.?fib[er]+", re.IGNORECASE)
+    if _has_active_pattern(unsupported, text):
+        return False
     return scope.get("model_domain") == "short_cf_thermomechanical_rve_v1" or _has_active_pattern(_SHORT_CF_PATTERN, text)
 
 def is_perovskite_intent(text: str, scope: dict[str, Any]) -> bool:
@@ -335,16 +350,273 @@ def context_text(value: Any, limit: int = 12000) -> str:
     return "\n\n".join(chunks)[:limit]
 
 
+_ORCHESTRATOR_SECTION_PATTERN = re.compile(
+    r"(?m)^\s*【(?P<name>用户原始目标|历史执行上下文|最新用户补充(?:，高优先级)?|本轮必须执行的任务)】\s*$"
+)
+_ROLE_TURN_PATTERN = re.compile(
+    r"(?ms)^\s*用户\s*[:：]\s*(?P<content>.*?)(?=^\s*(?:用户|助手|系统|工具)\s*[:：]|\Z)"
+)
+_EMPTY_SUPPLEMENT_VALUES = frozenset({"", "无", "无。", "暂无", "未提供", "none", "null", "n/a"})
+
+
+def _latest_user_turn(text: str) -> str:
+    turns = [match.group("content").strip() for match in _ROLE_TURN_PATTERN.finditer(text)]
+    return next((turn for turn in reversed(turns) if turn), "")
+
+
+def _authoritative_request_text(text: str) -> str:
+    """Remove replayed assistant output from flat orchestrator envelopes.
+
+    The parent service can resend an entire prior transcript inside the top-level
+    ``idea`` string.  Specialist names in that assistant output are evidence of
+    what was displayed, not a new material request, so only the latest user turn
+    and the explicit current-task section may participate in routing.
+    """
+    stripped = text.strip()
+    matches = list(_ORCHESTRATOR_SECTION_PATTERN.finditer(stripped))
+    if not matches:
+        if "=== 对话历史 ===" in stripped:
+            return _latest_user_turn(stripped) or stripped
+        return stripped
+
+    sections: dict[str, str] = {}
+    for index, match in enumerate(matches):
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(stripped)
+        sections[match.group("name")] = stripped[match.end():end].strip()
+
+    original = sections.get("用户原始目标", "")
+    latest = sections.get("最新用户补充，高优先级", sections.get("最新用户补充", "")).strip()
+    current_task = sections.get("本轮必须执行的任务", "").strip()
+    original_user = _latest_user_turn(original) if "=== 对话历史 ===" in original else original
+    priority_user = latest if latest.casefold() not in _EMPTY_SUPPLEMENT_VALUES else original_user
+
+    selected: list[str] = []
+    for item in (priority_user, current_task):
+        cleaned = item.strip()
+        if cleaned and cleaned not in selected:
+            selected.append(cleaned)
+    return "\n\n".join(selected) or stripped
+
+
+def _is_context_only_followup(text: str) -> bool:
+    compact = re.sub(r"[\s，,。.!！?？、;；:：]+", "", text).casefold()
+    return compact in {
+        "继续", "继续做", "继续进行", "继续执行", "接着做", "同上",
+        "按之前的继续", "按原方案继续", "continue", "goon",
+    }
+
+
+class MaterialContextError(ValueError):
+    """A material reference cannot be resolved; this is not an untrained domain."""
+
+    def __init__(self, message: str, request: str, keys: list[str]) -> None:
+        super().__init__(message)
+        self.request = request
+        self.keys = keys
+
+
+_FORMULATION_INTENT = re.compile(
+    r"配方|配比|组分(?:设计|优化)|成分(?:设计|优化)|调整(?:组分|比例)|"
+    r"(?:formulation|composition)\s*(?:design|optim)", re.IGNORECASE,
+)
+_MATERIAL_REFERENCE = re.compile(
+    r"(?:上述|上面|前述|前面|上一步|上轮|上一轮|刚才|之前|已选|选定|推荐)"
+    r"[^。；;\n]{0,20}(?:材料|体系|配方|方案|组分|资料)|"
+    r"(?:该|此|这个|这种)(?:材料|体系|配方)|\b(?:this|that|above)\s+material\b",
+    re.IGNORECASE,
+)
+_MATERIAL_IDENTITY = re.compile(
+    r"高熵|多主元|\b(?:HEA|MPEA)\b|镍基|铜基|铜合金|不锈钢|合金钢|"
+    r"高强钢|马氏体时效钢|钛合金|钛基|镁合金|镁基|高温合金|铝合金|铝锂|"
+    r"玻璃|陶瓷|水泥|聚合物|塑料|树脂|纤维|复材|复合材料|钙钛矿|氧化物|"
+    r"(?<![A-Za-z])(?:PLA|PETG|ABS|ASA|PC|PP|PE|PA6|PA66|PEEK|PEKK|PPS)(?![A-Za-z])|"
+    r"GRCop|NARloy|CuCrZr|Ti[-–]6Al|Ti[-–]Nb|18Ni|CMSX|Inconel|"
+    r"perovskite|stainless|superalloy|polymer|plastic|resin|composite|ceramic|glass",
+    re.IGNORECASE,
+)
+_UPSTREAM_MATERIAL_KEYS = (
+    "material_conclusion", "upstream_result", "upstream_context", "previous_results",
+    "conversation_context", "history", "messages", "conversation", "project_idea",
+)
+_SELECTION_KEYS = ("selected_material", "confirmed_material", "chosen_material", "priority_material")
+_IDENTITY_KEYS = ("material_family", "material_name", "grade", "name", "composition_formula")
+_HISTORY_KEYS = frozenset({"conversation_context", "history", "messages", "conversation"})
+
+
+def _explicit_selection_records(value: Any, depth: int = 0) -> list[tuple[str, dict[str, Any]]]:
+    """Accept explicit upstream selection, never a general assistant capability list."""
+    if depth > 12:
+        return []
+    if isinstance(value, dict):
+        if str(value.get("role") or value.get("speaker") or "").casefold() == "system":
+            return []
+        for key in _SELECTION_KEYS:
+            if value.get(key) not in (None, "", [], {}):
+                return _material_records(value[key], depth=depth + 1)
+        for key in ("content", "text", "summary", "result", "data"):
+            records = _explicit_selection_records(value.get(key), depth + 1)
+            if records:
+                return records
+    elif isinstance(value, str):
+        try:
+            decoded = json.loads(value)
+        except (TypeError, json.JSONDecodeError):
+            match = re.search(r"(?:已(?:经)?选定|已选择|最终选择|优先选择)\s*[:：]?\s*(?P<material>[^。；;\n]+)", value)
+            if match:
+                return _material_records(match.group("material"), depth=depth + 1)
+        else:
+            if isinstance(decoded, (dict, list)):
+                return _explicit_selection_records(decoded, depth + 1)
+    return []
+
+
+def _has_material_identity(text: str) -> bool:
+    return _has_active_pattern(_MATERIAL_IDENTITY, text) or _has_active_pattern(_AEROSPACE_ALUMINUM_PATTERN, text) or bool(
+        re.search(r"(?:[A-Z][a-z]?(?:[-–]|\d+(?:\.\d+)?)){2,}[A-Z][a-z]?", text)
+    )
+
+
+def _usable_material_context(text: str) -> bool:
+    return _has_material_identity(text) or bool(
+        _has_active_pattern(_ENGINE_PATTERN, text) and _has_active_pattern(_HIGH_TEMPERATURE_PATTERN, text)
+    ) or any(domain in text for domain in SUPPORTED_MODEL_DOMAINS)
+
+
+def _material_records(value: Any, *, history: bool = False, depth: int = 0) -> list[tuple[str, dict[str, Any]]]:
+    """Read a selected record, not capability lists or arbitrary assistant prose."""
+    if depth > 12:
+        return []
+    if isinstance(value, str):
+        try:
+            decoded = json.loads(value)
+        except (TypeError, json.JSONDecodeError):
+            text = _authoritative_request_text(value)
+            return [(text, {})] if _usable_material_context(text) else []
+        return _material_records(decoded, history=history, depth=depth + 1)
+    if isinstance(value, list):
+        role_labelled = any(isinstance(item, dict) and (item.get("role") or item.get("speaker")) for item in value)
+        if history or role_labelled:
+            for item in reversed(value):
+                if isinstance(item, dict):
+                    role = str(item.get("role") or item.get("speaker") or "user").casefold()
+                    if role not in {"user", "human", "customer"}:
+                        selected_records = _explicit_selection_records(item, depth + 1)
+                        if selected_records:
+                            return selected_records
+                        continue
+                records = _material_records(item, history=True, depth=depth + 1)
+                if records:
+                    return records
+            return []
+        selected = [item for item in value if isinstance(item, dict) and (
+            item.get("selected") is True or item.get("selection_status") in {"selected", "confirmed"}
+        )]
+        return [record for item in (selected or value) for record in _material_records(item, depth=depth + 1)]
+    if not isinstance(value, dict):
+        return []
+    if str(value.get("role") or value.get("speaker") or "").casefold() == "system":
+        return []
+    for key in _SELECTION_KEYS:
+        if value.get(key) not in (None, "", [], {}):
+            return _material_records(value[key], depth=depth + 1)
+    role = str(value.get("role") or value.get("speaker") or "").casefold()
+    if role in {"assistant", "system", "tool", "function", "agent", "bot"}:
+        return _explicit_selection_records(value, depth + 1)
+    parts = [str(value[key]) for key in _IDENTITY_KEYS if isinstance(value.get(key), str) and value[key].strip()]
+    if value.get("model_domain") in SUPPORTED_MODEL_DOMAINS:
+        parts.append(str(value["model_domain"]))
+    for key in ("idea", "content", "text", "query", "requirement", "summary", "message", "user_conclusion"):
+        if isinstance(value.get(key), str):
+            parts.append(_authoritative_request_text(value[key]))
+    text = "\n".join(parts)
+    if _usable_material_context(text):
+        return [(text, value)]
+    for key in ("result", "data", "output", "material_conclusion", "effective_model_input", "alloy_optimization", "constraints", "candidates", "materials"):
+        if value.get(key) not in (None, "", [], {}):
+            records = _material_records(value[key], depth=depth + 1)
+            if records:
+                return records
+    return []
+
+
+def _ambiguous_material_text(text: str) -> bool:
+    # A base-metal qualifier plus HEA names one system, not two candidates.
+    text = re.sub(r"(?:镍基|铜基|钛基)(?=[^，、/与和。；\n]{0,8}(?:高熵|多主元))", "", text)
+    families = (
+        r"高熵|多主元|\bHEA\b|\bMPEA\b", r"镍基|CMSX|Inconel",
+        r"铜基|铜合金|GRCop|NARloy|CuCrZr", r"不锈钢|304L|301LN|30X",
+        r"航空铝|铝合金|铝锂|Al[- ]?Li", r"玻璃基板|芯片玻璃|低硼无碱|玻璃芯基板",
+        r"短碳纤维|复合耗材", r"钙钛矿|perovskite", r"钛合金|钛基|Ti[-–]6Al",
+        r"马氏体时效钢|18Ni|高强钢", r"镁合金|镁基",
+    )
+    return sum(_has_active_pattern(re.compile(pattern, re.IGNORECASE), text) for pattern in families) > 1
+
+
+def _referenced_material(payload: dict[str, Any], request: str, direct_key: str, raw_text: str) -> tuple[str, list[str]]:
+    sources = [(key, payload[key]) for key in _UPSTREAM_MATERIAL_KEYS if key != "project_idea" and payload.get(key) is not None]
+    # A parent may encode context inside idea rather than separate JSON keys.
+    matches = list(_ORCHESTRATOR_SECTION_PATTERN.finditer(raw_text))
+    for index, match in enumerate(matches):
+        if match.group("name") not in {"用户原始目标", "历史执行上下文"}:
+            continue
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(raw_text)
+        section = raw_text[match.end():end].strip()
+        if match.group("name") == "历史执行上下文" and not re.search(r"已选定|已选择|优先选择|selected_material|confirmed_material", section):
+            continue
+        sources.append((direct_key, section))
+    if "=== 对话历史 ===" in raw_text and not matches:
+        turns = [match.group("content").strip() for match in _ROLE_TURN_PATTERN.finditer(raw_text)]
+        sources.append((direct_key, turns[:-1]))
+    if payload.get("project_idea") is not None:
+        sources.append(("project_idea", payload["project_idea"]))
+    for key, source in sources:
+        records = _material_records(source, history=key in _HISTORY_KEYS or (key == direct_key and isinstance(source, list)))
+        unique = {re.sub(r"\s+", "", text).casefold(): text for text, _ in records}
+        if not unique:
+            continue
+        keys = list(dict.fromkeys([direct_key, key]))
+        if len(unique) != 1 or _ambiguous_material_text(next(iter(unique.values()))):
+            raise MaterialContextError("上游包含多个材料候选，请明确本次要优化哪个材料，或说明需要分别优化哪些材料。", request, keys)
+        context = next(iter(unique.values()))
+        if _is_context_only_followup(request):
+            return context[:12000], keys
+        return (request + "\n\n已明确的材料上下文：\n" + context)[:12000], keys
+    raise MaterialContextError("请提供“上述材料”对应的材料名称或上一步材料选择结果，以便确定配方变量和适用模型。", request, [direct_key])
+
+
 def upstream_requirement(payload: dict[str, Any]) -> tuple[str, list[str]]:
-    # A direct user request always takes precedence over an accumulated
-    # transcript or an upstream agent report.  This prevents stale rejection
-    # language from becoming a routing signal on a follow-up turn.
-    direct_keys = [key for key in ("idea", "content", "query", "project_idea") if payload.get(key) is not None]
-    direct_text = context_text({key: payload[key] for key in direct_keys})
-    if direct_text:
-        return direct_text, direct_keys
-    keys = [key for key in ("conversation_context", "upstream_result", "material_conclusion", "history", "messages", "conversation", "upstream_context", "previous_results") if payload.get(key) is not None]
-    return context_text({key: payload[key] for key in keys}), keys
+    # A current-turn request always takes precedence over ``project_idea`` and
+    # accumulated history.  Process one current field at a time rather than
+    # concatenating stale project material with the new request.
+    for key in ("idea", "content", "query"):
+        if payload.get(key) is None:
+            continue
+        raw_text = context_text(payload[key], limit=120000)
+        direct_text = _authoritative_request_text(raw_text)[:12000]
+        if direct_text:
+            scope = payload.get("alloy_optimization") or payload.get("hea_optimization") or payload.get("constraints") or {}
+            explicit_scope = isinstance(scope, dict) and any(scope.get(field) not in (None, "", [], {}) for field in (
+                "model_domain", "composition", "composition_wt_percent", "composition_mol_percent", "allowed_elements", "matrix_name",
+            ))
+            needs_context = _is_context_only_followup(direct_text) or (
+                not _has_material_identity(direct_text)
+                and (_MATERIAL_REFERENCE.search(direct_text) or (_FORMULATION_INTENT.search(direct_text) and not _usable_material_context(direct_text)))
+            )
+            if needs_context and not explicit_scope:
+                return _referenced_material(payload, direct_text, key, raw_text)
+            return direct_text, [key]
+
+    for key in _UPSTREAM_MATERIAL_KEYS:
+        if payload.get(key) is None:
+            continue
+        records = _material_records(payload[key], history=key in _HISTORY_KEYS)
+        if records:
+            if len(records) != 1 or _ambiguous_material_text(records[0][0]):
+                raise MaterialContextError("上游包含多个材料候选，请明确本次要优化哪个材料。", "", [key])
+            return records[0][0][:12000], [key]
+    keys = [key for key in _UPSTREAM_MATERIAL_KEYS if payload.get(key) is not None]
+    history_text = context_text({key: payload[key] for key in keys}, limit=120000)
+    return _authoritative_request_text(history_text)[:12000], keys
 
 
 def is_alloy_request(text: str, scope: dict[str, Any]) -> bool:
@@ -360,7 +632,7 @@ def is_alloy_request(text: str, scope: dict[str, Any]) -> bool:
     if is_copper_hot_end_intent(text, scope):
         return True
     hea_system = is_hea_exploration_intent(text, scope)
-    composition_intent = any(token in lowered for token in ("配比", "成分", "元素比例", "原子百分比", "at.%", "优化"))
+    composition_intent = any(token in lowered for token in ("配方", "配比", "组分", "成分", "元素比例", "原子百分比", "at.%", "优化"))
     high_temp_alloy = ("高温合金" in lowered or "high-temperature alloy" in lowered) and composition_intent
     # 上游摘要常省略 HEA/MPEA 名称，却保留了 Ni-Co-Cr-Al-Ti 这类元素体系。
     # 至少三个受支持的金属元素，再加明确配比/成分意图，才视为合金服务请求；
@@ -395,9 +667,12 @@ def contract(payload: dict[str, Any]) -> dict[str, Any]:
     ))
     if not specialist_request and not is_alloy_request(upstream_context, scope):
         raise ValueError("本服务仅处理合金/高温合金的成分或配比优化；已有材料查询请使用成熟材料服务，非合金新材料生成请使用新材料服务")
-    domain = scope.get("model_domain", "hea_mpea")
-    if domain not in {"hea_mpea", "conventional_alloy", "refractory_calculated", "ni_superalloy_hot_end", "copper_hot_end_local_composition_v1", "reusable_rocket_stainless", "chip_glass_thermomechanical_family_v1", "short_cf_thermomechanical_rve_v1", "perovskite_transport_stability_v2", "aerospace_aluminum_composition_v1"}:
-        raise ValueError("unsupported model_domain")
+    domain = str(scope.get("model_domain", "hea_mpea")).strip()
+    if domain not in SUPPORTED_MODEL_DOMAINS:
+        raise ValueError(
+            f"model_domain={domain!r} 尚未接入已验证专项模型；"
+            "将返回材料家族特定的通用配比与试验设计框架"
+        )
     common = {"taskid": task_id(payload), "raw_requirement": upstream_context, "upstream_context": upstream_context, "upstream_context_keys": upstream_keys, "model_domain": domain, "objectives": scope.get("objectives", {}), "constraints": scope.get("constraints", {})}
     if domain == "ni_superalloy_hot_end":
         return {**common, "composition_wt_percent": scope.get("composition_wt_percent"), "element_bounds_wt_percent": scope.get("element_bounds_wt_percent", {}), "manufacturing_route": scope.get("manufacturing_route"), "heat_treatment": scope.get("heat_treatment"), "test_temperature_C": scope.get("test_temperature_C"), "applied_stress_MPa": scope.get("applied_stress_MPa"), "screening_thresholds": scope.get("screening_thresholds", {}), "casting_gradient_K_per_mm": scope.get("casting_gradient_K_per_mm"), "num_candidates": scope.get("num_candidates", 120), "random_seed": scope.get("random_seed", 20260901)}
@@ -428,9 +703,18 @@ def hot_end_missing_fields(scope: dict[str, Any]) -> list[dict[str, str]]:
     return [{"field": key, "label": label} for key, label in requirements if scope.get(key) in (None, "", {}, [])]
 
 
-def requirement_plan(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+def _requirement_plan(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
     supplied = dict(payload.get("alloy_optimization") or payload.get("hea_optimization") or payload.get("constraints") or {})
+    requested_domain = str(supplied.get("model_domain") or "").strip()
+    if requested_domain and requested_domain not in SUPPORTED_MODEL_DOMAINS:
+        raise ValueError(
+            f"model_domain={requested_domain!r} 尚未接入已验证专项模型；"
+            "将返回材料家族特定的通用配比与试验设计框架"
+        )
     idea, upstream_keys = upstream_requirement(payload)
+    explicit_hea = any(_has_active_literal(idea, token) for token in ("高熵", "多主元", "HEA", "MPEA"))
+    if not explicit_hea and _has_active_pattern(re.compile(r"钛合金|钛基|Ti[-–]6Al|Ti[-–]Nb", re.IGNORECASE), idea):
+        raise ValueError("钛合金专项配比模型尚未接入；按钛合金家族提供配方变量与试验设计，不套用 HEA/MPEA 模型")
     short_cf_intent = is_short_cf_intent(idea, supplied)
     perovskite_intent = is_perovskite_intent(idea, supplied)
     aluminum_intent = is_aerospace_aluminum_intent(idea, supplied)
@@ -438,7 +722,7 @@ def requirement_plan(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str,
     rocket_intent = is_reusable_rocket_stainless_intent(idea, supplied)
     copper_hot_end_intent = is_copper_hot_end_intent(idea, supplied)
     copper_local_intent = is_copper_local_composition_intent(idea, supplied)
-    hot_end_intent = is_ni_hot_end_intent(idea, supplied)
+    hot_end_intent = is_ni_hot_end_intent(idea, supplied) and (not explicit_hea or supplied.get("model_domain") == "ni_superalloy_hot_end")
     # A concrete requested specialist material is stronger evidence than a
     # generic material word used in an exclusion clause.  This keeps requests
     # such as “玻璃基板，不包含碳纤维” and “30X 不锈钢，排除树脂/纤维” on
@@ -545,3 +829,43 @@ def requirement_plan(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str,
     effective.update({key: value for key, value in supplied.items() if value not in (None, [], {}, "")})
     provenance = {key: ("user" if key in supplied and supplied[key] not in (None, [], {}, "") else "template_inference") for key in effective}
     return effective, {"parser": "rule_template_v0", "raw_requirement": idea, "upstream_context_keys": upstream_keys, "template": template, "effective_model_input": effective, "field_provenance": provenance, "default_assumptions": [{"field": key, "value": value, "status": "requires_confirmation"} for key, value in inferred.items() if provenance[key] == "template_inference"], "questions_to_confirm": questions, "evidence_notice": "Template inference is exploratory only, not an engineering conclusion."}
+
+
+_CONTEXT_SCOPE_FIELDS = frozenset({
+    "model_domain", "composition", "composition_wt_percent", "composition_mol_percent", "composition_basis",
+    "allowed_elements", "element_bounds_at_pct", "element_bounds_wt_percent", "oxide_bounds_mol_percent",
+    "processing_method", "processing_state", "processing_category", "manufacturing_route", "heat_treatment",
+    "test_temperature_C", "test_temperature_K", "temperatures_K", "applied_stress_MPa", "processing",
+    "ambient_process", "composition_family", "matrix_name", "matrix_properties", "target_vf", "fiber_length_mm",
+    "target_a11", "fractions", "screening_thresholds", "objectives", "component", "weld_state", "thickness_mm",
+    "low_temperature_verification_K", "verification_focus", "application", "service_options", "num_candidates",
+})
+
+
+def requirement_plan(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Resolve the material first; inherit only existing, explicitly named inputs."""
+    text, keys = upstream_requirement(payload)
+    explicit = dict(payload.get("alloy_optimization") or payload.get("hea_optimization") or payload.get("constraints") or {})
+    inherited: dict[str, Any] = {}
+    # If a current request was used on its own, historic model inputs stay out.
+    source_keys = [key for key in keys if key not in {"idea", "content", "query"}]
+    for key in source_keys:
+        records = _material_records(payload.get(key), history=key in _HISTORY_KEYS)
+        if len(records) != 1:
+            continue
+        record = records[0][1]
+        for scope in (record, record.get("effective_model_input"), record.get("constraints"), record.get("alloy_optimization")):
+            if isinstance(scope, dict):
+                inherited.update({field: value for field, value in scope.items() if field in _CONTEXT_SCOPE_FIELDS and value not in (None, "", [], {})})
+    if not inherited:
+        return _requirement_plan(payload)
+    normalized = dict(payload)
+    normalized["idea"] = text
+    normalized["alloy_optimization"] = {**inherited, **explicit}
+    effective, plan = _requirement_plan(normalized)
+    plan["raw_requirement"] = text
+    plan["upstream_context_keys"] = keys
+    for key in inherited.keys() - explicit.keys():
+        if key in plan["field_provenance"]:
+            plan["field_provenance"][key] = "upstream_context"
+    return effective, plan

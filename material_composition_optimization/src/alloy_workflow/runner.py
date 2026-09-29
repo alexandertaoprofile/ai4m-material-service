@@ -33,6 +33,27 @@ class HEASurrogateRunner:
         queue_size = max(workers, int(os.getenv("UNIFIED_TENSILE_SHADOW_QUEUE", "8")))
         self._shadow_pool = ThreadPoolExecutor(max_workers=workers, thread_name_prefix="unified-tensile-shadow")
         self._shadow_slots = threading.BoundedSemaphore(queue_size)
+        self._recipe_lock = threading.Lock()
+        self._recipe_dispatcher = None
+
+    def submit_recipe_shadow(self, taskid: str, result: dict[str, Any]) -> Future[dict[str, Any]] | None:
+        """Queue the new private report; never affect the formal result path."""
+        try:
+            with self._recipe_lock:
+                if self._recipe_dispatcher is None:
+                    from src.alloy_workflow.recipe_shadow import RecipeShadowDispatcher
+                    self._recipe_dispatcher = RecipeShadowDispatcher(self.results_root)
+                dispatcher = self._recipe_dispatcher
+            return dispatcher.submit(taskid, result)
+        except Exception as exc:
+            # Private setup failures must not break an already computed result.
+            try:
+                from src.alloy_workflow.recipe_shadow import RecipeShadowDispatcher
+                RecipeShadowDispatcher._taskid(taskid)
+                self._write_shadow_notice(taskid, "recipe_setup_" + type(exc).__name__, result.get("model_domain"))
+            except Exception:
+                pass
+            return None
 
     def ready(self, domain: str = "hea_mpea") -> bool:
         if domain == "copper_hot_end_local_composition_v1":

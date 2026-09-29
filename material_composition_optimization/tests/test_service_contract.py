@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import main
 import src.team_config as team_config
-from src.alloy_workflow.contracts import requirement_plan
+from src.alloy_workflow.contracts import contract, requirement_plan, upstream_requirement
 from src.alloy_workflow.application import AlloyOptimizationApplication
 from src.alloy_workflow.presentation import final_conclusion_block, hot_end_summary_block, planned_alloy_method_block, short_cf_summary_block, _embed_short_cf_visuals
 from src.alloy_workflow.presentation import _embed_rocket_visuals, rocket_stainless_summary_block
@@ -144,6 +144,8 @@ class AlloyServiceContractTest(unittest.TestCase):
         self.assertIn("规则映射", stable["source"])
 
     def test_routes_and_roles_keep_current_compatibility_contract(self) -> None:
+        from src.alloy_workflow.identity import SUPPORTED_MODEL_DOMAINS
+
         paths = {route.path for route in main.app.routes}
         self.assertTrue({"/start", "/alloy/start", "/roles", "/alloy/propose-space", "/alloy/evaluate", "/alloy/evaluate-batch"}.issubset(paths))
         role = next(iter(main.roles().values()))
@@ -151,7 +153,66 @@ class AlloyServiceContractTest(unittest.TestCase):
         self.assertEqual(role["__module_class_name"], "src.team_config.AlloyCompositionOptimizationRole")
         self.assertEqual(role["addresses"][0], "src.team_config.AlloyCompositionOptimizationRole")
         self.assertEqual(role["actions"][0]["name"], "Coding")
+        self.assertEqual(set(role["routing"]["model_routes"]), set(SUPPORTED_MODEL_DOMAINS))
+        self.assertIn("copper_hot_end_local_composition_v1", role["routing"]["model_routes"])
+        self.assertNotIn("conventional_alloy", role["routing"]["model_routes"])
+        self.assertNotIn("refractory_calculated", role["routing"]["model_routes"])
         self.assertFalse(hasattr(team_config, "XIMUAlpha_MNS"))
+
+    def test_unregistered_explicit_domain_is_sent_to_the_generic_fallback(self) -> None:
+        payload = {
+            "taskid": "unsupported-refractory-domain",
+            "idea": "设计一种难熔合金配比",
+            "alloy_optimization": {"model_domain": "refractory_calculated"},
+        }
+        with self.assertRaisesRegex(ValueError, "尚未接入已验证专项模型"):
+            requirement_plan(payload)
+        effective, plan = main._safe_requirement_plan(payload)
+        self.assertEqual(effective["model_domain"], "generic_composition_design_fallback_v1")
+        self.assertEqual(plan["template"], "generic_composition_design_fallback")
+
+    def test_current_idea_takes_priority_over_stale_project_idea(self) -> None:
+        payload = {
+            "taskid": "current-plastic-over-old-aluminum",
+            "idea": "这次针对塑料材料做一个配比设计",
+            "project_idea": "针对航空铝合金做室温强度和延伸率筛选",
+        }
+        text, keys = upstream_requirement(payload)
+        self.assertEqual(keys, ["idea"])
+        self.assertIn("塑料材料", text)
+        self.assertNotIn("航空铝合金", text)
+        effective, plan = main._safe_requirement_plan(payload)
+        self.assertEqual(effective["model_domain"], "generic_composition_design_fallback_v1")
+        self.assertEqual(effective["material_family"], "热塑性塑料/聚合物配方")
+        self.assertEqual(plan["template"], "generic_composition_design_fallback")
+
+    def test_flat_replayed_assistant_output_cannot_change_the_current_material_route(self) -> None:
+        stale_assistant_output = (
+            "航空铝合金模型输出 UTS、YS 和延伸率；通用能力还提到树脂、纤维、填料。\n" * 600
+        )
+        payload = {
+            "taskid": "rocket-after-replayed-output",
+            "idea": (
+                "【用户原始目标】\n"
+                "=== 对话历史 ===\n"
+                "用户: 针对可回收火箭不锈钢做一个材料配比设计\n"
+                f"助手: {stale_assistant_output}\n"
+                "【历史执行上下文】\n先前步骤输出已附在上方。\n"
+                "【最新用户补充，高优先级】\n无\n"
+                "【本轮必须执行的任务】\n"
+                "针对可回收火箭奥氏体不锈钢生成候选并进行短时拉伸初筛。"
+            ),
+        }
+        text, keys = upstream_requirement(payload)
+        self.assertEqual(keys, ["idea"])
+        self.assertIn("可回收火箭", text)
+        self.assertNotIn("航空铝合金", text)
+        self.assertNotIn("树脂", text)
+        effective, plan = requirement_plan(payload)
+        self.assertEqual(effective["model_domain"], "reusable_rocket_stainless")
+        self.assertEqual(plan["template"], "reusable_rocket_stainless_screening")
+        normalized = {**payload, "alloy_optimization": effective}
+        self.assertEqual(contract(normalized)["model_domain"], "reusable_rocket_stainless")
 
     def test_direct_websocket_sequence_and_asset_failure_are_frozen(self) -> None:
         payload = {"taskid": "contract-alloy", "idea": "设计高熵合金配比"}
@@ -501,12 +562,13 @@ class AlloyServiceContractTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "单一金属合金"):
             requirement_plan(payload)
 
-    def test_explicit_exclusion_of_composite_phases_does_not_reject_monolithic_copper_alloy(self) -> None:
-        effective, _plan = requirement_plan({
-            "taskid": "copper-monolithic-boundary",
-            "idea": "候选为 CuCrZr、GRCop-84 与 NARloy-Z 等铜基单合金，体系内不含树脂、纤维、填料、涂层或复合相。",
-        })
-        self.assertNotEqual(effective.get("model_domain"), "short_cf_thermomechanical_rve_v1")
+    def test_named_copper_grades_with_composite_exclusions_route_to_1105_not_short_cf(self) -> None:
+        with self.assertRaisesRegex(ValueError, "1105 成熟材料目录") as caught:
+            requirement_plan({
+                "taskid": "copper-monolithic-boundary",
+                "idea": "候选为 CuCrZr、GRCop-84 与 NARloy-Z 等铜基单合金，体系内不含树脂、纤维、填料、涂层或复合相。",
+            })
+        self.assertNotIn("复合材料专项流程", str(caught.exception))
 
     def test_role_and_discovery_use_shared_descriptions(self) -> None:
         from src.alloy_workflow.identity import ACTION_DESCRIPTION, ROLE_PROFILE

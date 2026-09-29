@@ -10,6 +10,9 @@ from src.alloy_workflow.assets import publish_png_assets
 
 
 ASSET_DOCS = {
+    "recipe_tradeoff": "比较本次优化目标的可行配方及优选方案。",
+    "recipe_composition_0": "展示本次优选配方的组分比例；完整数值见组成表。",
+    "recipe_composition_1": "展示另一独立组分位点的比例；各位点分别归一化。",
     "screening_funnel": "以分层漏斗展示生成、相风险、性能与不确定性、最终可比候选四个阶段的数量和保留率，用于定位筛选收缩发生的位置。",
     "strength_hardness_tradeoff": "每个点代表一个通过初筛的候选；颜色表示训练数据适用域，星形标出当前综合排序第一的候选，虚线为本轮采用的性能门槛。",
     "composition_percentiles": "上半部分展示最优候选的精确元素原子百分比，下半部分展示保留候选的 P5–P50–P95 探索区间；两者不能混作最终配方。",
@@ -34,6 +37,9 @@ ASSET_DOCS = {
     "aluminum_composition_card": "展示优先候选的元素质量百分比；该成分是当前工艺类别与训练邻域内的试制优先项，不是已定型牌号或热处理制度。",
 }
 ASSET_TITLES = {
+    "recipe_tradeoff": "目标性质权衡与优选方案",
+    "recipe_composition_0": "优选配方组成",
+    "recipe_composition_1": "卤素位组成",
     "screening_funnel": "候选筛选漏斗",
     "strength_hardness_tradeoff": "强度、硬度与最优候选位置",
     "composition_percentiles": "最优候选配方与探索区间",
@@ -79,6 +85,7 @@ def result_event_data(result: dict[str, Any]) -> dict[str, Any]:
         "service": result.get("service", "alloy-composition-optimization"),
         "model_domain": result.get("model_domain"),
         "model_version": result.get("model_version"),
+        "recipe_release": result.get("recipe_release"),
         "user_conclusion": result.get("user_conclusion"),
         "sampling": {
             "generated": sampling.get("generated"),

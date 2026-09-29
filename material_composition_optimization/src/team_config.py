@@ -12,12 +12,13 @@ from typing import Any
 from alpha.actions import Action, UserRequirement
 from alpha.roles import Role
 
-from src.alloy_workflow.contracts import requirement_plan as _requirement_plan, task_id as _taskid
+from src.alloy_workflow.contracts import _explicit_selection_records, requirement_plan as _requirement_plan, task_id as _taskid
 from src.alloy_workflow.fallback import generic_fallback_plan
 from src.alloy_workflow.identity import ACTION_DESCRIPTION, ACTION_NAME, ROLE_NAME, ROLE_PROFILE
 from src.alloy_workflow.presentation import emit_result_content, hot_end_input_guide_block, planned_alloy_method_block, stream_authoritative_markdown
 from src.alloy_workflow.protocol import prepare_public_assets, result_event_data
 from src.alloy_workflow.runtime import RUNTIME
+from src.alloy_workflow.recipe_primary import effective_mode, primary_description, primary_preflight
 
 # 与 main.py 共享同一运行时装配，禁止由编排层反向 import 传输入口。
 RESULTS = RUNTIME.results_root
@@ -88,6 +89,18 @@ def _payload_from_instruction(
                 payload["conversation_context"] = (
                     previous_user_context + ([existing_context] if existing_context else [])
                 )
+            # Preserve an upstream's explicit selection for a referential user
+            # request; unrelated assistant prose remains outside routing.
+            for item in reversed(instruction):
+                if isinstance(item, dict):
+                    envelope = item
+                else:
+                    envelope = {"role": getattr(item, "role", ""), "content": getattr(item, "content", "")}
+                if str(envelope.get("role") or "").casefold() in {"assistant", "tool", "agent", "function"}:
+                    selected = _explicit_selection_records(envelope)
+                    if selected:
+                        payload.setdefault("material_conclusion", {"selected_material": [record or {"summary": text} for text, record in selected]})
+                        break
         else:
             text = str(instruction or "")
             try:
@@ -117,7 +130,9 @@ class Coding(Action):
             effective, plan = _requirement_plan(payload)
         except ValueError as exc:
             effective, plan = generic_fallback_plan(payload, str(exc))
-        progress_description = ("当前材料体系未覆盖专项训练模型，正在生成明确标注边界的大模型/规则辅助通用配比方案。" if effective.get("model_domain") == "generic_composition_design_fallback_v1" else "正在按航空铝合金 wt.% 成分与已记录工艺类别筛选名义室温强度—延伸率候选。" if effective.get("model_domain") == "aerospace_aluminum_composition_v1" else "正在按工艺状态和温度筛选铜基热壁合金的局部配比。" if effective.get("model_domain") == "copper_hot_end_local_composition_v1" else "正在整理钙钛矿的 A 位/卤素位组分与变温电输运稳定性筛选条件。" if effective.get("model_domain") == "perovskite_transport_stability_v2" else "正在整理短碳纤维 RVE 的基体、体积分数、有效长度和取向条件。" if effective.get("model_domain") == "short_cf_thermomechanical_rve_v1" else "正在整理芯片玻璃基板的氧化物配方与热机械筛选条件。" if effective.get("model_domain") == "chip_glass_thermomechanical_family_v1" else "正在整理高温镍基合金的工况与成分设计条件。" if effective.get("model_domain") == "ni_superalloy_hot_end" else "正在整理可回收火箭不锈钢的温度、工艺与配方边界。" if effective.get("model_domain") == "reusable_rocket_stainless" else "正在将需求映射为高熵/多主元合金的探索条件。")
+        progress_description = ("本次输入尚未匹配到可执行的预测模型，正在整理配方变量、工艺条件和首轮试验方案。" if effective.get("model_domain") == "generic_composition_design_fallback_v1" else "正在按航空铝合金 wt.% 成分与已记录工艺类别筛选名义室温强度—延伸率候选。" if effective.get("model_domain") == "aerospace_aluminum_composition_v1" else "正在按工艺状态和温度筛选铜基热壁合金的局部配比。" if effective.get("model_domain") == "copper_hot_end_local_composition_v1" else "正在整理钙钛矿的 A 位/卤素位组分与变温电输运稳定性筛选条件。" if effective.get("model_domain") == "perovskite_transport_stability_v2" else "正在整理短碳纤维 RVE 的基体、体积分数、有效长度和取向条件。" if effective.get("model_domain") == "short_cf_thermomechanical_rve_v1" else "正在整理芯片玻璃基板的氧化物配方与热机械筛选条件。" if effective.get("model_domain") == "chip_glass_thermomechanical_family_v1" else "正在整理高温镍基合金的工况与成分设计条件。" if effective.get("model_domain") == "ni_superalloy_hot_end" else "正在整理可回收火箭不锈钢的温度、工艺与配方边界。" if effective.get("model_domain") == "reusable_rocket_stainless" else "正在将需求映射为高熵/多主元合金的探索条件。")
+        if effective_mode(effective) == "primary":
+            progress_description = primary_description(effective.get("model_domain"))
         await websocket.send_json({
             "version": "1.0.0", "agent": "alloy_composition_optimization",
             "request_id": request_id, "type": "progress",
@@ -127,11 +142,12 @@ class Coding(Action):
                 "status": "in_progress", "description": progress_description,
             },
         })
-        await stream_authoritative_markdown(websocket, planned_alloy_method_block(payload), step_id=FRONTEND_STEP_ID)
+        method = primary_preflight(effective.get("model_domain")) if effective_mode(effective) == "primary" else planned_alloy_method_block(payload)
+        await stream_authoritative_markdown(websocket, method, step_id=FRONTEND_STEP_ID)
 
         if plan.get("requires_domain_confirmation"):
-            waiting = {"taskid": request_id, "status": "waiting_for_input", "service": "alloy-composition-optimization", "model_domain": "routing_confirmation", "requirement_interpretation": plan, "user_conclusion": "请确认采用高温镍基合金还是 HEA/MPEA 路线后开始配方筛选。"}
-            await websocket.send_json({"version": "1.0.0", "agent": "alloy_composition_optimization", "request_id": request_id, "type": "progress", "data": {"id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID, "title": FRONTEND_STEP_TITLE, "status": "completed", "description": "已识别高温合金任务，等待确认材料体系。"}})
+            waiting = {"taskid": request_id, "status": "waiting_for_input", "service": "alloy-composition-optimization", "model_domain": "routing_confirmation", "requirement_interpretation": plan, "user_conclusion": plan.get("confirmation_message") or "请确认采用高温镍基合金还是 HEA/MPEA 路线后开始配方筛选。"}
+            await websocket.send_json({"version": "1.0.0", "agent": "alloy_composition_optimization", "request_id": request_id, "type": "progress", "data": {"id": FRONTEND_STEP_ID, "stepId": FRONTEND_STEP_ID, "title": FRONTEND_STEP_TITLE, "status": "completed", "description": plan.get("confirmation_message") or "已识别高温合金任务，等待确认材料体系。"}})
             await websocket.send_json({"version": "1.0.0", "agent": "alloy_composition_optimization", "request_id": request_id, "type": "result", "data": waiting})
             return str(waiting["user_conclusion"])
 

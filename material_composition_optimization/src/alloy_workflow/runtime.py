@@ -49,10 +49,16 @@ class AlloyRuntime:
     def propose(self, payload: dict[str, Any]) -> dict[str, Any]:
         """执行候选提议并生成任务级展示资产。"""
         result, constraints = self.application.propose_space(payload)
+        if result.get("status") == "waiting_for_input":
+            # Identity clarification has no candidates, figures or predictions.
+            result["presentation"] = {"assets": []}
+            self.save(result)
+            return result
         candidates = result.get("_presentation_candidates", result.get("initial_candidates", []))
-        if candidates and result.get("model_domain") == "hea_mpea":
+        if candidates and result.get("model_domain") == "hea_mpea" and not result.get("_recipe_report"):
             result["microstructure_tendency"] = build_microstructure_tendency(candidates[0])
         assets = self._render(result)
+        result.pop("_recipe_report", None)
         result.pop("_presentation_candidates", None)
         taskid = constraints["taskid"]
         result["presentation"] = {
@@ -90,6 +96,9 @@ class AlloyRuntime:
             label.set_fontproperties(font)
 
     def _render(self, result: dict[str, Any]) -> dict[str, Path]:
+        if result.get("recipe_release", {}).get("mode") == "primary":
+            from src.alloy_workflow.recipe_primary import render_primary
+            return render_primary(result, self.results_root / result["taskid"] / "presentation")
         if result.get("model_domain") == "generic_composition_design_fallback_v1":
             return self._render_generic_composition_fallback(result)
         if result.get("model_domain") == "ni_superalloy_hot_end":
@@ -300,30 +309,11 @@ class AlloyRuntime:
         return assets
 
     def _render_generic_composition_fallback(self, result: dict[str, Any]) -> dict[str, Path]:
-        """Use the normal tokenized PNG path for untrained-domain fallback."""
+        """No numeric evaluation occurred: publish the plan, not a fake funnel."""
         task_dir = self.results_root / result["taskid"] / "presentation"
         task_dir.mkdir(parents=True, exist_ok=True)
-        os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
         from src.alloy_workflow.presentation import generic_composition_fallback_summary_block
-        font = self._chart_font(); assets: dict[str, Path] = {}
-        stages = (result.get("sampling") or {}).get("funnel_stages") or []
-        if stages:
-            fig, ax = plt.subplots(figsize=(10.8, 6.3), facecolor="#FFFFFF")
-            count = len(stages); palette = ("#9ECCE1", "#78ADD0", "#467BAA")
-            widths = [.92 - index * (.46 / max(1, count - 1)) for index in range(count)]
-            for index, (stage, top_width) in enumerate(zip(stages, widths)):
-                bottom_width = max(.26, top_width * .80); y_top = count - index * 1.25; y_bottom = y_top - .86
-                color = palette[min(index, len(palette) - 1)]; dark = tuple(value * .78 for value in to_rgb(color)); light = tuple(min(1, value + (1 - value) * .55) for value in to_rgb(color))
-                ax.add_patch(Ellipse((.5, y_bottom), width=bottom_width, height=.24, facecolor=dark, edgecolor="none", zorder=1))
-                ax.add_patch(Polygon([(.5-top_width/2,y_top),(.5+top_width/2,y_top),(.5+bottom_width/2,y_bottom),(.5-bottom_width/2,y_bottom)], closed=True, facecolor=color, edgecolor="none", zorder=2))
-                ax.add_patch(Ellipse((.5,y_top), width=top_width, height=.24, facecolor=light, edgecolor="white", linewidth=1.3, zorder=3))
-                ax.text(.5, (y_top+y_bottom)/2, str(stage.get("label") or "方案阶段"), ha="center", va="center", color="#203B55", fontproperties=font, fontsize=11, fontweight="bold", zorder=4)
-                ax.annotate("保留", xy=(.5+bottom_width/2,(y_top+y_bottom)/2), xytext=(1.04,(y_top+y_bottom)/2), ha="left", va="center", color="#425466", fontproperties=font, fontsize=10, arrowprops={"arrowstyle":"-", "color":"#94A3B8", "lw":1.1})
-            fig.suptitle("通用配比方案：探索到验证路径", x=.055, y=.98, ha="left", fontproperties=font, fontsize=17, fontweight="bold")
-            fig.text(.055, .895, "当前材料体系未命中专项训练模型；图示为大模型/规则辅助的探索流程，不表示性能筛选通过。", color="#5B6472", fontproperties=font, fontsize=9.5)
-            bottom_y = count - (count - 1) * 1.25 - .86
-            ax.set_xlim(-.02, 1.30); ax.set_ylim(bottom_y-.35, count+.35); ax.axis("off"); fig.tight_layout(rect=(0,0,1,.84))
-            path = task_dir / "generic_composition_funnel.png"; fig.savefig(path, dpi=220, facecolor=fig.get_facecolor(), bbox_inches="tight"); plt.close(fig); assets["generic_composition_funnel"] = path
+        assets: dict[str, Path] = {}
         summary = task_dir / "summary.md"; summary.write_text(generic_composition_fallback_summary_block(result), encoding="utf-8"); assets["summary_markdown"] = summary
         return assets
 
