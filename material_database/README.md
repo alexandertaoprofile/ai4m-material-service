@@ -1,24 +1,58 @@
-# material_database
+# 已有材料查询服务（1105）
 
-成熟已有材料服务。它查询已入库且可追溯的材料数据，不调用 MatterGen、MatterSim、Materials Project 或任何新材料生成链路。
+本服务从已整理的材料目录中查询和比较材料，回答“已有哪个材料符合条件、数据从哪里来”。牌号是材料的规格或型号，例如 IN718。服务保留材料状态、测试条件和来源，不生成新配比或晶体结构。
 
-## 当前接口
+## 1. 当前能力与状态
 
-- `POST /mature-material/constraints`：校验上游请求。
-- `POST /mature-material/query`：创建可追溯检索任务。
-- `GET /mature-material/tasks/{taskid}`：获取 manifest。
-- `WS /start`：与 `/mature-material/start` 完全相同的历史兼容入口。
-- `WS /mature-material/start`：流式入口，依次输出需求解析、名称/牌号核验、性质比较、结论与图表事件。
-- `GET /roles`：供上游/前端发现本服务能力的兼容注册信息。
-- `GET /health`：服务和数据目录状态。
-- `GET /mature-material/tasks/{taskid}/assets/{asset_name}`：查询结果图表。
+- 支持材料名称、商品名、缩写和标准号匹配，例如 `IN718`、`Inconel 718`、`UNS N07718`。
+- 支持材料类别、标准号、单点性质和温度曲线比较。
+- 温度相关证据区分实测点、曲线范围内插值、最近实测点、超出范围和缺失数据；插值是依据相邻实测点计算的中间值。
+- 未匹配到材料时说明目录覆盖情况，并提示继续文献检索；结果仍保留用户条件。
+- 同时明确提出导电和润滑需求时，进入本服务的导电润滑剂证据流程，读取专项性质库并比较条件；普通材料继续走通用目录查询。
 
-请求以既有 envelope 包裹专用约束：
+相近牌号和不同状态分别管理。例如 316、316L、特定样品及不同热处理状态可能具有不同性质，查询时保留这种区别。原始 PDF 尚未自动入库，来源核验及结构化导入另行进行。
+
+## 2. 一次请求与代码分层
+
+```text
+材料名称/类别 + 工况 + 性质要求
+  → 规范化名称和单位
+  → 查询已整理目录，检查材料状态及温度证据
+  → 比较条件、报告通过/不通过/数据缺失的原因
+  → 保存来源和任务记录，交付表格、图像及结论
+```
+
+| 位置 | 职责 |
+| --- | --- |
+| `main.py`、`src/team_config.py` | HTTP/WebSocket 入口和查询阶段编排。 |
+| `src/settings.py` | 将环境变量转换为配置。 |
+| `src/catalog/query.py`、`src/catalog/property_vocabulary.py` | 目录匹配、性质名称/单位和条件比较。 |
+| `src/catalog/cleaning.py`、`scripts/clean_catalog.py` | 清洗结构化原始数据；不属于每次查询的在线步骤。 |
+| `src/catalog/presentation.py`、`src/catalog/narration.py`、`src/catalog/assets.py` | 可追溯报告、文字组织和图表。 |
+| `src/fluid_lubricant/` | 导电润滑剂专项查询、证据比较、短名单和图文组织。 |
+| `data/processed/`、`tests/` | 整理后的目录、别名映射和回归测试。 |
+
+数据接入与前端事件详情见[服务手册](docs/mature_material_service_guide.md)。
+
+## 3. 输入与接口
+
+| 接口 | 用途 |
+| --- | --- |
+| `POST /mature-material/constraints` | 校验请求和条件。 |
+| `POST /mature-material/query` | 创建目录查询任务。 |
+| `GET /mature-material/tasks/{taskid}` | 获取任务清单，即输入、状态、证据和结果记录。 |
+| `GET /mature-material/tasks/{taskid}/assets/{asset_name}` | 获取任务图表。 |
+| `WS /start`、`WS /mature-material/start` | 流式需求解析、名称核验、性质比较和结果。 |
+| `GET /roles`、`GET /health` | 服务能力注册和目录状态检查。 |
+
+另保留 `POST /fluid-initial-screen/query`、`GET /fluid-initial-screen/tasks/{task_id}` 和其资产路由，供结构化流体初筛调用。该 HTTP 入口与通用聊天入口分别维护，输入约定见[专项设计文档](docs/fluid_lubricant_service_design.md)。
+
+通用任务字段外，结构化条件放在 `mature_material` 中。下面为请求格式示例：
 
 ```json
 {
-  "taskid": "commodity-001",
-  "idea": "寻找 600°C 下强度足够的耐蚀镍基合金",
+  "taskid": "commodity-example-001",
+  "idea": "比较 IN718 的已收录密度和温度相关性能",
   "user_name": "upstream-agent",
   "file_metadata": [],
   "mature_material": {
@@ -28,47 +62,51 @@
     "property_constraints": [
       {"property": "density", "operator": "<=", "value": 8300, "unit": "kg/m³", "temperature_C": 21}
     ],
-    "upstream_evidence": [
-      {"material": "IN718", "property": "屈服强度", "value": 1034, "unit": "MPa", "condition": "室温", "source": "上游数据表"}
-    ],
     "top_k": 10
   }
 }
 ```
 
-当前版本已支持材料名称、商品名、缩写和标准号的规范化匹配（例如 `IN718`、`Inconel 718`、`UNS N07718`），以及材料族、标准号、单点性质和温度曲线筛选。温度证据会标记为实测点、曲线范围内插值、最近实测点、超出范围或缺失数据。
+可选 `upstream_evidence` 接收上游给出的材料、性质、数值、工况和来源；这些记录原样保留，只有与目录核对后的数据才标记为已核验。别名表 `data/processed/material_aliases.csv` 若匹配多个材料状态，返回歧义信息供确认。
 
-`upstream_evidence` 是可选的上游材料证据整理字段。服务会原样展示其数值、工况和来源，但只有目录匹配数据才标记为已核验。目录未命中时，服务不会生成替代材料建议，而会以既有流式文本提示建议进入文献筛选。
+## 4. 环境、数据与结果
 
-相近牌号不会自动合并。例如 316、316L、特定 SRM 样品及不同热处理状态均保留为独立材料记录。PDF 尚未自动入库，服务不会从原始 PDF 臆造性质。别名映射保存在 `data/processed/material_aliases.csv`；若一个别名映射到多个材料状态，服务返回歧义信息而不擅自选择。
+| 配置 | 用途 |
+| --- | --- |
+| `PORT` | 默认端口 1105。 |
+| `PROPERTY_DATA_ROOT` | 原始材料数据目录。 |
+| `MATURE_MATERIAL_CATALOG_ROOT` | 已整理目录，默认 `data/processed`。 |
+| `MATURE_MATERIAL_RESULTS_ROOT` | 任务结果目录，默认 `results/mature_material`。 |
+| `MINIO_*`、`PICTURE_PUBLIC_BASE_URL` | 图片对象存储和公开访问配置，凭据放本服务 `.env`。 |
 
-当前可清洗已有的结构化商品工作簿（PDF 将单独进行可追溯抽取）：
+75 服务器 Web 环境为 `/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python`。在其他机器上先准备对应环境和目录，参考 `.env.example` 配置本机变量。`requirements.minimal.txt` 是依赖清单；已有生产环境复用，不在系统 Python 中直接安装。
+
+导电润滑剂证据使用版本化 SQLite 文件 `data/processed/fluid_lubricant/2026-08-04_v1/fluid_property_evidence.sqlite`。聊天流程按目录配置读取；独立流体 HTTP 路由当前使用服务目录下的该文件，迁移时两处路径需同时核对。
+
+配置完成、端口空闲后，在单独联调 tmux 会话内启动：
+
+```bash
+cd /path/to/material_database
+/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python main.py
+```
+
+目录重建是数据维护操作，会更新整理结果；只有准备了来源文件并确认目标目录后才执行。例如：
 
 ```bash
 python scripts/clean_catalog.py \
   --workbook "/data/se42/backend/property datasets/alloy_material_dataset_v0.1.xlsx"
 ```
 
-## 运行
+原始文件、任务结果、日志和凭据与源码分开管理。正式验收后可由运维登记 `material-database-1105` 系统服务；避免与 tmux 在同一端口重复运行。
 
-```bash
-pip install -r requirements.minimal.txt
-cd /path/to/material_database
-tmux new-session -s material-database-1105
-python main.py
-```
+## 5. 验证与交接
 
-使用 `PROPERTY_DATA_ROOT` 设置原始商品材料数据目录；使用 `MATURE_MATERIAL_RESULTS_ROOT` 设置任务结果目录。
-
-服务完成稳定验收后，由运维配置并使用 `service material-database-1105` 管理；不要使用
-`start.sh`、`nohup` 或 Docker 作为标准启动路径。
-
-## 回归测试
+在本服务目录和已配置的服务环境中执行：
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-测试覆盖目录查询编排、数据目录完整性，以及既定 WebSocket 文本边界、唯一 progress、图片事件、最终结果事件和 `/roles` 注册字段。
+回归覆盖查询编排、目录完整性、WebSocket 文本边界、进度与资产事件、最终结果及角色注册。部署或数据更新后，还需检查 `/health` 和真实查询的来源、温度条件及图像展示；本次文档整理不更新目录或部署状态。
 
-部署、数据更新、前端事件约定和新人接入说明见 [服务手册](docs/mature_material_service_guide.md)。
+维护材料数据时记录原始文件版本、清洗命令、保留/排除数据及来源定位，详见[服务手册](docs/mature_material_service_guide.md)。

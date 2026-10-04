@@ -1,76 +1,93 @@
-# material_service_hub
+# 材料计算服务仓库（Material-Computation）
 
-材料服务聚合仓。当前维护四个可独立运行、独立配置、独立部署的服务：
+本仓库维护四个独立后端服务，分别解决“查已有材料、优化材料配比、生成晶体结构、核验计算证据”四类问题。网页或上游服务选择对应接口；各服务独立配置和部署，并非一次请求必然依次调用全部服务。
 
-| 服务 | 业务边界 | 主职责 |
-| --- | --- | --- |
-| `material_composition_optimization/` | 合金、芯片封装玻璃、短碳纤维复合材料及钙钛矿专项 | 组成约束、条件化性质预测与材料配比优化。 |
-| `material_database/` | 已有商品/牌号材料 | 目录检索、证据核验、性质比较；不生成新材料或配方。 |
-| `material_discovery/` | 数据库外无机晶体 | 生成、结构准入、热力学初筛和候选排序；不做已有材料查询或合金配比优化。 |
-| `material_validation/` | 难熔金属跨尺度性能计算与验证 | 对已有 W / 难熔金属候选按 DFT、MLIP、MD 与实验/文献证据链进行验证；首版为 W-14 标杆案例。 |
+## 1. 服务分工与当前状态
 
-## 正式版本与备份版本
+| 服务目录 | 默认端口 | 解决什么问题 | 输入与输出 | 当前实现状态 |
+| --- | --- | --- | --- | --- |
+| `material_database/` | 1105 | 在已有材料目录中查找、比较材料，包含导电润滑剂专项。 | 材料名称、牌号、工况及性质条件 → 目录匹配、性质证据和比较报告。 | 目录检索及流式报告已实现；数据覆盖以实际目录为准。 |
+| `material_composition_optimization/` | 1111 | 在允许的组成范围内调整材料配比。 | 材料类别、组分范围、工况及目标 → 优选配比、模型预测性质和比较图。 | 八类专项计算已配置为正式路线；其他类别提供通用设计准备。 |
+| `material_discovery/` | 1115 | 生成新的周期无机晶体结构。 | 化学式、元素范围或经确认的开放探索需求 → 候选结构、稳定性估算、性质预测及三维文件。 | 75 服务器已接入 OMatG；本仓库还包含已验证、待单独部署验收的后续显示改进。 |
+| `material_validation/` | 1116 | 组织、检查已有计算与实验来源，判断验证证据是否齐全。 | 纯钨 W-14 标杆任务及已归档数据 → 四阶段证据报告和性质对标。 | 当前为标杆证据读取与报告服务；在线 DeepMD/LAMMPS 执行器尚未接入。 |
 
-本项目使用一个 GitHub 仓库、两条主要分支：
+“周期晶体”指原子排列在空间中重复的固体结构；“配比优化”调整各组分含量；“结构生成”还要确定晶胞和原子位置，两者对应不同服务。
+
+表中端口为默认值，以各服务 `.env` 和网关配置为准。Git 中的正式代码、服务器源文件、正在运行的进程是三个版本层面；推送代码不自动部署或重启服务。
+
+## 2. 版本与阅读顺序
+
+当前分支安排仍保持原约定：
 
 | 分支 | 用途 |
 | --- | --- |
-| `update/material-services-2026-08` | 正式维护分支，即服务维护中所称的 `service-08`；新增服务改动在此提交。 |
-| `main` | 备份分支，保留此前版本；未经确认不以正式分支覆盖。 |
+| `update/material-services-2026-08` | 正式维护分支，历史简称 `service-08`。 |
+| `main` | 保留此前版本的备份分支；默认分支设置与正式维护分支目前不同。 |
 
-正式版本的拉取方式：
+拉取正式代码时需显式指定分支：
 
 ```bash
 git clone --branch update/material-services-2026-08 git@github.com:AI4SciFoundation/Material-Computation.git
 ```
 
-1115 已接入 OMatG CSP / DNG，运行配置与回归命令见
-[材料发现说明](material_discovery/README.md)。本次正式代码同时归档后续显示优化；代码提交与服务部署分开执行，不随 Git 推送更新线上进程。
-模型源码、模型权重、科学计算参考库、环境缓存、任务结果和生产密钥由服务器单独管理。
+建议按以下顺序阅读：
 
-交接入口：[2026-10-04 整合版本说明](docs/RELEASE_HANDOFF_20261004.md)，包含已执行测试、外部资源、生产版本差异及默认分支设置步骤。
+1. 本页：服务分工、代码分层和运行边界。
+2. [整合版本交接](docs/RELEASE_HANDOFF_20261004.md)：整合范围、已执行测试与部署状态。
+3. 对应服务 README：[1105](material_database/README.md)、[1111](material_composition_optimization/README.md)、[1115](material_discovery/README.md)、[1116](material_validation/README.md)。
+4. [环境说明](env/README.md)：主服务与科学计算环境的分工、外部资源位置。
+5. [统一架构规范](docs/material_service_architecture_standard.md)：新增代码、前端协议与上线交接要求。
+6. [README 修订记录](docs/README_REVIEW_20261004.md)：本次 11 份说明的统一标准与验证范围。
 
-## 统一职责路线
+旧 MatterGen 训练包和离线工具的 README 标明历史用途；它们不是现行 1115 的部署入口。
 
-各服务均遵循同一职责方向，不要求使用完全相同的目录名：
+## 3. 目录与职责
 
 ```text
-main.py（HTTP / WebSocket 传输入口）
-  ↓
-src/team_config.py（服务级编排与角色适配）
-  ↓
-业务用例 / 领域工作流 / 数据执行器
-  ↓
-展示资产、对象存储与前端协议适配
+material_service_hub/
+├── material_database/                  # 1105：已有材料查询
+├── material_composition_optimization/   # 1111：配比优化
+├── material_discovery/                  # 1115：晶体结构生成与评价
+├── material_validation/                 # 1116：标杆证据核验
+├── env/                                # 环境定义和历史依赖快照
+└── docs/                               # 跨服务规范、版本交接与审阅记录
 ```
 
-- `main.py` 保持路由、连接生命周期和既有前端事件契约，不堆放领域计算。
-- `src/team_config.py` 显式呈现业务阶段与调用顺序；不反向 import 自身的 `main.py`。
-- `src/team_config_en.py`、`src/llm_utils.py`、`alpha/`、`config/config.yaml` 是兼容保留项。新业务代码不应继续向它们耦合；未经调用方核验不得删除。
-- 领域预测、目录事实、生成/验证结果都必须如实标注证据边界，不能包装为实验或 DFT 最终结论。
+各服务的实际目录名略有差别，职责划分一致：
 
-## 运行与配置
+| 层次 | 主要位置 | 负责的事情 |
+| --- | --- | --- |
+| 请求与传输 | `main.py` | HTTP/WebSocket 路由、连接管理、请求校验和前端事件发送。 |
+| 服务编排 | `src/team_config.py` | 按阶段协调需求解析、业务计算和结果交付。 |
+| 业务规则与执行 | 1105 `src/catalog/`；1111 `src/alloy_workflow/`；1115 `src/material_workflow/`；1116 `src/application/` 等 | 目录查询、条件解析、模型调用、优化、结构评价或证据读取。 |
+| 展示与存储适配 | 各服务的展示、协议与资产模块 | 组织 Markdown、表格、图像及三维文件，按既有协议交付。 |
+| 配置与验证 | `.env.example`、`config/`、`tests/` | 配置样例、版本开关、单元和接口契约测试。 |
 
-- 每个服务使用自己的本机 `.env`；`.env` 不提交，`.env.example` 不包含密钥。
-- 生产/联调由 tmux 启动，不新增 Docker 或启动脚本作为标准路径。
-- 前端 WebSocket 的地址、字段、事件顺序、`[start]/[end]`、内容块标记和资产类型均属于兼容契约；改动前必须补契约测试。
-- 当前图片资产使用各服务的 MinIO/S3 适配器；不能按文件名推断并删除对象存储实现。
+维护时从入口和编排层追到实际计算模块，避免仅按文件名判断用途。`src/team_config_en.py`、`src/llm_utils.py`、`alpha/` 等旧文件仍可能有兼容调用方；清理前须检查引用和回归测试。1111 的详细阅读路径见[代码审阅指南](material_composition_optimization/docs/alloy_composition_optimization_review_guide.md)。
 
-## 服务文档
+## 4. 代码、模型与运行产物分开管理
 
-- [材料成分配比优化](material_composition_optimization/README.md)：另见其[代码审阅指南](material_composition_optimization/docs/alloy_composition_optimization_review_guide.md)与[清理审计](material_composition_optimization/docs/alloy_composition_optimization_cleanup_audit.md)。
-- [材料数据库](material_database/README.md)
-- [材料发现](material_discovery/README.md)
-- [难熔金属跨尺度性能计算与验证](material_validation/README.md)
-- [统一架构规范](docs/material_service_architecture_standard.md)
+| 内容 | 管理位置 |
+| --- | --- |
+| 服务源码、测试、无密钥配置、文档和小型数据清单 | Git 仓库。 |
+| 模型官方源码、训练数据、权重、科学计算参考库和 Python 环境 | 服务器外部目录，见各服务 README。 |
+| 生产密钥和机器差异配置 | 每个服务自身的 `.env`，不入 Git。 |
+| 任务结构、计算记录、日志、图片和三维文件 | 任务结果目录及对象存储，不作为源码提交。 |
 
-## 对齐状态
+因此，新机器仅拉取仓库即可阅读代码和测试逻辑；真实数值任务还需要对应版本的外部模型、数据及解释器。75 服务器新增下载、缓存和临时文件放在 `/data`，避免占用系统盘。
 
-| 服务 | 编排层 | 业务模块 | 前端契约测试 |
-| --- | --- | --- | --- |
-| material_composition_optimization | `src/team_config.py`、`src/alloy_workflow/runtime.py` | `application.py`、`contracts.py`、`runner.py` | 已覆盖文本标记、PNG 资产与最终 result。 |
-| material_database | `src/team_config.py:MaterialMature` | `src/catalog/` | 已覆盖目录命中/未命中、资产和事件顺序。 |
-| material_discovery | `src/team_config.py:InorganicNewMaterialService` | `src/material_workflow/` | 已覆盖生成输入、角色注册、事件契约和服务边界。 |
-| material_validation | `src/team_config.py` | `application/`、`infrastructure/`、`presentation/` | 已覆盖 W 标杆请求、角色发现和流式事件边界；待 MLIP 证据导入后补性质图表回归。 |
+任务中的 `manifest` 是结果清单，用来记录输入、执行状态、模型版本、文件路径和失败原因。PNG 是静态图片，GIF 是动画，GLB 是网页三维模型，CIF 是晶体结构文件。
 
-目录中的历史部署文件或旧英文兼容文件不等同于当前生产主链。删除它们前，应先在代码、启动器和外部调用方中提供引用审计证据。
+## 5. 运行、验证与部署
+
+各服务读取自己的 `.env`。主 Web 进程使用实际服务环境，重型模型通过独立环境调用；准确路径和检查命令见对应 README。
+
+验证按三个层次进行：
+
+1. 单元及契约测试：检查规则、字段、事件顺序和异常处理；模拟模型调用的测试不等于真实科学计算验收。
+2. 环境预检：检查解释器、依赖、权重和参考库是否存在。
+3. 真实联调：按批准的部署清单，检查健康接口、角色信息、实际请求、最终报告与资产展示。
+
+开发和联调使用 tmux；稳定服务可由运维统一登记为系统服务。启动或重启前确认端口和活动任务，避免重复进程。已有 Docker 文件、旧启动脚本或历史环境快照不等同于当前生产启动路径。
+
+前端依赖 WebSocket 地址、事件字段和顺序、`[start]/[end]`、内容块标记及资产类型。改变这些协议需补契约测试并与调用方联调。模型预测、目录来源和实验记录在报告中分别标注，采用前按对应条件进行核验。
