@@ -1,0 +1,213 @@
+{
+  "passed": true,
+  "mode": "shadow",
+  "public_effect": false,
+  "domains": {
+    "aluminum": {
+      "passed": true,
+      "formal_result_unchanged": true,
+      "formal_candidate_count": 3,
+      "shadow_manifest": {
+        "status": "completed",
+        "mode": "shadow",
+        "public_effect": false,
+        "formal_result_mutated": false,
+        "domain": "aerospace_aluminum_composition_v1",
+        "batch_id": "1790073413880341845-bd75d300",
+        "item_count": 3,
+        "future_primary_presentation": {
+          "model_label": "统一合金物理约束 Transformer（航空铝合金域）",
+          "transformer_properties": [
+            "0.2% 屈服强度",
+            "抗拉强度"
+          ],
+          "specialist_properties": [
+            "延伸率",
+            "成分适用域",
+            "工艺类别证据"
+          ],
+          "evaluation": {
+            "protocol": "frozen_composition_group_test_selected_single_seed",
+            "metric": "MAE_MPa",
+            "values": {
+              "yield_strength_0p2": 57.4,
+              "ultimate_tensile_strength": 46.7
+            }
+          }
+        },
+        "diagnostic_outside_support_enabled": true,
+        "elapsed_seconds": 2.3879,
+        "returncode": 0,
+        "comparison_status_counts": {
+          "diagnostic_outside_support": 1,
+          "predicted": 2
+        },
+        "response_ok": true,
+        "stderr_tail": "/data/se42/hea_surrogate/models/unified_alloy_tensile_v2_20260921/runtime/frozen_model.py:62: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True\n  self.transformer = nn.TransformerEncoder(layer, num_layers=3)\n"
+      },
+      "shadow_comparison_count": 3,
+      "strict_shadow_predicted_count": 2,
+      "diagnostic_outside_support_count": 1,
+      "shadow_skipped_count": 0,
+      "strict_shadow_coverage": 0.6666666666666666,
+      "diagnostic_comparison_coverage": 1.0,
+      "shadow_review_reason_counts": {
+        "composition_outside_empirical_support": 1
+      },
+      "canonical_chemistry_level_counts": {},
+      "transformer_full_atomic_tier_counts": {},
+      "trace_reporting_status_counts": {},
+      "first_strict_prediction": {
+        "yield_strength_MPa": 366.54248046875,
+        "uts_MPa": 432.1214294433594
+      },
+      "first_strict_difference": {
+        "yield_strength_MPa": 80.29736628274992,
+        "uts_MPa": 20.39364777402608
+      },
+      "first_diagnostic_prediction": {
+        "yield_strength_MPa": 713.322509765625,
+        "uts_MPa": 794.3936767578125
+      },
+      "first_diagnostic_difference": {
+        "yield_strength_MPa": -28.89093600837498,
+        "uts_MPa": 10.57367675781245
+      }
+    },
+    "stainless": {
+      "passed": true,
+      "formal_result_unchanged": true,
+      "formal_candidate_count": 20,
+      "shadow_manifest": {
+        "status": "completed",
+        "mode": "shadow",
+        "public_effect": false,
+        "formal_result_mutated": false,
+        "domain": "reusable_rocket_stainless",
+        "batch_id": "1790073418387261396-74b54b8e",
+        "item_count": 20,
+        "future_primary_presentation": {
+          "model_label": "统一合金物理约束 Transformer（奥氏体不锈钢域）",
+          "transformer_properties": [
+            "0.2% 屈服强度",
+            "抗拉强度"
+          ],
+          "specialist_properties": [
+            "延伸率",
+            "深冷参考层",
+            "焊接/疲劳/LOX 验证路径"
+          ],
+          "evaluation": {
+            "protocol": "frozen_composition_group_test_selected_single_seed",
+            "metric": "MAE_MPa",
+            "values": {
+              "yield_strength_0p2": 19.5,
+              "ultimate_tensile_strength": 27.6
+            }
+          }
+        },
+        "diagnostic_outside_support_enabled": true,
+        "elapsed_seconds": 2.467,
+        "returncode": 0,
+        "comparison_status_counts": {
+          "diagnostic_outside_support": 20
+        },
+        "response_ok": true,
+        "stderr_tail": "/data/se42/hea_surrogate/models/unified_alloy_tensile_v2_20260921/runtime/frozen_model.py:62: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True\n  self.transformer = nn.TransformerEncoder(layer, num_layers=3)\n"
+      },
+      "shadow_comparison_count": 20,
+      "strict_shadow_predicted_count": 0,
+      "diagnostic_outside_support_count": 20,
+      "shadow_skipped_count": 0,
+      "strict_shadow_coverage": 0.0,
+      "diagnostic_comparison_coverage": 1.0,
+      "shadow_review_reason_counts": {
+        "composition_outside_empirical_support": 20
+      },
+      "canonical_chemistry_level_counts": {
+        "inside": 10,
+        "outside": 7,
+        "boundary": 3
+      },
+      "transformer_full_atomic_tier_counts": {
+        "outside": 17,
+        "boundary": 3
+      },
+      "trace_reporting_status_counts": {
+        "unresolved": 20
+      },
+      "first_strict_prediction": null,
+      "first_strict_difference": null,
+      "first_diagnostic_prediction": {
+        "yield_0p2_MPa": 222.24539184570312,
+        "uts_MPa": 577.56884765625
+      },
+      "first_diagnostic_difference": {
+        "yield_0p2_MPa": -20.639179405963034,
+        "uts_MPa": -23.900603277915934
+      }
+    },
+    "nickel": {
+      "passed": true,
+      "formal_result_unchanged": true,
+      "formal_candidate_count": 20,
+      "shadow_manifest": {
+        "status": "completed",
+        "mode": "shadow",
+        "public_effect": false,
+        "formal_result_mutated": false,
+        "domain": "ni_superalloy_hot_end",
+        "batch_id": "1790073422350862793-362902fb",
+        "item_count": 20,
+        "future_primary_presentation": {
+          "model_label": "统一合金物理约束 Transformer（镍基高温合金域）",
+          "transformer_properties": [
+            "0.2% 屈服/规定塑性延伸强度",
+            "短时抗拉强度"
+          ],
+          "specialist_properties": [
+            "蠕变断裂寿命",
+            "延伸率辅助指标",
+            "牌号/路线/热处理证据"
+          ],
+          "evaluation": {
+            "protocol": "frozen_composition_group_test_selected_single_seed",
+            "metric": "MAE_MPa",
+            "values": {
+              "yield_strength_0p2": 90.5,
+              "ultimate_tensile_strength": 156.6
+            }
+          }
+        },
+        "diagnostic_outside_support_enabled": true,
+        "elapsed_seconds": 1.8917,
+        "returncode": 0,
+        "comparison_status_counts": {
+          "predicted": 20
+        },
+        "response_ok": true,
+        "stderr_tail": "/data/se42/hea_surrogate/models/unified_alloy_tensile_v2_20260921/runtime/frozen_model.py:62: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True\n  self.transformer = nn.TransformerEncoder(layer, num_layers=3)\n"
+      },
+      "shadow_comparison_count": 20,
+      "strict_shadow_predicted_count": 20,
+      "diagnostic_outside_support_count": 0,
+      "shadow_skipped_count": 0,
+      "strict_shadow_coverage": 1.0,
+      "diagnostic_comparison_coverage": 1.0,
+      "shadow_review_reason_counts": {},
+      "canonical_chemistry_level_counts": {},
+      "transformer_full_atomic_tier_counts": {},
+      "trace_reporting_status_counts": {},
+      "first_strict_prediction": {
+        "proof_strength_0p2_MPa": 787.325927734375,
+        "ultimate_tensile_strength_MPa": 920.5487060546875
+      },
+      "first_strict_difference": {
+        "proof_strength_0p2_MPa": 181.92975716319245,
+        "ultimate_tensile_strength_MPa": -31.8801591888747
+      },
+      "first_diagnostic_prediction": null,
+      "first_diagnostic_difference": null
+    }
+  }
+}

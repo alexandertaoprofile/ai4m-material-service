@@ -77,11 +77,35 @@ def main() -> None:
         response = json.loads(response_path.read_text(encoding="utf-8")) if response_path.is_file() else {}
         comparisons = response.get("comparisons") or []
         predicted = [row for row in comparisons if row.get("status") == "predicted"]
+        diagnostic = [
+            row for row in comparisons
+            if row.get("status") == "diagnostic_outside_support"
+        ]
+        skipped = [
+            row for row in comparisons
+            if row.get("status") not in {"predicted", "diagnostic_outside_support"}
+        ]
         reason_counts: dict[str, int] = {}
+        canonical_level_counts: dict[str, int] = {}
+        full_atomic_level_counts: dict[str, int] = {}
+        trace_reporting_counts: dict[str, int] = {}
         for row in comparisons:
             audit = ((row.get("shadow_result") or {}).get("input_audit") or {})
             for reason in audit.get("review_reasons") or []:
                 reason_counts[str(reason)] = reason_counts.get(str(reason), 0) + 1
+            canonical = row.get("canonical_composition_support_audit") or {}
+            if canonical:
+                level = str(canonical.get("canonical_chemistry_level") or "unknown")
+                canonical_level_counts[level] = canonical_level_counts.get(level, 0) + 1
+                full_level = str(
+                    (canonical.get("transformer_full_atomic_domain") or {}).get("level")
+                    or "unknown"
+                )
+                full_atomic_level_counts[full_level] = full_atomic_level_counts.get(full_level, 0) + 1
+                trace_status = str(
+                    (canonical.get("trace_reporting") or {}).get("status") or "unknown"
+                )
+                trace_reporting_counts[trace_status] = trace_reporting_counts.get(trace_status, 0) + 1
         # A strict shadow gate is expected to skip unsupported candidates.  An
         # operational pass therefore means the complete formal batch was
         # audited without mutation; prediction coverage is reported separately
@@ -98,12 +122,31 @@ def main() -> None:
             "formal_candidate_count": len(formal.get("all_candidates") or formal.get("initial_candidates") or []),
             "shadow_manifest": shadow,
             "shadow_comparison_count": len(comparisons),
-            "shadow_predicted_count": len(predicted),
-            "shadow_skipped_count": len(comparisons) - len(predicted),
-            "shadow_prediction_coverage": (len(predicted) / len(comparisons) if comparisons else 0.0),
+            "strict_shadow_predicted_count": len(predicted),
+            "diagnostic_outside_support_count": len(diagnostic),
+            "shadow_skipped_count": len(skipped),
+            "strict_shadow_coverage": (len(predicted) / len(comparisons) if comparisons else 0.0),
+            "diagnostic_comparison_coverage": (
+                (len(predicted) + len(diagnostic)) / len(comparisons)
+                if comparisons else 0.0
+            ),
             "shadow_review_reason_counts": reason_counts,
-            "first_prediction": (predicted[0].get("internal_property_projection_MPa") if predicted else None),
-            "first_difference": (predicted[0].get("transformer_minus_legacy_MPa") if predicted else None),
+            "canonical_chemistry_level_counts": canonical_level_counts,
+            "transformer_full_atomic_tier_counts": full_atomic_level_counts,
+            "trace_reporting_status_counts": trace_reporting_counts,
+            "first_strict_prediction": (
+                predicted[0].get("internal_property_projection_MPa") if predicted else None
+            ),
+            "first_strict_difference": (
+                predicted[0].get("transformer_minus_legacy_MPa") if predicted else None
+            ),
+            "first_diagnostic_prediction": (
+                diagnostic[0].get("diagnostic_property_projection_MPa") if diagnostic else None
+            ),
+            "first_diagnostic_difference": (
+                diagnostic[0].get("diagnostic_transformer_minus_legacy_MPa")
+                if diagnostic else None
+            ),
         }
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")

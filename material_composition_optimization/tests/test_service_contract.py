@@ -272,7 +272,13 @@ class AlloyServiceContractTest(unittest.TestCase):
         async def accepted_upload(_bucket: str, _key: str, _data: bytes) -> dict[str, int]:
             return {"status": 200}
 
-        with TemporaryDirectory() as directory, patch.dict(os.environ, {"PICTURE_PUBLIC_BASE_URL": "https://assets.example/materials/modelfiles/image"}):
+        storage_env = {
+            "PICTURE_PUBLIC_BASE_URL": "https://assets.example/materials/modelfiles/image",
+            "MINIO_ENDPOINT": "https://minio.example",
+            "MINIO_ACCESS_KEY_ID": "test-access-key",
+            "MINIO_ACCESS_KEY_SECRET": "test-secret-key",
+        }
+        with TemporaryDirectory() as directory, patch.dict(os.environ, storage_env):
             image = Path(directory) / "funnel.png"
             image.write_bytes(b"png")
             with patch("src.storage_utils.oss_upload", accepted_upload):
