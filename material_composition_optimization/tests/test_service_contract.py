@@ -118,12 +118,12 @@ class AlloyServiceContractTest(unittest.TestCase):
         self.assertNotIn("training_report", report)
         self.assertIn("$$\\mathcal{F}", report)
         self.assertIn("$$J=", report)
-        self.assertIn("### 最优候选材料卡", report)
-        self.assertIn("Ni | 30.00 at.%", report)
+        self.assertIn("### 高熵合金｜本次优选配方", report)
+        self.assertIn("| 镍（Ni） | 30% |", report)
         self.assertIn("工程估算与验证重点", report)
         self.assertIn("D级工程估算", report)
         self.assertIn("抗拉强度", report)
-        self.assertLess(report.index("### 本轮结论"), report.index("### 最优候选材料卡"))
+        self.assertLess(report.index("### 本轮结论"), report.index("### 高熵合金｜本次优选配方"))
 
     def test_microstructure_tendency_maps_phase_risk_without_claiming_micrograph(self) -> None:
         stable = build_microstructure_tendency({
@@ -478,8 +478,8 @@ class AlloyServiceContractTest(unittest.TestCase):
         self.assertIn("{{VISUAL:rocket_screening_funnel}}", report)
         self.assertIn("训练成分邻域内", report)
         self.assertIn("### 奥氏体不锈钢｜本次优选配方", report)
-        self.assertIn("铁（Fe）约73.0%", report)
-        self.assertIn("氮（N）0.011%", report)
+        self.assertIn("| 铁（Fe） · 平衡组分 | 约 72.99% |", report)
+        self.assertIn("| 氮（N） | 0.011% |", report)
         self.assertIn("293 K（约 20 °C）", report)
         self.assertIn("| 短时拉伸性质 | 该候选的模型预测 | 模型历史分组验证 MAE |", report)
         self.assertIn("不是这组候选的实测值或单点误差范围", report)
