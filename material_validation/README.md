@@ -54,7 +54,7 @@ DeepMD 用于训练/运行机器学习势，LAMMPS 用于原子模拟。模型�
 
 | 位置 | 职责 |
 | --- | --- |
-| `main.py`、`src/team_config.py` | 传输入口、服务编排、任务保存和流式交付。 |
+| `main.py`、`src/team_config.py` | 传输入口、执行流程、任务保存和流式交付。 |
 | `src/application/request_normalization.py`、`validation_workflow.py` | 请求校验与四阶段证据流程。 |
 | `src/contracts/schemas.py` | 请求、阶段证据状态和结果结构。 |
 | `src/infrastructure/reference_case_reader.py`、`w14_source_aggregation.py` | 读取标杆及外部训练/MD 文件，计算可追溯文件校验和。 |
@@ -78,6 +78,6 @@ python main.py
 python -m unittest discover -s tests -v
 ```
 
-测试检查请求边界、证据读取、报告及既有流式协议；证据报告测试通过不等于真实执行器或完整科学验证已通过。本次文档整理不导入数据、不启用计算。
+测试检查请求边界、证据读取、报告及既有流式协议。真实计算执行器接入后，再按对应任务单独验证计算结果。
 
 进一步阅读：[服务边界](docs/service_boundary.md)、[证据导入指南](docs/evidence_import_guide.md)、[客户输出预览](docs/customer_output_preview.md)。计划性输出以这些文件的版本日期和实际数据状态为准。

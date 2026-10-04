@@ -14,16 +14,16 @@
 6. 机器学习、代理模型或数据库推断必须说明证据等级，不能表述为实验或 DFT 的最终结论。
 7. 删除旧代码、旧配置或兼容逻辑前，先证明它没有调用方，并补齐测试和交接记录。
 
-## 2. 推荐服务结构：职责是硬要求，目录不是
+## 2. 职责划分与推荐目录
 
-下图是新服务的**推荐目标模板**，不是要求所有既有服务立刻拥有完全相同的目录树，也不是要求为了对齐而新建空目录或搬迁已验证代码。
+下图是新服务的推荐目录。已有服务按实际职责逐步整理，保留已验证的启动路径和接口。
 
 - 新服务：可直接按此模板建立目录；
 - 已运行服务：先保持实际启动链路、前端契约和产物路径稳定，只在新增代码或有明确收益的整改中逐步按职责归位；
 - 小型服务：允许合并目录，例如暂不单独建立 `application/` 或 `presentation/`；
 - 无论目录形态如何，`main.py` 的传输职责、`team_config.py` 的编排职责、领域计算、I/O/存储和展示资产的职责边界必须保持清晰。
 
-因此，下面的目录名称是推荐位置，不是“文件必须叫这个名字”的硬编码要求：
+下面的目录名供组织代码时参考；既有服务的实际位置见各服务 README：
 
 ```text
 <service_name>/
@@ -71,7 +71,7 @@
 | `presentation/` | 用户文字、表格、图表、本地资产描述 | 直接上传对象存储或发送 WebSocket |
 | `compat/` | 有明确删除条件的旧协议/旧字段适配 | 新业务的常规实现 |
 
-`team_config.py` 的作用是让评审者从上到下看懂服务如何运行，而不是成为“大杂烩”。推荐直接按阶段写清注释和调用顺序：
+`team_config.py` 按阶段说明服务如何运行，让评审者顺着调用顺序找到各业务模块。推荐写清阶段注释：
 
 ```python
 # 阶段 1：标准化请求与必要信息校验
@@ -80,7 +80,7 @@
 # 阶段 4：返回内部标准结果，由 main.py 转为前端事件
 ```
 
-不需要为了形式再额外包一个名字叫“编排器”的函数；关键是职责和顺序清楚。
+阶段函数按具体工作命名，保持职责和调用顺序清楚。
 
 ## 4. 命名规范
 
@@ -194,11 +194,11 @@ material-<capability>-<port>
 4. 所需模型、数据、对象存储和 LLM（如需要）可用；
 5. 没有正在处理的用户任务，才执行重启。
 
-调试启动的原则是：先进入服务目录，再激活环境，再运行入口；不要从父目录或任意目录依赖相对路径启动。
+调试时先进入服务目录，再激活环境和运行入口。将以下示例的路径和环境名替换为实际值，具体命令见对应服务 README。
 
 ```bash
-cd /path/to/<service_name>
-conda activate <service_environment>
+cd /path/to/service_name
+conda activate service_environment
 python main.py
 ```
 
@@ -209,13 +209,13 @@ tmux 调试验收至少包含：健康检查、角色接口、一条最小 WebSo
 当服务完成开发验收、前端联调和连续稳定运行验证后，不再依赖人工 tmux 会话常驻，统一交由系统服务管理：
 
 ```bash
-sudo service <service_name> start
-sudo service <service_name> status
-sudo service <service_name> restart
-sudo service <service_name> stop
+sudo service service_name start
+sudo service service_name status
+sudo service service_name restart
+sudo service service_name stop
 ```
 
-每个稳定服务应有唯一、规范的系统服务名，建议：
+上面的 `service_name` 需要替换为运维登记的实际名称。每个稳定服务使用唯一的系统服务名，建议：
 
 ```text
 material-<capability>-<port>

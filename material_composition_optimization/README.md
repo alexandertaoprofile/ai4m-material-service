@@ -42,11 +42,11 @@
 
 | 位置 | 职责 |
 | --- | --- |
-| `main.py`、`src/team_config.py`、`runtime.py` | 请求入口、服务编排、任务保存和交付。 |
+| `main.py`、`src/team_config.py`、`runtime.py` | 请求入口、执行流程、任务保存和交付。 |
 | `application.py`、`contracts.py` | 业务用例、材料路由、结构化输入校验。 |
 | `requirement_semantics.py`、`numeric_conditions.py` | 解析当前要求、相关上文、工况和数值条件。 |
 | `recipe_primary.py`、服务 `config/recipe_release.json` | 正式优化结果适配、逐材料版本开关和验收校验。 |
-| `runner.py`、`recipe_shadow.py` | 独立数值执行器及可选的影子对照。影子对照只用于诊断，不自动替换正式结果。 |
+| `runner.py`、`recipe_shadow.py` | 独立计算程序与可选的对照测试。对照测试用于检查新模型表现，正式结果仍按已配置的路线输出。 |
 | `request_capabilities.py`、`fallback_design.py`、`specialist_outcome.py` | 支持范围、通用设计准备与专项结果解释。 |
 | `presentation.py`、`protocol.py` | 中文报告、图表和既有流式协议。 |
 
@@ -56,8 +56,8 @@
 | --- | --- |
 | `/data/se42/hea_surrogate` | 专项数值执行器、训练/推理代码、模型和来源记录。 |
 | `/data/se42/experiments/material_shadow_frontend_v2_20260928` | `shadow_recipe_runner.py` 和正式报告仍调用的 `recipe_*` 展示模块；目录名虽含 shadow/experiments，当前仍是运行依赖。 |
-| `/data/se42/experiments/material_rsi_prelaunch_20260928/package/runtime` | 冻结优化运行时，入口 `rsi_api.py`。 |
-| `/data/se42/experiments/patent_optimization_v0_20260922/.venv/bin/python` | 冻结优化运行时的独立解释器。 |
+| `/data/se42/experiments/material_rsi_prelaunch_20260928/package/runtime` | 固定版本优化程序，入口 `rsi_api.py`。 |
+| `/data/se42/experiments/patent_optimization_v0_20260922/.venv/bin/python` | 固定版本优化程序使用的 Python 解释器。 |
 | `/data/mamba/envs/mattergen-py310` | 专项数值环境，名称沿用历史版本。 |
 
 迁移时同时交接这些资源的版本。当前 Git 仓库并未将所有外部算法包、权重和数据收拢为自包含安装包；不要因目录名看似实验用途而删除实际依赖。
@@ -114,7 +114,7 @@ cd /path/to/material_composition_optimization
 
 调试使用 tmux，稳定运行可由运维登记系统服务。旧 `start.sh` 与 Docker 文件不是当前标准启动路径。
 
-## 6. 回归与交接
+## 6. 测试与交接
 
 在本服务目录执行。测试使用模拟输入和模型调用；Web 环境未安装 pytest 时，下面命令复用已有数值环境的测试依赖，并保持 Web 依赖优先：
 
@@ -125,6 +125,6 @@ OPENAI_API_KEY=test MINIO_ENDPOINT=localhost MINIO_ACCESS_KEY_ID=test MINIO_ACCE
   'import sys; sys.path.append("/data/mamba/envs/mattergen-py310/lib/python3.10/site-packages"); import pytest; raise SystemExit(pytest.main(["-q", "tests"]))'
 ```
 
-本目录与开发副本分别运行回归，结果见[当前目录交接](../docs/deployment_status.md)。此前整合代码的 271 项通过属于开发副本的历史验证，见[版本交接](../docs/RELEASE_HANDOFF_20261004.md)，不作为本目录重新验收的结果。本次整理不改变线上运行逻辑，也不重新训练模型。
+本目录与开发副本分别运行测试，结果见[当前目录交接](../docs/deployment_status.md)。此前整合代码的 271 项通过属于开发副本的历史验证，见[版本交接](../docs/RELEASE_HANDOFF_20261004.md)。查看测试结果时按对应代码目录和验证日期核对。
 
-部署验收需另检查健康状态、角色、各专项真实任务及完整图文显示。代码审阅和兼容项见[阅读指南](docs/alloy_composition_optimization_review_guide.md)、[清理审计](docs/alloy_composition_optimization_cleanup_audit.md)。较早的覆盖报告、影子方案和训练说明属于历史记录，当前路线以本页、正式配置和实际任务结果为准。
+部署验收需另检查健康状态、角色、各专项真实任务及完整图文显示。代码审阅和兼容项见[阅读指南](docs/alloy_composition_optimization_review_guide.md)、[清理审计](docs/alloy_composition_optimization_cleanup_audit.md)。较早的覆盖报告、对照测试方案和训练说明属于历史记录，当前路线以本页、正式配置和实际任务结果为准。

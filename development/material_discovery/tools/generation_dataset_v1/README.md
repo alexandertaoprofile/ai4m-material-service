@@ -1,18 +1,18 @@
 # MatterGen 离线批量结构生成工具（历史实验）
 
-本目录用于复现历史 MatterGen 批量生成和候选整理实验，不是当前 1115 的在线调用入口。现行 OMatG CSP/DNG 服务见[服务 README](../../README.md)。
+本目录用于复现历史 MatterGen 批量生成和候选整理实验。当前 1115 的 OMatG CSP/DNG 调用流程见[服务 README](../../README.md)。
 
 ## 1. 入口和辅助工具的分工
 
 | 文件 | 用途 |
 | --- | --- |
-| `generate_dataset.py` | 从本地 MatterGen checkpoint 批量生成结构，整理组成/几何记录并标记重复。此入口不执行 MatterSim、ALIGNN 或 DFT。 |
+| `generate_dataset.py` | 从本地 MatterGen checkpoint 批量生成结构，整理组成/几何记录并标记重复；性质评价由后续工具执行。 |
 | `summarize_mattersim_screening.py` | 汇总另外完成的 MatterSim 稳定性评价结果。 |
 | `screen_shortlist_properties.py` | 读取已完成松弛的结构，使用 ALIGNN 预测预定义短名单的性质。 |
 | `render_shortlist_structures.py` | 渲染预定义短名单结构。 |
 | `publish_shortlist_assets.py` | 发布短名单资产，涉及对象存储写入，需单独授权并配置凭据。 |
 
-辅助脚本保留原实验的候选选择和路径假设；它们不是面向任意请求的通用服务流程。结构生成、后续评价和公开发布是分别执行的步骤。
+辅助脚本使用原实验的候选名单和路径设置，复现时先按该实验核对输入文件。结构生成、后续评价和公开发布分别执行。
 
 ## 2. 输入与适用范围
 
@@ -35,7 +35,7 @@
 python tools/generation_dataset_v1/generate_dataset.py --help
 ```
 
-运行环境、本地模型版本和 `/data` 输出路径确认后再启动真实生成。每次产物包括：
+运行环境、本地模型版本和 `/data` 输出路径确认后再启动真实生成。每次输出文件包括：
 
 - `manifest.json`：输入、模型位置、checkpoint、种子、数量和时间记录。
 - `raw/`：原始生成文件；`cif/`：候选晶体结构文件。
@@ -44,4 +44,4 @@ python tools/generation_dataset_v1/generate_dataset.py --help
 
 CIF 描述晶体中的晶胞和原子坐标；JSONL 每行保存一个候选记录。组成/结构哈希及近似重复标记用于复现实验，不作为新材料新颖性或制备成功的证明。
 
-本次文档整理不重新生成数据、不执行后续性质计算，也不发布资产。复现时记录命令、权重版本和结果路径，保留原实验产物供比较。
+复现时记录命令、权重版本和结果路径，保留原实验输出文件供比较。

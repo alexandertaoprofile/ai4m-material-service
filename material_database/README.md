@@ -24,13 +24,13 @@
 
 | 位置 | 职责 |
 | --- | --- |
-| `main.py`、`src/team_config.py` | HTTP/WebSocket 入口和查询阶段编排。 |
+| `main.py`、`src/team_config.py` | HTTP/WebSocket 入口和查询执行顺序。 |
 | `src/settings.py` | 将环境变量转换为配置。 |
 | `src/catalog/query.py`、`src/catalog/property_vocabulary.py` | 目录匹配、性质名称/单位和条件比较。 |
 | `src/catalog/cleaning.py`、`scripts/clean_catalog.py` | 清洗结构化原始数据；不属于每次查询的在线步骤。 |
 | `src/catalog/presentation.py`、`src/catalog/narration.py`、`src/catalog/assets.py` | 可追溯报告、文字组织和图表。 |
 | `src/fluid_lubricant/` | 导电润滑剂专项查询、证据比较、短名单和图文组织。 |
-| `data/processed/`、`tests/` | 整理后的目录、别名映射和回归测试。 |
+| `data/processed/`、`tests/` | 整理后的目录、别名映射和已有测试。 |
 
 数据接入与前端事件详情见[服务手册](docs/mature_material_service_guide.md)。
 
@@ -107,6 +107,6 @@ python scripts/clean_catalog.py \
 python -m unittest discover -s tests -v
 ```
 
-回归覆盖查询编排、目录完整性、WebSocket 文本边界、进度与资产事件、最终结果及角色注册。部署或数据更新后，还需检查 `/health` 和真实查询的来源、温度条件及图像展示；本次文档整理不更新目录或部署状态。
+这些测试覆盖查询流程、目录完整性、WebSocket 文本边界、进度与资产事件、最终结果及角色注册。部署或数据更新后，再检查 `/health` 和真实查询的来源、温度条件及图像展示。
 
 维护材料数据时记录原始文件版本、清洗命令、保留/排除数据及来源定位，详见[服务手册](docs/mature_material_service_guide.md)。

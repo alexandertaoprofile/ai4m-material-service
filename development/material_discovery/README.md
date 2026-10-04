@@ -1,16 +1,16 @@
-# 无机晶体结构发现服务（1115）
+# 晶体结构发现服务（1115）
 
-这是完整的待部署开发副本，保存整合版本 `213155c` 的实现，包括新报告及逐项异常原因。75 当前源码见[根目录 1115](../../material_discovery/README.md)。本目录的服务入口和测试用于独立联调，不改变线上进程；端口、配置和结果目录须与线上分开。
+这是完整的待部署开发副本，保存整合版本 `213155c` 的实现，包括新报告及逐项异常原因。75 当前源码见[根目录 1115](../../material_discovery/README.md)。本目录的服务入口和测试用于独立联调，使用独立的端口、配置和结果目录。
 
-本服务生成并比较周期无机晶体，回答“给定组成或探索范围，原子可以怎样排列，哪些结构值得继续研究”。周期晶体由重复的晶胞组成；晶胞是描述原子排列的基本空间单元。
+本服务生成并比较周期晶体，回答“给定组成或探索范围，原子可以怎样排列，哪些结构值得继续研究”。周期晶体由重复的晶胞组成；晶胞是描述原子排列的基本空间单元。
 
-当前主链为 OMatG 生成 → 组成和几何检查 → MatterSim 结构优化及稳定性估算 → ALIGNN 性质预测 → 相似结构合并、比较和图文/三维交付。
+当前计算流程为 OMatG 生成 → 组成和几何检查 → MatterSim 结构优化及稳定性估算 → ALIGNN 性质预测 → 相似结构合并、比较和图文/三维交付。
 
 ## 1. 当前能力与版本状态
 
-75 服务器已接入 OMatG。本开发副本同时整合 2026-10-01 在影子目录验证的后续显示改进：上文场景承接、参数表精简、候选编号、图文一致性和逐项异常原因。这些后续改进尚未部署；执行步骤见本目录部署指南，当前状态见[部署记录](../../docs/deployment_status.md)。
+75 服务器已接入 OMatG。本开发副本同时整合 2026-10-01 在独立测试目录验证的后续显示改进：上文场景承接、参数表精简、候选编号、图文一致性和逐项异常原因。这些后续改进尚未部署；执行步骤见本目录部署指南，当前状态见[部署记录](../../docs/deployment_status.md)。
 
-当前使用已训练 OMatG 推理和生成后的评价。OMatG-IRL 训练、PropMolFlow 分子生成、DFT 电子结构计算、有限温自由能和声子计算尚未并入此主链。已有材料查询、合金配比、聚合物或非晶材料配方分别走相应服务/专项模型。
+当前使用已训练 OMatG 推理和生成后的评价。OMatG-IRL 训练、PropMolFlow 分子生成、DFT 电子结构计算、有限温自由能和声子计算尚未接入上述计算流程。已有材料查询、合金配比、聚合物或非晶材料配方分别走相应服务/专项模型。
 
 ## 2. 输入如何决定路线
 
@@ -83,7 +83,7 @@ DNG：允许四种元素，明确要求其中 Li、P、S 出现，默认不追�
 {
   "taskid": "crystal-dng-example-001",
   "user_name": "upstream-agent",
-  "idea": "在 Li-P-S-Cl 范围内探索含 Li、P、S 的周期无机晶体，关注稳定性",
+  "idea": "在 Li-P-S-Cl 范围内探索含 Li、P、S 的周期晶体，关注稳定性",
   "file_metadata": [],
   "new_material": {
     "generation_mode": "dng",
@@ -113,7 +113,7 @@ DNG：允许四种元素，明确要求其中 Li、P、S 出现，默认不追�
 
 `.env.example` 提供服务与外部接口变量；[.env.omatg.example](.env.omatg.example) 提供模型专项配置。获批部署时按需合并到本机 `.env`，保留密钥、端口、对象存储及弹窗设置。运行时显式设置 `NEW_MATERIAL_GENERATOR=omatg`；缺少该配置时仍可能走历史后端默认值。
 
-入口为 `main.py` 和 `src/team_config.py`，主要业务模块在 `src/material_workflow/`，独立模型执行器在 `tools/`。具体模块表见[业务模块 README](src/material_workflow/README.md)。旧 MatterGen 与已适配的 HEA 微调路线按显式配置保留；仓库另一个 `metal_alloy_mattergen_v0` 包仍为历史训练骨架，二者不是同一个已验收模型。
+入口为 `main.py` 和 `src/team_config.py`，主要业务模块在 `src/material_workflow/`，独立模型执行器在 `tools/`。具体模块表见[业务模块 README](src/material_workflow/README.md)。旧 MatterGen 与已适配的 HEA 微调路线按显式配置保留；`metal_alloy_mattergen_v0` 是另外保存的历史训练骨架，状态见其 README。
 
 只读预检，在本服务目录执行：
 
@@ -121,11 +121,11 @@ DNG：允许四种元素，明确要求其中 Li、P、S 出现，默认不追�
 /home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python tools/preflight_omatg.py --env-file .env.omatg.example
 ```
 
-预检不安装、下载或启动生成。新增依赖和运行产物放在 `/data`。联调启动使用已有 Web 环境，在配置完成、端口空闲的 tmux 会话内执行 `python main.py`；线上部署、配置合并与回退按[部署指南](docs/OMATG_DEPLOYMENT.md)单独审批。
+预检检查解释器、模型文件及参考库，输出可用性报告。新增依赖、缓存和输出文件放在 `/data`。联调启动使用已有 Web 环境，在配置完成、端口空闲的 tmux 会话内执行 `python main.py`；线上部署、配置合并与回退按[部署指南](docs/OMATG_DEPLOYMENT.md)审批和验收。
 
-## 6. 回归与验收
+## 6. 测试与验收
 
-以下命令在本服务目录执行，采用本地输入及模拟模型调用，不启动真实生成，也不请求 MP 或对象存储：
+以下命令在本服务目录执行，使用本地输入及模拟模型调用，检查需求解析、程序流程和报告：
 
 ```bash
 OPENAI_API_KEY=test NEW_MATERIAL_GENERATOR=omatg PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. \
@@ -136,7 +136,7 @@ OPENAI_API_KEY=test NEW_MATERIAL_GENERATOR=omatg PYTHONDONTWRITEBYTECODE=1 PYTHO
   tests.test_omatg_output_status tests.test_omatg_display_flow tests.test_capability_fallback -q
 ```
 
-科学计算依赖与绘图回归：
+科学计算依赖与绘图测试：
 
 ```bash
 OPENAI_API_KEY=test NEW_MATERIAL_GENERATOR=omatg PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. \
@@ -144,7 +144,7 @@ OPENAI_API_KEY=test NEW_MATERIAL_GENERATOR=omatg PYTHONDONTWRITEBYTECODE=1 PYTHO
   tests.test_structure_visualization tests.test_omatg_geometry tests.test_omatg_chart -q
 ```
 
-历史后端契约回归：
+历史后端接口兼容性测试：
 
 ```bash
 OPENAI_API_KEY=test NEW_MATERIAL_GENERATOR=mattergen PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. \

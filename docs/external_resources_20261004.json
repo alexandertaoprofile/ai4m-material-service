@@ -1,0 +1,1321 @@
+{
+  "schema_version": 1,
+  "checked_on": "2026-10-04",
+  "configuration_source": "material_discovery/.env.omatg.example and documented 1111 paths; production .env not read",
+  "sha256_method": "file bytes unchanged; source-tree digest uses sorted relative path, NUL, file SHA256, newline",
+  "environments": {
+    "web": {
+      "executable": "/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python",
+      "python": "3.10.19",
+      "packages": [
+        {
+          "name": "fastapi",
+          "version": "0.128.0"
+        },
+        {
+          "name": "numpy",
+          "version": "1.26.4"
+        },
+        {
+          "name": "numpy",
+          "version": "2.2.6"
+        },
+        {
+          "name": "pandas",
+          "version": "2.3.3"
+        },
+        {
+          "name": "pydantic",
+          "version": "2.12.5"
+        }
+      ],
+      "additional_site_packages": [],
+      "available": true,
+      "package_scope": "selected runtime packages"
+    },
+    "omatg": {
+      "executable": "/data/mamba/envs/omatg-py312/bin/python",
+      "python": "3.12.14",
+      "packages": [
+        {
+          "name": "aiohappyeyeballs",
+          "version": "2.7.1"
+        },
+        {
+          "name": "aiohttp",
+          "version": "3.14.3"
+        },
+        {
+          "name": "aiosignal",
+          "version": "1.4.0"
+        },
+        {
+          "name": "annotated-types",
+          "version": "0.8.0"
+        },
+        {
+          "name": "antlr4-python3-runtime",
+          "version": "4.9.3"
+        },
+        {
+          "name": "anyio",
+          "version": "4.15.1"
+        },
+        {
+          "name": "ase",
+          "version": "3.29.0"
+        },
+        {
+          "name": "attrs",
+          "version": "26.1.0"
+        },
+        {
+          "name": "bibtexparser",
+          "version": "2.0.1"
+        },
+        {
+          "name": "bitsandbytes",
+          "version": "0.50.2"
+        },
+        {
+          "name": "blosc2",
+          "version": "4.13.1"
+        },
+        {
+          "name": "certifi",
+          "version": "2026.7.22"
+        },
+        {
+          "name": "charset-normalizer",
+          "version": "3.5.1"
+        },
+        {
+          "name": "click",
+          "version": "8.5.0"
+        },
+        {
+          "name": "cloudpickle",
+          "version": "3.1.2"
+        },
+        {
+          "name": "ConfigArgParse",
+          "version": "1.7.7"
+        },
+        {
+          "name": "contourpy",
+          "version": "1.4.0"
+        },
+        {
+          "name": "cycler",
+          "version": "0.12.1"
+        },
+        {
+          "name": "dill",
+          "version": "0.4.1"
+        },
+        {
+          "name": "dnspython",
+          "version": "2.8.0"
+        },
+        {
+          "name": "docstring_parser",
+          "version": "0.18.0"
+        },
+        {
+          "name": "e3nn",
+          "version": "0.4.4"
+        },
+        {
+          "name": "filelock",
+          "version": "3.32.3"
+        },
+        {
+          "name": "fonttools",
+          "version": "4.66.0"
+        },
+        {
+          "name": "frozenlist",
+          "version": "1.8.0"
+        },
+        {
+          "name": "fsspec",
+          "version": "2026.7.0"
+        },
+        {
+          "name": "gitdb",
+          "version": "4.0.12"
+        },
+        {
+          "name": "GitPython",
+          "version": "3.1.62"
+        },
+        {
+          "name": "googleapis-common-protos",
+          "version": "1.75.3"
+        },
+        {
+          "name": "h11",
+          "version": "0.16.0"
+        },
+        {
+          "name": "h2",
+          "version": "4.4.1"
+        },
+        {
+          "name": "h5py",
+          "version": "3.16.0"
+        },
+        {
+          "name": "hf-xet",
+          "version": "1.6.0"
+        },
+        {
+          "name": "hpack",
+          "version": "4.2.0"
+        },
+        {
+          "name": "httpcore",
+          "version": "1.0.9"
+        },
+        {
+          "name": "httpx",
+          "version": "0.28.1"
+        },
+        {
+          "name": "huggingface_hub",
+          "version": "1.32.0"
+        },
+        {
+          "name": "hydra-core",
+          "version": "1.3.7"
+        },
+        {
+          "name": "hyperframe",
+          "version": "6.1.0"
+        },
+        {
+          "name": "idna",
+          "version": "3.20"
+        },
+        {
+          "name": "iniconfig",
+          "version": "2.3.0"
+        },
+        {
+          "name": "Jinja2",
+          "version": "3.1.6"
+        },
+        {
+          "name": "joblib",
+          "version": "1.6.0"
+        },
+        {
+          "name": "jsonargparse",
+          "version": "4.41.0"
+        },
+        {
+          "name": "jsonnet",
+          "version": "0.22.0"
+        },
+        {
+          "name": "kiwisolver",
+          "version": "1.5.1"
+        },
+        {
+          "name": "lightning",
+          "version": "2.6.6"
+        },
+        {
+          "name": "lightning-utilities",
+          "version": "0.15.3"
+        },
+        {
+          "name": "lmdb",
+          "version": "1.8.1"
+        },
+        {
+          "name": "loguru",
+          "version": "0.7.3"
+        },
+        {
+          "name": "mace-torch",
+          "version": "0.3.16"
+        },
+        {
+          "name": "markdown-it-py",
+          "version": "4.2.0"
+        },
+        {
+          "name": "MarkupSafe",
+          "version": "3.0.3"
+        },
+        {
+          "name": "matminer",
+          "version": "0.10.1"
+        },
+        {
+          "name": "matplotlib",
+          "version": "3.11.2"
+        },
+        {
+          "name": "matscipy",
+          "version": "1.2.0"
+        },
+        {
+          "name": "mdurl",
+          "version": "0.1.2"
+        },
+        {
+          "name": "monty",
+          "version": "2026.7.16"
+        },
+        {
+          "name": "mpmath",
+          "version": "1.3.0"
+        },
+        {
+          "name": "msgpack",
+          "version": "1.2.2"
+        },
+        {
+          "name": "multidict",
+          "version": "6.9.1"
+        },
+        {
+          "name": "multiprocess",
+          "version": "0.70.19"
+        },
+        {
+          "name": "narwhals",
+          "version": "2.26.0"
+        },
+        {
+          "name": "ndindex",
+          "version": "1.10.1"
+        },
+        {
+          "name": "networkx",
+          "version": "3.6.1"
+        },
+        {
+          "name": "numexpr",
+          "version": "2.14.2"
+        },
+        {
+          "name": "numpy",
+          "version": "2.5.3"
+        },
+        {
+          "name": "nvalchemi-toolkit-ops",
+          "version": "0.4.1"
+        },
+        {
+          "name": "nvidia-cublas-cu12",
+          "version": "12.6.4.1"
+        },
+        {
+          "name": "nvidia-cuda-cupti-cu12",
+          "version": "12.6.80"
+        },
+        {
+          "name": "nvidia-cuda-nvrtc-cu12",
+          "version": "12.6.77"
+        },
+        {
+          "name": "nvidia-cuda-runtime-cu12",
+          "version": "12.6.77"
+        },
+        {
+          "name": "nvidia-cudnn-cu12",
+          "version": "9.10.2.21"
+        },
+        {
+          "name": "nvidia-cufft-cu12",
+          "version": "11.3.0.4"
+        },
+        {
+          "name": "nvidia-cufile-cu12",
+          "version": "1.11.1.6"
+        },
+        {
+          "name": "nvidia-curand-cu12",
+          "version": "10.3.7.77"
+        },
+        {
+          "name": "nvidia-cusolver-cu12",
+          "version": "11.7.1.2"
+        },
+        {
+          "name": "nvidia-cusparse-cu12",
+          "version": "12.5.4.2"
+        },
+        {
+          "name": "nvidia-cusparselt-cu12",
+          "version": "0.7.1"
+        },
+        {
+          "name": "nvidia-nccl-cu12",
+          "version": "2.27.3"
+        },
+        {
+          "name": "nvidia-nvjitlink-cu12",
+          "version": "12.6.85"
+        },
+        {
+          "name": "nvidia-nvtx-cu12",
+          "version": "12.6.77"
+        },
+        {
+          "name": "omegaconf",
+          "version": "2.3.1"
+        },
+        {
+          "name": "omg",
+          "version": "2.0.0"
+        },
+        {
+          "name": "opentelemetry-api",
+          "version": "1.44.0"
+        },
+        {
+          "name": "opentelemetry-exporter-otlp-proto-common",
+          "version": "1.44.0"
+        },
+        {
+          "name": "opentelemetry-exporter-otlp-proto-http",
+          "version": "1.44.0"
+        },
+        {
+          "name": "opentelemetry-proto",
+          "version": "1.44.0"
+        },
+        {
+          "name": "opentelemetry-sdk",
+          "version": "1.44.0"
+        },
+        {
+          "name": "opentelemetry-semantic-conventions",
+          "version": "0.65b0"
+        },
+        {
+          "name": "opt-einsum-fx",
+          "version": "0.1.4"
+        },
+        {
+          "name": "opt_einsum",
+          "version": "3.4.0"
+        },
+        {
+          "name": "orjson",
+          "version": "3.12.0"
+        },
+        {
+          "name": "packaging",
+          "version": "26.3"
+        },
+        {
+          "name": "palettable",
+          "version": "3.3.3"
+        },
+        {
+          "name": "pandarallel",
+          "version": "1.6.5"
+        },
+        {
+          "name": "pandas",
+          "version": "2.3.3"
+        },
+        {
+          "name": "pathos",
+          "version": "0.3.5"
+        },
+        {
+          "name": "pillow",
+          "version": "12.3.0"
+        },
+        {
+          "name": "pip",
+          "version": "26.2.1"
+        },
+        {
+          "name": "platformdirs",
+          "version": "4.11.12"
+        },
+        {
+          "name": "plotly",
+          "version": "7.1.0"
+        },
+        {
+          "name": "pluggy",
+          "version": "1.6.0"
+        },
+        {
+          "name": "pox",
+          "version": "0.3.7"
+        },
+        {
+          "name": "ppft",
+          "version": "1.7.8"
+        },
+        {
+          "name": "prettytable",
+          "version": "3.18.0"
+        },
+        {
+          "name": "propcache",
+          "version": "0.5.4"
+        },
+        {
+          "name": "protobuf",
+          "version": "7.36.2"
+        },
+        {
+          "name": "psutil",
+          "version": "7.2.2"
+        },
+        {
+          "name": "py-cpuinfo",
+          "version": "9.0.0"
+        },
+        {
+          "name": "pyarrow",
+          "version": "23.0.1"
+        },
+        {
+          "name": "pydantic",
+          "version": "2.13.5"
+        },
+        {
+          "name": "pydantic_core",
+          "version": "2.46.5"
+        },
+        {
+          "name": "Pygments",
+          "version": "2.21.0"
+        },
+        {
+          "name": "pylatexenc",
+          "version": "2.11"
+        },
+        {
+          "name": "pymatgen",
+          "version": "2025.10.7"
+        },
+        {
+          "name": "pymongo",
+          "version": "4.18.1"
+        },
+        {
+          "name": "pyparsing",
+          "version": "3.3.3"
+        },
+        {
+          "name": "pytest",
+          "version": "9.1.1"
+        },
+        {
+          "name": "python-dateutil",
+          "version": "2.9.0.post0"
+        },
+        {
+          "name": "python_hostlist",
+          "version": "2.3.0"
+        },
+        {
+          "name": "pytorch-lightning",
+          "version": "2.6.6"
+        },
+        {
+          "name": "pytz",
+          "version": "2026.3.post1"
+        },
+        {
+          "name": "PyYAML",
+          "version": "6.0.3"
+        },
+        {
+          "name": "requests",
+          "version": "2.34.2"
+        },
+        {
+          "name": "rich",
+          "version": "14.3.4"
+        },
+        {
+          "name": "ruamel.yaml",
+          "version": "0.19.1"
+        },
+        {
+          "name": "scikit-learn",
+          "version": "1.9.1"
+        },
+        {
+          "name": "scipy",
+          "version": "1.18.1"
+        },
+        {
+          "name": "setuptools",
+          "version": "84.0.0"
+        },
+        {
+          "name": "six",
+          "version": "1.17.0"
+        },
+        {
+          "name": "SMACT",
+          "version": "4.0.0"
+        },
+        {
+          "name": "smmap",
+          "version": "5.0.3"
+        },
+        {
+          "name": "spglib",
+          "version": "2.7.0"
+        },
+        {
+          "name": "sympy",
+          "version": "1.14.0"
+        },
+        {
+          "name": "tables",
+          "version": "3.11.1"
+        },
+        {
+          "name": "tabulate",
+          "version": "0.10.0"
+        },
+        {
+          "name": "tensorboardX",
+          "version": "2.6.5"
+        },
+        {
+          "name": "threadpoolctl",
+          "version": "3.7.0"
+        },
+        {
+          "name": "torch",
+          "version": "2.8.0+cu126"
+        },
+        {
+          "name": "torch-ema",
+          "version": "0.3"
+        },
+        {
+          "name": "torch-geometric",
+          "version": "2.8.0.post1"
+        },
+        {
+          "name": "torch-sim-atomistic",
+          "version": "0.6.2"
+        },
+        {
+          "name": "torch_scatter",
+          "version": "2.1.2+pt28cu126"
+        },
+        {
+          "name": "torchdiffeq",
+          "version": "0.2.5"
+        },
+        {
+          "name": "torchmetrics",
+          "version": "1.9.0"
+        },
+        {
+          "name": "torchsde",
+          "version": "0.2.6"
+        },
+        {
+          "name": "tqdm",
+          "version": "4.70.1"
+        },
+        {
+          "name": "trampoline",
+          "version": "0.1.2"
+        },
+        {
+          "name": "triton",
+          "version": "3.4.0"
+        },
+        {
+          "name": "typeshed_client",
+          "version": "2.13.0"
+        },
+        {
+          "name": "typing-inspection",
+          "version": "0.4.4"
+        },
+        {
+          "name": "typing_extensions",
+          "version": "4.16.0"
+        },
+        {
+          "name": "tzdata",
+          "version": "2026.4"
+        },
+        {
+          "name": "uncertainties",
+          "version": "3.2.3"
+        },
+        {
+          "name": "urllib3",
+          "version": "2.8.0"
+        },
+        {
+          "name": "wandb",
+          "version": "0.30.0"
+        },
+        {
+          "name": "warp-lang",
+          "version": "1.17.0"
+        },
+        {
+          "name": "wcwidth",
+          "version": "0.9.1"
+        },
+        {
+          "name": "wheel",
+          "version": "0.48.0"
+        },
+        {
+          "name": "xxhash",
+          "version": "4.0.1"
+        },
+        {
+          "name": "yarl",
+          "version": "1.25.1"
+        }
+      ],
+      "additional_site_packages": [],
+      "available": true,
+      "package_scope": "all installed distributions"
+    },
+    "numerical": {
+      "executable": "/data/mamba/envs/mattergen-py310/bin/python",
+      "python": "3.10.20",
+      "packages": [
+        {
+          "name": "ase",
+          "version": "3.24.0"
+        },
+        {
+          "name": "lmdb",
+          "version": "2.3.0"
+        },
+        {
+          "name": "mattersim",
+          "version": "1.1.2"
+        },
+        {
+          "name": "numpy",
+          "version": "1.26.4"
+        },
+        {
+          "name": "pandas",
+          "version": "2.3.3"
+        },
+        {
+          "name": "pydantic",
+          "version": "2.13.4"
+        },
+        {
+          "name": "pymatgen",
+          "version": "2024.10.29"
+        },
+        {
+          "name": "scikit-learn",
+          "version": "1.7.2"
+        },
+        {
+          "name": "torch",
+          "version": "2.2.1+cu118"
+        }
+      ],
+      "additional_site_packages": [],
+      "available": true,
+      "package_scope": "selected runtime packages"
+    },
+    "alignn": {
+      "executable": "/home/ubuntu/miniconda3/envs/dsc2/bin/python",
+      "python": "3.10.19",
+      "packages": [
+        {
+          "name": "fastapi",
+          "version": "0.128.0"
+        },
+        {
+          "name": "lmdb",
+          "version": "1.7.5"
+        },
+        {
+          "name": "numpy",
+          "version": "2.2.6"
+        },
+        {
+          "name": "pandas",
+          "version": "2.3.3"
+        },
+        {
+          "name": "pydantic",
+          "version": "2.11.10"
+        },
+        {
+          "name": "scikit-learn",
+          "version": "1.7.2"
+        },
+        {
+          "name": "torch",
+          "version": "2.9.1"
+        }
+      ],
+      "additional_site_packages": [
+        {
+          "name": "ase",
+          "version": "3.27.0"
+        },
+        {
+          "name": "dgl",
+          "version": "2.4.0+cu121"
+        },
+        {
+          "name": "pydantic",
+          "version": "2.12.5"
+        },
+        {
+          "name": "scikit-learn",
+          "version": "1.7.2"
+        },
+        {
+          "name": "jarvis-tools",
+          "version": "2026.1.10"
+        },
+        {
+          "name": "alignn",
+          "version": "2025.4.1"
+        },
+        {
+          "name": "lmdb",
+          "version": "1.7.5"
+        },
+        {
+          "name": "pandas",
+          "version": "2.3.3"
+        },
+        {
+          "name": "numpy",
+          "version": "1.26.4"
+        },
+        {
+          "name": "torch",
+          "version": "2.2.1"
+        }
+      ],
+      "available": true,
+      "package_scope": "selected runtime packages"
+    },
+    "recipe": {
+      "executable": "/data/se42/experiments/patent_optimization_v0_20260922/.venv/bin/python",
+      "python": "3.13.11",
+      "packages": [
+        {
+          "name": "ase",
+          "version": "3.27.0"
+        },
+        {
+          "name": "fastapi",
+          "version": "0.135.1"
+        },
+        {
+          "name": "numpy",
+          "version": "2.4.1"
+        },
+        {
+          "name": "pandas",
+          "version": "3.0.1"
+        },
+        {
+          "name": "pydantic",
+          "version": "2.12.4"
+        },
+        {
+          "name": "scikit-learn",
+          "version": "1.8.0"
+        },
+        {
+          "name": "torch",
+          "version": "2.10.0"
+        }
+      ],
+      "additional_site_packages": [],
+      "available": true,
+      "package_scope": "selected runtime packages"
+    }
+  },
+  "sources": {
+    "omatg": {
+      "path": "/data/third_party/OMatG",
+      "exists": true,
+      "git_commit": null,
+      "selected_paths": [
+        "omg",
+        "configs",
+        "pyproject.toml",
+        "setup.py"
+      ],
+      "files": 83,
+      "sha256": "a21ce430838d06ef418419bf8c9ab3f5a1e86da1505981924efabeaabeb356ef",
+      "file_sha256": {
+        "omg/__init__.py": "c0920e7bbd828c58d2a59b418a2ae675211093f5da29dfca2f8555786022f73c",
+        "omg/analysis/__init__.py": "dff94e9566b1a1c5d7cbaa434066db1f8c638150e43ab17adb6c381d0153a83d",
+        "omg/analysis/analysis.py": "4e1b7bce70a6a9d260cf263b6ea44246ebd1249dd3ec9e877ae61462d607a708",
+        "omg/analysis/valid_atoms.py": "3bdaaf729c92d438f8c21b55ae42b39f34b1de831a29307144515d4390f8943d",
+        "omg/conf_examples/csp_linear_ode_mp_20.yaml": "43787b024dc44907f396689b8278ff47b79460a004d1e6f570a91ab5d3526735",
+        "omg/conf_examples/dng_linear_sde_mp_20.yaml": "7e656ddf00d44d270bc05193e426be3c9aa8935e84a0f1aa5bff9b7c42d3c1ad",
+        "omg/datamodule/__init__.py": "efe269791d16567afcc263af590dbd82af4024485c4dbef05a5beadf4099f42e",
+        "omg/datamodule/omg_data.py": "bfcaa7dee90282a1f42c4c94a01bc3689211543990c5469124e0f9ec39aaf9fd",
+        "omg/datamodule/omg_datamodule.py": "73adbc084e64d5be43c43f896911d8390f11cb34300f59a3158646276b7e0631",
+        "omg/datamodule/omg_dataset.py": "9b2c146b87874650c799de7c628ba3aad1e239f3e8c2da6ac01787fdf5a7dfb8",
+        "omg/datamodule/structure.py": "f4d1c65d03281885a76e58e25424a487a3098eaa4135f28811a37391e900918f",
+        "omg/datamodule/structure_dataset.py": "6324fba6448c596001e2ed73bf6528700b79492bc8206682fd7c36c20cde3c1d",
+        "omg/globals.py": "a93b1fd3ae2934c12cef2ab7bf3b1cf696c118571c162e7381f1d08540ee473b",
+        "omg/main.py": "0bbcb23a6aea6be928e9ed0fa148c41493440f68dee443293ea89c877ca19572",
+        "omg/model/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "omg/model/encoders/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "omg/model/encoders/cspnet_full.py": "b20ec3b26b9cf10183ad5589a482c42d3f9d49c5d577bb6ad2709d12099372ab",
+        "omg/model/encoders/diffcsp_copies.py": "6da8a120c2ff6b2343613e84451cdcffeeb4f3baec8b5c5e53d5acdcdd2cdef9",
+        "omg/model/encoders/encoder.py": "5e6d9d6ec2c78fb733af990c9c00e31eaea931957fcbae9d5b9a7b194410e7a8",
+        "omg/model/heads/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "omg/model/heads/head.py": "945494726234249787cb15150c5839a0f1cd409b58e20495781f63193c8b0ef7",
+        "omg/model/heads/pass_through.py": "95873092ee1f4acf231204c4ef391253b3596cab118cb8ed6c8d8cb234b2a499",
+        "omg/model/model.py": "bf6137176c60ce4ab1dd9eaf97db2fa6fc9c220d75a04b35f38c764f04ce4be0",
+        "omg/model/model_utils.py": "8d8223f79ada9b76a1588f209889920f695659b079d49f2a0d44e8dd6b4cd4c7",
+        "omg/omg_cli.py": "1d1d994877eaeec3f51379a11ac05368f66ba8fc9c954dd56ab817d291bdd6ff",
+        "omg/omg_irl/__init__.py": "0c29715ab0af0c60970e5b172f6ae0a47153319a31400f034edae6717833bc14",
+        "omg/omg_irl/base_modules.py": "bdf02cfb9d3b04bc176bb5024258ac9226b5b1e935564c15bf55ee7195e43d06",
+        "omg/omg_irl/conf_examples/score_based_omatg_irl/rl_config.yaml": "18e793bf4f8a86fc416487454afa57a7b876d5fa7e2e9b244ae9d29c72a7c3d2",
+        "omg/omg_irl/conf_examples/score_based_omatg_irl/train_sde.yaml": "b41d377fef8a08b8757d5fabf267d4602f05d55976553d884e67d3e9155619bb",
+        "omg/omg_irl/conf_examples/velocity_based_omatg_irl/rl_config.yaml": "c5bd48597a6f4be177a9a7e375c5648d9e08d155088eb015aa86d98efbb506f0",
+        "omg/omg_irl/conf_examples/velocity_based_omatg_irl/rl_config_robust.yaml": "0d7b019f3fa1e94523cb108e300d2a4427fe38358057ac19a653a928b9102a87",
+        "omg/omg_irl/conf_examples/velocity_based_omatg_irl/train_ode.yaml": "1dcc83dfe6a47d4a5ee3c0e2b9c30558d75bb24fdaf8965393d5f0378242a5bd",
+        "omg/omg_irl/main.py": "7f1dd6b27471bb5807c8384b1c66059b196256e0fa8b59f6037c2236fce9ff7b",
+        "omg/omg_irl/noise_schedules.py": "dffd4550d95bafdec9aef556d86680b4ad8e42ce611610de0a6dd166d52beb1b",
+        "omg/omg_irl/omg_irl_cli.py": "d5c7b470192dc87d42af1632b202684befe9961ec866870080eae2b9652acfee",
+        "omg/omg_irl/omg_irl_lightning/__init__.py": "23838e767ad81faff9bb4f0bf9cbf8b91566d15182de399a3a39caf301e79c2a",
+        "omg/omg_irl/omg_irl_lightning/abstracts.py": "09f9bfde6e11e625ed5eefe5db83397bd3d93fb27b939f6dc0bccbc92e33111c",
+        "omg/omg_irl/omg_irl_lightning/omg_irl_scale.py": "52976e422c21e8a88192919561e6adb34da2b8532669d23387e12f1ef4c5dc71",
+        "omg/omg_irl/omg_irl_lightning/omg_irl_scaled_velocity.py": "9085dda9efc251fe166c74469a81120e2e73269c456f44a8d80dc5d440f4e550",
+        "omg/omg_irl/omg_irl_lightning/omg_irl_score.py": "b9e6d85462bfc3ca877199296a1c65521eb72ebdf321b942d460750dc2000679",
+        "omg/omg_irl/omg_irl_lightning/omg_irl_velocity.py": "80f9eb66c639103e46cd6cd8b0d57e844a2b1f72b003eb08f95d1a46b5058818",
+        "omg/omg_irl/omg_irl_lightning/scale_mlp.py": "a5d980fd111e9d8fcd07ea58801ecdab4a82167dc87570b60f44a99ba1daa805",
+        "omg/omg_irl/omg_irl_trainer.py": "c488aab271b79ae496a389d94442c21b5b0c1e8b7d2d5ace0e699bbcd5bc7ef6",
+        "omg/omg_irl/rewards/__init__.py": "7aefd08bdd6f08e69dad132682287329851e2829190c2ff20ef7a5c640eb6e40",
+        "omg/omg_irl/rewards/abstracts.py": "5546dc4019b69d8f7ac814a8f1b4531ea8d2d2166217ff4000a2197cb2bce2c9",
+        "omg/omg_irl/rewards/composite_rewards.py": "e7a2f439d14f7741f6c40d8ed46c5b0bbd5639ceba351cd6bab63b007bc85a9a",
+        "omg/omg_irl/rewards/crmse_reward.py": "5e5480c33bf5e821fcb20ed02de79a4656b92d8eeb3e546c43114cf5c0e25e0a",
+        "omg/omg_irl/rewards/energy_above_hull_reward.py": "faab24320242fa970838f255972923d886ad4aa874a2fb24aa2b32d0926b0777",
+        "omg/omg_irl/rewards/energy_reward.py": "f8722a38027cb8c04bb040b166f6a4168100d424f5b07a94d57e8baedd6acf98",
+        "omg/omg_irl/rewards/lemat_genbench_energy_above_hull.py": "f5273dbd3a2d259e71586fb7fa7955356b6c513789405ccb3708588674cd8e70",
+        "omg/omg_irl/rewards/symmetry_reward.py": "4fada76d70d360057231638b088ec98e22b3e6871d1b98abe3f7383c5b23f259",
+        "omg/omg_lightning.py": "2008e8de595efad8c188f1158e9227dcbd6984ccc707595673a9a96e6bd47b80",
+        "omg/omg_trainer.py": "145a8289b69ecba520b7c36df314d9021d656142aef4947e076a7bb0303e7527",
+        "omg/sampler/__init__.py": "3d7205efe0a65843e8830474620014b4ce14ef067a4e3ec5eb15851f1d8984eb",
+        "omg/sampler/abstracts.py": "a5855c7f34d301ccc2d42d63a615f31aa9db0e4dada9afd5521d3f337fe674e6",
+        "omg/sampler/cell_distributions.py": "5bc48447b1ba514d5447381c5377a9f0d908b822895bcf75588f6725e83f6f62",
+        "omg/sampler/independent_sampler.py": "e91ba3e641962472ee986e718a48e54c30dcc4f0a2b58b653aec1ec891eaa4e2",
+        "omg/sampler/minimum_permutation_distance.py": "841662c98eb2bf0c4870cd4e569c994a0118a50699625aa58180c893edd72bd1",
+        "omg/sampler/position_distributions.py": "db87ef7a1e2e2dd1bf999b1441e040e46abef9f5e8f5a8a3fd7d449f8ebf0941",
+        "omg/sampler/sampler.py": "9d19408458311947335e2f04e342443bd6e91df99ca10a93282a8a2491f21d52",
+        "omg/sampler/species_distributions.py": "4260c7d0df86512bea4706e565b4c9dec14bea8c80846749417dd04869dff285",
+        "omg/si/__init__.py": "f00426c90f9d5b4b43bd3efbbcf5940732d85bd277327190696bdcc384645f67",
+        "omg/si/abstracts.py": "39d03efb2c169f9d16fa4384455f830d02cdf9c612bc7dee6bdad1fea6a70b21",
+        "omg/si/corrector.py": "45b8d557fc7b0385f6c3164744a2ff8d2059e9bde6317c4b623a93c58ed4e891",
+        "omg/si/discrete_flow_matching_mask.py": "cbb6f26e40154b38cc7cce16f319fd400f0f5344f716cb948ef294f5c68d5e68",
+        "omg/si/discrete_flow_matching_uniform.py": "6f3ceef137ccbc3e90fb4330775456acaa39603a4c2c247c593c4f5800e4015c",
+        "omg/si/epsilon.py": "45f69ce3341a30bcb94e059faa2cb52c401172b9981d78fe2b9d90dcece7d086",
+        "omg/si/gamma.py": "7a6738c5fe0496c1db831f1803b031f60a8585b4ae356693f6fd816d27703feb",
+        "omg/si/interpolants.py": "f89312184a91cd2f39e14fe95b028a297b849dae38eb035662830eea29b931a4",
+        "omg/si/sigma.py": "edd6c4159d175cc179f393ea7ba2abb2c358266f130a538097c3cebede2bfac4",
+        "omg/si/single_stochastic_interpolant.py": "cc170e1e6e2c872470a0022d85fc547d5051446d353b133312504534d141bb04",
+        "omg/si/single_stochastic_interpolant_identity.py": "82c8cb4bcecd01c64c045ca6e4a7be13695d94610a5c9963cbcc9683bf7f680b",
+        "omg/si/single_stochastic_interpolant_os.py": "f6936cdcf2b7226ce9a2aae6fc5da5c739a90d6326663063d9916d9cf0383752",
+        "omg/si/stochastic_interpolants.py": "fd1d0e9b2918417fa17f1f3d28f184b5a34e8e3f3c287d29cb5dc7e1d6fb6b64",
+        "omg/si/tau.py": "e25d22d2f86fc3e585589fae059524d3469e883127507f77f843935e6208cd13",
+        "omg/tests/test_analysis.py": "adad8ee340677693480f356572bf2610c45f6846bee943fbd0741c8a18a46866",
+        "omg/tests/test_coupled_integrator.py": "547a04439c7be5c72916a8caba5d6cb39d16a0eca8cbf427303b33cf7c6c89b9",
+        "omg/tests/test_integrators_ODE.py": "883c4982493a83157110f4a4d475e77cd4a98dde4b02f01a3b309f3dd11216ed",
+        "omg/tests/test_integrators_SDE.py": "a5b754ed61d25b3d64cb8bf49b27c665479b8c4cebd6728e37dadd29775c0817",
+        "omg/tests/test_integrators_discrete.py": "d7aa7bf43e2221e34c39b1e8ee949ad86242ac3b4f2a4ad0cf7d429dc07f7f01",
+        "omg/tests/test_minimum_permutation_distance.py": "a0eb9acb1aaf9a112328a5776e7c1dc9f6b124608b45fa48da9ee33060a0af1a",
+        "omg/utils.py": "831cf3202eed83dd6172c9c55643a0c06264c860f976fbec5ff1da29204d847e",
+        "pyproject.toml": "8023ff4239551de55dbde93479fa3ef1868f6cda517671b273b7c40a5694bf19"
+      }
+    },
+    "hea_surrogate": {
+      "path": "/data/se42/hea_surrogate",
+      "exists": true,
+      "git_commit": "c6def316a855b799c45c0bd9f87c4e61444f4d3c",
+      "selected_paths": [
+        "src",
+        "tools"
+      ],
+      "files": 105,
+      "sha256": "d4457505c8a6676190a00fa5a34e52e6a29d5f3d3e2eb082a380f0b3ff4d4083",
+      "file_sha256": {
+        "src/__init__.py": "6dead2c18b4b58f8d857be00deaa54e2e5f1d1725499da099bdec1cd83b41734",
+        "src/api/__init__.py": "7c4b46732deee5d8feadbf63c6d7f67e10f400d741838af44b233c15669d0a9a",
+        "src/api/aerospace_aluminum_runtime.py": "75a63a467c0f79f48765148a8a505195389fecb5b999986d3f53eefdb671d1cc",
+        "src/api/chip_glass_cte_runtime.py": "cc59139607b2e3f492a8804a9cfc41cb2eb3550392fda5ed01ac992d82205f95",
+        "src/api/chip_glass_thermomechanical_runtime.py": "f5d8e46c5e1be2d9f8e7c10acc89f74d0453c9aea128e4bcd3fe7bfb6dce5a3c",
+        "src/api/copper_hotend_local_runtime.py": "08d36b5e2f35b93c90e0d33e05046512ef121ecea3a5c067a2dace8b35126cd7",
+        "src/api/copper_hotend_runtime.py": "ee2c613b17285276aad0b6593974099ba510981df11760cf9c85ec6eb2dbadde",
+        "src/api/ni_superalloy_creep_runtime.py": "30c0688e68352871afe6d38475ae576401143fb11c0a29308e7d2b818e75ef45",
+        "src/api/ni_superalloy_hotend_runtime.py": "715cbeac1b87c51ad4537b485b0d1db152982e4b59699589eacc8b075b3f597a",
+        "src/api/ni_superalloy_strength_features.py": "734dafe4aba4e546481049f4b76f227efb2f9c0b8133490b3aba1d55d19007c4",
+        "src/api/perovskite_transport_stability_runtime.py": "f1e716d36be25e57bbcce9d9bef15cce60f49c8012901db18328e52109e83019",
+        "src/api/reusable_rocket_stainless_runtime.py": "84714a238c6cef9de1a05030b4d0ee645c190d85897340abb2e9ab49a7cfe112",
+        "src/api/runtime.py": "04e55d181eb5546884b490c69bdb5005c68464e66739fa984d6bc8e3df90124b",
+        "src/api/short_cf_thermomechanical_runtime.py": "a2a7a9e0c4afdb1a0d58fa8a0458cfda2dbdf63b0534955c381564b3a2f35ac8",
+        "src/cleaning/__init__.py": "783e28e604de40b443462dfb785c7d7057b31c58fa006b0ca639f94f333fe01b",
+        "src/cleaning/pipeline.py": "eecede4b313e89106682a81575da5a275f5011330095d192fce935a66d9093d2",
+        "src/composition/__init__.py": "fe51297acfde0d99ab6835b942c220903baac42f5b364c9ef5a23def253f82b5",
+        "src/composition/parser.py": "11a6efa900cc7bacac259bb646a0c027d532f4f7cfa395f4c3f1d0e938aa0547",
+        "src/generation/__init__.py": "0532175d7edd25dc09c6ff33f9c2236eca036decb93bc7377f64194d4f8e189b",
+        "src/generation/build_mattergen_cache.py": "91237ef286a796faa5372aed3742795ab6c4f55742b72bfbf735a4ec8d92886b",
+        "src/generation/export_mattergen_csv.py": "203021d0878cd6007f62352b3edbc3a42d7a7229e9b338f262d105f2364e3cbf",
+        "src/generation/prepare_hea_dft.py": "e13a6170dec24751402f80054373fc66996d43984f5a9228f00d967358828e1a",
+        "src/models/__init__.py": "9c1ad0f6b68ad701b2d3b55a7a357bffb8d7ff3e894291ba596bb58968450035",
+        "src/models/benchmark_feature_ablation.py": "dce1a3062c08dca5bebb6a21b504d8c0dcee047e6f219e57b12de6152dbb71e9",
+        "src/models/run_constraint_ladder_performance.py": "d293c5d2338a7e8449e20838fae6afc08bd40bb8f828c095390001713d6e06fa",
+        "src/models/run_constraint_ladder_thermal_phase.py": "528b109ec2d612708b6384610cf971e8fd5252495f855638ea48327260eda93a",
+        "src/models/run_constraint_ladder_thermal_phase_repeated.py": "237662f49c4fbee9da675477980cb528a48032e3aa39dacc3659cbf76222fa29",
+        "src/models/train_baselines.py": "97f1532145cd5c0a141f5ec3b5fdb3f7d069a9532bda99fef04d1aad0f5f2ee5",
+        "tools/audit_ccby_yun_cucrx_dataset.py": "03d42be41715d91252fbd3a03c1545613428b0cd75c4dc680623c2b5e7be5edb",
+        "tools/audit_chip_glass_same_identity_auxiliary_signal.py": "769dfa3625e73440c41108596a62e7d9e7e4311d5494b2e59807eb8c23c73d41",
+        "tools/audit_ni_superalloy_raw.py": "a3a310d0f2fae21f4f1171b5288498cf44b4446574d8c55da8678e32e91c12e3",
+        "tools/audit_reusable_rocket_stainless_v2_features.py": "c7997087ec8db8649864af49ae354ee7169b4a20deca787d3f9681dde5c7818a",
+        "tools/benchmark_chip_glass_cte_descriptors.py": "6ee0637f02c5b260c09a53f0c127b9b06cee52c0009ccea528c292cb0e7be7ce",
+        "tools/benchmark_chip_glass_cte_multisource.py": "5ea4c531e3b7d948b09743b6509009fae29adcf2fb7330929c4c23cf583820a3",
+        "tools/benchmark_chip_glass_cte_near_domain_algorithms.py": "f580d784bd0a44e05340f62594801b169d13ca32071c6038fdecba5869e98aba",
+        "tools/benchmark_chip_glass_thermomechanical_models.py": "102318dfeb3830c34cb1b0546b81ac616d253aebb77c397a6c70cf219e41d799",
+        "tools/benchmark_copper_ambient_auxiliary_properties.py": "f349099fcedfe0df5e8f877a6ee16f6fa083f7365cde10fbabf1bf081ece31b2",
+        "tools/benchmark_copper_ambient_cunisi.py": "7a454cc6e52434d14e75693ec613eba697f07d3c1e72ea26bd847e2846c8952f",
+        "tools/benchmark_copper_ambient_gorsse.py": "2894ee23b363e72f3d89f38527b65ff6f41e5e2440ce5e0298dbf44e478e8abf",
+        "tools/benchmark_copper_hot_end_grouped_baseline.py": "21d644bb4b8263883f57adcc0b2ab00cba4c685436733b60b3e94a6be2522f6f",
+        "tools/benchmark_ni_superalloy_mechanistic_features.py": "10880f55be00dd285f571dd4e69f1dbbca829c7ea3290c2a72ac11c21568f50f",
+        "tools/benchmark_reusable_rocket_stainless_models.py": "e21556f3bba7ac78cfa8ffe18b2cdd7d699299cf5366cd77ed24f11e168d34ef",
+        "tools/benchmark_short_cf_stiffness_models.py": "419050c38501428778dd04bd2bcb31b56f0769115c7260840bcebb7b05424c31",
+        "tools/build_cambridge_ni_creep_rupture_training_package.py": "3a9f57e52e4f99a543764d8976275d1360f1856d7d0482eabe95fc1eeb4346a8",
+        "tools/build_cambridge_ni_superalloy_training_package.py": "6ab6ebfd8dbf2bc4de91025fae91b2d63ea63aef6e76a6d3c6b68d0435273709",
+        "tools/build_chip_glass_cte_traceability_queue.py": "26ea85197797c637e269259cf13ffcd86339ca0d0b2aac08af037f0bc6ac2f78",
+        "tools/build_chip_glass_thermomechanical_evidence.py": "f3dfd2a03a701039c4a5390f226710feb902bdbd62e6c76024d7f4c395518760",
+        "tools/build_chip_glass_training_gate.py": "68a92809442ebc85ac950eb24e595d71470dba8ff26649795429c23c1d133d7b",
+        "tools/build_copper_hot_end_training_records.py": "1e35b3d8d10685aa5da012386249a850da59d4e507f61e4c90ed17ad6414ae0a",
+        "tools/build_machaka_calphad_phase_candidates.py": "cdb38d32a205f44177879dc517d3bb25b05dcfe1ded43aa7a86f33444c058f3f",
+        "tools/build_ni_composition_linkage_review.py": "b16a1bbf029f4ec40d083af4aa2def5d9d95d601d29059c0143dabe09ccf1c84",
+        "tools/build_ni_superalloy_data_separation.py": "74ecd0325d19af69a3885945d5e924fe1fa172132d4861c121d0f410be086f29",
+        "tools/build_ni_superalloy_training_admission.py": "02dd566be6da7cdf6f8099cbdc51df8ad72207e67b26d862b2e5babf78363d1e",
+        "tools/build_ni_superalloy_training_backlog.py": "7bbd44496f772c3fc221ec19291dd4e02579533de6b3353f12fd0b103af91a89",
+        "tools/build_ni_superalloy_training_gate.py": "145eaec05c23866d423490bd96a0c7c93112500db4ce554b5cda5bbdc3e67522",
+        "tools/build_reusable_rocket_stainless_applicability_domain.py": "7c7ab5037f301a1d215d985fa00d41a57ca5a0263bf1be6b3383470ad3eea853",
+        "tools/build_reusable_rocket_stainless_preparation.py": "3f478c420f7dcb2017c89b0be8579e007bc315a48999abc0929f9923b588d0c3",
+        "tools/build_short_cf_1111_result_markdown.py": "6c668f3b4e0594ce69a4b5e0b0ed50ce808af8fa0eeb400eea7ed5515a57f07c",
+        "tools/build_thermo_calibration_registry.py": "ff4823f01dadd63e86f41b1e095384c0863f9aea0c67758874534e02b3b59fae",
+        "tools/diagnose_reusable_rocket_stainless_temperature_generalization.py": "1b24e27dd8d9d71200be18b1c2b8a056a4b6d1cd8e9e9fd0e2efe145957ca01d",
+        "tools/evaluate_chip_glass_cte_cross_source.py": "b537d6b7f18b357f5deb842d8b39e3f0effc9cc249e5504834a1db611d809e3a",
+        "tools/expand_local_ni_short_time_labels.py": "5e03d7a2b29fc64935ef247e5f2443f4242eae20aed02444845e7f6152f46de3",
+        "tools/extract_ni_composition_from_product_pdfs.py": "a452514d6a07570737801d8e331fa1d147d188ff8abe15eddd53d351cc768fdc",
+        "tools/extract_us20250026678_same_identity_properties.py": "fdbe29961a82b001c161839496046edb79ef64a020e9b31fed85f8b5a0908480",
+        "tools/freeze_cambridge_ni_superalloy_model_input.py": "e78f0b7b94c24143d2eb9c58e03167bc0f1af3f4bfceeac439944222adcdf111",
+        "tools/freeze_ni_superalloy_model_input.py": "107d8e4f5f7bc130129cf74c990236b6f484ced7f69ea6389e5f15396b4bd36f",
+        "tools/generate_inorganic_mixed_halide_perovskites.sh": "949323c58d30f1f132127ef9ba380d491403dd50cc615b87da75de8d3581d5f8",
+        "tools/import_ccby_copper_alloy_dataset.py": "1d4ea6882298b6a306ead068b82a1101b5eab7d530e59c3b67d25a1555aabfd3",
+        "tools/import_ccby_cunisi_dataset.py": "b00c97cfa9d3d2bdeb7abd71ed14ac44da3fc099b8453b11fd38109fb4eb45a4",
+        "tools/import_cn1275889c_cte_evidence.py": "db812a6f8feae7fc3f64621588772faed22a407437f6bccc54817ce8fd141ddd",
+        "tools/import_us20110082022_cte_evidence.py": "df94f9ab0d3a7de15036c58232bc0b1467f9ddef147a4ea8ad1b69f8ee1bf9db",
+        "tools/import_us20130296157_cte_evidence.py": "19a51a45d87bb5aa5894a6de3ff7f7fc6ab9021af42d8a7d03d9039c4e84ff33",
+        "tools/import_us20210221730_cte_evidence.py": "bdc0687080d67a6ae359ff2ab1d60d6b5e5324b3596af04af751174a3a749497",
+        "tools/import_us20250026678_cte_evidence.py": "74e50489ef8955f22730f1548c1450fcea286d37e288dcabb313c514e4690dc4",
+        "tools/normalize_existing_ni_composition_candidates.py": "05eb1d2bd47e9347f1ca97f11da7ec8dd20b9710248322b826a1acc8e1336028",
+        "tools/optimize_reusable_rocket_stainless_v2.py": "d29ad28c4089817a07b9d9a7ca1204ba6ba4eaf976aaf5c0f556358faaf693e6",
+        "tools/predict_relaxed_structure_alignn.py": "8aad830e99b5ceccc24145c8c8eb3aa0866ff839edc20e45b2fa3ed4f166cc3b",
+        "tools/prepare_ni_superalloy_strength_m1.py": "aa57c72c65e60b673515b7fbca1512ca60148de0e4f7f4c44cb94c3f786483f3",
+        "tools/propose_ni_superalloy_compositions.py": "09caddc301216196af85cd7847ef5c624024b4d60860c641e4203fc2e5372c6a",
+        "tools/render_perovskite_preview_assets.py": "c64d50df609e438d7d3d53a79999a5c0e4427fd987fd1468073fc7d5f4db137a",
+        "tools/resume_hea_mattergen_finetune.py": "68f8200798e67966e7c6afe345ad7cc05727acfd63cf4488ca77248a40c1bd70",
+        "tools/run_calphad_phase_candidate_batch.py": "2caec6f37d8826bf4040844d6d5ade5602cc987ce606972d4cc7a5f98db16c02",
+        "tools/run_dft_ehull_proxy_pilot.py": "fe0a3e77286db948d19963cc09e6a9b39fb5ee5678d847d40951e99af6057216",
+        "tools/run_hea_mattergen_smoke.sh": "0a6d2198cffc3d65c01f90cd1a91d7711f518dea58a871d8d62d1f485b026064",
+        "tools/run_hea_yield_crabnet_benchmark.py": "07dcab0c371a9b947d39d01bb553ddbd300ed701002fdbf4ce3a99d5ae0156f1",
+        "tools/run_thermo_phase_fraction_calibration.py": "4055f3119d955ce38642a0cf8f2f6a73042543377931c9e5cf37ec90b1bf71bd",
+        "tools/service_runner.py": "bf3bb4e120cc7a362d533090f3454f4d228eabe0b487d5ea8c162dc9276225b0",
+        "tools/sync_ni_superalloy_1101.py": "359fcf7eb66bdb0288d6fb4164062b98525fe93059d33c1081a7b0c34056747a",
+        "tools/train_cambridge_ni_creep_rupture_baseline.py": "3f1cb06a97d2b6d1ef64893c43418d73a678d0dafddac7842fe126bc95339ea1",
+        "tools/train_cambridge_ni_elongation_baseline.py": "9246a9a65c20a372957e63d456eeee398a4caa41a1d02efd633c70d6794baab9",
+        "tools/train_cambridge_ni_superalloy_baseline.py": "b05ca1e26cf5ddb21ca7940cf57861d0275481026ff05969b4897fb9e246eea9",
+        "tools/train_chip_glass_cte_family_v1.py": "2f762fdc9f35b614705837e01e09a6b7d774fbb60dec4826f9f29a84e0e7d7f2",
+        "tools/train_chip_glass_cte_near_domain_v2.py": "024a8e764276d9f55ad6858a69684dc4f01be0c9a5b5bab53c5ec92299865720",
+        "tools/train_chip_glass_cte_research_baseline.py": "3c7a4465b8443e35ec4ad7e683b59e463ed5d8b44581a3b4ca01c238cdbbfc0e",
+        "tools/train_chip_glass_family_thermomechanical_v1.py": "139abeaf3bf563f56046201afa9cdce76b417f0c4d4576fbdf49e78cee4a5f5a",
+        "tools/train_chip_glass_thermomechanical_candidates.py": "933b2eac412fc52affa7e708628dd09fe24e7bfa71df209c5a7abbae398044d6",
+        "tools/train_copper_hot_end_conditioned_local_v1.py": "01d0352d1afef6d003f63b8c3e11705665e1105741962e15aadb09ac5f653cf9",
+        "tools/train_copper_hot_end_evidence_v1.py": "6b011f8ebb51280aac76b258b43ec1f13394d0396a24412433c6fe52b7cf23e0",
+        "tools/train_ni_superalloy_short_time_baseline.py": "b1f8e5a27c5d8cf128883c8ebd5d8d450970e5edbbb6f0eca756b62ed234b598",
+        "tools/train_reusable_rocket_stainless_design_v1.py": "d8c500f2cc143d163861ed4f62069f83cf1399a07742118b174922289e1e14a1",
+        "tools/train_reusable_rocket_stainless_design_v2.py": "8e6afcea2a32798e987dc05861ae0659eacc3930cf432eea338d31f7c47289ce",
+        "tools/train_reusable_rocket_stainless_reference_baseline.py": "5d1a96454ad78ad008e223734ee0205496fd7791ecbbdb7de5c82f775333bf07",
+        "tools/train_short_cf_thermomechanical_rve_v1.py": "477f287598c5f3e8d496ac831e2c344067cf0f4cc70b95fd91e52f1f8a03e123",
+        "tools/unified_alloy_tensile_shadow_runner.py": "237ffd120c0ce04de9beceb066417e4291c33fb774a02db1ca0637e4a0b01a05",
+        "tools/validate_ni_superalloy_training_admission.py": "4f759873c118c357bbe4bdbe6592727f96e61b5004bc48a3a820875b1b65987f"
+      }
+    },
+    "recipe_runtime": {
+      "path": "/data/se42/experiments/material_rsi_prelaunch_20260928/package/runtime",
+      "exists": true,
+      "git_commit": null,
+      "selected_paths": [
+        "candidate_model_stack.py",
+        "test_release_safety.py",
+        "test_alloy_v10_shadow.py",
+        "stainless_input_adapter.py",
+        "stainless_support.py",
+        "test_bounded_nsga.py",
+        "bounded_nsga.py",
+        "preflight_release.py",
+        "audit_support_and_labels.py",
+        "alloy_v10_shadow.py",
+        "rsi_client.py",
+        "validate_e2e.py",
+        "rsi_api.py",
+        "test_oxide_glass_shadow_contract.py",
+        "optimization_contract.py",
+        "benchmark_nsga.py",
+        "test_new_shadow_channels.py",
+        "specialist_bridge.py",
+        "runner.py",
+        "oxide_glass_shadow_runner.py",
+        "prepare_handoff.py",
+        "freeze_release.py",
+        "validate_glass_batch.py",
+        "verify_label_sources.py",
+        "trace_label_reviews.py",
+        "audit_glass.py",
+        "apply_shadow_candidate.py",
+        "shadow_channel_configs.py",
+        "private_shadow_dispatcher.py",
+        "test_nicu_constraints.py",
+        "specialist_worker.py",
+        "validate_service_snapshot.py",
+        "test_private_shadow_dispatcher.py",
+        "optimization_runner.py",
+        "test_rsi_contract.py",
+        "glass_shadow_compare.py",
+        "replay_production_stopping.py",
+        "train_strict_glass.py",
+        "build_release_report.py",
+        "audit_alloy.py",
+        "validate_presentation_stream.py",
+        "oxide_glass_shadow_contract.py",
+        "test_glass_shadow_compare.py",
+        "test_optimization_contract.py"
+      ],
+      "files": 44,
+      "sha256": "87e557d9793cb2f9d1af43f0c7b76f9382efcf5a4399a8c28d1a77b473f400e9",
+      "file_sha256": {
+        "alloy_v10_shadow.py": "282234f647d028f0a11b232ba44e139af522b0615b558a7bcb79289362197b8e",
+        "apply_shadow_candidate.py": "8e8e4f04863d4fe3138ab4bb7d8ec137c1858289b2cc4499db2d661d0110bf0b",
+        "audit_alloy.py": "536e52c948e15b3cca6c34ffb28cef751e82823eff9dce07d3ab8ee11041b04f",
+        "audit_glass.py": "abdc5fe6b6f4637af5e64d58ee41a630640878cff0fd02e804c96ac85c6ad507",
+        "audit_support_and_labels.py": "9a233aa99ab801608daa74d3b1a097df5468ab65290e421a81151254d3946300",
+        "benchmark_nsga.py": "18fae6d706fe51df5a27d9717f54d661a152651a388d4f7d1b8d33dc15912099",
+        "bounded_nsga.py": "9a674d0595b159654ce32d0eb86bb14d50bcc81a430b812ddae5f25e3179ab76",
+        "build_release_report.py": "e1cee88758684569423753c6750b3ddc74a1d76a9c13e6324531f3e098e1c696",
+        "candidate_model_stack.py": "f588ba3f6284806295446a3711463eaee2969353df25d56b36bf87cbc366420d",
+        "freeze_release.py": "401424bcd655c28130224e10e6efcb7211851b02cf005861479ab933c1fdc8fe",
+        "glass_shadow_compare.py": "2d5c2ed43269a5938c204a11eb4d25be99796fab590d5a314743a1aec8dba133",
+        "optimization_contract.py": "a3cbdbba873b3928af55b4f6a30911a42621bd32d60a5473b96297a0bb035222",
+        "optimization_runner.py": "f28ec93541cf9d35076503d2a26e6c8ac6eb4bbb836779dabf8f0f4984f49f69",
+        "oxide_glass_shadow_contract.py": "4deef50e95d52e4a7ea84829c866403273b45b91534f709d4ce4d4484d4375b1",
+        "oxide_glass_shadow_runner.py": "2e9235dc928220c6cf2e576e93fe7a319fac5c275741d698f7dc6049f3d5c375",
+        "preflight_release.py": "2c071360808447587a40873e08d45cf2694a40756f4340629dbed8284f652004",
+        "prepare_handoff.py": "c8524a11848ccec9273b3fff7174a395ddb496cb5e276ff44d7035ba098ea335",
+        "private_shadow_dispatcher.py": "eac67ae8dea9f679dc1e481af9b6bac7a2ba6f97cc95fccaf8907e50568c5e11",
+        "replay_production_stopping.py": "09bc07c587124170023d858f004af88285c475e524aa15775a0b3bdc4b81a7bd",
+        "rsi_api.py": "9c1b6e4f1ca4e4f87b146f6a76aeb21c800a2e3860194b89b2ede0f7a62fc57e",
+        "rsi_client.py": "6168707c03ff85d80721fbfc1b34589164438834a8edcdd0e30d247848acb3aa",
+        "runner.py": "84d935ffa5f5b21e2579e6baba099f0541ff79724b690f58415239e06f39bc5d",
+        "shadow_channel_configs.py": "c295b2e71281ec1b73dbb39b459fa8a3765a5510ca5a564cc1631e2c525930b5",
+        "specialist_bridge.py": "d473e93cea34f65b9623b9f7820bf368a058ea5c22d671fc6b0af7f04679398d",
+        "specialist_worker.py": "7e5b6b326b766ab5f6fea9a86936fe3c6253c24acafe9b0d37142b3327c1453e",
+        "stainless_input_adapter.py": "2e613030e222d5bf316138e2940a89685c5669b692e08caedfda5eb04d1e4f4f",
+        "stainless_support.py": "c325ac390dff1098f6fea662a95f5a63bc3cd192dd4607d29bbd828cd76e8538",
+        "test_alloy_v10_shadow.py": "f07f7390adf4001c5095753f8d7e2f8880486e9043744a3c58b4368b92408638",
+        "test_bounded_nsga.py": "4d60b9c54799452e240b2e3cdeb91761b1f533776ce05aa6a749fcdbb18ec88b",
+        "test_glass_shadow_compare.py": "828450f1da443750480bbf52945f9cf346322e1f55d30bcc1697ac77d6cbeeb6",
+        "test_new_shadow_channels.py": "212cd64248f86e160209cae20def02a627b385e45bc17c4361f86fda090be964",
+        "test_nicu_constraints.py": "2236a5d7ac4bfe935736f251f794b73a9ffbc20ea9557903d6f7c1ff0172ce31",
+        "test_optimization_contract.py": "e529e0206027600e05167713ca5e289f22dd7011d8d4931c74b5f46ffee4f96c",
+        "test_oxide_glass_shadow_contract.py": "ccbd145a4bb03567e1b6745a4eb519a54b8bcae40219734c4b1c4d0b9de409ad",
+        "test_private_shadow_dispatcher.py": "eb6b8ff60afca9322e346279f183199dadbdb5a9dc4f6685e4a5b33170255b09",
+        "test_release_safety.py": "2359d6827557895d729dc27e13218a3ea62f0028b7436a9e5503bb5c526e7913",
+        "test_rsi_contract.py": "5bf7e1183d0cf8671b895d270ce93f1b93ecaf8f131f2a46d40ee6f5418723f3",
+        "trace_label_reviews.py": "a0f23aec58c1375a2ecfa67f2f54ef64630c288a14aaeaf0aab07e3782820638",
+        "train_strict_glass.py": "b72f217c4ee7ed9f2aa83e46591f3a5966b427c196a4edc4eb46dc6bb9985e64",
+        "validate_e2e.py": "088c577a21b8ea192414d8ac0d39127c90f4623b9ad29f20b64ff113ea00dbd8",
+        "validate_glass_batch.py": "12cffb85adc0b99e7d0091c65cdb1cbcc51802dbaaf34b268d4e2fc8e0b917c7",
+        "validate_presentation_stream.py": "6b09cbb1c15f8ed3859b410dfa60e4dd29af13bc85eb8392371717ffb196e0be",
+        "validate_service_snapshot.py": "2765e3191b4b12bea1d48fac25c29722d10277ff19a2693b87e8514d1fa5e08b",
+        "verify_label_sources.py": "ee461eda1f7bbd086d713468c721cdd828c9d26e28017cc733f765f70f21dc58"
+      }
+    },
+    "recipe_presentation": {
+      "path": "/data/se42/experiments/material_shadow_frontend_v2_20260928",
+      "exists": true,
+      "git_commit": null,
+      "selected_paths": [
+        "shadow_recipe_runner.py",
+        "recipe_display.py",
+        "recipe_conclusion.py",
+        "recipe_labels.py",
+        "recipe_plots.py",
+        "recipe_shadow.py"
+      ],
+      "files": 6,
+      "sha256": "232b7b8c52ef6ac6f5355dbfbc2bbb26289dffb41bf6baff23c50fdc8681b800",
+      "file_sha256": {
+        "recipe_conclusion.py": "c94bed3343f9a1c0ab3e310903b394ed52c7bdbacc21259595792e02c3ceee19",
+        "recipe_display.py": "43c6de09f2d66cd08ba32dfb8aefcae41f4e192b2d7c3173246f0d65bd21910d",
+        "recipe_labels.py": "7d801f5973e9ff82a864887c240755b4dcbe7cdb5c6780be3d62d83ec27cb9d6",
+        "recipe_plots.py": "113106645fb9e5369e8739596d3bdd2d38e12d116e3dbf81d16a56c638491227",
+        "recipe_shadow.py": "e640731536aee03f707ea6cce81fccc96be55e9a2bdc2b1465653ea678482e46",
+        "shadow_recipe_runner.py": "a6148878490f5973e1a95781caf12f8a02b72a2362cd397704ebb2a87b79b941"
+      }
+    }
+  },
+  "artifacts": {
+    "omatg_dng": {
+      "path": "/data/se42/omatg_local/checkpoints/MP-20-DNG/Linear-SDE-Gamma/checkpoint.ckpt",
+      "exists": true,
+      "bytes": 148488986,
+      "sha256": "5f3b100272b05d7e7c43da67a9bf7749c6e51be7ca025894bab2c383508e88f2",
+      "unchanged_during_read": true
+    },
+    "omatg_dng_config": {
+      "path": "/data/se42/omatg_local/checkpoints/MP-20-DNG/Linear-SDE-Gamma/train.yaml",
+      "exists": true,
+      "bytes": 5914,
+      "sha256": "02434bdbf6998e5a9ec03749832d0fef86eba83b82fe287ba585239da67c92cb",
+      "unchanged_during_read": true
+    },
+    "omatg_csp": {
+      "path": "/data/se42/omatg_local/checkpoints/Alex-MP-20-CSP/Trig-SDE-Gamma/checkpoint.ckpt",
+      "exists": true,
+      "bytes": 148075198,
+      "sha256": "bf07f1ccfea92f1382ce5d1a9e3802869bbe9a01f134a145c0eca45493d5b82e",
+      "unchanged_during_read": true
+    },
+    "omatg_csp_config": {
+      "path": "/data/se42/omatg_local/checkpoints/Alex-MP-20-CSP/Trig-SDE-Gamma/train.yaml",
+      "exists": true,
+      "bytes": 4627,
+      "sha256": "e9663a7eed5022e536e6d8aa3c36fa4050614f3b56ddc39eabf6a68d72159c0e",
+      "unchanged_during_read": true
+    },
+    "mattersim": {
+      "path": "/data/se42/omatg_local/checkpoints/mattersim-v1.0.0-1M.pth",
+      "exists": true,
+      "bytes": 17932943,
+      "sha256": "28b0b0b0f13efefee06b47ea4c9105a26bd3e2c8396da193430da96b3b49a8be",
+      "unchanged_during_read": true
+    },
+    "mp2020_reference": {
+      "path": "/data/mattersim_reference_cache/reference_MP2020correction",
+      "exists": true,
+      "bytes": 3848802304,
+      "sha256": "086d179b9cdce36f883ce9dcee0032c23f49d2b3724e56018c5f812d20a870b0",
+      "unchanged_during_read": true
+    },
+    "jv_mbj_bandgap_alignn": {
+      "path": "/data/mamba/envs/alignn-gpu-test/lib/python3.10/site-packages/alignn/jv_mbj_bandgap_alignn.zip",
+      "exists": true,
+      "bytes": 45747985,
+      "sha256": "53b746a8c3090d6227c56c2df360c169202ac250eebd2cf107f4748609c5d470",
+      "unchanged_during_read": true
+    },
+    "jv_bulk_modulus_kv_alignn": {
+      "path": "/data/mamba/envs/alignn-gpu-test/lib/python3.10/site-packages/alignn/jv_bulk_modulus_kv_alignn.zip",
+      "exists": true,
+      "bytes": 45757837,
+      "sha256": "e2a940a279bf892645812ef68cfc2e631963d9ef066555d11649b460a617815d",
+      "unchanged_during_read": true
+    },
+    "jv_shear_modulus_gv_alignn": {
+      "path": "/data/mamba/envs/alignn-gpu-test/lib/python3.10/site-packages/alignn/jv_shear_modulus_gv_alignn.zip",
+      "exists": true,
+      "bytes": 45772309,
+      "sha256": "e832864b5ea7f9d1fc15032ace354ac05a6df45a5ed57e93f1e8a99e6d690dbc",
+      "unchanged_during_read": true
+    },
+    "jv_avg_elec_mass_alignn": {
+      "path": "/data/mamba/envs/alignn-gpu-test/lib/python3.10/site-packages/alignn/jv_avg_elec_mass_alignn.zip",
+      "exists": true,
+      "bytes": 45609054,
+      "sha256": "4f87f97399cd9f7d722b7af9ccb43fd5b5e83442ff5516b1fdb68a623d1925fb",
+      "unchanged_during_read": true
+    },
+    "jv_avg_hole_mass_alignn": {
+      "path": "/data/mamba/envs/alignn-gpu-test/lib/python3.10/site-packages/alignn/jv_avg_hole_mass_alignn.zip",
+      "exists": true,
+      "bytes": 45607965,
+      "sha256": "2155f0d42f955d15b71b09fdb7331d32b9ef10557312ed396afd09fae1703d60",
+      "unchanged_during_read": true
+    },
+    "1111_FREEZE.json": {
+      "path": "/data/se42/experiments/material_rsi_prelaunch_20260928/package/runtime/FREEZE.json",
+      "exists": true,
+      "bytes": 11291,
+      "sha256": "2f2bd98f81c33111a53527b29990364adf666f65d1d8898a7fb93d95c5872472",
+      "unchanged_during_read": true
+    },
+    "1111_PACKAGE_MANIFEST.json": {
+      "path": "/data/se42/experiments/material_rsi_prelaunch_20260928/package/runtime/PACKAGE_MANIFEST.json",
+      "exists": true,
+      "bytes": 29092,
+      "sha256": "af182abf9c26e0cc7649dcadf27a071c2694b6912bc568c95030da9f0ffef123",
+      "unchanged_during_read": true
+    },
+    "1111_FROZEN_INPUT_INVENTORY.json": {
+      "path": "/data/se42/experiments/material_rsi_prelaunch_20260928/package/runtime/FROZEN_INPUT_INVENTORY.json",
+      "exists": true,
+      "bytes": 53858,
+      "sha256": "973ba4964c94ad39bc719b7485b607225a0a6ae81b22a2d45a9b194e4dfd0ebb",
+      "unchanged_during_read": true
+    },
+    "1111_EXTERNAL_DEPENDENCIES.json": {
+      "path": "/data/se42/experiments/material_rsi_prelaunch_20260928/package/runtime/EXTERNAL_DEPENDENCIES.json",
+      "exists": true,
+      "bytes": 11906,
+      "sha256": "c488cddc442244a7dbad0d5cd66cc69f5efed212a8393c7df13a1c4a0c51df52",
+      "unchanged_during_read": true
+    },
+    "1111_runtime/models/glass_v1/model_state.pt": {
+      "path": "/data/se42/experiments/material_rsi_prelaunch_20260928/package/runtime/models/glass_v1/model_state.pt",
+      "exists": true,
+      "bytes": 2694643,
+      "sha256": "601fefce1d36aabb4e1de77f85baf96a7eec6cc8daebfedc8490d0535b6976a6",
+      "unchanged_during_read": true
+    },
+    "1111_runtime/models/alloy_v10/model_state.pt": {
+      "path": "/data/se42/experiments/material_rsi_prelaunch_20260928/package/runtime/models/alloy_v10/model_state.pt",
+      "exists": true,
+      "bytes": 2880014,
+      "sha256": "88109cd28ed056e07c893bc294c3000f5ac6dbb809de6a9046f233f478467f83",
+      "unchanged_during_read": true
+    }
+  },
+  "remaining_work": [
+    "Identify upstream OMatG commit or archive revision; current source may lack Git metadata",
+    "Prepare and validate a clean-machine install, including non-Python libraries and model source installation",
+    "Inventory all 1111 specialist data and model files outside the checked recipe runtime models",
+    "Assign named owners and an access-controlled transfer location before a machine migration"
+  ]
+}
