@@ -46,8 +46,6 @@ def _recipe_composition_table(composition: dict[str, Any], balance: str) -> list
         f"| {name} | {element} | {amount:.6f}".rstrip("0").rstrip(".") + " |"
         for element, amount, name in rows
     ]]
-
-
 def _rocket_composition_text(composition: dict[str, Any], *, include_symbols: bool = False) -> str:
     """Describe candidate inputs without interpreting absent elements as measured zero."""
     names = {
@@ -111,8 +109,6 @@ def _candidate_composition_table(
         "|---|---:|",
         *(rows or ["| 当前候选未记录成分 | — |"]),
     ])
-
-
 def _heat_treatment_text(value: Any) -> str:
     """Turn the persisted stage string into the customer-facing process card."""
     text = str(value or "").strip()
