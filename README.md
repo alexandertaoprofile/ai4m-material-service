@@ -1,6 +1,8 @@
 # 材料计算服务仓库（Material-Computation）
 
-本仓库维护四个独立后端服务，分别解决“查已有材料、优化材料配比、生成晶体结构、核验计算证据”四类问题。网页或上游服务选择对应接口；各服务独立配置和部署，并非一次请求必然依次调用全部服务。
+本仓库维护四个独立后端服务，分别解决“查已有材料、优化材料配比、生成晶体结构、核验计算证据”四类问题。`main` 是项目完整入口：根目录的四个服务保存 75 服务器源码快照，`development/` 保存待部署更新和独立实验；`backup` 固定保留此前的旧版本。
+
+接手者先看本页确定服务与代码状态，再进入对应 README。当前部署记录见[线上与开发状态](docs/deployment_status.md)。本次整理不部署、不改生产配置、不重启服务。
 
 ## 1. 服务分工与当前状态
 
@@ -8,8 +10,8 @@
 | --- | --- | --- | --- | --- |
 | `material_database/` | 1105 | 在已有材料目录中查找、比较材料，包含导电润滑剂专项。 | 材料名称、牌号、工况及性质条件 → 目录匹配、性质证据和比较报告。 | 目录检索及流式报告已实现；数据覆盖以实际目录为准。 |
 | `material_composition_optimization/` | 1111 | 在允许的组成范围内调整材料配比。 | 材料类别、组分范围、工况及目标 → 优选配比、模型预测性质和比较图。 | 八类专项计算已配置为正式路线；其他类别提供通用设计准备。 |
-| `material_discovery/` | 1115 | 生成新的周期无机晶体结构。 | 化学式、元素范围或经确认的开放探索需求 → 候选结构、稳定性估算、性质预测及三维文件。 | 75 服务器已接入 OMatG；本仓库还包含已验证、待单独部署验收的后续显示改进。 |
-| `material_validation/` | 1116 | 组织、检查已有计算与实验来源，判断验证证据是否齐全。 | 纯钨 W-14 标杆任务及已归档数据 → 四阶段证据报告和性质对标。 | 当前为标杆证据读取与报告服务；在线 DeepMD/LAMMPS 执行器尚未接入。 |
+| `material_discovery/` | 1115 | 生成新的周期无机晶体结构。 | 化学式、元素范围或经确认的开放探索需求 → 候选结构、稳定性估算、性质预测及三维文件。 | 本目录对应 75 当前源码；后续报告与异常原因改进单独位于 `development/material_discovery/`。 |
+| `material_validation/` | 1116 | 组织、检查已有计算与实验来源，判断验证证据是否齐全。 | 纯钨 W-14 标杆任务及已归档数据 → 四阶段证据报告和性质对标。 | 当前为标杆证据读取与报告实现；本次未确认该端口活动进程，在线 DeepMD/LAMMPS 执行器尚未接入。 |
 
 “周期晶体”指原子排列在空间中重复的固体结构；“配比优化”调整各组分含量；“结构生成”还要确定晶胞和原子位置，两者对应不同服务。
 
@@ -17,27 +19,27 @@
 
 ## 2. 版本与阅读顺序
 
-当前分支安排仍保持原约定：
+只用两条长期分支；线上与开发内容按目录区分，不需要逐功能维护长期分支：
 
 | 分支 | 用途 |
 | --- | --- |
-| `update/material-services-2026-08` | 正式维护分支，历史简称 `service-08`。 |
-| `main` | 保留此前版本的备份分支；默认分支设置与正式维护分支目前不同。 |
+| `main` | 默认维护分支，包含线上源码快照、开发内容、测试和交接说明。 |
+| `backup` | 固定保存旧 main 提交 `34305b968445186d93cb37a96bcb1a338e845a86`；此次不更新。 |
 
-拉取正式代码时需显式指定分支：
+获取当前完整项目：
 
 ```bash
-git clone --branch update/material-services-2026-08 git@github.com:AI4SciFoundation/Material-Computation.git
+git clone --branch main git@github.com:AI4SciFoundation/Material-Computation.git
 ```
 
 建议按以下顺序阅读：
 
 1. 本页：服务分工、代码分层和运行边界。
-2. [整合版本交接](docs/RELEASE_HANDOFF_20261004.md)：整合范围、已执行测试与部署状态。
+2. [线上与开发状态](docs/deployment_status.md)：源码来源、开发任务、外部依赖与部署规则。
 3. 对应服务 README：[1105](material_database/README.md)、[1111](material_composition_optimization/README.md)、[1115](material_discovery/README.md)、[1116](material_validation/README.md)。
 4. [环境说明](env/README.md)：主服务与科学计算环境的分工、外部资源位置。
 5. [统一架构规范](docs/material_service_architecture_standard.md)：新增代码、前端协议与上线交接要求。
-6. [README 修订记录](docs/README_REVIEW_20261004.md)：本次 11 份说明的统一标准与验证范围。
+6. [开发目录](development/README.md)与[版本交接](docs/RELEASE_HANDOFF_20261004.md)：待部署改进、物理约束实验及已执行验证。
 
 旧 MatterGen 训练包和离线工具的 README 标明历史用途；它们不是现行 1115 的部署入口。
 
@@ -49,7 +51,12 @@ material_service_hub/
 ├── material_composition_optimization/   # 1111：配比优化
 ├── material_discovery/                  # 1115：晶体结构生成与评价
 ├── material_validation/                 # 1116：标杆证据核验
+├── development/                        # 独立开发与待部署更新
+│   ├── material_composition_optimization/ # 1111：后续整合更新
+│   ├── material_discovery/               # 1115：报告及异常原因改进
+│   └── 1111_physics/                     # 1111：离线玻璃物理约束实验
 ├── env/                                # 环境定义和历史依赖快照
+├── tools/                              # 仓库结构和源码快照校验
 └── docs/                               # 跨服务规范、版本交接与审阅记录
 ```
 
@@ -62,6 +69,8 @@ material_service_hub/
 | 业务规则与执行 | 1105 `src/catalog/`；1111 `src/alloy_workflow/`；1115 `src/material_workflow/`；1116 `src/application/` 等 | 目录查询、条件解析、模型调用、优化、结构评价或证据读取。 |
 | 展示与存储适配 | 各服务的展示、协议与资产模块 | 组织 Markdown、表格、图像及三维文件，按既有协议交付。 |
 | 配置与验证 | `.env.example`、`config/`、`tests/` | 配置样例、版本开关、单元和接口契约测试。 |
+
+根目录服务与开发副本有各自完整入口。开发副本用于保留一组相互依赖的更新，不是正式服务的隐式备用导入路径；根目录服务不导入 `development/`。改进完成后，按差异清单及验收结果更新对应线上服务目录，再单独安排服务器部署。
 
 维护时从入口和编排层追到实际计算模块，避免仅按文件名判断用途。`src/team_config_en.py`、`src/llm_utils.py`、`alpha/` 等旧文件仍可能有兼容调用方；清理前须检查引用和回归测试。1111 的详细阅读路径见[代码审阅指南](material_composition_optimization/docs/alloy_composition_optimization_review_guide.md)。
 
@@ -81,6 +90,8 @@ material_service_hub/
 ## 5. 运行、验证与部署
 
 各服务读取自己的 `.env`。主 Web 进程使用实际服务环境，重型模型通过独立环境调用；准确路径和检查命令见对应 README。
+
+75 当前运行目录仍为 `/data/se42/alpha_project/material_service_hub`。GitHub `backup` 是历史代码备份，不代替部署前的源码和配置回退备份。当前生产工作树包含尚未提交的修改，先只读核对与备份，勿在其中直接切分支或整仓库拉取覆盖。开发联调使用独立端口、配置和结果目录，保留现有外部模型及环境路径。
 
 验证按三个层次进行：
 

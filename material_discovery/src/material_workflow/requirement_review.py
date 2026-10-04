@@ -22,12 +22,12 @@ def parse_review_answer(answer: str) -> tuple[str, Any]:
     match = re.fullmatch(r"(?:化学式|formula)\s*[：:]\s*(.+)", value, re.I | re.S)
     if match:
         from .omatg_contract import formula_counts
-        formula = re.split(r"[；;，,\n]", match.group(1), maxsplit=1)[0].strip()
+        formula = match.group(1).strip()
         formula_counts(formula)
         return "formula", formula
     match = re.fullmatch(r"(?:元素|元素范围|elements?)\s*[：:]\s*(.+)", value, re.I | re.S)
     if match:
-        value = re.split(r"[；;\n]", match.group(1), maxsplit=1)[0].strip()
+        value = match.group(1).strip()
     else:
         # A bare formula is unambiguous; accept it as a backward-compatible answer.
         from .omatg_contract import formula_counts
@@ -57,11 +57,6 @@ def merge_review_answer(payload: dict[str, Any], answer: str) -> dict[str, Any]:
     original = str(payload.get("idea") or payload.get("instruction") or "")
     merged = {**payload, "idea": f"{original}\n用户补充：{answer}"}
     source = dict(payload.get("new_material") or {})
-    from .constraints import _current_task_text
-    # Keep performance/mandatory-element requirements from before the popup.
-    # Full history remains available separately for scenario continuity.
-    prior_request = source.get("confirmed_requirement_text") or _current_task_text(original)
-    source["confirmed_requirement_text"] = f"{prior_request}\n用户补充：{answer}"
     source["raw_requirement"] = f"{source.get('raw_requirement') or original}\n用户补充：{answer}"
     if kind == "formula":
         source.update(target_formula=parsed, generation_mode="csp", allow_open_chemical_space=False)
@@ -80,11 +75,10 @@ def merge_review_answer(payload: dict[str, Any], answer: str) -> dict[str, Any]:
 
 
 async def request_element_clarification(websocket: Any, taskid: str, reason: str,
-                                        stageid: str = "FILAMENT_SELECTION_OPTIMIZATION", payload: dict | None = None) -> str | None:
+                                        stageid: str = "FILAMENT_SELECTION_OPTIMIZATION") -> str | None:
     """Ask once; retry invalid replies on the same request. Disconnect propagates."""
     request_id = uuid.uuid4().hex
     question_id = "element_system"
-    from .omatg_report import build_review_context
     await websocket.send_json({
         "type": "requirement_review_request", "schema_version": 1,
         "taskid": taskid, "request_id": request_id, "stageid": stageid,
@@ -92,14 +86,13 @@ async def request_element_clarification(websocket: Any, taskid: str, reason: str
             "title": "选择新材料结构生成的起点",
             "fields": [],
             "questions": [{"id": question_id, "question": (
-                "请选择以下一种起点填写：\n"
-                "1. 化学式：BaTiO3 —— 固定元素比例，探索晶体结构。\n"
-                "2. 元素：Fe Cr Ni —— 在这些元素中探索组成和结构。\n"
-                "3. 开放探索：描述用途或性能需求 —— 同意开放元素空间，生成后按要求评价。\n"
-                "可直接填写化学式或元素；也可用“需求：...”或“材料大类：...”选择开放探索。"
-                "性能条件可接在后面，例如“化学式：BaTiO3；带隙至少 3 eV”。"),
+                "请选择一种方式填写：化学式：BaTiO3（按固定组成生成结构）；"
+                "元素：Fe Cr Ni（只在这些元素中探索组成和结构）；"
+                "需求：描述材料类别、用途或目标性质（明确同意开放元素空间，生成后筛选）；"
+                "也可写“开放探索：...”或“材料大类：...”。"
+                "也可直接填写化学式或元素。仅写笼统需求不会自动开放化学空间。"),
                            "answer": "", "required": True}],
-            "baseline_markdown": build_review_context(payload or {}),
+            "baseline_markdown": "",
             "allow_comment": False, "auto_continue": False,
         },
     })

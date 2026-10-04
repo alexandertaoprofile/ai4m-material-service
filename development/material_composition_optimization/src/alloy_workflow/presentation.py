@@ -1,0 +1,1495 @@
+"""Dedicated semantic streaming renderer for alloy workflow results.
+
+It deliberately renders computed values deterministically: an LLM may later
+polish prose, but must never alter model values or the machine handoff table.
+"""
+from __future__ import annotations
+
+import asyncio
+import json
+import math
+import os
+from pathlib import Path
+from typing import Any
+
+from src.alloy_workflow.microstructure_tendency import build_engineering_estimates
+
+
+def _composition_text(composition: dict[str, Any]) -> str:
+    def number(value: Any) -> str:
+        amount = float(value)
+        return f"{amount:.3f}" if 0 < amount < 0.1 else f"{amount:.1f}"
+    return " ".join(f"{element}{number(value)}" for element, value in composition.items())
+
+
+def _recipe_composition_table(composition: dict[str, Any], balance: str) -> list[str]:
+    """Render the actual retained composition, with trace elements kept visible."""
+    names = {
+        "Fe": "铁", "Cr": "铬", "Ni": "镍", "Co": "钴", "Mn": "锰", "Si": "硅",
+        "Mo": "钼", "Cu": "铜", "C": "碳", "N": "氮", "P": "磷", "S": "硫",
+        "Nb": "铌", "Ti": "钛", "Al": "铝", "V": "钒", "Zr": "锆", "Ta": "钽",
+        "W": "钨", "Re": "铼", "Hf": "铪", "B": "硼", "O": "氧", "Ag": "银",
+    }
+    rows = []
+    for element, value in composition.items():
+        if value is None:
+            continue
+        amount = float(value)
+        if not math.isfinite(amount) or amount <= 0:
+            continue
+        name = names.get(element, element)
+        if element == balance:
+            name += "（平衡元素）"
+        rows.append((element, amount, name))
+    rows.sort(key=lambda item: (item[0] != balance, -item[1], item[0]))
+    return ["| 元素 | 标识 | 质量百分比（wt.%） |", "|---|---|---:|", *[
+        f"| {name} | {element} | {amount:.6f}".rstrip("0").rstrip(".") + " |"
+        for element, amount, name in rows
+    ]]
+def _rocket_composition_text(composition: dict[str, Any], *, include_symbols: bool = False) -> str:
+    """Describe candidate inputs without interpreting absent elements as measured zero."""
+    names = {
+        "Fe": "铁", "Cr": "铬", "Ni": "镍", "Mn": "锰", "Si": "硅",
+        "Mo": "钼", "Cu": "铜", "C": "碳", "N": "氮", "P": "磷",
+        "S": "硫", "Nb": "铌", "Ti": "钛", "Al": "铝", "V": "钒",
+    }
+    preferred = ("Fe", "Cr", "Ni", "Mn", "Si", "Mo", "Cu", "C", "N", "P", "S")
+    elements = [*preferred, *sorted(set(composition) - set(preferred))]
+    parts = []
+    for element in elements:
+        if element not in composition:
+            continue
+        try:
+            amount = float(composition[element])
+        except (TypeError, ValueError):
+            continue
+        if not math.isfinite(amount) or amount <= 0:
+            continue
+        value = f"{amount:.3f}" if amount < 0.1 else f"{amount:.1f}"
+        name = names.get(element, element)
+        label = f"{name}（{element}）" if include_symbols and name != element else name
+        parts.append(f"{label}{'约' if element == 'Fe' else ''}{value}%")
+    return "；".join(parts) if parts else "当前候选未记录成分"
+
+
+def _candidate_composition_table(
+    composition: dict[str, Any], *, basis: str, balance_element: str | None = None,
+    component_label: str = "元素",
+) -> str:
+    """Show each recorded candidate component without inventing absent zero values."""
+    names = {
+        "Fe": "铁", "Cr": "铬", "Ni": "镍", "Mn": "锰", "Si": "硅",
+        "Mo": "钼", "Cu": "铜", "C": "碳", "N": "氮", "P": "磷",
+        "S": "硫", "Nb": "铌", "Ti": "钛", "Al": "铝", "V": "钒",
+        "Zr": "锆", "Ag": "银", "Co": "钴", "Ta": "钽", "W": "钨",
+        "Hf": "铪", "O": "氧", "B": "硼", "Sn": "锡", "Mg": "镁",
+        "Zn": "锌", "Li": "锂", "Sc": "钪", "Y": "钇",
+    }
+    labels = {"wt.%": "质量占比（wt.%）", "at.%": "原子占比（at.%）", "mol.%": "摩尔占比（mol.%）"}
+    ordered = list(composition)
+    if balance_element in ordered:
+        ordered.remove(balance_element)
+        ordered.insert(0, balance_element)
+    rows = []
+    for symbol in ordered:
+        try:
+            amount = float(composition[symbol])
+        except (TypeError, ValueError):
+            continue
+        if not math.isfinite(amount) or amount <= 0:
+            continue
+        label = f"{names[symbol]}（{symbol}）" if symbol in names else symbol
+        value = f"{amount:.4g}%"
+        if symbol == balance_element:
+            label += " · 平衡组分"
+            value = "约 " + value
+        rows.append(f"| {label} | {value} |")
+    return "\n".join([
+        f"| {component_label} | {labels.get(basis, basis)} |",
+        "|---|---:|",
+        *(rows or ["| 当前候选未记录成分 | — |"]),
+    ])
+def _heat_treatment_text(value: Any) -> str:
+    """Turn the persisted stage string into the customer-facing process card."""
+    text = str(value or "").strip()
+    if not text:
+        return "未设置"
+    import re
+
+    labels = (
+        ("solution_stage_1", "固溶处理"),
+        ("precipitation_stage_1", "一级时效"),
+        ("precipitation_stage_2", "二级时效"),
+    )
+    stages: list[str] = []
+    for key, label in labels:
+        temperature = re.search(rf"{key}_temp_C=([0-9.]+)", text)
+        duration = re.search(rf"{key}_time_h=([0-9.]+)", text)
+        if temperature and duration:
+            stages.append(f"{label}：{temperature.group(1)} °C × {duration.group(1)} h")
+    return "；".join(stages) if stages else text.replace("_", " ").replace(";", "；")
+
+
+def _rocket_process_text(value: Any) -> str:
+    """Render the structured stainless processing card without exposing JSON."""
+    if not isinstance(value, dict):
+        return _heat_treatment_text(value)
+    temperature = value.get("solution_treatment_temperature_K")
+    duration = value.get("solution_treatment_time_s")
+    quench = {"water": "水淬", "air": "空冷"}.get(str(value.get("quench") or ""), "待确认")
+    if temperature is not None and duration is not None:
+        kelvin, seconds = float(temperature), float(duration)
+        return f"固溶退火：{kelvin:.0f} K（约 {kelvin - 273.15:.0f} °C），保温 {seconds:.0f} s（{seconds / 3600:g} h）；{quench}"
+    return "固溶退火状态待确认"
+
+
+def _rocket_plan_block(effective: dict[str, Any]) -> str:
+    bounds = effective.get("element_bounds_wt_percent") or {}
+    bound_text = "；".join(f"{e} {v[0]}–{v[1]} wt.%" for e, v in bounds.items() if isinstance(v, (list, tuple)) and len(v) == 2)
+    return "\n".join([
+        "### 可回收火箭不锈钢配方设计",
+        "", "### 1. 问题描述",
+        f"针对 {effective.get('component', '可回收火箭承压壳体')}，在指定固溶处理与评价温度下，筛选 Fe–Cr–Ni–Mn 奥氏体不锈钢候选。",
+        "", "### 2. 变量与约束", "| 符号/变量 | 定义 | 本轮设定 |", "|---|---|---|",
+        "| $\mathbf{c}_{wt.\%}$ | 合金元素质量百分比向量 | " + (bound_text or "以任务输入为准") + "；Fe 为平衡元素 |",
+        "| $p$ | 固溶处理状态 | " + _rocket_process_text(effective.get("processing")) + " |",
+        f"| $T$ | 短时拉伸评价温度 | {effective.get('test_temperature_K', '-')} K |",
+        "", "### 3. 计划计算链与模型定义",
+        "### 3.1 成分约束与候选生成",
+        "在当前 wt.% 边界内进行局部组合，Fe 自动平衡至 100 wt.%：",
+        r"$$c_{Fe}=100-\sum_{i\ne Fe}c_i,\qquad c_i\in[l_i,u_i]$$",
+        "### 3.2 成分—工艺—温度响应关系",
+        "以成分、固溶处理和温度为输入，预测短时拉伸响应：",
+        r"$$\mathcal{F}(\mathbf{c}_{wt.\%},p,T)\rightarrow\left(YS_{0.2},UTS,A,AD\right)$$",
+        "其中 $AD$ 为候选与训练成分邻域的距离标记。",
+        "### 3.3 候选综合排序",
+        r"$$J=w_y z(YS_{0.2}-MAE_y)+w_u z(UTS-MAE_u)+w_a z(A-MAE_a)$$",
+        "按屈服强度、UTS、延伸率和成分适用域形成优先验证顺序。",
+        "", "### 4. 输出定义及验证路径",
+        "输出 0.2% 屈服强度、UTS、延伸率和成分适用域；优先候选进入低温韧性、焊接、疲劳与 LOX 相容性验证。",
+    ])
+
+
+def _hot_end_plan_block(effective: dict[str, Any]) -> str:
+    route = {"cast": "铸造", "directionally_solidified": "定向凝固", "single_crystal": "单晶"}.get(str(effective.get("manufacturing_route")), str(effective.get("manufacturing_route") or "待确认"))
+    bounds = effective.get("element_bounds_wt_percent") or {}
+    bounds_text = "；".join(f"{e} {v[0]}–{v[1]} wt.%" for e, v in bounds.items() if isinstance(v, (list, tuple)) and len(v) == 2) or "以任务输入为准"
+    thresholds = effective.get("screening_thresholds") or {}
+    labels = {"uts_min_MPa": ("UTS", "MPa"), "proof_strength_min_MPa": ("0.2% 屈服", "MPa"), "rupture_life_min_h": ("蠕变寿命", "h")}
+    thresholds_text = "；".join(f"{labels[key][0]} ≥ {value} {labels[key][1]}" for key, value in thresholds.items() if key in labels) or "未设置数值门槛，按强度与蠕变寿命比较配方"
+    return "\n".join([
+        "### 1. 问题描述",
+        f"针对 {route} 路线高温合金，在 {effective.get('test_temperature_C', '-')} °C / {effective.get('applied_stress_MPa', '-')} MPa 和指定热处理条件下，生成并比较镍基候选配方。",
+        "", "### 2. 变量与约束", "| 符号/变量 | 定义 | 本轮设定 |", "|---|---|---|",
+        "| $\mathbf{c}_{wt.\%}$ | 合金元素质量百分比向量 | " + bounds_text + "；Ni 为平衡元素 |",
+        f"| $r,h$ | 制造路线与热处理 | {route}；{_heat_treatment_text(effective.get('heat_treatment'))} |",
+        f"| $T,\sigma$ | 温度与蠕变载荷 | {effective.get('test_temperature_C', '-')} °C；{effective.get('applied_stress_MPa', '-')} MPa |",
+        f"| $g$ | 本次性能要求 | {thresholds_text} |",
+        "", "### 3. 计划计算链与模型定义",
+        "### 3.1 成分约束与候选生成",
+        "候选在当前 wt.% 边界内局部调整，Ni 自动平衡至 100 wt.%：",
+        r"$$c_{Ni}=100-\sum_{i\ne Ni}c_i,\qquad c_i\in[l_i,u_i]$$",
+        "### 3.2 成分—工艺—工况响应关系",
+        "以 wt.% 成分、制造路线、热处理、温度和载荷为输入，输出短时强度与蠕变寿命：",
+        r"$$\mathcal{F}(\mathbf{c}_{wt.\%},r,h,T,\sigma)\rightarrow\left(UTS,PS_{0.2},\log_{10}t_r\right)$$",
+        "### 3.3 候选综合排序",
+        r"$$J=w_u z(UTS)+w_p z(PS_{0.2})+w_l z(\log_{10}t_r)$$",
+        "按短时承载、抗永久变形与蠕变断裂寿命形成优先验证顺序。",
+        "", "### 4. 输出定义及验证路径",
+        "输出短时 UTS、0.2% 屈服强度、蠕变断裂寿命、延性辅助信息和成分适用域；优先候选进入相稳定性、氧化环境与目标工况力学验证。",
+    ])
+
+
+def planned_alloy_method_block(payload: dict[str, Any]) -> str:
+    """Define the configured HEA/MPEA calculation chain before it is run."""
+    from src.alloy_workflow.contracts import requirement_plan
+    from src.alloy_workflow.fallback import generic_fallback_plan
+
+    try:
+        effective, plan = requirement_plan(payload)
+    except ValueError as exc:
+        effective, plan = generic_fallback_plan(payload, str(exc))
+    if effective.get("model_domain") == "generic_composition_design_fallback_v1":
+        return "\n".join([
+            "### 配方设计：任务准备", "",
+            f"材料体系：{effective.get('material_family', '当前材料体系')}。先整理配方变量、工艺条件和首轮试验方案。",
+            "", "#### 本次采用的方法", "",
+            "先核对已适配的材料模型，再结合材料家族规则、需求分析和单因素试验设计，整理配方调整方向、工艺条件与数据记录要求。",
+            "", "#### 配比基准与本次采用条件", "",
+            f"配比基准：{effective.get('composition_basis', '按各材料体系分别确定')}。先沿用已有材料和工况形成方案，补充信息后可直接更新。",
+        ])
+    if plan.get("requires_domain_confirmation"):
+        if plan.get("confirmation_message"):
+            return "\n".join([
+                "### 材料配方优化：确认材料", "",
+                str(plan["confirmation_message"]), "",
+                "已有上游材料选择结果时，可一并传入；确定材料后将沿用对应模型的配方变量、条件与验证范围。",
+            ])
+        return "\n".join([
+            "### 高温合金配方设计",
+            "已识别为高温合金配比任务；确认材料体系后将进入对应的成分与性能模型。",
+            "",
+            "| 场景信号 | 进入路线 | 主要输出 |",
+            "|---|---|---|",
+            "| 发动机热端、高温承力、蠕变或持久寿命 | 高温镍基合金 | 短时强度、0.2% 屈服强度、蠕变断裂寿命 |",
+            "| 高熵/多主元、at.% 成分空间、强度—硬度与相稳定性探索 | HEA/MPEA | 屈服强度、硬度、相风险与适用域 |",
+            "",
+            "请补充部件、目标温度、载荷或强度—硬度目标。",
+        ])
+    if effective.get("model_domain") == "chip_glass_thermomechanical_family_v1":
+        bounds = effective.get("oxide_bounds_mol_percent") or {}
+        bound_text = "；".join(f"{name} {pair[0]}–{pair[1]} mol%" for name, pair in bounds.items() if isinstance(pair, (list, tuple)) and len(pair) == 2) or "采用低硼无碱玻璃家族已记录的 16 氧化物边界"
+        return "\n".join([
+            "### 芯片封装玻璃基板配方设计与热机械筛选", "",
+            "### 1. 问题描述", f"针对 {effective.get('application', '芯片封装玻璃基板的热失配与挠曲初筛')}，在低硼无碱铝硼硅酸盐玻璃的已验证成分邻域中生成并比较候选配方。",
+            "", "### 2. 变量与约束", "| 符号/变量 | 定义 | 本轮设定 |", "|---|---|---|",
+            "| $\\mathbf{c}_{mol\\%}$ | 氧化物 mol% 成分向量 | " + bound_text + " |",
+            "| $\\sum_i c_i$ | 氧化物组成总和 | 100 mol% |",
+            "| $T_\\alpha$ | CTE 定义温区 | 0–300 °C（当前固定） |",
+            "", "### 3. 计划计算链与模型定义", "### 3.1 成分约束与候选生成",
+            "以可追溯同家族专利玻璃为锚点，对 Al2O3、B2O3、MgO、CaO、BaO、SrO 进行小幅局部扰动，并以 SiO2 平衡组成：",
+            r"$$\sum_i c_i=100,\qquad c_i\in[l_i,u_i],\qquad c_{SiO_2}=100-\sum_{i\ne SiO_2}c_i$$",
+            "### 3.2 成分—热机械响应关系", "以氧化物组成作为输入，输出可用于第一轮封装热—力筛选的裸玻璃性质；同时提供不参与配方排序的 D 级仿真初值：",
+            r"$$\mathcal{F}(\mathbf{c}_{mol\%})\rightarrow\left(\alpha_{0\text{–}300\,^{\circ}C},\rho,E,SOC,T_{200P},T_{35kP}\right)$$",
+            r"$$\mathcal{D}(\mathbf{c}_{mol\%},T)\rightarrow\left(\nu=0.230\pm0.008,\;k(T)\pm25\%,\;C_p(T)\pm15\%\right)$$",
+            "### 3.3 候选综合排序", r"$$J=\frac{1}{m}\sum_{j=1}^{m}s_j\,z(y_j),\qquad s_j\in\{-1,+1\}$$",
+            "其中 $s_j$ 由用户选择的最小化/最大化目标决定；排序只在当前同家族局部候选之间比较。",
+            "", "### 4. 输出定义及验证路径", "输出 CTE、密度、E、SOC 和两项黏度特征温度及其家族内验证误差。泊松比、k(T)、Cp(T) 将以带 ± 不确定度的 D 级仿真初值显示，且不参与候选排序；同批实测、层堆、厚度、约束和热历史仍在后续封装仿真中输入。",
+        ])
+    if effective.get("model_domain") == "short_cf_thermomechanical_rve_v1":
+        matrix = effective.get("matrix_name") or "用户给定基体"
+        return "\n".join([
+            "### 短碳纤维复合材料线弹性本构筛选", "", "### 1. 问题描述",
+            "针对短碳纤维增强热塑性复合材料，在已验证 FAST_RF RVE 的参数邻域内生成候选，并输出可供结构仿真初筛的正交各向异性线弹性常数。", "",
+            "### 2. 变量与约束", "| 符号/变量 | 定义 | 本轮设定 |", "|---|---|---|",
+            f"| 基体 | 弹性模量、泊松比、密度 | {matrix}（或由用户直接给定） |",
+            f"| $V_f$ | 纤维体积分数 | {float(effective.get('target_vf', 0)):.3f} |",
+            f"| $L_f$ | 有效纤维长度 | {float(effective.get('fiber_length_mm', 0)):.3f} mm |",
+            f"| $a_{{11}}$ | 主方向取向因子 | {float(effective.get('target_a11', 0)):.3f} |", "",
+            "### 3. 计划计算链与模型定义", "### 3.1 RVE 输入与响应",
+            r"$$\mathbf{x}=(E_m,\nu_m,\rho_m,V_f,L_f,a_{11})\quad\longrightarrow\quad \hat{\mathbf{y}}=(E_{11},E_{22},E_{33},G_{12},G_{13},G_{23},\nu_{12},\nu_{13},\nu_{23})$$",
+            "九个独立工程常数由多项式 Ridge 代理模型分别预测；基体名称不直接作为模型特征。", "### 3.2 互易关系与本构一致性",
+            r"$$\nu_{21}=\nu_{12}E_{22}/E_{11},\quad \nu_{31}=\nu_{13}E_{33}/E_{11},\quad \nu_{32}=\nu_{23}E_{33}/E_{22},\quad \mathbf{C}=\mathbf{S}^{-1}$$",
+            r"将工程常数组装为柔度矩阵 $\mathbf{S}$，仅保留刚度矩阵 $\mathbf{C}$ 正定的候选。",
+            "### 3.3 数据范围与验证", "数据为 980 条 FAST_RF RVE 记录，经纤维数预检后保留 945 条，覆盖 Bambu PLA Basic、PETG HF、ABS、ASA、PC 五种基体。基体名称用于读取已记录描述符；也可直接提供 $E_m$、$\nu_m$、$\rho_m$。九个输出均按留一基体交叉验证。", "",
+            "### 4. 输出定义及验证路径", "输出完整工程常数、6×6 刚度矩阵和正定性检查。固定纤维牌号、致密、完美界面、线弹性是当前模型假设；孔隙、界面脱粘、失效、强度与打印路径效应必须由实测或更高保真模型校准。",
+        ])
+    if effective.get("model_domain") == "perovskite_transport_stability_v2":
+        temperatures = "、".join(f"{float(value):.0f}" for value in effective.get("temperatures_K", [170, 220, 300, 330]))
+        return "\n".join([
+            "### 高稳定性钙钛矿配方设计与电输运稳定性筛选", "", "### 1. 问题描述",
+            "针对 Cs/FA/MA–Pb(I,Br)3 卤化物钙钛矿，在可追溯组分网格内比较变温电输运响应，为后续高稳定性实验确定优先验证配比。", "",
+            "### 2. 变量与约束", "| 符号/变量 | 定义 | 本轮设定 |", "|---|---|---|",
+            "| $c_{Cs},c_{FA},c_{MA}$ | A 位摩尔分数 | $c_i\ge0$，$\sum c_i=1$ |",
+            "| $c_I,c_{Br}$ | 卤素位摩尔分数 | $c_I+c_{Br}=1$ |",
+            f"| $T$ | 变温响应比较温度 | {temperatures} K（模型训练范围 170–330 K） |",
+            "| 候选来源 | 组分空间 | 65 个可追溯 Cs/FA/MA–Pb(I,Br)3 文档化组分 |", "",
+            "### 3. 计划计算链与模型定义", "### 3.1 成分归一化与变温响应",
+            r"$$c_{MA}=1-c_{Cs}-c_{FA},qquad c_{Br}=1-c_I$$",
+            r"$$y(T)=\ln[\sigma(T)T]=\ln A-\frac{E_a}{k_BT}$$",
+            "以 Cs、FA 与 I 的归一化分数为模型输入，预测 170–330 K 的 $\ln[\sigma(T)T]$ 曲线，以及高、低温段的有效 $E_a$ 描述符。", "### 3.2 适用域与经验不确定度",
+            "候选固定为原始模型文档中的 65 个组分网格；曲线按嵌套留一组分（LOCO）误差校准。绝对 $\sigma$ 单位在来源记录中未完全确认，因此排序使用 $\ln[\sigma(T)T]$，不将其转写为绝对电导率。", "### 3.3 候选综合排序",
+            r"$$J=-\frac{1}{2}z[y(220\,K)]-\frac{1}{2}z[y(300\,K)]$$",
+            "其中 $z(\cdot)$ 仅在当前 65 个可追溯候选中标准化；较高的 $J$ 对应较低的联合输运响应。", "",
+            "### 4. 输出定义及验证路径", "输出变温 $\ln[\sigma(T)T]$、有效 $E_{a,low}/E_{a,high}$、曲线经验 Q90 误差带与优先配比短名单。短名单用于安排变温电导、离子迁移和偏压验证；湿热/光照老化、相分离、器件 T80 与 PCE 应在相应实验条件下独立验证。",
+        ])
+    if effective.get("model_domain") == "aerospace_aluminum_composition_v1":
+        processing = effective.get("processing_category", "Solutionised + Artificially peak aged")
+        bounds = effective.get("element_bounds_wt_percent") or {}
+        bound_text = "；".join(f"{e} {v[0]}–{v[1]} wt.%" for e, v in bounds.items() if isinstance(v, (list, tuple)) and len(v) == 2) or "以来源记录的航空铝合金局部成分邻域生成"
+        return "\n".join([
+            "### 1. 问题描述", "针对航空铝合金的名义室温强度—延伸率权衡，在可追溯 wt.% 成分与工艺类别联合邻域内生成局部候选。", "",
+            "### 2. 变量与约束", "| 符号/变量 | 定义 | 本轮设定 |", "|---|---|---|", "| $\\mathbf{c}_{wt.\\%}$ | 25 元素质量百分比向量 | " + bound_text + "；总和 100 wt.% |", f"| $p$ | 离散工艺类别 | {processing} |", "| $T$ | 性能标签条件 | 名义室温；具体测试温度待由试验确认 |", "",
+            "### 3. 计划计算链与模型定义", "### 3.1 成分闭合与局部候选生成", "候选从同工艺类别的来源成分锚点出发，对主要合金元素进行受限局部扰动，Al 自动平衡：", r"$$c_{Al}=100-\sum_{i\ne Al}c_i,\qquad c_i\ge0$$", "### 3.2 成分—工艺类别响应关系", r"$$\mathcal{F}(\mathbf{c}_{wt.\%},p)\rightarrow(UTS,YS_{0.2},A)$$", "ExtraTrees 模型分别输出抗拉强度、0.2% 屈服强度和延伸率；同一成分的不同工艺记录整体留出验证。", "### 3.3 候选综合排序", r"$$J=z(UTS)+z(YS_{0.2})+0.25z(A)$$", "",
+            "### 4. 输出定义及验证路径", "输出名义室温 UTS、0.2% 屈服强度、延伸率、组成留出误差和成分邻域标记。优先候选进入同工艺类别下的成分试制与拉伸验证；当前数据未含具体固溶/时效温度与时间，相关参数在下一轮试验中补充。",
+        ])
+    if effective.get("model_domain") == "copper_hot_end_evidence_v1":
+        threshold = effective.get("screening_thresholds") or {}
+        return "\n".join([
+            "### 铜基热端合金证据筛选", "",
+            "针对再生冷却燃烧室热壁等铜基合金工况，服务在可追溯的 GRCop-42、GRCop-84、NARloy-Z 与 CuCrZr 牌号/状态目录中比较热导、强度和低周疲劳证据。", "",
+            "| 本轮条件 | 设定 |", "|---|---|",
+            f"| 评价温度 | {float(effective.get('test_temperature_K', 900)):.0f} K |",
+            f"| 热导率门槛 | {threshold.get('thermal_conductivity_min_W_mK', '未设')} W/(m·K) |",
+            f"| 屈服强度门槛 | {threshold.get('yield_strength_min_MPa', '未设')} MPa |", "",
+            "服务不把稀疏资料训练成任意 Cu-Cr-Nb-Ag-Zr 配比的性能预测；原始资料未覆盖的性质会显示为‘当前目录未收录’，温度点之间仅显示为工程插值且不作为缺失指标的放行依据。",
+        ])
+    if effective.get("model_domain") == "copper_hot_end_local_composition_v1":
+        bounds = effective.get("element_bounds_wt_percent") or {}
+        bound_text = "；".join(
+            f"{element} {values[0]}–{values[1]} wt.%"
+            for element, values in bounds.items()
+            if isinstance(values, (list, tuple)) and len(values) == 2
+        ) or "以用户给定的 Cu 基成分边界为准"
+        process = effective.get("processing_state") or "as_received"
+        return "\n".join([
+            "### 铜基热壁合金局部配比筛选", "",
+            "### 1. 问题描述",
+            f"针对铜基再生冷却热壁的局部新配比探索，在 **{float(effective.get('test_temperature_C', 25)):.0f} °C**、**{process}** 状态下生成 Cu–Cr–Nb 型候选，并比较短时 UTS 与 0.2% 屈服强度。", "",
+            "### 2. 变量与约束", "| 符号/变量 | 定义 | 本轮设定 |", "|---|---|---|",
+            "| $\\mathbf{c}_{wt.\\%}$ | 合金元素质量百分比向量 | " + bound_text + "；Cu 为平衡元素 |",
+            f"| $s,T$ | 工艺状态与评价温度 | {process}；{float(effective.get('test_temperature_C', 25)):.0f} °C |",
+            "| 候选范围 | 成分—状态联合适用域 | 仅作 GRCop 型 Cu–Cr–Nb 局部扰动 |", "",
+            "### 3. 计划计算链与模型定义", "### 3.1 质量分数闭合与候选生成",
+            r"$$c_{Cu}=100-\sum_{i\ne Cu}c_i,\qquad c_i\in[l_i,u_i]$$",
+            "候选仅在可追溯 Cu 基训练成分邻域内局部生成；不把该模型扩展为任意铜合金的自由配方预测。", "",
+            "### 3.2 成分—工艺—温度响应关系",
+            r"$$\mathcal{F}(\mathbf{c}_{wt.\%},s,T)\rightarrow\left(UTS,YS_{0.2},AD\right)$$",
+            "$\mathbf{c}_{wt.\%}$为质量百分比组成，$s$为材料工艺状态，$T$为强度评价温度；$UTS$为抗拉强度，$YS_{0.2}$为0.2%屈服强度，$AD$标记组成、工艺和温度与已有数据的接近程度。铜基强度专项模型负责两项强度预测，室温电导率由独立辅助模型计算。", "",
+            r"$$k\approx L_0\sigma_eT_{abs}$$", "",
+            "该式用于室温热导率估算：$k$为热导率，$L_0$为洛伦兹数，$\sigma_e$为室温电导率，$T_{abs}$为绝对温度。室温电导率为C级辅助结果；热导率、硬度、密度和CTE作为D级工程估算单列，不参与强度排序。", "",
+            "### 3.3 候选排序", r"$$J=w_u z(UTS)+w_y z(YS_{0.2})$$",
+            "优先保留成分、状态和温度均处于联合训练域内的候选。", "",
+            "### 4. 输出定义及验证路径",
+            "输出候选 wt.%、短时 UTS、0.2% 屈服、适用域及带等级的辅助热物性。热壁服役仍需结合热流、冷却剂、应变—寿命与保载条件进行疲劳和蠕变验证。",
+        ])
+    if effective.get("model_domain") == "reusable_rocket_stainless":
+        return _rocket_plan_block(effective)
+    if effective.get("model_domain") == "ni_superalloy_hot_end":
+        return _hot_end_plan_block(effective)
+    if effective.get("model_domain") == "reusable_rocket_stainless":
+        bounds = effective.get("element_bounds_wt_percent") or {}
+        bound_text = "；".join(f"{e} {v[0]}–{v[1]} wt.%" for e, v in bounds.items() if isinstance(v, (list, tuple)) and len(v) == 2)
+        return "\n".join([
+            "### 可回收火箭不锈钢配方设计",
+            f"针对 {effective.get('component', '火箭承压壳体')}，在 {effective.get('test_temperature_K', '-')} K 和当前固溶处理条件下，筛选 Fe–Cr–Ni–Mn 奥氏体不锈钢候选。",
+            "", "### 1. 设计条件", "| 项目 | 当前设定 |", "|---|---|",
+            f"| 成分边界 | {bound_text}；Fe 自动平衡至 100 wt.% |",
+            f"| 制造与热处理 | {_rocket_process_text(effective.get('processing'))} |",
+            f"| 数值评价温度 | {effective.get('test_temperature_K')} K（短时拉伸） |",
+            f"| 低温验证关卡 | {' / '.join(str(x) + ' K' for x in effective.get('low_temperature_verification_K', [90, 111]))}：低温拉伸与韧性验证 |",
+            "| 成分单位 | wt.%（质量百分比） |",
+            "", "### 2. 数据基础与候选来源",
+            "主模型仅使用可追溯的 Fe–Cr–Ni–Mn 奥氏体不锈钢成分—工艺—温度—拉伸记录：0.2% 屈服强度和 UTS 各 2,180 条、延伸率 2,083 条，按 259 个成分/状态组分组验证。301/304L 的低温记录只作为 90 K / 111 K 等关卡的参考，不被写成新配方或 30X 的性能。",
+            "", "### 3. 如何生成候选",
+            "在用户的元素边界内对已有奥氏体不锈钢邻域作局部组合，Fe 为平衡元素：",
+            "", r"$$c_{Fe}=100-\sum_{i\ne Fe}c_i,\qquad c_i\in[l_i,u_i]$$",
+            "", "候选按训练成分距离分为训练邻域内和数据边界附近两个层级。",
+            "", "### 4. 如何预测与排序",
+            "模型以成分 wt.%、固溶处理和温度为输入，输出 0.2% 屈服强度、UTS 与延伸率：",
+            "", r"$$\mathcal{F}(\mathbf{c}_{wt.\%},p,T)\rightarrow\left(YS_{0.2},UTS,A,AD\right)$$",
+            "", r"$$J=w_y z(YS_{0.2}-MAE_y)+w_u z(UTS-MAE_u)+w_a z(A-MAE_a)$$",
+            "", "其中 $AD$ 为成分适用域标记；$z(\cdot)$ 将三个量纲不同的性能转为可比较尺度。训练邻域内候选进入优先验证队列。",
+            "", "### 5. 怎样理解输出", "| 输出 | 作用 | 使用边界 |", "|---|---|---|", "| 0.2% 屈服强度 | 比较开始产生不可恢复变形前的承载能力。 | 当前模型的 293–1273 K 短时拉伸范围内。 |", "| UTS | 比较拉伸过程中的最大承载能力。 | 不代替疲劳、焊缝或结构屈曲评定。 |", "| 延伸率 | 比较拉伸断裂前的变形能力。 | 需结合冷作量、板厚和晶粒度复核。 |", "| 成分适用域 | 标记候选距训练成分的远近。 | 范围边界附近的候选只作探索线索。 |",
+            "", "### 6. 后续验证", "对优先候选按目标温度开展母材拉伸；有焊接时单列焊缝和热影响区。90 K / 111 K 低温韧性、疲劳和 LOX 相容性均需独立试验验证。",
+        ])
+    if effective.get("model_domain") == "ni_superalloy_hot_end":
+        route_label = {"cast": "铸造", "directionally_solidified": "定向凝固", "single_crystal": "单晶"}.get(str(effective.get("manufacturing_route")), str(effective.get("manufacturing_route") or "待确认"))
+        bounds = effective.get("element_bounds_wt_percent") or {}
+        bounds_text = "；".join(f"{element} {value[0]}–{value[1]} wt.%" for element, value in bounds.items() if isinstance(value, (list, tuple)) and len(value) == 2) or "待用户给出"
+        default_fields = {item.get("field") for item in plan.get("default_assumptions") or [] if item.get("status") == "platform_default"}
+        default_note = "；".join({
+            "element_bounds_wt_percent": "成分边界", "manufacturing_route": "制造路线", "heat_treatment": "热处理",
+            "test_temperature_C": "温度", "applied_stress_MPa": "载荷",
+        }[field] for field in ("element_bounds_wt_percent", "manufacturing_route", "heat_treatment", "test_temperature_C", "applied_stress_MPa") if field in default_fields)
+        return "\n".join([
+            "### 高温镍基合金成分设计与服役性能筛选",
+            f"针对 {route_label} 路线，在 {effective.get('test_temperature_C', '-')} °C、{effective.get('applied_stress_MPa', '-')} MPa 和指定热处理条件下，比较可追溯镍基合金邻域内的候选成分。",
+            "", "#### 1. 设计条件", "| 项目 | 当前设定 |", "|---|---|", f"| 成分边界 | {bounds_text} |", f"| 制造路线 | {route_label}（叶片常用路线：材料整体按单一晶体生长，减少晶界对高温蠕变的影响） |", f"| 热处理 | {_heat_treatment_text(effective.get('heat_treatment'))} |", f"| 温度 / 蠕变载荷 | {effective.get('test_temperature_C', '待确认')} °C / {effective.get('applied_stress_MPa', '待确认')} MPa |", "| 成分单位 | wt.%（质量百分比） |", *( [f"| 默认值使用情况 | 本轮未给出的 {default_note} 使用平台默认热端工况。 |"] if default_note else [] ),
+            "", "#### 2. 训练输入与性能预测框架", "服务将每个候选表示为一条‘成分—工艺—工况’记录，并通过三条独立回归支路输出强度和寿命：", "", r"$$\left(\mathbf{c}_{wt.\%},r,h,T,\sigma\right)\xrightarrow{\ \mathcal{F}\ }\left(UTS,PS_{0.2},\log_{10}t_r\right)$$", "", "| 输入网格 | 训练字段 | 对应输出 |", "|---|---|---|", "| 成分 | 各元素 wt.%、Ni 平衡 | 短时 UTS（最大承载） |", "| 工艺 | 铸造 / 定向凝固 / 单晶、固溶与时效温度—时间 | 0.2% 屈服强度（抗永久变形） |", "| 工况 | 测试温度、蠕变载荷 | 蠕变断裂寿命 |", "", "三项性能分别通过独立回归支路预测；短时拉伸部分使用 544 条观测（UTS 279 条、0.2% 屈服强度 241 条），蠕变部分使用 713 条严格准入记录。训练、验证与测试按合金牌号分组。",
+            "", "#### 3. 候选生成与排序", "候选在当前成分边界内作小幅局部调整，Ni 自动平衡至 100 wt.%：", "", r"$$c_{Ni}=100-\sum_{i\ne Ni}c_i,\qquad c_i\in[l_i,u_i]$$", "", "模型分别输出短时抗拉强度、0.2% 屈服强度和蠕变断裂寿命；排序综合比较三者。",
+            "", "#### 4. 指标怎么理解", "| 指标 | 含义 | 本服务中的用途 |", "|---|---|---|", "| 短时 UTS（短时极限抗拉强度） | 拉伸过程中材料可承受的最大工程应力。 | 比较短时承载上限，数值越高代表短时承载能力越强。 |", "| 0.2% proof strength（0.2% 屈服强度） | 规定产生 0.2% 塑性应变时对应的应力。 | 比较开始发生不可恢复变形前的承载能力。它与 UTS 不同：UTS 看最大承载，0.2% 屈服强度看抗永久变形。 |", "| 蠕变断裂寿命 | 在指定温度和载荷下，持续受载至断裂的预测时间。 | 比较热端长期耐久优先级。 |", "| 延伸率 | 拉伸断裂前的变形能力。 | 作为延性辅助信息。 |",
+            "", "#### 5. 后续验证", "优先候选进入 CALPHAD 相稳定性、氧化环境筛查及目标工况的高温拉伸/蠕变验证。",
+        ])
+    elements = "、".join(effective.get("allowed_elements") or []) or "由任务约束确定"
+    bounds = effective.get("element_bounds_at_pct") or {}
+    bounds_text = "；".join(
+        f"{element} {value[0]}–{value[1]} at.%"
+        for element, value in bounds.items()
+        if isinstance(value, (list, tuple)) and len(value) == 2
+    ) or "由任务约束确定"
+    objectives = effective.get("objectives") or {}
+    objective_labels = {
+        "yield_strength_MPa": "屈服强度",
+        "hardness_HV": "硬度",
+        "phase_risk": "相风险",
+    }
+    objective_text = "、".join(
+        objective_labels.get(str(name), str(name)) for name in objectives
+    ) or "强度、硬度、相风险与数据适用域"
+    return "\n".join([
+        "### 1. 问题描述",
+        f"在 {elements} 组成的合金体系中，搜索满足成分边界、工艺和温度条件的候选配比，并对 {objective_text} 进行初步量化评估。",
+        "",
+        "### 2. 变量与约束",
+        "| 符号/变量 | 定义 | 本轮设定 |",
+        "|---|---|---|",
+        f"| $x_i$ | 第 i 种元素的原子分数 | 元素：{elements} |",
+        "| $\\mathbf{x}$ | 成分向量 | $x_i \\geq 0$，$\\sum_i x_i = 1$ |",
+        f"| 成分边界 | 每种元素允许的原子百分比 | {bounds_text} |",
+        f"| $p$、$T$ | 制备工艺与评价温度 | {effective.get('processing_method') or '未指定'}；{effective.get('test_temperature_C', 25)} °C |",
+        "",
+        "### 3. 计划计算链与模型定义",
+        "以下为本任务已配置、将按顺序执行的方法定义，不包含任何预测结果。",
+        "",
+        "### 3.1 成分归一化随机采样（Dirichlet）",
+        "先在所有元素原子分数之和为 1 的配比空间中生成候选，再施加每种元素的含量上下限。这样每个候选天然满足总成分为 100 at.% 的条件。",
+        "",
+        "候选成分的采样条件为：",
+        r"$$\sum_i x_i=1,\qquad \mathbf{x}\sim\operatorname{Dir}(\boldsymbol\alpha)$$",
+        "",
+        "其概率密度定义为：",
+        r"$$p(\mathbf{x}\mid\boldsymbol\alpha)=\frac{\Gamma(\sum_i\alpha_i)}{\prod_i\Gamma(\alpha_i)}\prod_i x_i^{\alpha_i-1},\qquad x_i\geq0$$",
+        "",
+        "随后仅保留落在用户设定元素范围内的候选：",
+        r"$$l_i\leq100x_i\leq u_i$$",
+        "",
+        "| 输入 | 输出 |",
+        "|---|---|",
+        "| 元素种类、各元素含量范围、制备工艺、评价温度 | 满足约束的候选配比 |",
+        "",
+        "### 3.2 成分—性能预测模型",
+        "模型以成分描述符、制备工艺和评价温度为输入，输出强度、硬度与相组成倾向，并以多个独立训练结果的离散度表征预测稳定性。",
+        "",
+        "| 特征组 | 具体描述符 |",
+        "|---|---|",
+        "| 成分表示 | 各元素原子分数 $x_i$、元素数 $N$ |",
+        "| 成分统计 | 理想混合熵、平均原子序数、平均价电子浓度（VEC） |",
+        "| 工艺上下文 | 制备工艺的分类编码、评价温度、温度是否缺失 |",
+        "",
+        "本服务从候选配比中计算下列连续描述符：",
+        r"$$N=\sum_i\mathbb{I}(x_i>0),\qquad \Delta S_{mix}=-R\sum_i x_i\ln x_i$$",
+        "",
+        r"$$\bar Z=\sum_i x_iZ_i,\qquad \overline{VEC}=\sum_i x_iVEC_i$$",
+        "",
+        "其中，N 是参与合金的元素数；ΔSₘᵢₓ反映理想混合程度；平均原子序数和平均价电子浓度用于刻画成分的电子结构差异。制备工艺转为分类编码后，与评价温度及温度缺失标记一起构成模型输入。",
+        "",
+        "### 3.3 输出、不确定性与筛选",
+        "| 模型输出 | 本轮用途 |",
+        "|---|---|",
+        "| 屈服强度与硬度 | 5 个集成成员的均值与标准差，用于性能比较与不确定性控制 |",
+        "| 相类别概率 | 固溶体主导（SS）、金属间相（IM）及混相（SS+IM）的概率，用于相风险筛除 |",
+        "| 数据适用域 | 候选成分与训练成分云的最近距离，用于标记域内、边界或域外候选 |",
+        "| 综合排序 J | 在通过硬约束的候选中组合强度、硬度、相稳定倾向和可靠性 |",
+        "",
+        "若本轮选定模型为集成模型，性能预测的均值和离散度按下式计算：",
+        r"$$\bar y(\mathbf{z})=\frac{1}{M}\sum_{m=1}^{M}\hat y_m(\mathbf{z}),\qquad \sigma_y(\mathbf{z})=\sqrt{\frac{1}{M}\sum_{m=1}^{M}(\hat y_m-\bar y)^2}$$",
+        "",
+        "数据适用域以候选与训练配比的最近距离衡量：",
+        r"$$d_{AD}(\mathbf{x})=\min_{\mathbf{x}^{train}}\lVert\mathbf{x}-\mathbf{x}^{train}\rVert_2$$",
+        "",
+        "通过硬约束后，再按综合评分排序：",
+        r"$$J=w_yz(YS-\sigma_{YS})+w_hz(HV)+w_pz(P_{SS})+w_r\left[0.5\left(1-z(\sigma_{YS})\right)+0.5\left(1-z(d_{AD})\right)\right]$$",
+        "",
+        "其中 YS 为屈服强度，HV 为硬度，P₍SS₎为固溶体主导的预测概率；z(·) 仅在本轮可行候选中进行 min-max 归一化。",
+        "",
+        f"任务条件来源：{plan.get('template', '当前需求解析')}。计算完成后，结果区仅保留实际产出并用于结论的数值。",
+    ])
+
+
+def prediction_method_and_constraints_block(result: dict[str, Any]) -> str:
+    """Describe usable prediction scope without exposing implementation details."""
+    return "\n".join([
+        "#### 预测依据与适用范围",
+        "本轮数值来自经离线验证的合金成分—性能预测模型，用于在给定元素范围、工艺和温度下比较候选配比。",
+        "",
+        "| 项目 | 本轮说明 |",
+        "|---|---|",
+        "| 预测方式 | 多次独立训练结果集成，均值用于比较，离散度用于提示预测稳定性 |",
+        "| 输入 | 元素原子分数、元素数、理想混合熵、平均原子序数、平均价电子浓度（VEC）、制备工艺与评价温度 |",
+        "| 输出 | 屈服强度、硬度、相组成倾向、预测离散度与训练数据适用域 |",
+        "| 数据依据 | 已整理的实验 HEA/MPEA 数据，并按规范化成分分组评估 |",
+        "| 结果性质 | 模型预测用于研发排序与候选收敛 |",
+        "",
+        "先按元素边界、工艺温度、相风险、性能目标和数据适用域筛除不合适的候选，再比较保留候选。训练数据边界附近的候选会单独标明可信度。",
+        "",
+        "#### 当前筛选边界",
+        "| 约束 | 筛选要求 |",
+        "|---|---|",
+        "| 配比边界 | 只允许指定元素；各元素含量在设定范围内；总和必须为 100 at.%。 |",
+        "| 使用工况 | 制备工艺和评价温度与成分一起输入，避免脱离场景比较配方。 |",
+        "| 相风险 | 仅保留预测中不利相风险较低的候选。 |",
+        "| 数据适用域 | 检查候选是否落在训练数据覆盖范围；边界附近结果仅作为探索性备选。 |",
+    ])
+
+
+def screening_workflow_block(result: dict[str, Any]) -> str:
+    sampling = result.get("sampling") or {}
+    space = result.get("search_space") or {}
+    criteria = result.get("screening_criteria") or {}
+    return "\n".join([
+        "#### 筛选方式",
+        f"在指定元素范围、{space.get('processing_method', '-')} 工艺和 {space.get('test_temperature_C', '-')}°C 条件下生成 {sampling.get('generated', 0)} 个配比；每个配比均满足总成分 100 at.% 的约束。",
+        f"随后计算强度、硬度、相风险、预测离散度和数据适用域，先执行硬性筛除，再对保留的 {sampling.get('feasible', 0)} 个候选综合排序。适用域规则为“{criteria.get('applicability_rule', '-')}”。",
+    ])
+
+
+def candidate_table(result: dict[str, Any]) -> str:
+    rows = []
+    for index, item in enumerate(result.get("initial_candidates", [])[:5], 1):
+        strength = item.get("yield_strength_MPa", {})
+        hardness = item.get("hardness_HV", {})
+        domain = {"inside":"训练数据范围内", "boundary":"训练数据边界附近", "outside":"训练数据范围外"}.get(item.get("applicability_domain", {}).get("level", "-"), "-")
+        phase_risk = {"low":"较低", "high":"较高"}.get(item.get("phase_risk", "-"), item.get("phase_risk", "-"))
+        rows.append(
+            f"| {index} | {_composition_text(item.get('composition_at_pct', {}))} | "
+            f"{strength.get('mean', 0):.0f} ± {strength.get('std', 0):.0f} | "
+            f"{hardness.get('mean', 0):.0f} ± {hardness.get('std', 0):.0f} | "
+            f"{phase_risk} | {domain} |"
+        )
+    if not rows:
+        return "#### 初始候选\n当前约束下没有通过初筛的候选。"
+    return "\n".join([
+        "### 可继续比较的候选",
+        "| 排名 | 成分（at.%） | 屈服强度（MPa） | 硬度（HV） | 相风险 | 数据覆盖情况 |",
+        "|---:|---|---:|---:|---|---|",
+        *rows,
+        "",
+        "下表仅保留前 5 个候选用于横向比较；完整的优先候选信息见报告末尾的数据卡。",
+    ])
+
+
+def response_relationship_block(result: dict[str, Any]) -> str:
+    """Explain the nonlinear surrogate in engineering language and retain its API form."""
+    criteria = result.get("screening_criteria", {})
+    mode = criteria.get("mode")
+    threshold_note = ""
+    if mode == "conservative_adaptive":
+        threshold_note = "本轮未给出完整性能门槛，因此以当前搜索空间的相对较优区间进行初筛；补充明确指标后将按指定门槛筛选。"
+    return "\n".join([
+        "#### 成分—性能关系",
+        "成分、制备工艺和温度共同影响强度、硬度与相组成，通常呈非线性关系。模型在给定边界内重新计算每个配比的响应：",
+        "",
+        r"$$\mathcal{F}(\mathbf{x},p,T)\longmapsto\left(\widehat{YS},\widehat{HV},\widehat{\mathbf{P}}_{phase},\sigma,d_{AD}\right)$$",
+        "",
+        r"其中 \(\mathbf{x}\) 为元素原子分数，\(p\) 为制备工艺，\(T\) 为评价温度；输出依次为强度、硬度、相组成倾向、预测离散度和数据适用域距离。",
+        threshold_note,
+        "如需比较新配比，只需提供元素原子百分比（合计 100 at.%）、工艺和温度。",
+    ])
+
+
+def selection_formula_block(result: dict[str, Any]) -> str:
+    formula = (result.get("screening_criteria") or {}).get("selection_formula") or {}
+    weights = formula.get("weights") or {}
+    return "\n".join([
+        "#### 综合排序",
+        "通过硬性初筛后，按下式综合比较候选：",
+        "",
+        r"$$J=w_yz(YS-\sigma_{YS})+w_hz(HV)+w_pz(P_{SS})+w_r\left[0.5\left(1-z(\sigma_{YS})\right)+0.5\left(1-z(d_{AD})\right)\right]$$",
+        "",
+        f"本轮权重：强度 {weights.get('strength', 0):.0%}，硬度 {weights.get('hardness', 0):.0%}，相稳定倾向 {weights.get('phase', 0):.0%}，预测可靠性 {weights.get('reliability', 0):.0%}。",
+        r"\(z(\cdot)\) 只在本轮可行候选中归一化；元素范围、相风险、性能门槛和适用域仍是先行条件。",
+    ])
+
+
+def default_assumptions_block(result: dict[str, Any]) -> str:
+    """Show only editable engineering assumptions, never implementation keys."""
+    assumptions = (result.get("requirement_interpretation") or {}).get("default_assumptions") or []
+    values = {str(item.get("field")): item.get("value") for item in assumptions}
+    rows = []
+    elements = values.get("allowed_elements")
+    if elements:
+        rows.append(("探索元素", "、".join(map(str, elements))))
+    bounds = values.get("element_bounds_at_pct")
+    if isinstance(bounds, dict):
+        rows.append(("元素含量范围", "；".join(f"{element} {float(rng[0]):g}–{float(rng[1]):g} at.%" for element, rng in bounds.items() if isinstance(rng, (list, tuple)) and len(rng) == 2)))
+    processing = values.get("processing_method")
+    if processing:
+        rows.append(("制备工艺", {"CAST":"铸造（CAST）"}.get(str(processing), str(processing))))
+    temperature = values.get("test_temperature_C")
+    if temperature is not None:
+        rows.append(("评价温度", f"{temperature}°C"))
+    if values.get("screening_mode"):
+        rows.append(("筛选原则", "优先保留性质较优、预测较稳定且训练数据覆盖较好的候选"))
+    if not rows:
+        return ""
+    lines = ["#### 当前采用的默认条件", "以下为本轮筛选使用的设计条件。", "", "| 项目 | 当前设定 |", "|---|---|"]
+    lines.extend(f"| {name} | {value} |" for name, value in rows)
+    return "\n".join(lines)
+
+
+def optimization_handoff_table(result: dict[str, Any]) -> str:
+    space = result.get("search_space", {}); criteria = result.get("screening_criteria", {}); sampling = result.get("sampling", {}); candidates = result.get("initial_candidates", [])
+    rows = [
+        ("搜索变量", "search_space", f"元素范围、总和={space.get('sum_constraint_at_pct')} at.%，工艺={space.get('processing_method')}，温度={space.get('test_temperature_C')}°C", "数学优化只能在这些明确边界内搜索。"),
+        ("筛选目标", "screening_criteria", json.dumps(criteria.get("objectives", {}), ensure_ascii=False), "本轮初筛采用的性质目标；用户可修改后重新计算。"),
+        ("初始种群", "initial_candidates", f"返回 {len(candidates)} 个；本轮 {sampling.get('feasible', 0)}/{sampling.get('generated', 0)} 个通过初筛", "可作为后续数学优化的起点，不是最终最优解。"),
+        ("非线性评价器", "/alloy/evaluate-batch", "屈服强度/硬度均值与标准差、相概率、适用域、约束", "优化器提出新成分后，由该评价器判断性质与可信度。"),
+        ("成分分布图", "derived_candidate_percentiles_at_pct", "筛后候选 P5–P50–P95", "只表示当前筛后样本的集中区域，不能当作新的硬边界。"),
+    ]
+    lines = ["| 交接项目 | 结构化字段/接口 | 本轮内容 | 用户解读 |", "|---|---|---|---|"]
+    lines.extend(f"| {a} | `{b}` | {c} | {d} |" for a,b,c,d in rows)
+    return "\n".join(lines)
+
+
+def final_conclusion_block(result: dict[str, Any]) -> str:
+    if result.get("model_domain") == "generic_composition_design_fallback_v1":
+        return generic_composition_fallback_summary_block(result)
+    if result.get("model_domain") == "copper_hot_end_evidence_v1":
+        return copper_hot_end_summary_block(result)
+    if result.get("model_domain") == "copper_hot_end_local_composition_v1":
+        return copper_hot_end_local_summary_block(result)
+    blocks = [
+        prediction_method_and_constraints_block(result),
+        default_assumptions_block(result),
+        screening_workflow_block(result),
+        response_relationship_block(result),
+        selection_formula_block(result),
+        candidate_table(result),
+        concise_conclusion_block(result),
+        optimal_candidate_data_card(result),
+    ]
+    return "\n\n".join(block for block in blocks if block)
+
+
+def generic_composition_fallback_summary_block(result: dict[str, Any]) -> str:
+    """Use the same task-first structure without inventing a prediction run."""
+    from src.alloy_workflow.fallback_design import render_fallback
+    return render_fallback(result)
+
+
+def _legacy_generic_composition_fallback_summary_block(result: dict[str, Any]) -> str:
+    """Retained for historical report comparisons only."""
+    conditions = result.get("screening_conditions") or {}
+    candidate = (result.get("initial_candidates") or [{}])[0]
+    components = candidate.get("formulation_components") or []
+    process_variables = candidate.get("process_variables") or []
+    minimum_records = candidate.get("minimum_record_fields") or []
+    plan = result.get("requirement_interpretation") or {}
+    request = str(plan.get("raw_requirement") or "当前材料的配方设计")
+
+    def cell(value: Any) -> str:
+        return str(value if value not in (None, "") else "-").replace("|", "\\|").replace("\n", " ")
+
+    lines = [
+        "### 1. 问题描述", "",
+        f"本次需求：{cell(request)}。",
+        f"材料体系：{cell(conditions.get('material_family', '当前材料体系'))}。本次先建立配方变量与首轮试验方案。",
+        "", "### 2. 使用方法与数学定义", "",
+        "本次输入尚未匹配到可执行的预测模型，采用材料家族规则和单因素试验设计，建立可复现的配方试验方案。",
+        "", "#### 2.1 配方变量与组成闭合", "",
+        r"$$\sum_{i=1}^{n}x_i=100,\qquad x_i\ge0,\qquad l_i\le x_i\le u_i$$", "",
+        "其中，$n$为组分数量；$x_i$为第$i$个组分的百分含量；$l_i$、$u_i$为该组分的探索下限和上限。所有组分使用同一计量基准，平衡组分取余量。",
+        "", "#### 2.2 首轮设计方法", "",
+        "选定一个可追溯基准材料，固定工艺条件，对一个主配方变量设置基线、低、中、高四个水平；用同条件测试比较趋势。",
+        "", "### 3. 本次参数与条件", "",
+        "| 条件 | 本次设置 | 来源/是否可修改 |",
+        "|---|---|---|",
+        f"| 材料体系 | {cell(conditions.get('material_family'))} | 当前需求识别，可确认具体材料身份 |",
+        f"| 配比基准 | {cell(conditions.get('composition_basis'))} | 材料家族建议，试验前确认 |",
+        "| 主性能目标 | 按本次需求确认性质、目标值及测试条件 | 用户指定或补充 |",
+        "| 设计方法 | 单因素试验，基线加低、中、高三个水平 | 材料家族建议，可调整 |",
+        "", "#### 首轮配方变量", "",
+        "以下为建议探索窗口，可根据基准牌号、加工要求和禁限条件调整；各窗口不是可以同时取上限的最终配方。",
+        "", "| 组分角色 | 变量 | 建议探索窗口 | 设计用途 |",
+        "|---|---|---|---|",
+    ]
+    for component in components:
+        lines.append(
+            f"| {cell(component.get('role'))} | {cell(component.get('symbol'))} | "
+            f"{cell(component.get('range'))} | {cell(component.get('purpose'))} |"
+        )
+    lines += [
+        "",
+        "#### 必须同步锁定的工艺变量", "",
+        "同一成分在不同制造和热处理状态下不能视为同一条独立材料记录。",
+        "",
+        "| 工艺变量 | 首轮固定/分级方式 | 为什么必须记录 |",
+        "|---|---|---|",
+        *[
+            f"| {cell(item.get('variable'))} | {cell(item.get('levels'))} | {cell(item.get('purpose'))} |"
+            for item in process_variables
+        ],
+        "",
+        "### 4. 输出定义及验证路径", "",
+        cell(candidate.get("first_round_strategy") or "固定基准材料和工艺，仅改变一个主配方变量，设置基线加低—中—高三级局部梯度。"),
+        "",
+        "**每个样品至少记录：** " + "、".join(cell(item) for item in minimum_records) + "。",
+        "",
+        "### 5. 筛选结果与候选卡", "",
+        "### 5.1 筛选过程", "",
+        "已完成材料体系识别、配方变量整理和首轮试验方案生成；后续在固定工艺与测试条件下比较各变量水平的性质变化。",
+        "", "### 5.2 优先候选", "",
+        "优先执行以下试验设计，各组分具体含量围绕确认后的基准材料确定。",
+        "", f"### {cell(conditions.get('material_family', '材料'))}｜本次试验设计方案", "",
+        "| 项目 | 本次结果 |",
+        "|---|---|",
+        f"| 方案编号 | {cell(candidate.get('candidate_id'))} |",
+        f"| 计量基准 | {cell(candidate.get('composition_basis') or conditions.get('composition_basis'))} |",
+        "| 配方输入 | 上述组分角色与建议窗口；各组分具体含量待确定 |",
+        "| 本次输出 | 单因素试验方案及数据记录要求 |",
+        "", "#### 下一步", "",
+        *[f"- {cell(item)}" for item in result.get("next_actions", [])],
+        "", "#### 结论", "",
+        str(result.get("user_conclusion") or "当前结果仅用于建立首轮探索与数据采集方案。"),
+    ]
+    return "\n".join(lines)
+
+
+def _embed_generic_fallback_visuals(narrative: str, visual_assets: list[dict[str, str]] | None) -> str:
+    assets = {str(item.get("name")): item for item in visual_assets or []}
+    name = "generic_composition_funnel"; token = f"{{{{VISUAL:{name}}}}}"; item = assets.get(name)
+    if not item or not str(item.get("url") or "").strip():
+        return narrative.replace(token, "")
+    title = str(item.get("title") or "通用配比方案收敛路径")
+    description = str(item.get("description") or "从当前需求到首轮可验证配方结构的边界化路径。")
+    return narrative.replace(token, f"#### {title}\n\n{description}\n\n![{title}]({item['url']})")
+
+
+def copper_hot_end_summary_block(result: dict[str, Any]) -> str:
+    """Render source-bound copper hot-wall screening without false rejection."""
+    conditions = result.get("screening_conditions") or {}
+    candidates = result.get("initial_candidates") or []
+    sources = result.get("catalog_sources") or {}
+    def item(value: dict[str, Any]) -> str:
+        if value.get("value") is None:
+            return "当前目录未收录" if value.get("status") == "not_recorded" else "温区超出来源覆盖"
+        label = "实测曲线" if value.get("status") in {"source_curve", "measured"} else "工程插值"
+        return f"{float(value['value']):.1f} {value.get('unit','')}（{label}）"
+    lines = [
+        "### 铜基热端合金证据筛选结果",
+        f"本轮按 **{float(conditions.get('test_temperature_K', 0)):.0f} K** 筛选；候选限定为资料中可追溯的牌号和工艺状态，不因出现‘纤维/复合相’的否定描述而拒绝单一合金任务。",
+        "", "#### 筛选过程", "| 阶段 | 数量 |", "|---|---:|",
+        *[f"| {stage.get('label','-')} | {int(stage.get('count',0))} |" for stage in (result.get('sampling') or {}).get('funnel_stages',[])],
+        "", "{{VISUAL:copper_hot_end_funnel}}", "", "#### 牌号与状态对比", "| 牌号 | 名义成分（wt.%） | 状态 | 热导率 | 屈服强度 | 低周疲劳证据 |", "|---|---|---|---|---|---|",
+    ]
+    for candidate in candidates:
+        comp = "；".join(f"{k} {float(v):g}" for k,v in (candidate.get("composition_wt_percent") or {}).items())
+        fatigue = candidate.get("low_cycle_fatigue") or {}
+        fatigue_text = (f"{fatigue.get('temperature_C')} °C，原始应变—寿命点" if fatigue.get("status") == "measured_at_other_temperature" else "当前目录未收录")
+        lines.append(f"| {candidate.get('alloy_name','-')} | {comp} | {candidate.get('material_state','-')} | {item(candidate.get('thermal_conductivity') or {})} | {item(candidate.get('yield_strength') or {})} | {fatigue_text} |")
+    lines += ["", "{{VISUAL:copper_hot_end_property_comparison}}", "", "#### 优先材料卡与验证建议"]
+    if candidates:
+        top = candidates[0]
+        lines += ["| 项目 | 当前记录 |", "|---|---|", f"| 优先评估牌号 | {top.get('alloy_name','-')} |", "| 名义成分 | " + "；".join(f"{k} {float(v):g}" for k,v in (top.get('composition_wt_percent') or {}).items()) + " wt.% |", f"| 工艺/产品状态 | {top.get('material_state','-')} |", f"| 评价温度 | {float(conditions.get('test_temperature_K',0)):.0f} K |", f"| 热导率 | {item(top.get('thermal_conductivity') or {})} |", f"| 屈服强度 | {item(top.get('yield_strength') or {})} |", f"| 低周疲劳 | {(top.get('low_cycle_fatigue') or {}).get('status','当前目录未收录')} |"]
+        card_index = lines.index("#### 优先材料卡与验证建议")
+        lines[card_index:card_index + 1] = [
+            "### 铜基热端合金｜优先评估牌号",
+            f"**{top.get('alloy_name', '-')}** 是当前可追溯牌号/状态证据中的优先核验对象，不是新配比模型生成的最优解。",
+            "", _candidate_composition_table(top.get("composition_wt_percent") or {}, basis="wt.%"), "",
+        ]
+        lines = [line for line in lines if not line.startswith("| 名义成分 | ")]
+    lines += ["", result.get("limitations", "当前结果只在来源温度与状态内解释。"), "建议优先补齐目标制造/热处理状态下的 900 K CTE、热导率和应变—寿命数据，再对保留牌号开展再生冷却热—结构耦合验证。", "", "来源：" + "；".join(str(value) for value in sources.values()), "", "#### 结论", str(result.get("user_conclusion") or "当前结果仅用于优先验证排序。")]
+    return "\n".join(lines)
+
+
+def copper_hot_end_local_summary_block(result: dict[str, Any]) -> str:
+    """Full 1111 customer page for the condition-aware local Cu model."""
+    conditions = result.get("screening_conditions") or {}; candidates = result.get("initial_candidates") or []; validation = result.get("validation") or {}
+    nearest = not candidates and bool(result.get("nearest_candidates"))
+    candidates = candidates or result.get("nearest_candidates") or []
+    temperature = float(conditions.get("test_temperature_C") or 0); state = conditions.get("processing_state") or "-"
+    bounds = conditions.get("element_bounds_wt_percent") or {}
+    family = conditions.get("composition_family") or "custom"
+    ambient = conditions.get("ambient_process") or {}
+    aux_validation = result.get("auxiliary_validation") or {}
+    bound_text = "；".join(f"{key} {value[0]}–{value[1]}" for key, value in bounds.items() if isinstance(value, list) and len(value) == 2)
+    process_text = (f"固溶 {float(ambient.get('solution_temperature_K', 0)):.0f} K × {float(ambient.get('solution_time_h', 0)):g} h；"
+                    f"冷加工 {float(ambient.get('cold_reduction_pct', 0)):g}%；"
+                    f"时效 {'是' if ambient.get('aged', True) else '否'}"
+                    + (f"，{float(ambient.get('aging_temperature_K', 0)):.0f} K × {float(ambient.get('aging_time_h', 0)):g} h" if ambient.get('aged', True) else "")
+                    + f"；二次热机械 {'是' if ambient.get('secondary_thermomechanical_process', False) else '否'}")
+    lines = [
+        "### 5. 筛选结果与候选卡", "",
+        f"针对铜基再生冷却热壁，在 **{temperature:.0f} °C**、**{state}** 状态下，比较局部配方变化对短时拉伸性质的影响。",
+        "| 条件 | 本次采用 |", "|---|---|",
+        f"| 成分家族 | {family} |",
+        f"| 元素范围（wt.%） | {bound_text or '以请求输入为准'}；Cu为平衡元素 |",
+        f"| 强度评价状态与温度 | {state}；{temperature:.0f} °C |",
+        f"| 室温辅助性质工艺 | {process_text} |",
+        "", "#### 模型数据与验证", "",
+        "| 输出 | 独立验证 | 证据等级与适用范围 |", "|---|---|---|",
+    ]
+    for label, key in (("UTS", "uts"), ("0.2% 屈服", "yield")):
+        record = validation.get(key) or {}; chemistry = record.get("composition_held_out") or {}; state_oof = record.get("alloy_state_held_out") or {}
+        lines.append(f"| {label} | 成分留出 R² {float(chemistry.get('r2',0)):.3f}，MAE {float(chemistry.get('mae_MPa',0)):.1f} MPa；牌号—状态留出 R² {float(state_oof.get('r2',0)):.3f}，MAE {float(state_oof.get('mae_MPa',0)):.1f} MPa | B：成分、状态和温度均在联合适用域内的直接短时拉伸预测 |")
+    lines.append(f"| 室温电导率 | 成分分组 OOF R² {float(aux_validation.get('r2', 0)):.3f}，MAE {float(aux_validation.get('mae_percent_IACS', 0)):.1f} %IACS（{int(aux_validation.get('rows', 0))} 条） | C：Gorsse CC0 室温数据、需完整默认/用户工艺；不外推到热壁温度 |")
+    lines += ["", "### 5.1 筛选过程", "", "围绕已收录成分局部调整 → 专项模型批量预测 → 成分、工艺与温度核对 → 优先配方比较。排序采用强度预测；室温辅助预测及工程估算用于测试规划。", "", "| 条件核对 | 保留配方数 |", "|---|---:|", *[f"| {item.get('label','-')} | {int(item.get('count',0))} |" for item in (result.get('sampling') or {}).get('funnel_stages', [])], "", "{{VISUAL:copper_local_screening_funnel}}", "", "### 5.2 优先候选", "", "{{VISUAL:copper_local_strength_tradeoff}}", "", "| 排名 | 配方编号 | 成分参考 | UTS（MPa） | 0.2%屈服（MPa） | 室温电导率（%IACS） | 成分比较范围 |", "|---:|---|---|---:|---:|---:|---|"]
+    if nearest:
+        lines += ["", "本次没有配方同时满足全部性能要求；以下为相同工况下性能缺口最小的配方，原要求保持不变。", ""]
+    for candidate in candidates:
+        tensile = candidate.get("short_time_tensile") or {}; uts = (tensile.get("ultimate_tensile_strength_MPa") or {}).get("mean", 0); ys = (tensile.get("yield_0p2_MPa") or {}).get("mean", 0)
+        anchor = candidate.get("source_anchor") or {}; domain = candidate.get("applicability_domain") or {}; domain_label = {"inside": "组成、状态和温度均有相近数据", "composition_boundary": "接近已收录成分范围边缘", "state_extrapolation": "需补充该工艺状态数据", "temperature_extrapolation": "需补充该温度数据"}.get(domain.get("level"), str(domain.get("level") or "-"))
+        iacs = ((candidate.get("additional_properties") or {}).get("electrical_conductivity_percent_IACS") or {}).get("mean")
+        iacs_text = f"{float(iacs):.1f}" if iacs is not None and math.isfinite(float(iacs)) else "当前未收录"
+        lines.append(f"| {candidate.get('rank','-')} | {candidate.get('candidate_id', '-')} | {anchor.get('alloy_name','-')} | {float(uts):.0f} | {float(ys):.0f} | {iacs_text} | {domain_label} |")
+    if candidates:
+        top = candidates[0]; tensile = top["short_time_tensile"]
+        domain = top.get("applicability_domain") or {}; anchor = top.get("source_anchor") or {}; domain_label = {"inside": "组成、状态和温度均有相近训练数据", "composition_boundary": "接近已收录成分范围边缘", "state_extrapolation": "需补充该工艺状态数据", "temperature_extrapolation": "需补充该温度数据"}.get(domain.get("level"), str(domain.get("level") or "-"))
+        props = top.get("additional_properties") or {}
+        def prop(key: str) -> str:
+            record = props.get(key) or {}
+            value = record.get("mean")
+            if value is None or not math.isfinite(float(value)):
+                return "当前未收录"
+            low, high = record.get("low"), record.get("high")
+            interval = f"（{float(low):.2f}–{float(high):.2f} {record.get('unit', '')}）" if low is not None and high is not None and math.isfinite(float(low)) and math.isfinite(float(high)) else f" {record.get('unit', '')}"
+            return f"{float(value):.2f}" + interval
+        uts_level = tensile['ultimate_tensile_strength_MPa'].get('evidence_level', 'B'); ys_level = tensile['yield_0p2_MPa'].get('evidence_level', 'B')
+        if nearest:
+            lines += ["", "| 性能要求 | 用户要求 | 模型预测 | 差距 |", "|---|---:|---:|---:|"]
+            for key, gap in top["strict_screening"]["constraint_gaps"].items():
+                label = {"uts_min_MPa": "抗拉强度", "proof_strength_min_MPa": "0.2%屈服强度"}[key]
+                lines.append(f"| {label} | ≥ {gap['target']:g} MPa | {gap['observed']:.1f} MPa | {'满足' if gap['shortfall'] == 0 else format(gap['shortfall'], '.1f') + ' MPa'} |")
+        heading = "本次接近目标的配方" if nearest else "本次优选配方"
+        lines += ["", f"### 铜基热壁合金｜{heading}：{top['candidate_id']}", "", "下表为本次设计组成，铜为平衡元素；参考合金用于追溯成分邻域。", "", *_recipe_composition_table(top.get("composition_wt_percent") or {}, "Cu"), "", "{{VISUAL:copper_local_composition_traceability}}", "", "| 适用条件与来源 | 本次采用 |", "|---|---|", f"| 强度状态与评价温度 | {state}；{temperature:.0f} °C |", f"| 室温辅助性质工艺 | {process_text} |", f"| 成分参考 | {anchor.get('alloy_name','-')}；{anchor.get('alloy_state','-')}；{float(anchor.get('test_temperature_C',0)):.0f} °C |", f"| 成分比较范围 | {domain_label} |", "", "#### 优先候选的完整性质卡", "", "| 性质 | 预测或估算结果 | 计算来源与条件 |", "|---|---|---|", f"| 抗拉强度（{uts_level}） | {tensile['ultimate_tensile_strength_MPa']['mean']:.0f} MPa | 铜基强度专项模型；成分分组 OOF MAE {tensile['ultimate_tensile_strength_MPa']['screening_MAE_MPa']:.0f} MPa |", f"| 0.2%屈服强度（{ys_level}） | {tensile['yield_0p2_MPa']['mean']:.0f} MPa | 铜基强度专项模型；成分分组 OOF MAE {tensile['yield_0p2_MPa']['screening_MAE_MPa']:.0f} MPa |", f"| 电导率（C） | {prop('electrical_conductivity_percent_IACS')} | 约25 °C；Gorsse全工艺字段辅助模型 |", f"| 热导率（D） | {prop('thermal_conductivity_room_temperature_W_mK')} | 约25 °C；由%IACS按Wiedemann–Franz关系估算 |", f"| 维氏硬度（D） | {prop('hardness_HV')} | 由预测屈服强度按Tabor型关系估算 |", f"| 密度（D） | {prop('density_g_cm3')} | 纯元素密度混合估算 |", f"| 热膨胀系数（D） | {prop('CTE_room_temperature_ppm_per_K')} | 约20–100 °C；纯元素CTE加权代理 |", "", "验证指标描述模型历史表现；工程估算与直接强度预测分别记录，用于安排同条件验证。"]
+    lines += ["", "#### 结论", "", str(result.get("user_conclusion") or "当前结果用于下一轮同条件试验的优先级比较。")]
+    return "\n".join(lines)
+
+
+def _embed_copper_hot_end_visuals(narrative: str, visual_assets: list[dict[str, str]] | None) -> str:
+    assets = {str(item.get("name")): item for item in visual_assets or []}
+    for name in ("copper_hot_end_funnel", "copper_hot_end_property_comparison"):
+        token = f"{{{{VISUAL:{name}}}}}"; item = assets.get(name)
+        if not item or not str(item.get("url") or "").strip():
+            narrative = narrative.replace(token, ""); continue
+        title = str(item.get("title") or name); description = str(item.get("description") or "")
+        narrative = narrative.replace(token, f"#### {title}\n\n{description}\n\n![{title}]({item['url']})")
+    return narrative
+
+
+def _embed_copper_local_visuals(narrative: str, visual_assets: list[dict[str, str]] | None) -> str:
+    assets = {str(item.get("name")): item for item in visual_assets or []}
+    for name in ("copper_local_screening_funnel", "copper_local_strength_tradeoff", "copper_local_composition_traceability"):
+        token = f"{{{{VISUAL:{name}}}}}"; item = assets.get(name)
+        if not item or not str(item.get("url") or "").strip(): narrative = narrative.replace(token, ""); continue
+        narrative = narrative.replace(token, f"#### {item.get('title') or name}\n\n{item.get('description') or ''}\n\n![{item.get('title') or name}]({item['url']})")
+    return narrative
+
+
+def concise_conclusion_block(result: dict[str, Any]) -> str:
+    """Close the report with a brief, action-oriented conclusion."""
+    sampling = result.get("sampling", {})
+    candidates = result.get("initial_candidates", [])
+    generated = int(sampling.get("generated", 0))
+    feasible = int(sampling.get("feasible", 0))
+    if candidates:
+        top = candidates[0]
+        strength = top.get("yield_strength_MPa", {})
+        hardness = top.get("hardness_HV", {})
+        finding = (
+            f"在 {generated} 个候选中保留了 {feasible} 个可继续比较的配方；排名第一的候选预测屈服强度为 "
+            f"{strength.get('mean', 0):.0f} ± {strength.get('std', 0):.0f} MPa，硬度为 "
+            f"{hardness.get('mean', 0):.0f} ± {hardness.get('std', 0):.0f} HV。"
+        )
+    else:
+        finding = f"本轮生成了 {generated} 个候选，但没有配方通过当前初筛条件。"
+    return "\n\n".join([
+        "### 本轮结论",
+        "本轮结合预训练机器学习模型、成分相关的材料机理特征，以及工艺温度、配比边界、相风险和数据适用域等约束，对候选配方进行了初步筛选。",
+        finding,
+        "建议下一步结合实际服役温度、氧化环境和制造路线进一步收敛范围，并对优先候选开展热力学、高温性能和实验验证。完整配方、预测结果、来源和可信度见下方材料卡。",
+    ])
+
+
+def _domain_and_confidence(candidate: dict[str, Any]) -> tuple[str, str]:
+    level = (candidate.get("applicability_domain") or {}).get("level", "-")
+    return {
+        "inside": ("训练数据范围内", "较高：模型输入与已有训练样本较接近，仍需实验验证。"),
+        "boundary": ("训练数据边界附近", "中等：可作为探索候选，需优先补充计算或实验验证。"),
+        "outside": ("训练数据范围外", "较低：仅保留为探索线索，不作为优先工程判断。"),
+    }.get(level, (str(level), "当前适用域信息未完整记录。"))
+
+
+def optimal_candidate_data_card(result: dict[str, Any]) -> str:
+    """Render the complete, traceable final card for the highest-ranked candidate."""
+    candidates = result.get("initial_candidates") or []
+    if not candidates:
+        return ""
+    candidate = candidates[0]
+    space = result.get("search_space") or {}
+    composition = candidate.get("composition_at_pct") or {}
+    strength = candidate.get("yield_strength_MPa") or {}
+    hardness = candidate.get("hardness_HV") or {}
+    phase = candidate.get("phase_probabilities") or {}
+    domain, confidence = _domain_and_confidence(candidate)
+    applicability = candidate.get("applicability_domain") or {}
+    phase_risk = {"low": "较低", "high": "较高"}.get(candidate.get("phase_risk"), str(candidate.get("phase_risk") or "未记录"))
+    source = "经离线验证的合金成分—性能预测模型"
+    return "\n".join([
+        "### 高熵合金｜本次优选配方",
+        "**高熵合金优化候选 01**：这是当前约束下综合排序第一的模型预测候选，供后续热力学与实验验证优先评估。",
+        "",
+        "| 配方与条件 | 当前信息 |",
+        "|---|---|",
+        "| 候选身份 | 高熵合金优化候选 01（模型生成配方，不对应既有商品牌号） |",
+        f"| 制备工艺 | {space.get('processing_method', '当前未记录')} |",
+        f"| 评价温度 | {space.get('test_temperature_C', '当前未记录')}°C |",
+        f"| 成分总和 | {sum(float(value) for value in composition.values()):.2f} at.% |",
+        "",
+        _candidate_composition_table(composition, basis="at.%"),
+        "",
+        "| 关键性质与判断 | 本轮结果 | 条件、来源与可信度 |",
+        "|---|---|---|",
+        f"| 屈服强度 | {strength.get('mean', 0):.0f} ± {strength.get('std', 0):.0f} MPa | {space.get('processing_method', '工艺未记录')}；{space.get('test_temperature_C', '温度未记录')}°C；{source}，集成离散度为 ± 值。 |",
+        f"| 硬度 | {hardness.get('mean', 0):.0f} ± {hardness.get('std', 0):.0f} HV | {space.get('processing_method', '工艺未记录')}；{space.get('test_temperature_C', '温度未记录')}°C；{source}，集成离散度为 ± 值。 |",
+        f"| 相组成倾向 | SS {float(phase.get('SS', 0)):.1%}；IM {float(phase.get('IM', 0)):.1%}；SS+IM {float(phase.get('SS+IM', 0)):.1%} | 模型相分类预测；相风险判定为“{phase_risk}”。 |",
+        f"| 数据适用域 | {domain} | 最近训练成分距离 {float(applicability.get('nearest_training_composition_distance', 0)):.3f}；{confidence} |",
+        f"| 综合排序分数 | {float(candidate.get('selection_score', 0)):.3f} | 仅用于本轮通过初筛候选之间的排序，不是材料性能或工程放行指标。 |",
+        "",
+        "| 工程估算与验证重点 | 初筛估算/判断 | 依据、可信度与后续验证 |",
+        "|---|---|---|",
+        *[
+            f"| {row['property']} | {row['estimate']} | {row['basis']} 验证：{row['validation']} |"
+            for row in build_engineering_estimates(candidate, space)
+        ],
+        "",
+        "| 来源与可信度说明 | 记录 |",
+        "|---|---|",
+        f"| 预测依据 | {source}；用于研发筛选与候选排序。 |",
+        "| 数据范围 | HEA/MPEA 实验数据覆盖范围；适用域已在上方单独标注。 |",
+        f"| 可信度结论 | 屈服强度、硬度和相组成来自模型预测；工程估算表中的条目单独按 D 级标注。两类结果均用于研发初筛，不作为工程放行依据。{confidence} |",
+    ])
+
+
+def microstructure_tendency_block(result: dict[str, Any], asset_url: str | None = None) -> str:
+    """Place the explanatory schematic directly after the optimal-candidate card."""
+    tendency = result.get("microstructure_tendency") or {}
+    if not tendency:
+        return ""
+    phase = tendency.get("phase_probabilities") or {}
+    lines = [
+        "### 预测组织倾向示意图",
+        f"**{tendency.get('title', '组织倾向待确认')}**。{tendency.get('explanation', '')}",
+    ]
+    if asset_url:
+        lines.extend(["", f"![预测组织倾向示意图]({asset_url})"])
+    lines.extend([
+        "",
+        "| 项目 | 当前判断 |",
+        "|---|---|",
+        f"| 相分类输入 | SS {float(phase.get('SS', 0)):.1%}；IM {float(phase.get('IM', 0)):.1%}；SS+IM {float(phase.get('SS+IM', 0)):.1%} |",
+        f"| 混相风险 | {tendency.get('mixed_phase_risk', '-')} |",
+        f"| 金属间化合物风险 | {tendency.get('intermetallic_risk', '-')} |",
+        f"| 数据适用域与表达强度 | {tendency.get('applicability_domain', '-')}；{tendency.get('confidence', '模型初筛')} |",
+        f"| 优先验证 | {'；'.join(tendency.get('validation_priorities') or [])} |",
+        "",
+        "注：本图为基于相组成预测结果生成的组织倾向示意，用于辅助理解候选材料的可能组织特征；不代表真实显微照片、相场模拟结果或最终实验组织。",
+    ])
+    return "\n".join(lines)
+
+
+def _llm() -> Any | None:
+    """Load presentation credentials from this service's environment first.
+
+    ``config/config.yaml`` remains a read-only compatibility fallback for old
+    tmux deployments.  It is deliberately not the preferred source because
+    credentials and deployment endpoints belong in this service's ignored
+    ``.env`` file.
+    """
+    if os.getenv("ALLOY_PRESENTATION_LLM", "true").lower() not in {"1", "true", "yes"}: return None
+    try:
+        import yaml
+        from openai import AsyncOpenAI
+        base_url = os.getenv("ALLOY_PRESENTATION_BASE_URL", "").strip()
+        api_key = os.getenv("ALLOY_PRESENTATION_API_KEY", "").strip()
+        if not (base_url and api_key):
+            config_path = Path(os.getenv("ALLOY_LLM_CONFIG", "config/config.yaml"))
+            config = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+            base_url = base_url or str(config.get("base_url_1", ""))
+            api_key = api_key or str(config.get("api_key", ""))
+        if not (base_url and api_key):
+            return None
+
+        class PresentationLLM:
+            def __init__(self): self.client = AsyncOpenAI(base_url=base_url, api_key=api_key)
+            def _default_system_msg(self): return {"role":"system", "content":"你是严谨的材料工程结果呈现助手。"}
+            def _user_msg(self, content): return {"role":"user", "content":content}
+            async def acompletion_text(self, messages, timeout=30):
+                return await self.client.chat.completions.create(messages=messages, model=os.getenv("ALLOY_PRESENTATION_MODEL", "SE_V0.0"), temperature=0, max_tokens=int(os.getenv("ALLOY_PRESENTATION_MAX_TOKENS", "8192")), timeout=timeout, stream=True)
+        return PresentationLLM()
+    except Exception:
+        return None
+
+
+async def _stream_deterministic(websocket: Any, text: str) -> None:
+    for block in text.split("\n\n"):
+        if block:
+            await websocket.send_text(block.rstrip() + "\n\n")
+            await asyncio.sleep(0)
+
+
+async def stream_authoritative_markdown(websocket: Any, markdown: str, *, step_id: str) -> None:
+    """Use the established LLM token stream for every customer-facing Markdown block."""
+    await websocket.send_text(f"<<<CONTENT_START:{step_id}>>>")
+    llm = _llm()
+    if llm is None:
+        await _stream_deterministic(websocket, markdown)
+        await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
+        return
+    try:
+        from src.alloy_workflow.llm_streaming import stream_llm_response
+        prompt = (
+            "你是合金服务的 Markdown 流式转发器。请通过 token 流逐字输出 "
+            "<AUTHORITATIVE_MARKDOWN> 内的全部 Markdown；不得改写、删减、补充、"
+            "翻译、重排或输出 XML 标签。必须完整保留标题、表格、公式和图片链接。\n"
+            "<AUTHORITATIVE_MARKDOWN>\n"
+            f"{markdown}\n"
+            "</AUTHORITATIVE_MARKDOWN>"
+        )
+        await stream_llm_response(llm, [llm._default_system_msg(), llm._user_msg(prompt)], websocket)
+    except Exception:
+        await _stream_deterministic(websocket, markdown)
+    finally:
+        await websocket.send_text(f"<<<CONTENT_END:{step_id}>>>")
+
+
+def visual_assets_block(visual_assets: list[dict[str, str]] | None = None) -> str:
+    """Render public charts inside the conversation body, like the 3D service.
+
+    Asset events alone are not guaranteed to be rendered by every Alpha client.
+    The HTML image tags are a deliberate second presentation path, not a second
+    computation or duplicate result.
+    """
+    if not visual_assets:
+        return ""
+    lines = ["#### 图表解读"]
+    for item in visual_assets:
+        if item.get("name") == "microstructure_tendency":
+            continue
+        url = str(item.get("url") or "").strip()
+        if not url:
+            continue
+        title = str(item.get("title") or "分析图表")
+        description = str(item.get("description") or "")
+        lines.extend([
+            f"#### {title}",
+            description,
+            f"![{title}]({url})",
+        ])
+    return "\n\n".join(lines) if len(lines) > 1 else ""
+
+
+def glass_summary_block(result: dict[str, Any]) -> str:
+    """Customer-facing 1111 result block for the chip-glass family route."""
+    sampling = result.get("sampling") or {}
+    candidates = result.get("initial_candidates") or []
+    stages = sampling.get("funnel_stages") or []
+    lines = ["### 候选筛选结果", "针对低硼无碱芯片封装玻璃基板，在可追溯同家族配方邻域内生成并比较候选。", "", "#### 筛选过程", "| 阶段 | 数量 | 说明 |", "|---|---:|---|"]
+    lines += [f"| {item.get('label', '筛选阶段')} | {int(item.get('count', 0))} | {item.get('description', '按当前约束保留。')} |" for item in stages]
+    lines += ["", "{{VISUAL:glass_screening_funnel}}", "", "#### 优先候选", "| 排名 | 氧化物配方（mol%） | CTE（0–300°C） | 杨氏模量 E | SOC | 成分覆盖情况 |", "|---:|---|---:|---:|---:|---|"]
+    for index, item in enumerate(candidates[:5], 1):
+        composition = "；".join(f"{name} {value:.2f}" for name, value in (item.get("composition_mol_percent") or {}).items() if float(value) > 0)
+        props = item["predicted_properties"]
+        lines.append(f"| {index} | {composition} | {props['CTE_linear_0_to_300C']['prediction_ppm_per_K']:.3f} ppm/K | {props['young_modulus_GPa']['prediction']:.2f} GPa | {props['stress_optical_coefficient_nm_cm_per_MPa']['prediction']:.2f} nm/cm/MPa | 同家族局部邻域 |")
+    if candidates:
+        top = candidates[0]; props = top["predicted_properties"]; anchor = top.get("source_anchor") or {}
+        engineering = top.get("engineering_estimates") or {}
+        poisson = engineering.get("poisson_ratio") or {}
+        k_curve = engineering.get("thermal_conductivity_k_T", {}).get("curve") or []
+        cp_curve = engineering.get("specific_heat_Cp_T", {}).get("curve") or []
+        k_text = "；".join(f"{float(x.get('temperature_C', 0)):.0f}°C：{float(x.get('value', 0)):.3f} ± {float(x.get('uncertainty', 0)):.3f}" for x in k_curve)
+        cp_text = "；".join(f"{float(x.get('temperature_C', 0)):.0f}°C：{float(x.get('value', 0)):.3f} ± {float(x.get('uncertainty', 0)):.3f}" for x in cp_curve)
+        lines += [
+            "", "{{VISUAL:glass_cte_modulus_tradeoff}}", "",
+            "### 芯片封装玻璃｜本次优选配方",
+            f"**{top.get('candidate_id', '-')}** 是同一可追溯玻璃家族内的局部候选；来源配方锚点为 {anchor.get('glass_id', '-')}。",
+            "", _candidate_composition_table(top.get('composition_mol_percent') or {}, basis="mol.%", component_label="氧化物"),
+            "", "| 玻璃性质 | 该候选的模型预测 | 家族内留出 MAE |", "|---|---:|---:|",
+            f"| 线膨胀系数 CTE（0–300 °C） | {props['CTE_linear_0_to_300C']['prediction_ppm_per_K']:.3f} ppm/K | {props['CTE_linear_0_to_300C']['validation_MAE_ppm_per_K']:.3f} ppm/K |",
+            f"| 密度 | {props['density_g_per_cm3']['prediction']:.4f} g/cm³ | {props['density_g_per_cm3']['validation_MAE']:.4f} g/cm³ |",
+            f"| 杨氏模量 E | {props['young_modulus_GPa']['prediction']:.2f} GPa | {props['young_modulus_GPa']['validation_MAE']:.3f} GPa |",
+            f"| 应力光学系数 SOC | {props['stress_optical_coefficient_nm_cm_per_MPa']['prediction']:.2f} nm/cm/MPa | {props['stress_optical_coefficient_nm_cm_per_MPa']['validation_MAE']:.3f} nm/cm/MPa |",
+            f"| 200 poise 黏度特征温度 | {props['viscosity_temperature_200_poise_C']['prediction']:.1f} °C | {props['viscosity_temperature_200_poise_C']['validation_MAE']:.2f} °C |",
+            f"| 35 kpoise 黏度特征温度 | {props['viscosity_temperature_35kpoise_C']['prediction']:.1f} °C | {props['viscosity_temperature_35kpoise_C']['validation_MAE']:.2f} °C |",
+            "", "以下是单独标注的 D 级工程估算，不参与上述模型排序，也不等同于同批实测：",
+            "", "| 仿真辅助量 | 工程估算与条件 |", "|---|---|",
+            f"| 泊松比 ν | {poisson.get('display', '同批实测优先')} |",
+            f"| 热导率 k(T) | {k_text or '同批实测优先'} W/(m·K)；各点 ±25% |",
+            f"| 比热 Cp(T) | {cp_text or '同批实测优先'} J/(g·K)；各点 ±15% |",
+            "", "{{VISUAL:glass_composition_traceability}}",
+        ]
+    lines += ["", "#### 结论", str(result.get("user_conclusion") or "当前候选用于制样和封装仿真输入收敛。")]
+    return "\n".join(lines)
+
+
+def short_cf_summary_block(result: dict[str, Any]) -> str:
+    """User-facing orthotropic-elasticity report for the short-CF RVE route."""
+    sampling = result.get("sampling") or {}
+    candidates = result.get("initial_candidates") or []
+    conditions = result.get("screening_conditions") or {}
+    matrix_name = conditions.get("matrix_name") or "用户给定基体"
+    lines = [
+        "### 5. 筛选结果与候选卡",
+        f"针对短碳纤维增强热塑性复合材料，在 **{matrix_name}** 基体与固定短碳纤维 RVE 条件下，筛选可用于结构仿真初值的正交各向异性线弹性本构候选。",
+        f"共保留 **{len(candidates)}** 个满足 RVE 参数范围且刚度矩阵正定的候选进入优先验证队列。",
+        "候选围绕用户给定的体积分数、有效纤维长度与取向中心值作局部扰动；排序只比较当前基体和当前 RVE 参数窗口内的候选。",
+        "", "### 5.1 筛选过程", "| 阶段 | 数量 | 说明 |", "|---|---:|---|"]
+    stages = sampling.get("funnel_stages") or []
+    if stages:
+        lines += [f"| {x.get('label', '筛选阶段')} | {int(x.get('count', 0))} | {x.get('description', '按当前条件保留。')} |" for x in stages]
+    else:
+        lines += [f"| 局部配比候选 | {int(sampling.get('generated', 0))} | 围绕用户给定的 Vf、有效长度和取向窗口生成。 |", f"| RVE 参数域内 | {int(sampling.get('generated', 0))} | 基体描述符、Vf、有效长度和 a11 均位于已验证范围。 |", f"| 线弹性本构可用 | {int(sampling.get('feasible', 0))} | 由预测工程常数构建正定刚度矩阵，可作为有限元线弹性输入。 |"]
+    lines += ["", "当前服务先以纵向模量作为排序目标：", "", r"$$J=z(E_{11}),\qquad z(E_{11})=\frac{E_{11}-\mu_{E_{11}}}{\sigma_{E_{11}}}$$", "", "其中 $\mu_{E_{11}}$ 与 $\sigma_{E_{11}}$ 仅由本次局部候选池计算；$E_{11}/E_{22}$ 用于观察取向带来的刚度各向异性，而不是额外的通过门槛。", "", "{{VISUAL:short_cf_screening_funnel}}", "", "### 5.2 优先候选", "| 排名 | 基体 | Vf | 有效纤维长度 | a11 | E11 | E22 | E11/E22 |", "|---:|---|---:|---:|---:|---:|---:|---:|"]
+    for index, item in enumerate(candidates[:5], 1):
+        c = item.get("predicted_engineering_constants") or {}; inp = item.get("inputs") or {}
+        e11, e22 = float(c.get("E11_MPa", 0)), float(c.get("E22_MPa", 0))
+        lines.append(f"| {index} | {item.get('matrix_name', inp.get('matrix_name', '用户给定基体'))} | {float(inp.get('target_vf', 0)):.3f} | {float(inp.get('fiber_length_mm', 0)):.3f} mm | {float(inp.get('target_a11', 0)):.3f} | {e11/1000:.2f} GPa | {e22/1000:.2f} GPa | {e11/e22 if e22 else float('nan'):.2f} |")
+    if candidates:
+        top = candidates[0]; c = top.get("predicted_engineering_constants") or {}; inp = top.get("inputs") or {}; consistency = top.get("physical_consistency") or {}
+        stiffness = top.get("stiffness_matrix_MPa") or []
+        matrix_preview = "；".join("[" + ", ".join(f"{float(v):.0f}" for v in row[:3]) + ", …]" for row in stiffness[:3]) if stiffness else "未生成"
+        validation = top.get("validation") or {}
+        def mae(name: str, unit: str) -> str:
+            metrics = (validation.get(name) or {}).get("leave_one_matrix_out") or (validation.get(name) or {}).get("metrics") or validation.get(name) or {}
+            value = metrics.get("MAE") if isinstance(metrics, dict) else None
+            return f"{float(value):.4f} {unit}" if value is not None else "当前目录未收录"
+        lines += ["", "短名单中星形候选代表当前 $E_{11}$ 排名第一项。图中较高的 $E_{11}/E_{22}$ 表示更强的主方向刚度差异；是否接受该差异应由实际载荷方向和结构仿真边界决定。", "", "{{VISUAL:short_cf_stiffness_anisotropy}}", "", "#### 优先候选的完整本构卡", "| 项目 | 当前结果 |", "|---|---|",
+                  f"| 候选编号 | {top.get('candidate_id', '-')} |", f"| 基体与设计变量 | {top.get('matrix_name', inp.get('matrix_name', '用户给定基体'))}；Vf={float(inp.get('target_vf', 0)):.3f}；有效长度={float(inp.get('fiber_length_mm', 0)):.3f} mm；a11={float(inp.get('target_a11', 0)):.3f} |",
+                  f"| 纵向模量 | E11={float(c.get('E11_MPa', 0))/1000:.3f} GPa |", f"| 横向模量 | E22={float(c.get('E22_MPa', 0))/1000:.3f} GPa；E33={float(c.get('E33_MPa', 0))/1000:.3f} GPa |",
+                  f"| 剪切模量 | G12={float(c.get('G12_MPa', 0))/1000:.3f}；G13={float(c.get('G13_MPa', 0))/1000:.3f}；G23={float(c.get('G23_MPa', 0))/1000:.3f} GPa |",
+                  f"| 泊松比 | ν12={float(c.get('V12', 0)):.4f}；ν13={float(c.get('V13', 0)):.4f}；ν23={float(c.get('V23', 0)):.4f}；其余方向由互易关系导出 |",
+                  f"| 留一基体验证 MAE | E11：{mae('E11_MPa', 'MPa')}；E22：{mae('E22_MPa', 'MPa')}；G12：{mae('G12_MPa', 'MPa')}；ν12：{mae('V12', '')} |",
+                  f"| 本构物理一致性 | 刚度矩阵正定：{'通过' if consistency.get('positive_definite_stiffness') else '未通过'}；最小特征值 {float(consistency.get('min_stiffness_eigenvalue_MPa', 0)):.2f} MPa |",
+                  f"| 刚度矩阵 C（MPa）预览 | {matrix_preview} |", "", r"有限元输入使用工程常数或完整刚度矩阵均可；两者应满足 $\boldsymbol{\sigma}=\mathbf{C}\boldsymbol{\varepsilon}$，且坐标 1 轴与纤维主方向一致。", "", "{{VISUAL:short_cf_constitutive_card}}"]
+        card_index = lines.index("#### 优先候选的完整本构卡")
+        lines[card_index:card_index + 1] = [
+            "### 短碳纤维复合材料｜本次优选结构参数",
+            f"**{top.get('candidate_id', '-')}** 是当前基体与 RVE 参数窗口内的优先候选。这里比较的是基体、纤维含量与取向，不是金属元素配比。",
+            "", "| 设计变量 | 该候选输入 |", "|---|---:|",
+            f"| 基体 | {top.get('matrix_name', inp.get('matrix_name', '用户给定基体'))} |",
+            f"| 短碳纤维体积分数 Vf | {float(inp.get('target_vf', 0)):.3f} |",
+            f"| 有效纤维长度 | {float(inp.get('fiber_length_mm', 0)):.3f} mm |",
+            f"| 主方向取向参数 a11 | {float(inp.get('target_a11', 0)):.3f} |",
+            "", "**该结构参数对应的预测线弹性本构**", "",
+        ]
+        lines = [line for line in lines if not line.startswith("| 基体与设计变量 |")]
+    lines += ["", "#### 结论", str(result.get("user_conclusion") or "当前候选可作为有限元中的正交各向异性线弹性本构初值，并应由打印件孔隙率、取向与力学试验校准。"), "建议先用当前完整刚度矩阵完成首轮结构刚度与变形敏感性分析，再以同一打印路径下的孔隙率、纤维取向和拉伸/剪切试验更新基体与界面条件。"]
+    return "\n".join(lines)
+
+
+def perovskite_summary_block(result: dict[str, Any]) -> str:
+    """Customer report for the perovskite transport-stability screen."""
+    sampling = result.get("sampling") or {}; candidates = result.get("initial_candidates") or []
+    lines = ["### 5. 筛选结果与候选卡", "针对 Cs/FA/MA–Pb(I,Br)3 卤化物钙钛矿，在 65 个可追溯组分中筛选低电输运响应的配比。", "排序仅比较当前文档化组分网格；输出作为高稳定性实验的优先级输入。", "", "### 5.1 筛选过程", "| 阶段 | 数量 | 说明 |", "|---|---:|---|"]
+    lines += [f"| {item.get('label', '筛选阶段')} | {int(item.get('count', 0))} | {item.get('description', '按当前条件保留。')} |" for item in (sampling.get("funnel_stages") or [])]
+    lines += ["", "当前排序定义为：", "", r"$$J=-\frac{1}{2}z[y(220\,K)]-\frac{1}{2}z[y(300\,K)]$$", "", "其中 $y(T)=\ln[\sigma(T)T]$；曲线嵌套留一组分验证 MAE 为 1.07 $\ln[\sigma T]$，$E_{a,low}$ 与 $E_{a,high}$ MAE 分别为 0.072 eV、0.060 eV。", "", "{{VISUAL:perovskite_screening_funnel}}", "", "### 5.2 优先候选", "| 排名 | 组分 | ln[σT] @ 220 K | ln[σT] @ 300 K | Ea_low / Ea_high (eV) |", "|---:|---|---:|---:|---:|"]
+    for item in candidates:
+        lines.append(f"| {item.get('rank','-')} | {item.get('formula','-')} | {item.get('ln_sigmaT_220K',0):.3f} | {item.get('ln_sigmaT_300K',0):.3f} | {item.get('Ea_low_eV',0):.3f} / {item.get('Ea_high_eV',0):.3f} |")
+    if candidates:
+        top = candidates[0]; curve = (top.get("predicted_transport") or {}).get("curve") or []
+        q = next((float(point.get("ln_sigmaT_abs_error_q90", 0)) for point in curve if abs(float(point.get("temperature_K", 0)) - 300) < 1e-6), 0.0)
+        params = (top.get("predicted_transport") or {}).get("parameters") or {}; uncertainty = (top.get("predicted_transport") or {}).get("uncertainty") or {}
+        lines += ["", "{{VISUAL:perovskite_transport_tradeoff}}", "", "#### 优先候选的完整输运卡", "| 项目 | 当前结果 |", "|---|---|", f"| 候选组分 | {top.get('formula', '-')} |", "| 组分空间 | Cs/FA/MA–Pb(I,Br)3；原始文档化组分网格 |", f"| ln[σT] @ 220 K | {top.get('ln_sigmaT_220K', 0):.3f} |", f"| ln[σT] @ 300 K | {top.get('ln_sigmaT_300K', 0):.3f}；经验 Q90 绝对误差带 ±{q:.2f} |", f"| 有效 Ea_low | {top.get('Ea_low_eV', 0):.3f} eV；Q90 绝对误差 ±{float(uncertainty.get('Ea_low_abs_error_q90_eV', 0)):.3f} eV |", f"| 有效 Ea_high | {top.get('Ea_high_eV', 0):.3f} eV；Q90 绝对误差 ±{float(uncertainty.get('Ea_high_abs_error_q90_eV', 0)):.3f} eV |", f"| 220 K 锚点 | {float(params.get('anchor_220K_ln_sigmaT', 0)):.3f}；Q90 绝对误差 ±{float(uncertainty.get('anchor_abs_error_q90', 0)):.3f} |", "| 数据适用域 | 当前候选来自可追溯训练组分网格 |", "", "{{VISUAL:perovskite_response_curve}}"]
+        composition = top.get("composition") or (top.get("predicted_transport") or {}).get("composition") or {}
+        site_rows = [
+            ("A 位", "Cs", "cs_fraction"), ("A 位", "FA", "fa_fraction"),
+            ("A 位", "MA", "ma_fraction"), ("X 位", "I", "iodide_fraction"),
+            ("X 位", "Br", "bromide_fraction"),
+        ]
+        card_index = lines.index("#### 优先候选的完整输运卡")
+        lines[card_index:card_index + 1] = [
+            "### 卤化物钙钛矿｜本次优选组分",
+            f"**{top.get('formula', '-')}** 来自已记录的 65 个组分网格；A 位与卤素 X 位分别归一化，不能把两个位点的百分数相加。",
+            "", "| 晶位 | 组分 | 位点占比 |", "|---|---|---:|",
+            *[
+                f"| {site} | {name} | {float(composition[key]) * 100:.1f}% |"
+                for site, name, key in site_rows if composition.get(key) is not None
+            ],
+            "", "**在给定温区下的输运模型输出**", "",
+        ]
+    lines += ["", "#### 结论", str(result.get("user_conclusion") or "当前短名单适合作为变温电导、离子迁移和偏压稳定性实验的优先验证配比。"), "湿热/光照老化、相分离、器件 T80 与 PCE 应在相应环境条件下独立验证后再用于器件级决策。"]
+    return "\n".join(lines)
+
+
+def hot_end_summary_block(result: dict[str, Any]) -> str:
+    """Customer-facing report for a conditional Ni-superalloy screening run."""
+    conditions = result.get("screening_conditions") or {}
+    candidates = result.get("initial_candidates") or []
+    nearest_candidates = result.get("nearest_candidates") or []
+    reference_candidates = result.get("reference_candidates") or []
+    sampling = result.get("sampling") or {}
+    temperature_support = conditions.get("temperature_support") or {}
+    support_level = str(temperature_support.get("level") or "inside")
+    support_note = str(temperature_support.get("label") or "短时强度训练温区内")
+    support_reference = temperature_support.get("reference_temperature_C")
+    support_text = support_note + (f"；训练上限 {float(support_reference):.0f} °C" if support_reference is not None else "")
+    display_candidates = candidates or nearest_candidates or reference_candidates
+    if candidates:
+        candidate_heading = "优先候选"
+        card_heading = "镍基高温合金｜本次优选配方"
+    elif nearest_candidates:
+        candidate_heading = "下一步优先评估候选"
+        card_heading = "镍基高温合金｜最接近目标的候选"
+    elif support_level == "boundary":
+        candidate_heading = "边界工况参考候选"
+        card_heading = "镍基高温合金｜边界工况参考候选"
+    else:
+        candidate_heading = "工况外推参考候选"
+        card_heading = "镍基高温合金｜工况外推参考候选"
+    stages = [item for item in (sampling.get("funnel_stages") or []) if isinstance(item, dict)]
+    if not stages:
+        stages = [
+            {"label": "满足成分约束的候选", "count": sampling.get("generated", 0)},
+            {"label": "综合优先短名单", "count": len(candidates)},
+        ]
+    stage_rows = [f"| {item.get('label', '筛选阶段')} | {int(item.get('count', 0))} | {'综合排序前的门槛筛选。' if index < len(stages) - 1 else '保留用于横向比较与优先验证。'} |" for index, item in enumerate(stages)]
+    no_pass_note = ""
+    if not candidates and nearest_candidates:
+        no_pass_note = "当前筛选门槛通过数为 0；在当前工况与目标组合下，暂未配比出同时严格满足全部需求的材料；以下保留最接近目标的候选，作为后续配比迭代与验证的优先方向。"
+    elif not candidates and reference_candidates:
+        no_pass_note = "当前筛选门槛通过数为 0；以下候选仅作为边界或工况外推参考，不代表已经满足全部筛选门槛。"
+    include_gap = bool(nearest_candidates and not candidates)
+    header = "| 排名 | 配方编号 | 抗拉强度 | 0.2%屈服强度 | 蠕变断裂寿命 | 成分比较范围 |"
+    separator = "|---:|---|---:|---:|---:|---|"
+    if include_gap:
+        header = header[:-1] + " 与门槛的主要缺口 |"
+        separator = separator[:-1] + "---|"
+    route = {"cast": "铸造", "directionally_solidified": "定向凝固", "single_crystal": "单晶"}.get(str(conditions.get("manufacturing_route")), str(conditions.get("manufacturing_route") or "待确认"))
+    lines = ["### 5. 筛选结果与候选卡", "", f"针对{route}高温镍基合金，在 **{conditions.get('test_temperature_C', '-')} °C / {conditions.get('applied_stress_MPa', '-')} MPa** 与指定热处理条件下，比较短时强度和蠕变寿命。", *([f"温度数据覆盖：{support_text}。"] if support_level != "inside" else []), "", "### 5.1 筛选过程", "", "| 条件核对 | 保留配方数 | 说明 |", "|---|---:|---|", *stage_rows, "", "{{VISUAL:hot_end_screening_funnel}}", "", "### 5.2 优先候选", "", *([no_pass_note, ""] if no_pass_note else []), *([candidate_heading + "：", ""] if not candidates else []), header, separator]
+    for rank, item in enumerate(display_candidates[:5], 1):
+        uts = item["ultimate_tensile_strength_MPa"]; proof = item["proof_strength_0p2_MPa"]; creep = item["creep_rupture"]
+        domain = {"inside": "与已收录成分相近", "boundary": "接近已收录成分范围边缘"}.get((item.get("applicability_domain") or {}).get("level"), "超出已收录成分比较范围")
+        row = f"| {rank} | {item.get('candidate_id', '-')} | {uts['mean']:.0f} MPa | {proof['mean']:.0f} MPa | {creep['predicted_hours']:.1f} h | {domain}"
+        if include_gap:
+            gaps = ((item.get("strict_screening") or {}).get("gaps") or {})
+            labels = {"uts_min_MPa": "UTS", "proof_strength_min_MPa": "0.2% 屈服", "rupture_life_min_h": "寿命"}
+            gap_text = "；".join(
+                f"{labels[key]}差 {value.get('shortfall', 0):.0f}{' h' if key == 'rupture_life_min_h' else ' MPa'}"
+                for key, value in gaps.items() if float(value.get("shortfall", 0)) > 1e-9
+            ) or "已满足全部门槛"
+            row += f" | {gap_text}"
+        lines.append(row + " |")
+    top = display_candidates[0] if display_candidates else None
+    if top:
+        uts = top["ultimate_tensile_strength_MPa"]; proof = top["proof_strength_0p2_MPa"]; creep = top["creep_rupture"]; elongation = top.get("elongation_percent_auxiliary") or {}
+        domain = {"inside": "与已收录训练成分相近", "boundary": "接近已收录成分范围边缘，优先核验组成"}.get((top.get("applicability_domain") or {}).get("level"), "超出已收录成分比较范围，需补充同条件数据")
+        anchor = top.get("source_anchor") or {}
+        anchor_name = str(anchor.get("alloy_name") or anchor.get("tag") or "当前来源参考")
+        conclusion = (f"针对上述需求，优先沿 **{top['candidate_id']}**（来源参考合金：{anchor_name}）开展下一轮配比迭代。它是当前候选中最接近目标组合的方向；结合表中性能差距，继续开展 CALPHAD 相稳定性、氧化环境及目标工况力学验证。" if nearest_candidates and not candidates else f"在上述工况下，优先评估研发候选 **{top['candidate_id']}**（来源参考合金：{anchor_name}）。它在当前候选中兼顾短时最大承载、抗永久变形与蠕变耐久表现；下一步按该配方开展 CALPHAD 相稳定性、氧化环境及目标工况力学验证。")
+        card_name = "本次优选配方" if candidates else "本次优先评估配方"
+        elongation_value = elongation.get("elongation_percent")
+        elongation_text = f"{float(elongation_value):.1f}%" if elongation_value is not None and math.isfinite(float(elongation_value)) else "当前未收录"
+        lines += ["", "{{VISUAL:hot_end_strength_life_tradeoff}}", "", f"### 高温镍基合金｜{card_name}：{top['candidate_id']}", "", "各元素按质量百分比列出，镍作为平衡元素；来源参考合金用于追溯成分邻域。", "", *_recipe_composition_table(top.get("composition_wt_percent") or {}, "Ni"), "", "| 适用条件与来源 | 本次采用 |", "|---|---|", f"| 制造路线与评价工况 | {route}；{conditions.get('test_temperature_C', '-')} °C；{conditions.get('applied_stress_MPa', '-')} MPa |", f"| 热处理 | {_heat_treatment_text(conditions.get('heat_treatment'))} |", f"| 来源参考合金 | {anchor_name} |", f"| 成分比较范围 | {domain} |", f"| 温度数据覆盖 | {support_text} |", "", f"#### {card_heading}", "", "| 性质 | 模型预测 | 验证信息 |", "|---|---:|---|", f"| 抗拉强度 | {uts['mean']:.0f} MPa | 镍基强度专项模型；独立测试 MAE {uts['screening_MAE_MPa']:.0f} MPa |", f"| 0.2%屈服强度 | {proof['mean']:.0f} MPa | 镍基强度专项模型；独立测试 MAE {proof['screening_MAE_MPa']:.0f} MPa |", f"| 蠕变断裂寿命 | {creep['predicted_hours']:.1f} h | 镍基蠕变专项模型；独立测试典型误差约 {creep['screening_error_factor']:.2f}× |", f"| 延伸率（辅助） | {elongation_text} | 镍基延伸率专项模型 |", "", "验证指标描述模型历史表现，配方验证采用上表的相同制造与热处理条件。", "", "{{VISUAL:hot_end_composition_traceability}}", "", "#### 结论", "", conclusion]
+    else:
+        lines += ["", "#### 结论", "", str(result.get("user_conclusion") or "当前条件下没有保留可比较配方；下一步核对目标门槛与制造、热处理条件。")]
+    return "\n".join(lines)
+
+
+def hot_end_input_guide_block(plan: dict[str, Any]) -> str:
+    missing = plan.get("missing_required_inputs") or []
+    rows = [f"| {item['label']} | 需要用于条件预测，不能由服务替用户假设。 |" for item in missing]
+    return "\n".join([
+        "### 请补充筛选条件",
+        "高温镍基合金的强度和蠕变寿命同时受路线、热处理、温度与载荷影响。补齐下列条件后，服务会生成受约束候选并给出可比较的优先级。",
+        "", "| 需要补充 | 为什么需要 |", "|---|---|", *rows,
+        "", "提交后将依次显示：来源锚点覆盖情况、候选筛选漏斗、短时强度—蠕变寿命对比，以及进入 CALPHAD/氧化/力学验证的建议。",
+    ])
+
+
+def _place_visuals_before_conclusion(narrative: str, visuals: str) -> str:
+    """Keep the brief conclusion as the last thing the user reads."""
+    if not visuals:
+        return narrative
+    marker = "\n\n### 本轮结论\n"
+    if marker not in narrative:
+        return narrative.rstrip() + "\n\n" + visuals
+    before, conclusion = narrative.rsplit(marker, 1)
+    return before.rstrip() + "\n\n" + visuals.strip() + marker + conclusion
+
+
+def _embed_hot_end_visuals(narrative: str, visual_assets: list[dict[str, str]] | None) -> str:
+    """Place each hot-end chart beside the report section it explains."""
+    assets = {str(item.get("name")): item for item in visual_assets or []}
+    for name in ("hot_end_screening_funnel", "hot_end_strength_life_tradeoff", "hot_end_composition_traceability"):
+        token = f"{{{{VISUAL:{name}}}}}"
+        item = assets.get(name)
+        if not item or not str(item.get("url") or "").strip():
+            narrative = narrative.replace(token, "")
+            continue
+        title = str(item.get("title") or "分析图表")
+        description = str(item.get("description") or "")
+        narrative = narrative.replace(token, f"#### {title}\n\n{description}\n\n![{title}]({item['url']})")
+    return narrative
+
+
+def _embed_glass_visuals(narrative: str, visual_assets: list[dict[str, str]] | None) -> str:
+    assets = {str(item.get("name")): item for item in visual_assets or []}
+    for name in ("glass_screening_funnel", "glass_cte_modulus_tradeoff", "glass_composition_traceability"):
+        token = f"{{{{VISUAL:{name}}}}}"; item = assets.get(name)
+        if not item or not str(item.get("url") or "").strip():
+            narrative = narrative.replace(token, ""); continue
+        title = str(item.get("title") or name); description = str(item.get("description") or "")
+        narrative = narrative.replace(token, f"#### {title}\n\n{description}\n\n![{title}]({item['url']})")
+    return narrative
+
+
+def _embed_short_cf_visuals(narrative: str, visual_assets: list[dict[str, str]] | None) -> str:
+    assets = {str(item.get("name")): item for item in visual_assets or []}
+    for name in ("short_cf_screening_funnel", "short_cf_stiffness_anisotropy", "short_cf_constitutive_card"):
+        token = f"{{{{VISUAL:{name}}}}}"; item = assets.get(name)
+        if not item or not str(item.get("url") or "").strip():
+            narrative = narrative.replace(token, ""); continue
+        title = str(item.get("title") or name); description = str(item.get("description") or "")
+        narrative = narrative.replace(token, f"#### {title}\n\n{description}\n\n![{title}]({item['url']})")
+    return narrative
+
+def _embed_perovskite_visuals(narrative: str, visual_assets: list[dict[str, str]] | None) -> str:
+    assets = {str(item.get("name")): item for item in visual_assets or []}
+    for name in ("perovskite_screening_funnel", "perovskite_transport_tradeoff", "perovskite_response_curve"):
+        token = f"{{{{VISUAL:{name}}}}}"; item = assets.get(name)
+        if not item or not str(item.get("url") or "").strip(): narrative = narrative.replace(token, ""); continue
+        title = str(item.get("title") or name); desc = str(item.get("description") or "")
+        narrative = narrative.replace(token, f"#### {title}\n\n{desc}\n\n![{title}]({item['url']})")
+    return narrative
+
+def aerospace_aluminum_summary_block(result: dict[str, Any]) -> str:
+    candidates=result.get("initial_candidates") or []; validation=result.get("validation") or {}; process=(result.get("screening_conditions") or {}).get("processing_category","-")
+    lines=["### 5. 筛选结果与候选卡","针对航空铝合金，在已记录的 **wt.% 成分—工艺类别** 联合邻域内生成局部候选；以下预测对应名义室温。","","### 5.1 筛选过程","| 阶段 | 保留数量 | 说明 |","|---|---:|---|"]
+    lines += [f"| {x.get('label','筛选阶段')} | {int(x.get('count',0))} | 成分闭合、工艺类别已记录并处于训练成分邻域。 |" for x in ((result.get('sampling') or {}).get('funnel_stages') or [])]
+    lines += ["",r"$$J=z(UTS)+z(YS)+0.25z(A)$$","","排序仅用于当前候选池的试制优先级，不替代牌号、热处理和产品形态验证。","","{{VISUAL:aluminum_screening_funnel}}","","### 5.2 优先候选","| 排名 | 成分（wt.%） | 工艺类别 | UTS | 0.2% YS | 延伸率 |","|---:|---|---|---:|---:|---:|"]
+    for row in candidates[:5]:
+        c="；".join(f"{e} {v:.3f}" for e,v in row.get("composition_wt_percent",{}).items() if float(v)>.001); p=row.get("predicted_properties") or {}; lines.append(f"| {row.get('rank','-')} | {c} | {row.get('processing_category','-')} | {p.get('uts_MPa',0):.1f} MPa | {p.get('yield_strength_MPa',0):.1f} MPa | {p.get('elongation_pct',0):.2f}% |")
+    if candidates:
+        top = candidates[0]; p = top.get("predicted_properties") or {}
+        mae = lambda k,u: f"{float(((validation.get(k) or {}).get('overall') or {}).get('mae',0)):.3f} {u}"
+        lines += [
+            "", "{{VISUAL:aluminum_strength_ductility_tradeoff}}", "",
+            "### 航空铝合金｜本次优选配方",
+            f"**{top.get('candidate_id') or '航空铝候选 01'}** 是当前候选池内优先试制的成分，不代表已经命中现成牌号。",
+            "", _candidate_composition_table(top.get("composition_wt_percent") or {}, basis="wt.%"),
+            "", "| 适用条件与范围 | 本次筛选采用 |", "|---|---|",
+            f"| 工艺类别 | {top.get('processing_category') or process} |",
+            "| 拉伸评价温度 | 名义室温 |",
+            "| 工艺记录边界 | 不含具体固溶、时效温度与时间；Al-Li 子域仅作局部参考 |",
+            "", "| 短时拉伸性质 | 该候选的模型预测 | 组成留出 MAE |", "|---|---:|---:|",
+            f"| 抗拉强度 UTS | {p.get('uts_MPa',0):.1f} MPa | {mae('uts_MPa','MPa')} |",
+            f"| 0.2% 屈服强度 | {p.get('yield_strength_MPa',0):.1f} MPa | {mae('yield_strength_MPa','MPa')} |",
+            f"| 断后延伸率 | {p.get('elongation_pct',0):.2f}% | {mae('elongation_pct','个百分点')} |",
+            "", "MAE 是模型在留出成分上的平均绝对误差，不是该候选的实测值或单点误差范围。",
+            "", "{{VISUAL:aluminum_composition_card}}",
+        ]
+    lines += ["","#### 结论",str(result.get("user_conclusion") or "优先候选可进入同一工艺类别下的成分试制与室温拉伸验证。")]
+    return "\n".join(lines)
+
+def _embed_aluminum_visuals(narrative: str, visual_assets: list[dict[str, str]] | None) -> str:
+    assets={str(x.get("name")):x for x in visual_assets or []}
+    for name in ("aluminum_screening_funnel","aluminum_strength_ductility_tradeoff","aluminum_composition_card"):
+        item=assets.get(name); token=f"{{{{VISUAL:{name}}}}}"; narrative=narrative.replace(token, f"#### {item.get('title',name)}\n\n![{item.get('title',name)}]({item['url']})" if item and item.get("url") else "")
+    return narrative
+
+
+async def emit_result_content(websocket: Any, result: dict[str, Any], *, step_id: str = "FILAMENT_SELECTION_OPTIMIZATION", visual_assets: list[dict[str, str]] | None = None) -> None:
+    """Stream LLM-rendered narrative/table like adjacent services, with safe fallback."""
+    path = result.get("_summary_path")
+    fallback = path.read_text(encoding="utf-8") if path else final_conclusion_block(result)
+    if result.get("recipe_release", {}).get("mode") == "primary":
+        from src.alloy_workflow.recipe_primary import embed_primary
+        rendered_content = embed_primary(fallback, visual_assets)
+    elif result.get("model_domain") == "ni_superalloy_hot_end":
+        rendered_content = _embed_hot_end_visuals(fallback, visual_assets)
+    elif result.get("model_domain") == "copper_hot_end_evidence_v1":
+        rendered_content = _embed_copper_hot_end_visuals(fallback, visual_assets)
+    elif result.get("model_domain") == "copper_hot_end_local_composition_v1":
+        rendered_content = _embed_copper_local_visuals(fallback, visual_assets)
+    elif result.get("model_domain") == "reusable_rocket_stainless":
+        rendered_content = _embed_rocket_visuals(fallback, visual_assets)
+    elif result.get("model_domain") == "chip_glass_thermomechanical_family_v1":
+        rendered_content = _embed_glass_visuals(fallback, visual_assets)
+    elif result.get("model_domain") == "aerospace_aluminum_composition_v1":
+        rendered_content = _embed_aluminum_visuals(fallback, visual_assets)
+    elif result.get("model_domain") == "short_cf_thermomechanical_rve_v1":
+        rendered_content = _embed_short_cf_visuals(fallback, visual_assets)
+    elif result.get("model_domain") == "perovskite_transport_stability_v2":
+        rendered_content = _embed_perovskite_visuals(fallback, visual_assets)
+    elif result.get("model_domain") == "generic_composition_design_fallback_v1":
+        rendered_content = _embed_generic_fallback_visuals(fallback, visual_assets)
+    else:
+        visuals = visual_assets_block(visual_assets)
+        rendered_content = _place_visuals_before_conclusion(fallback, visuals)
+    tendency_asset = next((item for item in (visual_assets or []) if item.get("name") == "microstructure_tendency"), None) if result.get("model_domain") == "hea_mpea" else None
+    tendency = "" if result.get("recipe_release", {}).get("mode") == "primary" else microstructure_tendency_block(result, str((tendency_asset or {}).get("url") or ""))
+    if tendency:
+        rendered_content = rendered_content.rstrip() + "\n\n" + tendency
+    await stream_authoritative_markdown(websocket, rendered_content, step_id=step_id)
+
+
+def rocket_stainless_summary_block(result: dict[str, Any]) -> str:
+    """Customer-facing result block for the third 1111 model domain."""
+    if result.get("mode") == "cryogenic_reference":
+        ref = result.get("cryogenic_reference") or {}
+        rows = ref.get("nearest_records") or []
+        table = ["| 参考材料 | 温度 | 屈服 | UTS | 延伸率 | 来源定位 |", "|---|---:|---:|---:|---:|---|"]
+        def value(number: Any, unit: str) -> str:
+            try:
+                return "当前目录未收录" if not math.isfinite(float(number)) else f"{float(number):.1f} {unit}"
+            except (TypeError, ValueError):
+                return "当前目录未收录"
+        table.extend(f"| {r.get('material_id','-')} | {r.get('temperature_K','-')} K | {value(r.get('yield_MPa'),'MPa')} | {value(r.get('uts_MPa'),'MPa')} | {value(r.get('elongation_pct'),'%')} | {r.get('source_locator','-')} |" for r in rows)
+        steps = [f"- {item}" for item in (ref.get("next_validation") or [])]
+        return "\n".join(["### 低温参考与验证优先级", "目标温度处于当前自由配方模型之外。本页使用 301/304L 可追溯参考建立低温试验基准，不把参考材料写成新配方或 30X 性能。", "", "#### 可追溯参考数据", *table, "", "#### 建议验证顺序", *steps, "", "#### 结论", "低温工况先以参考牌号和试验关卡收敛验证方案；取得同一成分—工艺状态下的低温拉伸与韧性数据后，才可建立该工况的专属校准层。"])
+    conditions = result.get("screening_conditions") or {}
+    candidates = result.get("initial_candidates") or []
+    all_candidates = result.get("all_candidates") or candidates
+    level_counts = {level: sum(1 for item in all_candidates if (item.get("applicability_domain") or {}).get("level") == level) for level in ("inside", "boundary", "outside")}
+    priority_candidates = [
+        item for item in all_candidates
+        if (item.get("applicability_domain") or {}).get("level") == "inside"
+    ][:5]
+    effective = (result.get("requirement_interpretation") or {}).get("effective_model_input") or {}
+    bounds = effective.get("element_bounds_wt_percent") or {}
+    bounds_text = "；".join(
+        f"{element} {value[0]}–{value[1]} wt.%"
+        for element, value in bounds.items()
+        if isinstance(value, (list, tuple)) and len(value) == 2
+    ) or "以任务输入为准"
+    sampling = result.get("sampling") or {}
+    stages = [item for item in (sampling.get("funnel_stages") or []) if isinstance(item, dict)]
+    if not stages:
+        stages = [
+            {"label": "经验成分适用域内或边界", "count": len(all_candidates)},
+            {"label": "训练成分邻域内", "count": level_counts["inside"]},
+            {"label": "强度—延性综合优先", "count": len(priority_candidates)},
+        ]
+    stage_explanations = {
+        "元素 wt.% 边界采样": "各元素在当前 wt.% 上下限内取样。",
+        "Fe 平衡可行（溶质总量 10–60 wt.%）": "其余质量分数由 Fe 平衡，保留奥氏体不锈钢成分窗口。",
+        "经验成分适用域内或边界": "剔除远离现有训练成分的组合。",
+        "训练成分邻域内": "优先保留与可追溯训练成分接近的组合。",
+        "强度—延性综合优先": "按屈服、UTS、延伸率及其验证误差综合排序。",
+    }
+    stage_rows = [f"| {item.get('label', '筛选阶段')} | {int(item.get('count', 0))} | {stage_explanations.get(str(item.get('label')), '按当前筛选条件保留。')} |" for item in stages]
+    lines = [
+        "### 5. 筛选结果与候选卡",
+        f"针对 {effective.get('component', '可回收火箭承压壳体')}，在 **{conditions.get('test_temperature_K', '-')} K** 固溶退火母材工况下，筛选可进入后续验证的 Fe–Cr–Ni–Mn 奥氏体不锈钢候选。",
+        f"共保留 **{len(priority_candidates)}** 个训练成分邻域内候选进入优先验证队列。",
+        "", "### 5.1 筛选过程", "| 阶段 | 数量 | 说明 |", "|---|---:|---|", *stage_rows,
+        "", "{{VISUAL:rocket_screening_funnel}}", "", "### 5.2 优先候选",
+        "| 排名 | 候选 | 配方概览（质量占比） | 0.2% 屈服强度 | UTS（最大承载） | 延伸率 | 成分覆盖情况 |",
+        "|---:|---|---|---:|---:|---:|---|",
+    ]
+    for rank, item in enumerate(priority_candidates, 1):
+        tensile = item["short_time_tensile"]
+        domain = {"inside": "训练成分邻域内", "boundary": "训练边界附近"}.get((item.get("applicability_domain") or {}).get("level"), "范围外")
+        lines.append(f"| {rank} | {item['candidate_id']} | {_rocket_composition_text(item.get('composition_wt_percent') or {})} | {tensile['yield_0p2_MPa']['mean']:.0f} MPa | {tensile['uts_MPa']['mean']:.0f} MPa | {tensile['elongation_pct']['mean']:.1f}% | {domain} |")
+    top = priority_candidates[0] if priority_candidates else None
+    if top:
+        tensile = top["short_time_tensile"]
+        domain = top.get("applicability_domain") or {}
+        domain_label = {"inside": "训练成分邻域内", "boundary": "训练边界附近，需复核", "outside": "训练范围外"}.get(domain.get("level"), "当前未记录")
+        try:
+            test_temperature = float(conditions["test_temperature_K"])
+            temperature_text = f"{test_temperature:.0f} K（约 {test_temperature - 273.15:.0f} °C）"
+        except (KeyError, TypeError, ValueError):
+            temperature_text = "测试温度待确认"
+        lines += [
+            "", "{{VISUAL:rocket_strength_ductility_tradeoff}}", "",
+            "### 奥氏体不锈钢｜本次优选配方",
+            f"**{top['candidate_id']}** 是本次筛选出的铁基奥氏体不锈钢候选。下表逐项列出候选设计成分；它不是某个现成牌号的实测化学成分。",
+            "", _candidate_composition_table(top.get('composition_wt_percent') or {}, basis="wt.%", balance_element="Fe"),
+            "", "未列出的元素不表示已有实测零含量；表中显示值经过舍入，复现配比请以候选的结构化数值为准。",
+            "", "| 适用条件与范围 | 本次筛选采用 |", "|---|---|",
+            f"| 拉伸评价温度 | {temperature_text} |",
+            f"| 材料处理状态 | {_rocket_process_text(conditions.get('processing'))} |",
+            f"| 成分适用域 | {domain_label}；表示该配比与已收录训练成分相近，不代替实物验证 |",
+            "", "**在上述条件下，模型预测了哪些性质？**",
+            "", "| 短时拉伸性质 | 该候选的模型预测 | 模型历史分组验证 MAE |", "|---|---:|---:|",
+            f"| 0.2% 屈服强度（开始产生永久变形） | {tensile['yield_0p2_MPa']['mean']:.0f} MPa | {tensile['yield_0p2_MPa']['screening_MAE']:.1f} MPa |",
+            f"| 抗拉强度 UTS（最大承载） | {tensile['uts_MPa']['mean']:.0f} MPa | {tensile['uts_MPa']['screening_MAE']:.1f} MPa |",
+            f"| 断后延伸率（拉断前可伸长程度） | {tensile['elongation_pct']['mean']:.1f}% | {tensile['elongation_pct']['screening_MAE']:.2f} 个百分点 |",
+            "", "历史分组验证 MAE 是模型在留出材料状态上的平均绝对误差，**不是这组候选的实测值或单点误差范围**。",
+            "", "{{VISUAL:rocket_composition_comparison}}", "", "#### 结论",
+            f"在上述工况下，优先评估 **{top['candidate_id']}**。这张卡给出的是短时拉伸筛选值；实际冷作量、板厚、焊接状态及低温韧性、疲劳、LOX 相容性仍需通过相应样件试验确认。",
+        ]
+    return "\n".join(lines)
+
+
+def _embed_rocket_visuals(narrative: str, visual_assets: list[dict[str, str]] | None) -> str:
+    assets = {str(item.get("name")): item for item in visual_assets or []}
+    for name in ("rocket_screening_funnel", "rocket_strength_ductility_tradeoff", "rocket_composition_comparison"):
+        token = f"{{{{VISUAL:{name}}}}}"; item = assets.get(name)
+        if not item:
+            narrative = narrative.replace(token, ""); continue
+        title = str(item.get("title") or name); description = str(item.get("description") or "")
+        narrative = narrative.replace(token, f"#### {title}\n\n{description}\n\n![{title}]({item['url']})")
+    return narrative

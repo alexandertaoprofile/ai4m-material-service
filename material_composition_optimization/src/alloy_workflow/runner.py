@@ -8,7 +8,6 @@ from __future__ import annotations
 import json
 import os
 import subprocess
-import tempfile
 import threading
 import time
 import uuid
@@ -24,31 +23,6 @@ from src.alloy_workflow.tensile_shadow import (
 )
 
 
-UNIFIED_TENSILE_RELEASE_POLICY = {
-    "version": "20260923_shadow_only",
-    "mode": "shadow_only",
-    "public_effect": False,
-    "primary_switch_implemented": False,
-    "domains": {
-        "aerospace_aluminum_composition_v1": {
-            "yield_strength_MPa": "specialist_primary",
-            "uts_MPa": "specialist_primary",
-            "unified_transformer": "shadow_only",
-        },
-        "reusable_rocket_stainless": {
-            "yield_0p2_MPa": "specialist_primary",
-            "uts_MPa": "specialist_primary",
-            "unified_transformer": "shadow_only",
-        },
-        "ni_superalloy_hot_end": {
-            "proof_strength_0p2_MPa": "specialist_primary",
-            "ultimate_tensile_strength_MPa": "specialist_primary",
-            "unified_transformer": "shadow_only",
-        },
-    },
-}
-
-
 class HEASurrogateRunner:
     def __init__(self, *, results_root: Path, surrogate_root: Path, environment_prefix: Path, executable: str) -> None:
         self.results_root = results_root
@@ -59,13 +33,6 @@ class HEASurrogateRunner:
         queue_size = max(workers, int(os.getenv("UNIFIED_TENSILE_SHADOW_QUEUE", "8")))
         self._shadow_pool = ThreadPoolExecutor(max_workers=workers, thread_name_prefix="unified-tensile-shadow")
         self._shadow_slots = threading.BoundedSemaphore(queue_size)
-        self._shadow_health_lock = threading.Lock()
-        self._shadow_health_checked_at = 0.0
-        self._shadow_health_cache: dict[str, Any] = {
-            "ready": False,
-            "inference_performed": False,
-            "status": "not_checked",
-        }
         self._recipe_lock = threading.Lock()
         self._recipe_dispatcher = None
 
@@ -182,112 +149,9 @@ class HEASurrogateRunner:
 
     def tensile_shadow_ready(self) -> bool:
         python = Path(os.getenv("UNIFIED_TENSILE_PYTHON", "/home/ubuntu/miniconda3/bin/python"))
-        runner = Path(os.getenv(
-            "UNIFIED_TENSILE_RUNNER",
-            str(self.surrogate_root / "tools/unified_alloy_tensile_shadow_runner.py"),
-        ))
-        runtime = Path(os.getenv(
-            "UNIFIED_TENSILE_RUNTIME_ROOT",
-            str(self.surrogate_root / "models/unified_alloy_tensile_v2_20260921/runtime"),
-        ))
+        runner = self.surrogate_root / "tools/unified_alloy_tensile_shadow_runner.py"
+        runtime = self.surrogate_root / "models/unified_alloy_tensile_v2_20260921/runtime"
         return python.is_file() and runner.is_file() and (runtime / "assets/model_state.pt").is_file()
-
-    def tensile_shadow_release_policy(self) -> dict[str, Any]:
-        return deepcopy(UNIFIED_TENSILE_RELEASE_POLICY)
-
-    def tensile_shadow_health(self, *, force: bool = False) -> dict[str, Any]:
-        """Run and cache one real eligible inference, including artifact hash checks."""
-        now = time.time()
-        ttl = max(10, int(os.getenv("UNIFIED_TENSILE_HEALTH_TTL_SECONDS", "300")))
-        if not force and now - self._shadow_health_checked_at < ttl:
-            return deepcopy(self._shadow_health_cache)
-        with self._shadow_health_lock:
-            now = time.time()
-            if not force and now - self._shadow_health_checked_at < ttl:
-                return deepcopy(self._shadow_health_cache)
-            record: dict[str, Any] = {
-                "ready": False,
-                "inference_performed": False,
-                "status": "checking",
-                "checked_at_epoch_seconds": now,
-                "release_policy": self.tensile_shadow_release_policy(),
-            }
-            if not self.tensile_shadow_ready():
-                record.update({"status": "assets_unavailable", "error": "python, runner, or model_state.pt is unavailable"})
-            else:
-                python = os.getenv("UNIFIED_TENSILE_PYTHON", "/home/ubuntu/miniconda3/bin/python")
-                shadow_runner = os.getenv(
-                    "UNIFIED_TENSILE_RUNNER",
-                    str(self.surrogate_root / "tools/unified_alloy_tensile_shadow_runner.py"),
-                )
-                sample = {
-                    "items": [{
-                        "request_id": "health-aluminum-frozen-sample",
-                        "service_domain": "aerospace_aluminum_composition_v1",
-                        "actual_inputs": {
-                            "composition_wt_percent": {
-                                "Al": 92.35578, "Cr": 0.0, "Cu": 6.23236,
-                                "Fe": 0.3, "Mg": 0.12039, "Mn": 0.32457,
-                                "Si": 0.27509, "Ti": 0.06, "V": 0.1,
-                                "Zn": 0.05722, "Zr": 0.1746,
-                            },
-                            "processing_category": "Solutionised + Artificially peak aged",
-                            "test_temperature_C": 25.0,
-                        },
-                        "legacy_properties": {
-                            "yield_strength_MPa": 286.2451141860001,
-                            "uts_MPa": 411.7277816693333,
-                        },
-                    }],
-                }
-                started = time.perf_counter()
-                try:
-                    with tempfile.TemporaryDirectory(prefix="unified-tensile-health-") as directory:
-                        request = Path(directory) / "request.json"
-                        response = Path(directory) / "response.json"
-                        request.write_text(json.dumps(sample, ensure_ascii=False), encoding="utf-8")
-                        command = [
-                            python, shadow_runner,
-                            "--request", str(request), "--response", str(response),
-                            "--mode", "shadow", "--service-comparison", "--threads", "1",
-                        ]
-                        env = dict(os.environ)
-                        for variable in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
-                            env[variable] = "1"
-                        completed = subprocess.run(
-                            command,
-                            cwd=self.surrogate_root,
-                            capture_output=True,
-                            text=True,
-                            timeout=int(os.getenv("UNIFIED_TENSILE_HEALTH_TIMEOUT_SECONDS", "30")),
-                            env=env,
-                        )
-                        payload = json.loads(response.read_text(encoding="utf-8")) if response.is_file() else {}
-                        comparisons = payload.get("comparisons") or []
-                        sample_status = comparisons[0].get("status") if len(comparisons) == 1 else None
-                        ready = completed.returncode == 0 and payload.get("ok") is True and sample_status == "predicted"
-                        record.update({
-                            "ready": ready,
-                            "inference_performed": True,
-                            "status": "ready" if ready else "inference_failed",
-                            "elapsed_seconds": round(time.perf_counter() - started, 4),
-                            "sample_status": sample_status,
-                            "model": payload.get("model"),
-                            "returncode": completed.returncode,
-                        })
-                        if not ready:
-                            record["error"] = payload.get("error") or completed.stderr[-1000:] or "health sample was not strictly predicted"
-                except Exception as exc:
-                    record.update({
-                        "status": "inference_failed",
-                        "inference_performed": True,
-                        "elapsed_seconds": round(time.perf_counter() - started, 4),
-                        "error_type": type(exc).__name__,
-                        "error": str(exc),
-                    })
-            self._shadow_health_checked_at = now
-            self._shadow_health_cache = record
-            return deepcopy(record)
 
     def submit_tensile_shadow(self, taskid: str, specialist_result: dict[str, Any]) -> Future[dict[str, Any]] | None:
         """Queue a private comparison without delaying or mutating the formal result."""
@@ -332,19 +196,9 @@ class HEASurrogateRunner:
             manifest.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
             return record
         python = os.getenv("UNIFIED_TENSILE_PYTHON", "/home/ubuntu/miniconda3/bin/python")
-        shadow_runner = os.getenv(
-            "UNIFIED_TENSILE_RUNNER",
-            str(self.surrogate_root / "tools/unified_alloy_tensile_shadow_runner.py"),
-        )
-        diagnostic_enabled = os.getenv(
-            "UNIFIED_TENSILE_DIAGNOSTIC_OUTSIDE_SUPPORT_ENABLED", "1"
-        ).strip().casefold() not in {"0", "false", "no", "off"}
-        command = [python, shadow_runner,
+        command = [python, str(self.surrogate_root / "tools/unified_alloy_tensile_shadow_runner.py"),
                    "--request", str(request), "--response", str(response), "--mode", "shadow",
                    "--service-comparison", "--threads", "1"]
-        if diagnostic_enabled:
-            command.append("--diagnostic-outside-support")
-        record["diagnostic_outside_support_enabled"] = diagnostic_enabled
         env = dict(os.environ)
         for variable in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
             env[variable] = "1"

@@ -1,0 +1,85 @@
+"""Orchestration skeleton for the inorganic new-material mainline."""
+
+from __future__ import annotations
+
+import logging
+from pathlib import Path
+from typing import Optional
+
+from .emitters import write_pipeline_manifest
+from .alignn import enrich_validations_with_alignn
+from .generation import GenerationRunner, run_mattergen_generation
+from .mattersim import enrich_validations_with_mattersim
+from .ranking import rank_candidates
+from .schemas import GenerationConstraint, NewMaterialPipelineResult
+from .validation import ValidationRunner, run_pymatgen_structural_admission
+
+logger = logging.getLogger("mattergen_workflow")
+
+
+def run_new_material_pipeline(
+    constraints: GenerationConstraint,
+    results_root: Path,
+    max_candidates: int = 8,
+    generation_runner: Optional[GenerationRunner] = None,
+    validation_runner: Optional[ValidationRunner] = None,
+) -> NewMaterialPipelineResult:
+    """Run MatterGen generation, structural admission checks, and ranking."""
+    from .omatg_contract import omatg_enabled
+    if omatg_enabled():
+        from .omatg_pipeline import run_omatg_pipeline
+        return run_omatg_pipeline(constraints, results_root, max_candidates)
+    task_dir = results_root / constraints.taskid
+    generation_dir = task_dir / "generation"
+    validation_dir = task_dir / "validation"
+
+    generation = run_mattergen_generation(
+        constraints=constraints,
+        output_dir=generation_dir,
+        max_candidates=max_candidates,
+        runner=generation_runner,
+    )
+    logger.info("[DISCOVERY][%s] MatterGen completed: status=%s candidates=%s", constraints.taskid, generation.status, len(generation.candidates))
+
+    validations = [
+        run_pymatgen_structural_admission(candidate, validation_dir, runner=validation_runner)
+        for candidate in generation.candidates
+    ]
+    logger.info("[DISCOVERY][%s] structure admission completed: admitted=%s/%s", constraints.taskid, sum(item.is_valid is True for item in validations), len(validations))
+    admitted_candidates = [
+        candidate for candidate, validation in zip(generation.candidates, validations) if validation.is_valid is True
+    ]
+    # ALIGNN is intentionally run immediately after structural admission: it is
+    # a lightweight structure-to-property screen, not a dependent thermodynamic
+    # calculation.  MatterSim remains the following stability screen.
+    validations = enrich_validations_with_alignn(
+        validations,
+        admitted_candidates,
+        validation_dir,
+        target_properties=constraints.target_properties,
+        validation_targets=constraints.validation_targets,
+    )
+    logger.info("[DISCOVERY][%s] ALIGNN property screening completed: candidates=%s", constraints.taskid, sum(bool(item.property_predictions) for item in validations))
+    validations = enrich_validations_with_mattersim(
+        validations,
+        admitted_candidates,
+        validation_dir,
+        reference_system="-".join(constraints.allowed_elements),
+    )
+    logger.info("[DISCOVERY][%s] MatterSim/MP completed: thermodynamic_results=%s/%s", constraints.taskid, sum(item.energy_above_hull is not None for item in validations), len(admitted_candidates))
+    ranked = rank_candidates(generation.candidates, validations)
+
+    status = "ok" if ranked else generation.status
+    message = "候选生成、基础结构检查与稳定性评估已完成。" if ranked else generation.message
+    result = NewMaterialPipelineResult(
+        taskid=constraints.taskid,
+        status=status,
+        constraints=constraints,
+        generation=generation,
+        validations=validations,
+        ranked_candidates=ranked,
+        message=message,
+        artifacts={"result_dir": str(task_dir)},
+    )
+    write_pipeline_manifest(result, task_dir)
+    return result

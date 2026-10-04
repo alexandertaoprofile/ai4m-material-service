@@ -76,7 +76,7 @@ def screening_state(validation, constraints):
         value = prediction.get("value")
         if value is None or not math.isfinite(value):
             missing.append(key)
-        elif value < float(bounds.get("min", -math.inf)) or value > float(bounds.get("max", math.inf)) or (bounds.get("min_inclusive") is False and value == float(bounds.get("min", -math.inf))) or (bounds.get("max_inclusive") is False and value == float(bounds.get("max", math.inf))):
+        elif value < float(bounds.get("min", -math.inf)) or value > float(bounds.get("max", math.inf)):
             failures.append("性质范围未满足：" + key)
     return {"state": "failed" if failures else "incomplete" if missing else "passed",
         "failures": failures, "missing": missing, "stability_review": stability_review,
@@ -95,7 +95,7 @@ def run_omatg_pipeline(constraints, results_root, max_candidates=10):
         with gpu_job_lock():
             return _run_claimed(constraints, task_dir, max_candidates)
     except TimeoutError:
-        message = "计算队列等待超过时限，结构生成尚未启动；计算资源可用后可按已保留的组成与目标重试。"
+        message = "计算队列等待超过时限；本次未得到已完成候选，已保留组成与目标，不代表材料体系不可行。"
         result = NewMaterialPipelineResult(taskid=constraints.taskid, status="timeout", constraints=constraints,
             generation=GenerationManifest(taskid=constraints.taskid, status="timeout", backend="omatg", message=message),
             message=message, artifacts={"result_dir": str(task_dir)})
@@ -111,7 +111,7 @@ def _run_claimed(constraints, task_dir, max_candidates):
     dng_space = "元素白名单" if constraints.allowed_elements else "已确认的开放化学空间"
     stage(task_dir, "generation", "正在生成固定组成晶体。" if constraints.generation_mode == "csp" else f"正在{dng_space}中生成组成与晶体。")
     generation = run_omatg_generation(constraints, task_dir / "generation", max_candidates)
-    stage(task_dir, "validation", "正在检查组成和周期几何，并以 MatterSim 松弛评估稳定性。" if generation.candidates else "结构生成没有完整候选输入，后续检查与评价未启动；正在整理生成阶段原因。")
+    stage(task_dir, "validation", "正在检查组成和周期几何，并以 MatterSim 松弛评估稳定性。")
     validations = evaluate(constraints, generation, task_dir)
     if constraints.generation_mode == "dng" and constraints.refine_with_csp:
         pool = [item for item in rank_candidates(generation.candidates, validations) if item.validation.is_valid and item.validation.energy_above_hull is not None and item.validation.metadata.get("mattersim", {}).get("relaxation_converged") is True]
@@ -138,10 +138,7 @@ def _run_claimed(constraints, task_dir, max_candidates):
         thermo = validation.metadata.get("mattersim", {})
         if validation.is_valid and thermo.get("relaxation_converged") is True and (constraints.property_constraints or not thermo.get("duplicate_of")) and validation.artifacts.get("relaxed_structure_path"):
             eligible.append(replace(candidate, cif_path=Path(validation.artifacts["relaxed_structure_path"])))
-    property_message = "正在对去重后的松弛结构进行 ALIGNN 性质快速预测。" if eligible else "本轮没有可供性质预测的收敛结构；正在整理各候选的停止阶段与原因。"
-    if os.getenv("ALIGNN_ENABLED", "1").lower() not in {"1", "true", "yes"}:
-        property_message = "本次配置关闭了性质预测；正在整理已完成的结构与稳定性结果。"
-    stage(task_dir, "properties", property_message)
+    stage(task_dir, "properties", "正在对去重后的松弛结构进行 ALIGNN 性质快速预测。")
     final_dir = task_dir / "csp" if selected else task_dir
     enrich_validations_with_alignn(validations, eligible, final_dir / "validation",
         target_properties=constraints.target_properties, validation_targets=constraints.validation_targets)
@@ -189,10 +186,11 @@ def _run_claimed(constraints, task_dir, max_candidates):
     if generation.status != "ok":
         message = generation.message or "结构生成未完成，已保留输入条件供复核。"
     elif original_constraints.generation_mode == "dng" and original_constraints.refine_with_csp and not selected:
-        message = "DNG 尚未形成组成合规、结构收敛且已有稳定性结果的起点，追加 CSP 未启动；请按候选明细恢复对应评价，再选定组成。"
+        message = "DNG 未形成同时满足组成、结构与已完成稳定性评估的起点；未更换元素或借用其他组成继续生成。"
+    elif original_constraints.generation_mode == "dng":
+        message = "DNG 组成与晶体结构生成、松弛、稳定性和性质初筛已完成。"
     else:
-        from .omatg_report import evaluation_completion_text
-        message = evaluation_completion_text(generation.candidates, validations)
+        message = "固定计量候选生成、松弛、稳定性和性质初筛已完成。"
     result = NewMaterialPipelineResult(taskid=constraints.taskid, status=generation.status,
         constraints=original_constraints, generation=generation, validations=validations, ranked_candidates=ranked,
         message=message, artifacts={"result_dir": str(task_dir)})

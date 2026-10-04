@@ -1,0 +1,88 @@
+{
+  "status": "design_and_data_audit_only_no_training_no_serving_changes",
+  "source_dataset": "/data/se42/experiments/oxide_glass_transformer_v0_20260922/dataset/sciglass_v2_strict_database_observations.csv.gz",
+  "source_sha256": "98810be535a0300273f78fbd360e0a1623cc383748a5e2bd2e9842e413bf1a4d",
+  "existing_hard_constraints": {
+    "positive_log_outputs": [
+      "TG",
+      "DENSITY_20C",
+      "YOUNG_MODULUS",
+      "THERMAL_CONDUCTIVITY"
+    ],
+    "poisson_output_current_bounds": [
+      -0.2,
+      0.6
+    ],
+    "assessment": "positive outputs are physically valid; Poisson upper bound should be tightened below 0.5 for isotropic elastic stability"
+  },
+  "cte_temperature_response": {
+    "task": "CTE_FIXED_T",
+    "rows": 29032,
+    "known_temperature_rows": 29032,
+    "temperature_levels_C": [
+      55,
+      100,
+      160,
+      210,
+      350
+    ],
+    "same_source_composition_groups_ge2_temperatures": 1254,
+    "same_source_composition_groups_ge3_temperatures": 717,
+    "adjacent_pairs_deltaT_ge10C": 2575,
+    "observed_increase_fraction": 0.8085436893203883,
+    "observed_decrease_fraction": 0.1833009708737864,
+    "slope_median_per_100C": 4.286740620930989,
+    "decision": "use observed pairwise slope residual; do not impose universal positive monotonic sign"
+  },
+  "elastic_consistency": {
+    "same_source_composition_E_nu_density_groups": 3086,
+    "observed_poisson_range": [
+      0.0091742882505059,
+      0.3700000047683716
+    ],
+    "identities": [
+      "G = E / (2*(1+nu))",
+      "K = E / (3*(1-2*nu))"
+    ],
+    "decision": "enforce E>0 and -1<nu<0.5 structurally; expose K and G as derived outputs rather than independent unconstrained heads"
+  },
+  "thermal_conductivity": {
+    "rows": 647,
+    "canonical_compositions": 599,
+    "condition_temperature_known_rows": 0,
+    "coobserved_same_source_k_rho_E_nu_groups": 96,
+    "decision": "retain k>0; no temperature-response residual is justified; test an elastic-wave/minimum-conductivity mechanistic baseline only on the 96 complete groups and collect test temperature"
+  },
+  "cross_task_cte": {
+    "fixed_T_and_Tg_same_source_groups": 9261,
+    "fixed_T_below_known_Tg_rows": 10584,
+    "median_absolute_difference_fixed_vs_belowTg": 0.0,
+    "p90_absolute_difference_fixed_vs_belowTg": 2.0,
+    "decision": "mostly duplicate database semantics; do not claim as an independent physics residual"
+  },
+  "proposed_experiments": [
+    {
+      "priority": "P0",
+      "name": "CTE highest-temperature endpoint holdout",
+      "comparison": "point-only Transformer vs pairwise CTE slope-residual Transformer",
+      "selection": "validation only; endpoint challenge never used for residual-weight selection"
+    },
+    {
+      "priority": "P1",
+      "name": "elastic stability output parameterization",
+      "change": "nu<0.5 and E>0; derive K/G exactly",
+      "validation": "composition holdout and source-purged holdout"
+    },
+    {
+      "priority": "P2",
+      "name": "mechanistic baseline plus learned residual for E or density",
+      "requirements": "oxide constants and audited molar-fraction semantics"
+    },
+    {
+      "priority": "blocked",
+      "name": "thermal-conductivity temperature residual",
+      "blocker": "all 647 conductivity rows lack condition temperature"
+    }
+  ],
+  "production_release_authorized": false
+}

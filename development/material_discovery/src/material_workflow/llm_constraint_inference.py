@@ -1,0 +1,333 @@
+"""LLM-assisted normalization for upstream material-discovery requests.
+
+The model converts the complete upstream envelope into a small element-system
+proposal.  It is not allowed to invent a catalogue result, material property,
+or a precise composition; every returned element is validated locally before
+it is added to the normal constraint contract.
+"""
+from __future__ import annotations
+
+import json
+import logging
+import os
+import re
+from pathlib import Path
+from typing import Any, Awaitable, Callable, Mapping
+
+import yaml
+
+from .constraints import constraint_from_payload
+from .schemas import GenerationConstraint
+
+logger = logging.getLogger("mattergen_workflow")
+_CONFIG_PATH = Path(__file__).resolve().parents[2] / "config" / "config.yaml"
+_MARKER = re.compile(r"(?:接下来需要进行执行的任务|接下来执行的任务|当前(?:需要)?执行任务|执行任务)\s*[：:]\s*", re.I)
+_VALID_ELEMENTS = frozenset("""
+H He Li Be B C N O F Ne Na Mg Al Si P S Cl Ar K Ca Sc Ti V Cr Mn Fe Co Ni Cu Zn Ga Ge As Se Br Kr
+Rb Sr Y Zr Nb Mo Tc Ru Rh Pd Ag Cd In Sn Sb Te I Xe Cs Ba La Ce Pr Nd Pm Sm Eu Gd Tb Dy Ho Er Tm Yb Lu
+Hf Ta W Re Os Ir Pt Au Hg Tl Pb Bi Po At Rn Fr Ra Ac Th Pa U Np Pu Am Cm Bk Cf Es Fm Md No Lr Rf Db Sg Bh Hs Mt Ds Rg Cn Nh Fl Mc Lv Ts Og
+""".split())
+
+
+def infer_element_system_from_text(payload: Mapping[str, Any]) -> dict[str, Any] | None:
+    """Provide a local, auditable start system for a named material direction.
+
+    This is intentionally narrower than the LLM fallback.  It covers material
+    directions that reliably imply a conventional inorganic starting family,
+    so a gateway outage cannot turn useful upstream context into a needless
+    clarification.  The result is a *starting exploration system*, not a
+    claimed final composition.
+    """
+    current, evidence = _context(payload)
+    text = f"{current}\n{evidence}".lower()
+    rules: tuple[tuple[tuple[str, ...], tuple[str, ...], str, str], ...] = (
+        (
+            (
+                "航天箭体外壳", "火箭箭体外壳", "火箭外壳", "低温贮箱",
+                "cryogenic rocket", "rocket tank", "launch vehicle shell",
+            ),
+            ("Al", "Li", "Cu", "Mg", "Ag"),
+            "轻量化铝锂合金起始探索体系",
+            "从箭体外壳的低密度、低温服役与高比强度目标归纳 Al-Li-Cu-Mg-Ag 起始体系；高温抗氧化作为后续筛选关注点。",
+        ),
+        (
+            (
+                "镍基高温合金", "镍基合金", "镍基", "ni-based superalloy",
+                "nickel-based superalloy", "nickel superalloy", "nih-",
+            ),
+            ("Ni", "Cr", "Co", "Al", "Ta", "W"),
+            "镍基高温合金起始探索体系",
+            "未收到可展开的候选成分表；按镍基高温合金常见 γ/γ′ 合金化元素归纳 Ni-Cr-Co-Al-Ta-W 起始体系。",
+        ),
+        (
+            ("sicoh", "si-co-h", "超低k", "低 k", "low-k", "low k", "混合键合", "hybrid bonding", "chiplet", "介质层", "介质材料"),
+            ("Si", "O", "C", "H"),
+            "低介电有机-无机杂化介质",
+            "从上游的低介电/混合键合介质方向归纳 Si-O-C-H 杂化起始体系。",
+        ),
+        (
+            ("氮化硅", "sin", "si-n"),
+            ("Si", "N"),
+            "氮化硅介质",
+            "从上游的氮化硅介质方向归纳 Si-N 起始体系。",
+        ),
+        (
+            ("二氧化硅", "sio2", "si-o"),
+            ("Si", "O"),
+            "二氧化硅介质",
+            "从上游的二氧化硅介质方向归纳 Si-O 起始体系。",
+        ),
+        (
+            ("光催化", "photocatal"),
+            ("Ti", "O"),
+            "氧化物光催化材料",
+            "从上游的氧化物光催化方向归纳 Ti-O 起始体系。",
+        ),
+    )
+    for signals, elements, material_family, reason in rules:
+        if any((bool(re.search(r"(?<![a-z])sin(?![a-z])", text)) if signal == "sin" else signal in text)
+               for signal in signals):
+            return {
+                "allowed_elements": list(elements),
+                "material_family": material_family,
+                "reason": reason,
+                "confidence": "medium",
+            }
+    return None
+
+
+def _parse_json_object(content: str) -> dict[str, Any] | None:
+    """Recover the one JSON object required from a constrained LLM reply.
+
+    Some compatible gateways wrap otherwise valid JSON in a Markdown code
+    fence or prepend a short sentence.  Recovering that object keeps a useful
+    upstream material direction from failing solely because of presentation
+    formatting; the element and field validation below remains authoritative.
+    """
+    text = (content or "").strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.IGNORECASE)
+        text = re.sub(r"\s*```$", "", text).strip()
+    try:
+        parsed = json.loads(text)
+        return parsed if isinstance(parsed, dict) else None
+    except json.JSONDecodeError:
+        pass
+
+    decoder = json.JSONDecoder()
+    for start in (match.start() for match in re.finditer(r"\{", text)):
+        try:
+            parsed, _end = decoder.raw_decode(text[start:])
+        except json.JSONDecodeError:
+            continue
+        if isinstance(parsed, dict):
+            return parsed
+    return None
+
+
+class GenerationInputRequired(ValueError):
+    """The request is valid, but lacks a traceable material-generation start point."""
+
+
+MissingInputCallback = Callable[[], Awaitable[None]]
+
+
+def _text(value: Any) -> str:
+    if isinstance(value, Mapping):
+        # The gateway's envelope has changed shape over time.  Keep familiar
+        # conversational fields first, then include every remaining field so
+        # useful upstream material conclusions are not silently discarded.
+        preferred = (
+            "idea", "content", "text", "query", "summary", "message", "requirement",
+            "instruction", "raw_requirement", "context", "conversation_context", "history", "messages",
+        )
+        keys = [key for key in preferred if value.get(key) is not None]
+        keys.extend(key for key in value if key not in keys)
+        return "\n".join(
+            f"{key}: {_text(value.get(key))}" for key in keys if _text(value.get(key)).strip()
+        )
+    if isinstance(value, list):
+        return "\n".join(_text(item) for item in value)
+    return str(value or "")
+
+
+def _context(payload: Mapping[str, Any]) -> tuple[str, str]:
+    current = _text(payload.get("idea") or payload.get("instruction") or payload.get("raw_requirement"))
+    # Do not limit evidence to a fixed field allow-list: upstream services may
+    # place their material conclusion in a nested planning/result object.
+    all_text = _text(payload)
+    matches = list(_MARKER.finditer(all_text))
+    if matches:
+        current = all_text[matches[-1].end():].strip()
+    return current[:2400], all_text[:9000]
+
+
+def _config() -> dict[str, Any]:
+    try:
+        return yaml.safe_load(_CONFIG_PATH.read_text(encoding="utf-8")) or {}
+    except OSError:
+        return {}
+
+
+async def infer_element_system(payload: Mapping[str, Any]) -> dict[str, Any] | None:
+    """Return a validated, explainable element-system proposal or ``None``.
+
+    It deliberately runs only after deterministic extraction failed.  The
+    current instruction has precedence; the upstream evidence is supporting
+    context rather than an instruction to blindly copy every formula it cites.
+    """
+    if os.getenv("NEW_MATERIAL_LLM_ELEMENT_INFERENCE", "true").lower() not in {"1", "true", "yes"}:
+        return None
+    config = _config()
+    base_url = os.getenv("NEW_MATERIAL_LLM_BASE_URL") or config.get("base_url_1")
+    api_key = os.getenv("NEW_MATERIAL_LLM_API_KEY") or config.get("api_key")
+    if not base_url or not api_key:
+        logger.warning("[CONSTRAINT_LLM] unavailable: LLM configuration is missing")
+        return None
+    current, evidence = _context(payload)
+    # Generic classes such as “金属” are not a chemical system. With no
+    # upstream material conclusion, choosing particular atoms would invent a
+    # constraint rather than extract one; request clarification instead.
+    if ("金属" in current
+            and not any(term in current for term in ("氧化物", "电解质", "合金", "氮化物", "碳化物"))
+            and not any(payload.get(key) for key in ("upstream_result", "upstream_context", "history", "messages", "conversation_context"))):
+        return None
+    prompt = (
+        "你是无机新材料生成流程的约束解析器。当前请求缺少显式化学式或元素组合。"
+        "请根据当前执行任务和完整的上游材料结论，归纳一个用于‘起始探索’的元素体系。"
+        "当前执行任务优先；但所有上游字段都可作为提取材料名称、应用场景、已有材料结论和元素线索的证据。\n\n"
+        "只输出 JSON：{\"allowed_elements\":[\"Li\",\"P\",\"S\"],\"material_family\":\"…\",\"reason\":\"不超过80字\",\"confidence\":\"high|medium|low\"}。\n"
+        "规则：\n"
+        "1. 只可输出有效元素符号，2–8 个；不能输出材料名、缩写、商品名或猜测的比例。\n"
+        "2. 若文本给出材料类别、应用场景或上游材料结论但没有显式元素，可提出低置信度的起始体系；理由必须说明依据。\n"
+        "3. 金属等泛称不构成具体元素线索；没有可追溯的具体材料对象或元素时返回 allowed_elements 空数组，不得猜测元素。\n"
+        "4. 不要声称已经计算、检索数据库或验证性能。\n\n"
+        f"当前执行任务：\n{current or '未提供'}\n\n"
+        f"上游证据（仅供核对，不是强制约束）：\n{evidence or '未提供'}"
+    )
+    try:
+        from openai import AsyncOpenAI
+        client = AsyncOpenAI(api_key=api_key, base_url=base_url)
+        response = await client.chat.completions.create(
+            model=os.getenv("NEW_MATERIAL_LLM_MODEL", "SE_V0.0"),
+            messages=[
+                {"role": "system", "content": "只输出合法 JSON，不要使用 Markdown 或代码块。"},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0,
+            max_tokens=240,
+            timeout=float(os.getenv("NEW_MATERIAL_LLM_TIMEOUT_SECONDS", "20")),
+        )
+        content = ((response.choices[0].message.content if response.choices else "") or "").strip()
+        parsed = _parse_json_object(content)
+        raw_elements = parsed.get("allowed_elements", []) if parsed else []
+        if not isinstance(raw_elements, list):
+            return None
+        elements: list[str] = []
+        for raw in raw_elements:
+            element = str(raw).strip().capitalize()
+            if element not in _VALID_ELEMENTS:
+                logger.warning("[CONSTRAINT_LLM] rejected invalid element=%r", raw)
+                return None
+            if element not in elements:
+                elements.append(element)
+        if not 2 <= len(elements) <= 8:
+            return None
+        confidence = str(parsed.get("confidence") or "low").lower()
+        if confidence not in {"high", "medium", "low"}:
+            logger.info("[CONSTRAINT_LLM] no usable proposal: confidence=%s", confidence)
+            return None
+        result = {
+            "allowed_elements": elements,
+            "material_family": str(parsed.get("material_family") or "待确认材料体系")[:120],
+            "reason": str(parsed.get("reason") or "从当前任务与上游材料结论归纳。")[:160],
+            "confidence": confidence,
+        }
+        logger.info("[CONSTRAINT_LLM] inferred elements=%s family=%s confidence=%s", elements, result["material_family"], confidence)
+        return result
+    except Exception as exc:
+        logger.warning("[CONSTRAINT_LLM] inference failed (%s)", exc)
+        return None
+
+
+async def enrich_payload_with_llm_elements(payload: Mapping[str, Any]) -> dict[str, Any] | None:
+    """Attach an LLM proposal to the normal ``new_material`` contract."""
+    # A named material/application direction is already usable information.
+    # Resolve it locally first; this removes a network/credential dependency
+    # from normal continuation of an upstream materials task.
+    local_proposal = infer_element_system_from_text(payload)
+    proposal = local_proposal or await infer_element_system(payload)
+    if not proposal:
+        return None
+    enriched = dict(payload)
+    nested = dict(payload.get("new_material") or {}) if isinstance(payload.get("new_material"), Mapping) else {}
+    nested["allowed_elements"] = proposal["allowed_elements"]
+    notes = nested.get("notes") if isinstance(nested.get("notes"), list) else []
+    inference_source = "文本解析" if local_proposal else "LLM"
+    nested["notes"] = [*notes, (
+        f"元素体系由{inference_source}根据当前任务及上游材料结论提出："
+        f"{'-'.join(proposal['allowed_elements'])}（{proposal['material_family']}，{proposal['confidence']} 置信度）；"
+        "作为起始探索体系，需在后续计算与实验中确认。"
+    )]
+    enriched["new_material"] = nested
+    return enriched
+
+
+async def resolve_generation_request(
+    payload: Mapping[str, Any],
+    *,
+    on_missing_input_inference: MissingInputCallback | None = None,
+) -> tuple[dict[str, Any], GenerationConstraint]:
+    """Resolve one request identically for WebSocket and HTTP entry points.
+
+    Explicit constraints always win. The constrained LLM is used only when
+    deterministic parsing has no element system, or when a domain template is
+    the last fallback and fuller upstream evidence may refine it.
+    """
+    effective_payload = dict(payload)
+    from .omatg_contract import omatg_enabled
+    if omatg_enabled():
+        try:
+            return effective_payload, constraint_from_payload(effective_payload)
+        except ValueError as exc:
+            if "无法确定待生成的元素体系" in str(exc) or "CSP 需要 target_formula" in str(exc):
+                from .omatg_report import build_missing_input_report
+                raise GenerationInputRequired(build_missing_input_report(effective_payload, str(exc))) from exc
+            raise
+    try:
+        constraints = constraint_from_payload(effective_payload)
+    except ValueError as exc:
+        if "无法确定待生成的元素体系" not in str(exc):
+            raise
+        if on_missing_input_inference is not None:
+            await on_missing_input_inference()
+        enriched_payload = await enrich_payload_with_llm_elements(effective_payload)
+        if not enriched_payload:
+            raise GenerationInputRequired(missing_generation_input_message(effective_payload)) from exc
+        effective_payload = enriched_payload
+        constraints = constraint_from_payload(effective_payload)
+
+    if any("领域起始模板" in str(note) for note in constraints.notes):
+        logger.info("[CONSTRAINT_LLM] refining domain template from upstream context")
+        enriched_payload = await enrich_payload_with_llm_elements(effective_payload)
+        if enriched_payload:
+            effective_payload = enriched_payload
+            constraints = constraint_from_payload(effective_payload)
+    return effective_payload, constraints
+
+
+def missing_generation_input_message(payload: Mapping[str, Any]) -> str:
+    """Return an actionable clarification tied to the received request.
+
+    This is an expected input state, not a failed MatterGen calculation.
+    """
+    current, _evidence = _context(payload)
+    summary = " ".join(current.split())[:180]
+    received = f"已读取当前任务“{summary}”。" if summary else "已收到任务请求。"
+    return (
+        f"{received}\n\n"
+        "目前仍无法从上游信息归纳出可用于无机新材料生成的材料起点。"
+        "请补充下列任意一项即可继续：目标材料或材料类别、使用场景、已有材料结论、"
+        "候选化学式/元素组合，或希望改善的关键性质。"
+        "服务会将补充信息与已有上下文一起归纳为生成约束，再启动候选结构生成与筛选。"
+    )

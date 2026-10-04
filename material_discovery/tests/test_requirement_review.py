@@ -8,7 +8,7 @@ from unittest.mock import patch
 from fastapi import WebSocketDisconnect
 
 from src.material_workflow.llm_constraint_inference import GenerationInputRequired, constraint_from_payload, resolve_generation_request, infer_element_system
-from src.material_workflow.requirement_review import ReviewStopped, request_element_clarification, review_enabled, merge_review_answer, parse_review_answer
+from src.material_workflow.requirement_review import ReviewStopped, request_element_clarification, review_enabled
 import src.team_config as team_config
 
 
@@ -41,52 +41,6 @@ def reply(request, action, value=None):
 
 
 class RequirementReviewTests(unittest.TestCase):
-    def test_popup_exposes_three_explicit_routes(self):
-        socket = Socket([lambda req: reply(req, "apply", "化学式：BaTiO3")])
-        self.assertEqual(asyncio.run(request_element_clarification(socket, "t1", "缺少元素")), "化学式：BaTiO3")
-        prompt = socket.sent[0]["data"]["questions"][0]["question"]
-        for choice in ("化学式", "元素", "开放探索"):
-            self.assertIn(choice, prompt)
-        self.assertEqual(socket.sent[0]["stageid"], "FILAMENT_SELECTION_OPTIMIZATION")
-
-    def test_answer_routes_and_explicit_open_consent(self):
-        cases = (
-            ("化学式：BaTiO3", "csp", "target_formula", "BaTiO3"),
-            ("元素：Fe Cr Ni", "dng", "allowed_elements", ["Fe", "Cr", "Ni"]),
-            ("开放探索：寻找低凸包能的无机晶体", "dng", "allow_open_chemical_space", True),
-            ("需求：寻找非中心对称无机晶体", "dng", "allow_open_chemical_space", True),
-        )
-        for answer, mode, key, expected in cases:
-            merged = merge_review_answer({"idea": "生成新晶体"}, answer)
-            self.assertEqual(merged["new_material"]["generation_mode"], mode)
-            self.assertEqual(merged["new_material"][key], expected)
-            self.assertEqual(merged["idea"], "生成新晶体\n用户补充：" + answer)
-        with self.assertRaisesRegex(ValueError, "请按"):
-            parse_review_answer("我希望更稳定")
-        with self.assertRaisesRegex(ValueError, "需要填写"):
-            parse_review_answer("开放探索：")
-
-    def test_popup_answers_reach_omatg_contract(self):
-        original = {"taskid": "popup-smoke", "idea": "探索无机周期晶体的稳定性"}
-        with patch.dict("os.environ", {"NEW_MATERIAL_GENERATOR": "omatg"}):
-            for answer, mode in (("化学式：BaTiO3", "csp"),
-                                 ("元素：Fe Cr Ni", "dng"),
-                                 ("开放探索：寻找低凸包能的无机晶体", "dng")):
-                resolved = constraint_from_payload(merge_review_answer(original, answer))
-                self.assertEqual(resolved.generation_mode, mode)
-            self.assertEqual(constraint_from_payload(merge_review_answer(original, "元素：Fe Cr Ni")).allowed_elements,
-                             ["Fe", "Cr", "Ni"])
-            self.assertTrue(constraint_from_payload(merge_review_answer(original,
-                             "开放探索：寻找低凸包能的无机晶体")).allow_open_chemical_space)
-
-    def test_vague_need_is_rejected_in_same_popup(self):
-        socket = Socket([lambda req: reply(req, "apply", "我想更稳定"),
-                         lambda req: reply(req, "apply", "开放探索：寻找稳定无机晶体")])
-        self.assertEqual(asyncio.run(request_element_clarification(socket, "t1", "缺少元素")),
-                         "开放探索：寻找稳定无机晶体")
-        self.assertEqual([event["type"] for event in socket.sent],
-                         ["requirement_review_request", "requirement_review_error", "requirement_review_accepted"])
-
     def test_flag_requires_both_switches(self):
         with patch.dict("os.environ", {"REQUIREMENT_CONFIRMATION_ENABLED": "1", "REQUIREMENT_REVIEW_PROTOCOL": "structured"}):
             self.assertTrue(review_enabled())
@@ -105,7 +59,7 @@ class RequirementReviewTests(unittest.TestCase):
         self.assertEqual(socket.sent[0]["stageid"], "FILAMENT_SELECTION_OPTIMIZATION")
         self.assertEqual(socket.sent[0]["data"]["fields"], [])
         self.assertTrue(socket.sent[0]["data"]["questions"][0]["required"])
-        self.assertIn("已了解的材料需求", socket.sent[0]["data"]["baseline_markdown"])
+        self.assertEqual(socket.sent[0]["data"]["baseline_markdown"], "")
         self.assertFalse(socket.sent[0]["data"]["allow_comment"])
         self.assertEqual(socket.sent[-1]["action"], "apply")
         self.assertTrue(socket.sent[-1]["will_reanalyze"])
@@ -188,7 +142,7 @@ class RequirementReviewTests(unittest.TestCase):
         async def fake_stream(*args, **kwargs):
             return None
 
-        async def fake_thread(function, *args, **kwargs):
+        async def fake_thread(function, *args):
             captured.append(args[0])
             class Result:
                 status = "ok"

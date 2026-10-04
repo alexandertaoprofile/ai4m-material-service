@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "snapshot_date": "2026-10-04",
+  "source_root": "/data/se42/alpha_project/material_service_hub",
+  "integration_commit": "213155c608677612a1e7845a5986ce42cb55e0c2",
+  "scope_suffixes": [
+    ".cfg",
+    ".ini",
+    ".json",
+    ".py",
+    ".sh",
+    ".toml",
+    ".yaml",
+    ".yml"
+  ],
+  "line_endings": "CRLF normalized to LF",
+  "services": {
+    "material_database": {
+      "files": 291,
+      "sha256": "b381b353eb238041d53c5a691ee5063f26d08eb2c7d19dd259c1c12f6483cfd4"
+    },
+    "material_composition_optimization": {
+      "files": 292,
+      "sha256": "d189e08529824fa7ff27f4c0e408857146fc87ba212379d2c48cd5643014d067"
+    },
+    "material_discovery": {
+      "files": 312,
+      "sha256": "9f014d1895687340469f73413bdca7d434aeb3ac73ddb00151b11f73c741ac5e"
+    },
+    "material_validation": {
+      "files": 21,
+      "sha256": "aeec50a8432e560e150a90fb0f735742202b749276df07a857815bb70ac6c85d"
+    }
+  },
+  "development_services": {
+    "material_composition_optimization": {
+      "files": 296,
+      "sha256": "0bdd5522b5716cf89562d8ba7f7186c0b88e664a5e7e7477e6fa9eb492a91267"
+    },
+    "material_discovery": {
+      "files": 327,
+      "sha256": "b578ddd0033e4ae1842151a7e3280e855089f5b1db0819d03e1498670c2e7946"
+    }
+  },
+  "physics": {
+    "glass/code/run_glass_constraint_ablation_v1.py": {
+      "source": "/data/se42/experiments/oxide_glass_physics_constraints_v1_20260924/code/run_glass_constraint_ablation_v1.py",
+      "sha256": "3fa6af606cbf9d3cf5c2e5dad6ca77c5421d991756a8c9d215cc51c5b21de538"
+    },
+    "glass/code/train_oxide_glass_multitask_cte_adapter_v1.py": {
+      "source": "/data/se42/experiments/oxide_glass_multitask_physics_v2_20260928/code/train_oxide_glass_multitask_cte_adapter_v1.py",
+      "sha256": "68b0f17340b8792dd0e90ca5ada430180605204fc8f7ddbb01170a5410ec8ecf"
+    },
+    "glass/code/run_glass_fresh_endpoint_challenge.py": {
+      "source": "/data/se42/experiments/oxide_glass_multitask_physics_v2_20260928/code/run_glass_fresh_endpoint_challenge.py",
+      "sha256": "b41b8fdc90e9258fb0c54ebc798a9093bc91648230694a244632ab25d5718c5f"
+    },
+    "glass/code/analyze_glass_endpoint_predictions.py": {
+      "source": "/data/se42/experiments/oxide_glass_multitask_physics_v2_20260928/code/analyze_glass_endpoint_predictions.py",
+      "sha256": "70b37989626771e983d03736f12342cb462584498a3be81053c125b68168e815"
+    },
+    "glass/references/GLASS_PHYSICS_CONSTRAINT_PLAN.md": {
+      "source": "/data/se42/experiments/oxide_glass_physics_constraints_v1_20260924/GLASS_PHYSICS_CONSTRAINT_PLAN.md",
+      "sha256": "958d61fd828d39e03e20066e8eb05103113712cd7196ad3ca2be390f97a1cce2"
+    },
+    "glass/references/GLASS_PHYSICS_CONSTRAINT_AUDIT.json": {
+      "source": "/data/se42/experiments/oxide_glass_physics_constraints_v1_20260924/GLASS_PHYSICS_CONSTRAINT_AUDIT.json",
+      "sha256": "9adb4aee721a8d6e8da1aeab3996d7912a2f100668462c32de530568e994a9b5"
+    }
+  }
+}

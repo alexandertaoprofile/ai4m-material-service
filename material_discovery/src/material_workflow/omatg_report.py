@@ -2,10 +2,8 @@
 from __future__ import annotations
 
 import math
-import re
 
-from .omatg_chart import ELEMENT_NAMES, crystal_identity, scheme_names, stability_number, primary_structure
-from .omatg_output_status import candidate_issues, missing_output_issue, generation_issue, readable_reason
+from .omatg_chart import ELEMENT_NAMES, crystal_identity, scheme_names
 
 
 def cell(value):
@@ -14,7 +12,7 @@ def cell(value):
 
 def number(value, digits=5):
     if value is None or isinstance(value, bool) or not isinstance(value, (float, int)) or not math.isfinite(value):
-        return "—（数值未记录）"
+        return "待补充计算"
     return f"{value:.{digits}f}"
 
 
@@ -62,7 +60,7 @@ def hull_policy(c):
 
 
 def bounds_text(key, limits):
-    text = "；".join(f"{'下限' if bound == 'min' else '上限'} {limits[bound]:g}" + ("（严格大于）" if bound == "min" else "（严格小于）") * (limits.get(bound + "_inclusive") is False) for bound in ("min", "max") if bound in limits)
+    text = "；".join(f"{'下限' if bound == 'min' else '上限'} {limits[bound]:g}" for bound in ("min", "max") if bound in limits)
     return text + " " + limits.get("unit", PROPERTY_UNITS.get(key, ""))
 
 
@@ -126,76 +124,31 @@ def problem_description(c):
 
 def build_plan(c, count=10):
     """Pre-execution method definition, deliberately distinct from final results."""
+    from .omatg_generation import MODEL_DIRECTORIES
     mode = c.generation_mode
     route = f"固定化学式 {cell(c.target_formula)} 的 CSP" if mode == "csp" else "限定元素 DNG" if c.allowed_elements else "已确认开放空间的 DNG"
-    scene = c.task_context.get("scenario_label") or c.task_context.get("scenario")
-    rows = ["### 计算方案", ""]
-    if scene:
-        rows.extend([f"面向{cell(scene)}的材料需求，本次先探索晶体候选，再比较稳定性与目标性能。", ""])
-    rows.extend([f"采用{route}，计划生成 {count} 个候选。以下为本次实际采用的条件和计算安排。", "",
-        "| 材料条件或性能要求 | 本次采用的条件 |", "| --- | --- |",
-        f"| {'固定化学式' if c.target_formula else '元素探索范围'} | {cell(c.target_formula or domain_text(c))} |",
-        f"| 计算晶胞 | 每胞 {c.num_atoms} 个原子 |",
-        f"| 稳定性比较 | {hull_policy(c)} |"])
-    if c.required_elements:
-        rows.append("| 每个候选必须包含 | " + cell("、".join(element_label(e) for e in c.required_elements)) + " |")
-    if c.excluded_elements:
-        rows.append("| 排除的元素 | " + cell("、".join(element_label(e) for e in c.excluded_elements)) + " |")
-    for key in sorted(task_goals(c)):
-        if key in PROPERTY_LABELS:
-            adopted = bounds_text(key, c.property_constraints[key]) if key in c.property_constraints else f"参考目标 {c.target_properties[key]:g} {PROPERTY_UNITS[key]}" if key in c.target_properties else "预测后比较"
-            rows.append(f"| {PROPERTY_LABELS[key]} | {cell(adopted)} |")
-    rows.extend([
+    rows = ["### 计算方案", "", *problem_description(c), "",
+        f"针对当前需求，采用{route}，先生成 {count} 个周期晶体候选，再进行结构松弛、稳定性及性质初筛。",
         "", "| 顺序 | 模型或方法 | 输入与描述符 | 计划输出 |", "| --- | --- | --- | --- |",
-        f"| 1 | OMatG {mode.upper()} | 晶格、元素种类与原子位置；{cell(c.target_formula) if mode == 'csp' else cell(domain_text(c))} | {'固定组成的候选晶体' if mode == 'csp' else '候选组成与晶体结构'} |",
+        f"| 1 | OMatG {MODEL_DIRECTORIES[mode]} | CSPNetFull + 随机插值；晶格、元素种类、分数坐标；{cell(c.target_formula) if mode == 'csp' else cell(domain_text(c))} | {'固定计量的晶格与坐标' if mode == 'csp' else '组成与完整晶体结构'} |",
         "| 2 | pymatgen 周期结构检查 | 元素计数、晶胞及周期近邻 | 组成与几何准入结果 |",
-        "| 3 | MatterSim 结构优化 | 原子位置、晶格、能量与原子力 | 优化后的结构及收敛情况 |",
-        "| 4 | 参考相能量比较 | 候选能量及同元素参考相 | 稳定性差值估算 |",
+        "| 3 | MatterSim v1.0.0-1M + ASE FIRE / ExpCellFilter | 原子位置、晶格及模型能量、力、应力 | 松弛结构与收敛记录 |",
+        "| 4 | MP2020 校正竞争相凸包 | 候选能量及同元素参考相 | 形成能与凸包能的 D 级混合基准估算 |",
         "| 5 | StructureMatcher + ALIGNN | 松弛结构；原子图与键角线图 | 结构族代表、实际可完成的性质预测与候选排序 |", "",
-        "本次调用已训练的模型进行推理采样。OMatG 使用 CSPNetFull 与随机插值生成结构，MatterSim 根据能量和力调整结构，ALIGNN 根据原子图与键角预测性质。完整模型信息与公式在结果报告的方法章节中说明。"])
+        f"本次每胞 {c.num_atoms} 个原子；稳定性{hull_policy(c)}。"]
+    if c.required_elements:
+        rows.append("必含元素：" + cell("、".join(c.required_elements)) + "；生成后逐项检查。")
     if mode == "dng":
         rows.append(f"候选至少包含 {c.min_distinct_elements} 种元素。")
+        if c.dng_species_strategy == "presence_anchors":
+            rows.append("元素约束采用服务侧部分位点锚定：在联合采样开始前为不同候选设置必含元素位点，其余位点仍由 DNG 选择；晶格与坐标联合生成。该采样改动使用固定预训练权重，之后仍检查几何、松弛与稳定性。")
+    for key, limits in c.property_constraints.items():
+        rows.append(f"{cell(PROPERTY_LABELS.get(key, key))}硬性范围：{cell(bounds_text(key, limits))}。")
     if mode == "dng" and c.refine_with_csp:
         rows.append(f"已确认追加 CSP：DNG 松弛初筛后，选取凸包能估算最低的合规组成，再生成 {count} 个固定计量构型；保留来源 DNG 结构用于比较。")
+    rows.extend(["", "本任务执行推理采样，使用预训练权重；性质目标在生成后检查。结构松弛仍由 MatterSim 完成。",
+        "计算完成后，报告将给出实际采用的模型、计算条件、候选比较，以及优选晶体的完整组成、结构和预测性能。"])
     return "\n".join(rows)
-
-
-def evaluation_completion_text(candidates, validations):
-    values = [v.to_dict() if hasattr(v, "to_dict") else v for v in validations]
-    admitted = [v for v in values if v.get("is_valid") is True]
-    converged = [v for v in admitted if v.get("metadata", {}).get("mattersim", {}).get("relaxation_converged") is True]
-    stability = sum(_finite(v.get("energy_above_hull")) for v in converged)
-    properties = sum(any(_finite(p.get("value")) for p in v.get("property_predictions", {}).values()) for v in converged)
-    return f"已生成 {len(candidates)} 个候选结构；{len(admitted)} 个通过原子排布检查，{len(converged)} 个结构优化收敛，{stability} 个已有稳定性结果，{properties} 个已有性质预测。"
-
-
-def build_review_context(payload):
-    from .constraints import _current_task_text
-    from .task_context import build_task_context
-    source = payload.get("new_material") or {}
-    raw = str(payload.get("idea") or payload.get("instruction") or "")
-    current = _current_task_text(raw)
-    context = build_task_context(payload, source, raw, current)
-    scene = context.get("scenario_label") or context.get("scenario")
-    received = f"已了解您希望为{cell(scene)}探索候选晶体。" if scene else "已收到材料探索需求：" + cell(current[:180] or source.get("material_family") or "探索新的无机晶体") + "。"
-    return "\n".join(["### 已了解的材料需求", "", received, "", "请确认本次从哪种组成范围开始，随后生成候选晶体并比较性能。", "",
-        "| 可选择的起点 | 将开展的计算 |", "| --- | --- |",
-        "| 化学式 | 保持元素及其原子数比例，探索不同晶体结构 |",
-        "| 元素范围 | 在所列元素中探索组成和结构，可另写必含或排除元素 |",
-        "| 开放探索 | 同意开放元素空间，围绕材料用途和性能要求评价生成结果 |"])
-
-
-def result_visuals(presentation, markdown):
-    """Place images from the existing publisher; no alternate upload route."""
-    images = {match.group(1): match.group(0) for match in re.finditer(r"!\[([^\]]+)\]\([^\n]+\)", markdown)}
-    from pathlib import Path
-    return {Path(asset.get("path") or "").stem: images[asset["name"]]
-            for asset in presentation.get("assets", []) if asset.get("name") in images}
-
-
-def _visual(rows, name, visuals):
-    if visuals and visuals.get(name):
-        rows.extend(["", visuals[name], ""])
 
 
 def counts(generation, validations):
@@ -220,15 +173,6 @@ def generation_records(result):
 
 def _finite(value):
     return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
-
-
-def output_cell(validation, key, digits=4, reference=.05, unit=""):
-    v = validation.to_dict() if hasattr(validation, "to_dict") else validation or {}
-    value = (v.get("property_predictions", {}).get(key) or {}).get("value") if key in PROPERTY_LABELS else v.get(key)
-    if _finite(value):
-        shown = stability_number(value, reference) if key == "energy_above_hull" else number(value, digits)
-        return shown + (" " + unit if unit else "")
-    return cell("—（" + missing_output_issue(v, key)["title"] + "）")
 
 
 def _equation(rows, formula, explanation):
@@ -290,8 +234,6 @@ def _methods(rows, records, validations):
             _equation(rows, r"s_i(t)=a_i\quad (i\in\mathcal A),\qquad \left|\{s_i(1)\}_{i=1}^{N}\right|\ge K_{\min}",
                 "$s_i(t)$ 表示生成进度 $t$ 时第 $i$ 个位置上的元素；$\\mathcal A$ 是采样前选定的部分元素锚定位点集合，$a_i$ 是该位置指定的元素。$N$ 是晶胞原子总数，$K_{\\min}$ 是要求的最少元素种数，集合大小表示最终实际出现的不同元素数量。服务在采样时保持锚定位点的元素身份，其余元素由模型生成；随后依次检查实际组成、原子排布、结构优化与稳定性。")
     rows.extend(["", "#### 3.3 原子排布检查、结构优化与稳定性计算", ""])
-    if not geometry_checked and not energies:
-        rows.append("本次记录没有结构检查与优化的完成结果，具体停止阶段、原因和处理方式见第 4 节。")
     if geometry_checked:
         _equation(rows, r"d_{ij}=\min_{\mathbf n\in\mathbb Z^3}\left\|\mathbf L^{\mathsf T}(\mathbf f_i-\mathbf f_j+\mathbf n)\right\|_2,\qquad d_{ij}\ge0.75(r_i^{\rm cov}+r_j^{\rm cov})",
             "$d_{ij}$ 是第 $i、j$ 个原子考虑周期重复后最短的距离；$\\mathbf n$ 是整数周期平移，$\\mathbf L$ 和 $\\mathbf f$ 与上式一致，$r_i^{\\rm cov}、r_j^{\\rm cov}$ 为两种元素的共价半径。$\\|\\cdot\\|_2$ 表示距离。排除原子与自身在同一位置的比较，但保留相邻晶胞中的周期镜像；距离至少为共价半径和的 0.75 倍，是本次剔除原子过近结构的检查条件。")
@@ -301,7 +243,7 @@ def _methods(rows, records, validations):
     if thermodynamic:
         _equation(rows, r"\Delta E_f=\frac{E_{\rm cand}^{\rm corr}-\sum_\alpha n_\alpha\mu_\alpha^{\rm ref}}{N},\qquad E_{\rm hull}^{\rm est}=\max\!\left(0,\frac{E_{\rm cand}^{\rm corr}}{N}-e_{\rm hull}^{\rm ref}(\mathbf x)\right)",
             "$\\Delta E_f$ 为相对元素参考态的单原子形成能估算；$E_{\\rm hull}^{\\rm est}$ 是报告中的稳定性差值，即相对同组成的其他相组合多出的能量，越低越有利。$n_\\alpha$ 为元素 $\\alpha$ 的原子数，$N=\\sum_\\alpha n_\\alpha$ 为总原子数，$E_{\\rm cand}^{\\rm corr}$ 为校正后的候选总能量，$\\mu_\\alpha^{\\rm ref}$ 为元素参考能，$\\mathbf x$ 为元素原子分数，$e_{\\rm hull}^{\\rm ref}(\\mathbf x)$ 为同组成竞争相组合的单原子最低参考能。候选能量采用 MatterSim，参考相能量来自 MP/Alexandria；该 D 级混合基准估算用于初步比较，后续通过统一精度的计算复核。有限温度下的稳定性可进一步加入熵和振动贡献。")
-    rows.extend(["", "#### 3.4 候选结构的比较与优选规则", "", "先核对组成、原子排布和结构优化收敛，再检查已明确的性质与对称性条件。稳定性差值越低越有利；高于参考线的候选继续完成性质评价并标注稳定性待复核。明确设置硬性上限时，超限记为未满足条件。相似结构保留一个代表；缺少必需结果时，逐项说明停止阶段与原因。", "", "通过上述条件后，按稳定性差值从低到高确定优先验证顺序，各项预测性能在结果表中并列比较。"])
+    rows.extend(["", "#### 3.4 候选结构的比较与优选规则", "", "先核对组成、原子排布和结构优化收敛，再检查已明确的性质与对称性条件。稳定性差值越低越有利；高于参考线的候选继续完成性质评价并标注稳定性待复核。明确设置硬性上限时，超限记为未满足条件。相似结构保留一个代表，缺少必需结果的候选记为计算待补充。", "", "通过上述条件后，按稳定性差值从低到高确定优先验证顺序，各项预测性能在结果表中并列比较。"])
 
 
 def _parameters(rows, result, records):
@@ -333,7 +275,7 @@ def _parameters(rows, result, records):
         f"| 每阶段生成的候选数量 | {_setting(c, 'max_candidates', str(c.requested_candidate_count) + ' 个')} | 本次计划生成的结构数量；实际完成情况见第 4 节 |",
         f"| 稳定性差值{'硬性上限' if hull_is_hard(c) else '复核参考线'} | {_setting(c, 'energy_above_hull', f'{hull_limit(c):g} eV/atom')} | {'用于判断稳定性是否满足已确认上限；超限候选在结果中单独列出' if hull_is_hard(c) else '高于参考线的候选继续完成性质评价，并优先安排稳定性复核'} |"])
     for key, limits in c.property_constraints.items():
-        rows.append(f"| {cell(PROPERTY_LABELS.get(key, key))}必须满足的范围 | {cell(bounds_text(key, limits))} | 逐项核对预测值与上下限；结果缺失时说明原因，该项要求保留为尚无法判断 |")
+        rows.append(f"| {cell(PROPERTY_LABELS.get(key, key))}必须满足的范围 | {cell(bounds_text(key, limits))} | 逐项核对预测值与上下限；缺少预测时列为待补充计算 |")
     for key, value in c.target_properties.items():
         if key != "energy_above_hull":
             rows.append(f"| {cell(PROPERTY_LABELS.get(key, key))}参考目标 | {value:g} {PROPERTY_UNITS.get(key, '')} | 用于结果比较；必须满足的要求以上下限为准 |")
@@ -357,37 +299,29 @@ def _parameters(rows, result, records):
 
 
 def _state_text(validation, names):
-    issues = candidate_issues(validation)
     if validation is None:
-        return cell(issues[0]["title"] + "：" + issues[0]["cause"])
+        return "计算待补充：尚无评价记录"
     state = validation.metadata.get("screening", {})
-    label = {"passed": "可继续比较", "failed": "未满足硬性条件", "incomplete": "评价结果不完整"}.get(state.get("state"), "评价结论未记录")
-    if issues:
-        label = issues[0]["title"] + "；" + issues[0]["effect"]
-    duplicate = validation.metadata.get("duplicate_of")
-    if duplicate and state.get("state") != "failed" and not issues:
-        label = "相似结构已合并"
+    label = {"passed": "可继续比较", "failed": "未满足硬性条件", "incomplete": "计算待补充"}.get(state.get("state"), "尚未确认")
 
     def reason_text(reason):
         text = PROPERTY_LABELS.get(reason, SYMMETRY_LABELS.get(reason, reason))
-        for key, name in {**PROPERTY_LABELS, **SYMMETRY_LABELS}.items():
-            text = str(text).replace(key, name)
         return str(text).replace("凸包能超过上限", "稳定性差值超过上限").replace("凸包能估算", "稳定性估计").replace("松弛收敛", "结构优化收敛")
 
     failures = state.get("failures", []) or (validation.errors if validation.is_valid is False else [])
     if failures:
-        label = label.rstrip("。") + ("；具体原因：" if issues else "：") + "；".join(reason_text(r).rstrip("。") for r in failures)
-    missing = [r for r in state.get("missing", []) if r not in {"松弛收敛", "凸包能估算"}]
-    if missing and validation.is_valid:
-        label += "；尚无法判断的要求：" + "、".join(reason_text(r) for r in missing)
+        label += "：" + "；".join(reason_text(r).rstrip("。") for r in failures)
+    if state.get("missing") and validation.is_valid:
+        label += "；待补充：" + "、".join(reason_text(r) for r in state["missing"])
     if state.get("stability_review"):
         label += "；稳定性高于参考线，需高精度复核"
+    duplicate = validation.metadata.get("duplicate_of")
     if duplicate:
         label += "；与 " + names.get(duplicate, "已有候选") + " 属于同一近似结构，由该组代表结构参与比较"
     return cell(label)
 
 
-def build_result_report(result, visuals=None):
+def build_result_report(result):
     """Five aligned customer sections; display labels never change the evidence."""
     c = result.constraints
     records = generation_records(result)
@@ -400,21 +334,12 @@ def build_result_report(result, visuals=None):
     names = scheme_names((candidate.candidate_id for candidate, _ in display_items), result.taskid)
     groups = [item for item in result.ranked_candidates if item.validation and item.validation.is_valid and item.validation.metadata.get("mattersim", {}).get("relaxation_converged") is True and not item.validation.metadata.get("duplicate_of")]
     passing = [item for item in groups if item.validation.metadata.get("screening", {}).get("state") == "passed"]
-    primary = primary_structure(result.to_dict())
-    top = next((item for item in result.ranked_candidates if primary and item.candidate.candidate_id == primary["candidate"]["candidate_id"]), None)
-    rows = [f"## {'固定化学式晶体结构探索' if c.generation_mode == 'csp' else '组成与晶体结构发现'}", ""]
-    if passing:
-        review_count = sum(bool(item.validation.metadata.get("screening", {}).get("stability_review")) for item in passing)
-        review_note = f"其中 {review_count} 个稳定性需要复核。" if review_count else ""
-        rows.extend([f"本次结果：生成 {len(result.generation.candidates)} 个候选结构，{len(passing)} 个独立结构可继续比较。{review_note}优先验证{formula_label(top.candidate.formula_pretty)}，编号 {names[top.candidate.candidate_id]}；优选依据为满足组成和性能条件后，稳定性差值较低。", ""])
-    else:
-        rows.extend([evaluation_completion_text(result.generation.candidates, result.validations), "",
-                     "后续按各候选的检查和计算状态继续验证，具体项目见第4节。", ""])
-    rows.extend([
+    top = (passing or groups or [None])[0]
+    rows = [f"## {'固定化学式晶体结构探索' if c.generation_mode == 'csp' else '组成与晶体结构发现'}", "",
         "### 1. 材料设计需求与探索目标", "", *problem_description(c), "",
         "下表将材料需求对应到本次关注的性能和结构要求，作为后续候选比较的依据。", "",
         "| 关注性能或结构要求 | 本次比较或筛选要求 | 如何理解 |", "| --- | --- | --- |",
-        f"| 热力学稳定性 | 稳定性差值越低越有利；{hull_policy(c)} | 表示相对同组成的其他相组合多出的能量，即凸包能估算，用于比较结构的稳定性 |"])
+        f"| 热力学稳定性 | 稳定性差值越低越有利；{hull_policy(c)} | 表示相对同组成的其他相组合多出的能量，即凸包能估算，用于比较结构的稳定性 |"]
     for key in sorted(task_goals(c)):
         if key in PROPERTY_LABELS:
             purpose = bounds_text(key, c.property_constraints[key]) if key in c.property_constraints else f"比较参考目标 {c.target_properties[key]:g} {PROPERTY_UNITS[key]}" if key in c.target_properties else "快速预测与候选比较" if key in c.validation_targets else "上文关注点；有预测时比较，不增加数值筛选门槛"
@@ -445,76 +370,37 @@ def build_result_report(result, visuals=None):
             # Invalid candidates stay visible; diversity is not proof of novelty.
             rows.extend(["", f"DNG 组成多样性：{diversity['multi_element_count']} 个多元素候选、{diversity['unary_count']} 个单质候选，约分后 {diversity['distinct_composition_count']} 种不同组成。组成种类、不同结构数量和材料新颖性分别判断。", ""])
     review_count = sum(bool(item.validation.metadata.get("screening", {}).get("stability_review")) for item in passing)
-    rows.extend(["", f"最终保留 {len(groups)} 个收敛的近似结构代表，其中 {len(passing)} 个可继续比较。" + (f"可比较结构中 {review_count} 个高于稳定性参考线，需优先进行高精度复核。" if review_count else "") + "相似候选合并为结构组，以代表结构参与比较。",
+    rows.extend(["", f"最终保留 {len(groups)} 个收敛的近似结构代表，其中 {len(passing)} 个可继续比较；{review_count} 个高于稳定性参考线，需优先进行高精度复核。相似候选合并为结构组，以代表结构参与比较。",
         "", "#### 4.2 候选晶体的稳定性与性能比较", "",
-        "候选编号在本次任务中唯一，对应正文、表格和配套图中的同一结构。下表保留全部候选，空缺数值旁标明原因；具体停止阶段和后续处理在表后说明。"])
-    requested = [key for key in PROPERTY_LABELS if key in task_goals(c)]
-    comparison_keys = requested + [key for key in ("band_gap", "bulk_modulus", "shear_modulus") if key not in requested and len(requested) <= 2 and any(v and _finite(v.property_predictions.get(key, {}).get("value")) for _, v in display_items)]
+        "候选编号在本次任务中唯一，对应正文、表格和配套图中的同一结构。下表保留全部候选，分别列出评价结果、待复核事项和待补充计算。"])
+    comparison_keys = [key for key in ("band_gap", "bulk_modulus", "shear_modulus") if any(v and _finite(v.property_predictions.get(key, {}).get("value")) for _, v in display_items)]
     rows.extend(["", "| 候选结构编号 | 材料组成 | 稳定性差值（eV/atom） | " + " | ".join([f"{PROPERTY_LABELS[k]}（{PROPERTY_UNITS[k]}）" for k in comparison_keys] + ["评价结论及复核事项"]) + " |",
         "| --- | --- | ---: | " + " | ".join(["---:" for _ in comparison_keys] + ["---"]) + " |"])
     for candidate, v in display_items:
         formula = candidate.formula_pretty or (v.formula_pretty if v else None)
-        label = names[candidate.candidate_id] + (("（优选结构）" if passing else "（待复核结构）") if top and candidate.candidate_id == top.candidate.candidate_id else "")
-        fields = [label, formula_label(formula, candidate.metadata.get("element_counts")), output_cell(v, "energy_above_hull", reference=hull_limit(c))]
-        fields += [output_cell(v, k) for k in comparison_keys]
+        label = names[candidate.candidate_id] + ("（优选结构）" if top and candidate.candidate_id == top.candidate.candidate_id and passing else "")
+        fields = [label, formula_label(formula, candidate.metadata.get("element_counts")), number(v.energy_above_hull if v else None)]
+        fields += [number(v.property_predictions.get(k, {}).get("value") if v else None, 4) for k in comparison_keys]
         rows.append("| " + " | ".join(fields + [_state_text(v, names)]) + " |")
     if not display_items:
-        rows.append("| " + " | ".join(["—", "—", "—（没有候选输入）"] + ["—（没有候选输入）" for _ in comparison_keys] + [generation_issue(result.generation, result.message)["title"]]) + " |")
+        rows.append("| " + " | ".join(["—", "—", "待补充计算"] + ["待补充计算" for _ in comparison_keys] + ["本次没有完整的候选记录"]) + " |")
     rows.extend(["", "数值为本次计算结果，显示时舍入，比较及判定仍使用完整精度。eV/atom 表示平均到每个原子的能量单位。"])
     if comparison_keys:
         rows.extend(["", "本表中的性能含义：" + "；".join(PROPERTY_LABELS[key] + "——" + PROPERTY_MEANINGS[key].rstrip("。") for key in comparison_keys) + "。"])
     if any(v and _finite(v.property_predictions.get('band_gap', {}).get('value')) and v.property_predictions['band_gap']['value'] < 0 for _, v in display_items):
         rows.extend(["", "表中的负带隙为回归模型超出物理范围的原始预测，需要通过电子结构计算复核。"])
-    details = [(names[candidate.candidate_id], item) for candidate, v in display_items for item in candidate_issues(v, comparison_keys)]
-    for candidate, v in display_items:
-        if not v or v.is_valid is not True:
-            continue
-        failures = v.metadata.get("screening", {}).get("failures", [])
-        if failures:
-            cause = "；".join(readable_reason(reason) for reason in failures)
-            for key, bounds in c.property_constraints.items():
-                value = v.property_predictions.get(key, {}).get("value")
-                if _finite(value) and any(key in failure for failure in failures):
-                    cause += f"；{PROPERTY_LABELS.get(key, key)}预测 {value:g} {PROPERTY_UNITS.get(key, '')}，要求 {bounds_text(key, bounds)}"
-            details.append((names[candidate.candidate_id], dict(stage="性能与结构条件核对", cause=cause,
-                effect="该结构的已完成结果保留，当前不作为满足全部条件的推荐。",
-                action="按原条件追加候选探索；调整约束时先确认新的性能或结构要求。")))
-    historical_hard = any(v and "凸包能超过上限" in v.metadata.get("screening", {}).get("failures", []) for _, v in display_items) and not hull_is_hard(c)
-    if historical_hard:
-        rows.extend(["", "历史计算口径：本预览沿用保存记录的评价结论，该批次曾按稳定性上限标记超限候选。当前默认采用复核参考线，超参考线仍继续评价；按新规则重算评价时应另存结果。"])
-    if not display_items:
-        details.append(("本次任务", generation_issue(result.generation, result.message)))
-    if details:
-        rows.extend(["", "**结果缺失的原因与后续处理**", "", "本轮计算已经结束。以下处理需要另行安排计算；已完成的数值仍保留在上表中。", "",
-                     "| 候选结构编号 | 对应阶段 | 本次实际情况 | 对后续评价的影响 | 建议处理 |", "| --- | --- | --- | --- | --- |"])
-        for label, item in details:
-            rows.append("| " + " | ".join(cell(value) for value in (label, item["stage"], item["cause"], item["effect"], item["action"])) + " |")
-    if c.refine_with_csp and not selected:
-        rows.extend(["", "追加 CSP 的执行情况：本次 DNG 没有形成组成合规、结构收敛且已有稳定性结果的选择起点，因此未启动追加 CSP。先处理上述 DNG 评价问题，再选定组成追加固定计量探索。"])
-    presentation = result.artifacts.get("presentation") or {}
-    if presentation.get("status") in {"unavailable", "failed", "timeout"}:
-        reason = "可视化渲染超过本次时限" if "tim" in str(presentation.get("message", "")).lower() or presentation.get("status") == "timeout" else "可视化资产未成功生成，具体原因需核对渲染日志"
-        reason = {"environment_unavailable": "可视化运行环境无法启动", "invalid_manifest": "可视化结果文件无法读取"}.get(presentation.get("error_code"), reason)
-        rows.extend(["", "图片与三维预览：" + reason + "。已完成的结构和性能数值见上表，可在核对渲染环境后重新生成图片。"])
-    delivery_reasons = {"source_missing": "源文件缺失，需重新生成对应预览", "upload_rejected": "资产上传未成功，需检查存储服务后重新发送",
-                        "verification_error": "上传后的可访问性检查报错，需核对存储连接", "storage_absent": "上传后未找到对应对象，需核对存储写入并重新发送",
-                        "delivery_error": "资产发送发生异常，需核对交付日志后重新发送"}
-    for delivery in presentation.get("delivery_status", []):
-        rows.extend(["", cell(delivery.get("name", "结构预览")) + "：" + delivery_reasons.get(delivery.get("code"), "交付原因未记录，需核对该任务的资产日志") + "。已完成的计算数值仍保留。"])
-    if presentation.get("glb_error_code") == "export_failed":
-        rows.extend(["", "三维交互模型：格式转换未成功。已保存晶体结构和成功生成的旋转预览仍可使用；请核对格式转换日志，再重新生成三维模型。"])
-    if visuals and visuals.get("candidate_comparison"):
-        rows.extend(["", "#### 4.3 候选结构的评价过程与稳定性比较", "",
-            "图上方记录各阶段完成的数量；左侧说明其余候选需要调整、补算或合并的原因。右侧条形对应上表中的候选编号，稳定性差值越低越有利，虚线为本次参考线或硬性上限。"])
-        _visual(rows, "candidate_comparison", visuals)
+    rows.extend(["",
+        "#### 4.3 候选比较图的阅读说明", "",
+        "配套图上方从左到右显示生成、组成检查、原子排布检查、结构优化、稳定性计算和可继续比较的数量。左侧解释其余候选的具体去向：未满足条件、计算待补充或相似结构合并。", "",
+        "右侧以候选编号和化学式对应结构，比较稳定性差值，越低越有利；虚线标明本次参考线或已确认的硬性上限。图中仅绘制已完成计算的数值，待补充项目以文字标注。"])
     if passing:
         rows.extend(["", "### 5. 优选晶体的组成、结构、预测性能与验证建议", "",
-            f"优选结构（{names[top.candidate.candidate_id]}）为 {formula_label(top.candidate.formula_pretty)}，稳定性差值为 {stability_number(top.validation.energy_above_hull, hull_limit(c))} eV/atom。以下汇总该结构的组成、结构和性能。" + ("其稳定性差值高于本次参考线，建议优先通过统一精度计算复核。" if top.validation.metadata.get('screening', {}).get('stability_review') else "")])
+            f"在本次已计算的候选中，优选结构（{names[top.candidate.candidate_id]}）为 {formula_label(top.candidate.formula_pretty)}，稳定性差值为 {number(top.validation.energy_above_hull)} eV/atom。该结构满足组成、结构和已明确的硬性条件，是本次优先验证的对象。" + ("其稳定性差值高于本次参考线，建议优先通过统一精度计算复核，完整性质结果见下表。" if top.validation.metadata.get('screening', {}).get('stability_review') else "其稳定性估计低于本次参考线，完整组成、结构和性质结果如下。")])
     else:
-        rows.extend(["", "### 5. 候选晶体的复核与后续验证建议", "", "请按第4节列出的条件和计算状态继续处理候选。已完成数量以第 4.1 节的实际记录为准。", "",
-            "第 4.2 节逐项列出未满足的条件、结果缺失原因和对应处理方式。"])
+        rows.extend(["", "### 5. 候选晶体的复核与后续验证建议", "", "本次暂未得到满足全部已配置条件的独立候选。" + cell(result.message), "",
+            "第 4.2 节逐项列出未满足的条件和待补充计算，可据此确定后续复核内容。"])
         if top:
-            rows.extend(["", f"以下汇总待复核结构（{names[top.candidate.candidate_id]}）的已完成数据；结果空缺及其原因见第 4.2 节。"])
+            rows.extend(["", f"以下汇总待复核结构（{names[top.candidate.candidate_id]}）的已完成数据；需要复核的条件及待补充事项见第 4.2 节。"])
     if top:
         v = top.validation
         thermo = v.metadata["mattersim"]
@@ -524,49 +410,41 @@ def build_result_report(result, visuals=None):
             "以下组成来自同一保留结构的晶胞原子计数。at.% 是按原子个数计算的百分比，用于记录晶体组成；实际投料时可结合各元素原子质量换算质量比例。", "",
             "| 组成元素 | 晶胞中的原子数 | 原子百分比（at.%） |", "| --- | ---: | ---: |"])
         for symbol, amount in sorted(element_counts.items()):
-            rows.append(f"| {element_label(symbol)} | {amount} | {number(amount / total * 100, 4) if total else '—（原子总数未记录）'} |")
+            rows.append(f"| {element_label(symbol)} | {amount} | {number(amount / total * 100, 4) if total else '待确定'} |")
         if not element_counts:
-            rows.append("| —（记录缺少元素计数） | —（需要从 CIF 提取） | —（缺少原子计数） |")
+            rows.append("| 待解析 | 待确定 | 待确定 |")
         _equation(rows, r"x_\alpha=\frac{n_\alpha}{\sum_\beta n_\beta}\times100\%",
             "$n_\\alpha$ 为元素 $\\alpha$ 在晶胞中的原子数，$\\sum_\\beta n_\\beta$ 为所有元素的总原子数，$x_\\alpha$ 为原子百分比；完整组成合计为 100%，表中显示值经过舍入。")
         rows.extend(["", "| 晶体结构项目 | 本次结果 | 如何理解 |", "| --- | --- | --- |",
             f"| 化学式 | {cell(top.candidate.formula_pretty or v.formula_pretty)} | 表示元素计量关系；完整晶胞的实际计数见上表 |",
-            f"| 空间群 | {cell(v.space_group or '—（对称性结果未记录，需从优化后 CIF 重新分析）')}（编号 {v.metadata.get('space_group_number', '结果未记录')}） | 晶体空间对称性的分类；本次采用优化后的结构进行分析 |",
-            f"| 是否非中心对称 | {'是' if v.metadata.get('non_centrosymmetric') is True else '否' if v.metadata.get('non_centrosymmetric') is False else '—（对称性结果未记录，需重新分析 CIF）'} | 说明晶体是否缺少中心反演对称性，用于比较结构特征 |",
-            f"| 计算晶胞的原子总数 | {v.metadata.get('num_sites', total or '—（原子计数未记录）')} | 该周期重复单元包含的原子个数 |",
-            f"| 晶胞体积 | {number(v.metadata.get('volume_angstrom3'), 4) + ' Å³' if _finite(v.metadata.get('volume_angstrom3')) else '—（晶胞体积未记录，需从 CIF 提取）'} | 结构优化后输出晶胞的体积；Å 是埃，1 Å = 10⁻¹⁰ m |"])
+            f"| 空间群 | {cell(v.space_group or '待确定')}（编号 {v.metadata.get('space_group_number', '待确定')}） | 晶体空间对称性的分类；本次采用优化后的结构进行分析 |",
+            f"| 是否非中心对称 | {'是' if v.metadata.get('non_centrosymmetric') is True else '否' if v.metadata.get('non_centrosymmetric') is False else '待确定'} | 说明晶体是否缺少中心反演对称性，用于比较结构特征 |",
+            f"| 计算晶胞的原子总数 | {v.metadata.get('num_sites', total or '待确定')} | 该周期重复单元包含的原子个数 |",
+            f"| 晶胞体积 | {number(v.metadata.get('volume_angstrom3'), 4)} Å³ | 结构优化后输出晶胞的体积；Å 是埃，1 Å = 10⁻¹⁰ m |"])
         lattice = v.metadata.get("lattice_parameters", [])
         if len(lattice) == 6:
             rows.extend([f"| 三条晶格向量的长度 a、b、c | {' / '.join(number(value, 4) for value in lattice[:3])} Å | 描述输出晶胞的三个边长 |",
                 f"| 晶格向量之间的夹角 α、β、γ | {' / '.join(number(value, 4) for value in lattice[3:])}° | 分别为 b 与 c、a 与 c、a 与 b 的夹角 |"])
-        force, threshold = thermo.get('max_generalized_force_ev_angstrom'), thermo.get('fmax_ev_angstrom')
-        convergence = f"已收敛；广义力指标 {number(force)} eV/Å；阈值 {threshold:g} eV/Å" if _finite(force) and _finite(threshold) else "记录结论为已收敛；力指标或阈值未记录，需核对原始优化结果"
-        rows.append(f"| 结构优化收敛情况 | {convergence} | 原子力和缩放后的晶胞项用于核对本次优化停止条件 |")
+        rows.append(f"| 结构优化收敛情况 | 已收敛；广义力指标 {number(thermo.get('max_generalized_force_ev_angstrom'))} eV/Å；阈值 {cell(thermo.get('fmax_ev_angstrom', '待确认'))} eV/Å | 原子力和缩放后的晶胞项达到本次优化停止条件 |")
         rows.extend(["", "完整原子坐标、元素占位和晶格保留在对应的 CIF 晶体结构文件中；三维模型与旋转预览展示原子排布，连线标示相邻原子关系。", "",
-            ])
-        if visuals and visuals.get("candidate_rotation"):
-            rows.append(f"{'优选结构' if passing else '待复核结构'}（{names[top.candidate.candidate_id]}）的旋转预览：颜色区分元素，连线帮助阅读相邻原子的排布。")
-            _visual(rows, "candidate_rotation", visuals)
-        rows.extend([
             f"#### 5.2 {'优选结构' if passing else '待复核结构'}（{names[top.candidate.candidate_id]}）的预测性能及其含义", "",
             "以下数值均对应上述结构优化后的同一个晶体。能量为第 3 节所列模型预测，稳定性采用混合参考能量估算；结构派生量与性质模型预测分别解释。", "",
             "| 预测或结构派生性能 | 本次结果 | 如何理解 |", "| --- | --- | --- |",
-            f"| 密度 | {output_cell(v, 'density', unit='g/cm³')} | 由晶胞体积和原子质量计算得到的单位体积质量；缺少时需从 CIF 重新提取晶胞与组成 |",
-            f"| 单原子能量 | {number(thermo.get('relaxed_energy_per_atom_ev')) + ' eV/atom' if _finite(thermo.get('relaxed_energy_per_atom_ev')) else '—（优化后的能量未记录，需核对优化结果文件）'} | 总能量平均到每个原子，可用于比较同一组成下的不同构型 |",
-            f"| 形成能估算 | {output_cell(v, 'formation_energy_per_atom', digits=5, unit='eV/atom')} | 相对元素参考态的能量变化；空缺时需核对参考相与能量计算记录 |",
-            f"| 稳定性差值（凸包能估算） | {output_cell(v, 'energy_above_hull', reference=hull_limit(c), unit='eV/atom')} | 相对同组成竞争相组合多出的能量，用于确定稳定性复核优先级；具体空缺原因见第 4.2 节 |"])
+            f"| 密度 | {number(v.density, 4)} g/cm³ | 由晶胞体积和原子质量计算得到的单位体积质量 |",
+            f"| 单原子能量 | {number(thermo.get('relaxed_energy_per_atom_ev'))} eV/atom | 总能量平均到每个原子，可用于比较同一组成下的不同构型 |",
+            f"| 形成能估算 | {number(v.formation_energy_per_atom)} eV/atom | 相对元素参考态的能量变化；相对竞争相的稳定性结合下一项判断 |",
+            f"| 稳定性差值（凸包能估算） | {number(v.energy_above_hull)} eV/atom | 相对同组成竞争相组合多出的能量，用于确定稳定性复核优先级 |"])
         for key, p in v.property_predictions.items():
             if _finite(p.get("value")):
                 rows.append(f"| {cell(PROPERTY_LABELS.get(key, p.get('label', key)))} | {number(p['value'], 4)} {cell(p.get('unit', PROPERTY_UNITS.get(key, '')))} | {PROPERTY_MEANINGS.get(key, '模型预测值，需结合对应计算条件复核。')} |")
         missing_properties = [key for key in task_goals(c) if key in PROPERTY_LABELS and not _finite(v.property_predictions.get(key, {}).get("value"))]
         for key in sorted(missing_properties):
-            detail = missing_output_issue(v, key)
-            rows.append(f"| {PROPERTY_LABELS[key]} | {output_cell(v, key)} | {cell(detail['cause'] + detail['action'])} |")
+            rows.append(f"| {PROPERTY_LABELS[key]} | 待补充计算 | 本次未得到有效预测值；没有按零值或已达到目标处理 |")
         gap = v.property_predictions.get("band_gap", {}).get("value")
         if _finite(gap) and gap <= 0.05:
             rows.extend(["", "带隙预测接近零，优先按金属或半金属候选复核；电子与空穴有效质量需结合进一步的能带计算解释。"])
     else:
-        rows.extend(["", "#### 5.1 继续计算前需要复核的事项", "", "本次尚无可汇总完整结构与性能的收敛候选。请按第 4.2 节给出的停止阶段、原因和处理方式恢复计算或重新生成候选。", "",
+        rows.extend(["", "#### 5.1 继续计算前需要复核的事项", "", "本次尚无可汇总完整结构与性能的收敛候选。请依据第 4 节核对未通过原因或待补充结果，在保留原条件的情况下补算或追加候选探索。", "",
             "| 支持的任务 | 能够提供的输出 |", "| --- | --- |",
             "| 给定整数化学式的周期晶体（CSP） | 固定元素计数的构型、CIF、结构优化与稳定性初筛 |",
             "| 给定元素集合的组成与结构探索（DNG） | 允许元素内的完整组成与晶体结构，经结构优化后直接比较 |",
@@ -577,7 +455,7 @@ def build_result_report(result, visuals=None):
         rows.extend(["", f"原 DNG 结构与当前 CSP 结构的稳定性差值分别为 {number(selected['energy_above_hull'])}、{number(top.validation.energy_above_hull)} eV/atom，采用相同参考口径。" + ("本次追加 CSP 在该指标上未优于原 DNG 结构，两者均保留供比较。" if top.validation.energy_above_hull > selected['energy_above_hull'] else "这一比较仅反映此次采样结果。")])
     rows.extend(["", (f"#### 5.3 优选结构（{names[top.candidate.candidate_id]}）的进一步验证事项" if passing else "#### 5.3 候选结构的进一步验证事项") if top else "#### 5.2 获得合规候选后的验证步骤", "",
         "对候选及相关竞争相开展统一计算口径的密度泛函理论（DFT）复算，以更高精度核对能量及电子结构；进行声子计算，检查原子振动是否提示结构不稳定；再按实际目标验证性能、合成可行性与材料新颖性。", "",
-        ("针对" + cell(c.task_context.get('scenario_label') or c.task_context.get('scenario')) + "，进一步在对应温度、载荷和制造状态下开展专项计算或实验，验证候选材料与实际部件的适配性。") if c.task_context.get('scenario') or c.task_context.get('scenario_label') else "结合后续确定的应用场景，在对应温度和制造状态下验证目标性能与合成条件。"])
+        "针对上文场景，进一步在对应温度、载荷和制造状态下开展专项计算或实验，验证候选材料与实际部件的适配性。"])
     return "\n".join(rows)
 
 

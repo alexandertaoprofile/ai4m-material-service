@@ -1,0 +1,74 @@
+# 统一合金 Transformer：影子调用与未来正式显示方案
+
+## 当前运行方式
+
+航空铝合金、可回收火箭奥氏体不锈钢和高温镍基合金继续由各自专项模型生成候选、完成筛选排序并形成用户报告。专项结果生成后，服务把同一批已解析成分、温度和粗粒度工艺条件提交给统一合金物理约束 Transformer，结果仅写入任务目录的 `shadow/<batch-id>/`。
+
+影子结果不进入正式结果对象、`summary.md`、图表数据、MinIO 资产或用户结论。Transformer 超时、跳过或失败不会改变专项服务返回。
+
+对严格适用域仅因成分距离而跳过的候选，可启用 `diagnostic_outside_support` 诊断回放。它保留原始严格判定和越界原因，仅额外计算内部差值；`display_allowed`、`ranking_allowed` 和 `production_release_authorized` 均固定为 `false`。诊断覆盖率与严格适用域覆盖率必须分开统计，不能把诊断值包装为可用预测。
+
+运行时资产安装在 `/data/se42/hea_surrogate/models/unified_alloy_tensile_v2_20260921/runtime/`，由独立解释器调用；模型权重 SHA-256 为 `d10b511d8182a3eaab7e704c48ac1217075cbbc9f07fd44d417cc381acb24911`。1111 主服务环境不安装或升级 Torch、NumPy 等Transformer依赖。
+
+## 当前性质分工
+
+| 服务 | 正式结果来源 | Transformer 当前用途 |
+|---|---|---|
+| 航空铝合金 | 专项 UTS、YS、延伸率模型 | 私下比较 UTS、YS |
+| 火箭奥氏体不锈钢 | 专项 UTS、YS、延伸率模型及深冷证据层 | 私下比较 293–1273 K 的 UTS、YS |
+| 高温镍基合金 | 专项短时强度、延伸率辅助和蠕变模型 | 私下比较短时 UTS、0.2% proof；蠕变不变 |
+
+## 正式切换时的显示规则
+
+服务标题、材料身份和页面结构保持不变，不增加“统一模型服务”入口或模型选择按钮。只有性质来源发生变化：
+
+- UTS 与 YS/proof 标注为“统一合金物理约束 Transformer（对应材料域）”；
+- 延伸率、蠕变寿命、深冷参考、牌号和工艺证据继续标注对应专项模型或证据层；
+- 性质卡逐项显示模型来源，不能把整个候选笼统写成“由 Transformer 预测”；
+- 模型说明中的误差改为该材料域冻结的成分分组测试集 MAE；不得称为 OOF，当前数字来自所选单随机种子权重的独立分组测试；
+- 筛选漏斗、比较图、候选排序和结论中的 UTS/YS 同步改用 Transformer 值；
+- 超出统一模型适用域的候选不得混入 Transformer 排序，可回退专项模型并在性质来源中明确标记。
+
+拟采用的来源说明如下：
+
+| 材料域 | 用户可见模型名称 | UTS 固定测试 MAE | YS 固定测试 MAE | 仍由专项模型提供 |
+|---|---|---:|---:|---|
+| 航空铝 | 统一合金物理约束 Transformer（航空铝合金域） | 46.7 MPa | 57.4 MPa | 延伸率、工艺类别证据 |
+| 奥氏体不锈钢 | 统一合金物理约束 Transformer（奥氏体不锈钢域） | 27.6 MPa | 19.5 MPa | 延伸率、深冷参考、焊接/疲劳/LOX 路径 |
+| 镍基高温合金 | 统一合金物理约束 Transformer（镍基高温合金域） | 156.6 MPa | 90.5 MPa | 蠕变寿命、延伸率辅助、路线和热处理证据 |
+
+## 正式切换门槛
+
+正式切换前按材料域分别审核，不做一次性总开关。至少检查历史请求覆盖率、影子跳过率、新旧差值分布、排序变化、推理耗时和异常率；随后先灰度航空铝，再评估不锈钢。镍基 UTS 误差较大，保持影子比较，直至证明它相对当前专项模型有明确收益。
+
+不锈钢还必须先统一微量元素语义：专项搜索空间未生成 P/S，而训练域多数记录含 P/S；未生成、未报告与确认为零不得互相替代。正式接管前需要在原始来源层补齐报告状态/缺失掩码，重算适用域并做完整成分留出验证。诊断回放不能替代这项工作。
+
+影子请求现为不锈钢候选附带字段状态：搜索空间内元素记为采样或用户固定、Fe 记为平衡元素、显式 `[0,0]` 才记为固定零，未进入搜索空间的 P/S 等元素记为 `not_in_search_space_not_confirmed_zero`。共同审计统一采用三档口径：p95 内为 `inside`、p95–p99 为 `boundary`、超过 p99 为 `outside`。模型各自的训练支持集仍分别保留，不能因为距离名称一致就假定两个模型拥有相同数据覆盖。
+
+## 2026-09-23 production release contract
+
+The deployable mode is deliberately shadow-only; it is not a global model
+switch. Formal UTS/YS ownership remains with the aluminum, stainless-steel,
+and nickel-superalloy specialists. The unified Transformer is private,
+non-ranking, and non-display for all three domains. This policy is returned by
+the internal runner and is not configurable through a public request.
+
+GET /health now performs a real strict aluminum inference on first use and
+then caches the result for UNIFIED_TENSILE_HEALTH_TTL_SECONDS (default 300
+seconds). Readiness therefore covers the wrapper, raw-input adapter, artifact
+hash validation, weight loading, encoding, and prediction. A shadow health
+failure sets unified_tensile_shadow_ready=false while the overall service and
+specialist runtimes remain available.
+
+The release replay is stored in
+reports/unified_alloy_tensile_shadow_release_verification_20260923.json.
+All three specialist batches completed, and their formal result digests were
+unchanged. Strict coverage was 2/3 for aluminum, 0/20 for stainless steel, and
+20/20 for nickel. Stainless diagnostic predictions are retained only for
+engineering comparison; they remain unauthorized for display, ranking, or
+formal release. The release replay therefore authorizes deployment of the
+isolated shadow path, not promotion of Transformer values to primary output.
+
+The shared model runner now rejects missing or unknown model_domain values
+with a structured error before importing any model runtime. It no longer
+falls back silently to the HEA dispatcher.

@@ -57,25 +57,12 @@ def run_mattersim_evaluation(
     structurally valid candidate into a failed one.
     """
     candidates = list(candidates)
-    from .omatg_contract import omatg_enabled
-
-    def failed_rows(code):
-        # Preserve execution failures for customer explanation; legacy adapter
-        # behavior and scientific values remain unchanged.
-        if not omatg_enabled():
-            return {}
-        return {str(candidate.cif_path.resolve()): {
-            "source_cif": str(candidate.cif_path), "status": code, "error_code": code,
-            "relaxation_converged": None, "energy_above_hull_ev": None,
-            "formation_energy_per_atom_ev": None,
-        } for candidate in candidates if candidate.cif_path}
-
     if not candidates or not (mattersim_enabled() if enabled is None else enabled):
         logger.info("[DISCOVERY] MatterSim skipped: candidates=%s enabled=%s", len(candidates), mattersim_enabled() if enabled is None else enabled)
-        return failed_rows("disabled") if candidates else {}
+        return {}
     cif_paths = [candidate.cif_path for candidate in candidates if candidate.cif_path]
     if len(cif_paths) != len(candidates):
-        return failed_rows("missing_structure")
+        return {}
 
     task_dir = validation_dir.parent
     output_dir = task_dir / "mattersim"
@@ -105,7 +92,7 @@ def run_mattersim_evaluation(
         message = f"MatterSim/MP evaluation did not complete ({type(exc).__name__}); timeout budget {timeout}s."
         (output_dir / "mattersim.log").write_text(message, encoding="utf-8")
         logger.error("[DISCOVERY] %s (full log: %s)", message, output_dir / "mattersim.log")
-        return failed_rows("timeout" if isinstance(exc, subprocess.TimeoutExpired) else "unavailable")
+        return {}
     (output_dir / "mattersim.log").write_text(
         (completed.stdout or "") + ("\n" + completed.stderr if completed.stderr else ""),
         encoding="utf-8",
@@ -114,19 +101,11 @@ def run_mattersim_evaluation(
     if completed.returncode != 0 or not result_path.exists():
         summary = (completed.stderr or completed.stdout or "no results file").strip().splitlines()[-1:]
         logger.error("[DISCOVERY] MatterSim/MP failed rc=%s: %s (full log: %s)", completed.returncode, " ".join(summary), output_dir / "mattersim.log")
-        return failed_rows("process_failed" if completed.returncode else "missing_results")
-    try:
-        data = json.loads(result_path.read_text(encoding="utf-8"))
-        if not isinstance(data, dict) or not isinstance(data.get("candidates"), list) or any(not isinstance(row, dict) or not row.get("source_cif") or not {"energy_above_hull_ev", "formation_energy_per_atom_ev"}.issubset(row) for row in data["candidates"]):
-            raise ValueError("Malformed MatterSim result")
-    except (OSError, ValueError, TypeError):
-        logger.error("[DISCOVERY] MatterSim result could not be read; see %s", output_dir / "mattersim.log")
-        return failed_rows("invalid_results")
+        return {}
+    data = json.loads(result_path.read_text(encoding="utf-8"))
     rows = data.get("candidates", [])
     logger.info("[DISCOVERY] MatterSim/MP produced %s thermodynamic result(s)", len(rows))
-    results = failed_rows("missing_results")
-    results.update({str(Path(row["source_cif"]).resolve()): row for row in rows})
-    return results
+    return {str(Path(row["source_cif"]).resolve()): row for row in rows}
 
 
 def enrich_validations_with_mattersim(

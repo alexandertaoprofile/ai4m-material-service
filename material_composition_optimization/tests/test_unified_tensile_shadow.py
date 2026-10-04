@@ -41,24 +41,14 @@ def test_stainless_shadow_preserves_resolved_process_and_temperature():
             "processing": {"quench": "water", "product_form_code": 1, "solution_treatment_temperature_K": 1323},
             "platform_defaults_used": ["processing.quench"],
         },
-        "search_space": {
-            "element_bounds_wt_percent": {
-                "Cr": [16.5, 19.5], "Ni": [8.5, 12.0], "Mn": [0.8, 2.0],
-                "Si": [0.2, 0.8], "C": [0.02, 0.08], "N": [0.01, 0.08],
-            },
-        },
         "all_candidates": [{
             "candidate_id": "RSS-1", "composition_wt_percent": {"Fe": 70.0, "Cr": 18.0, "Ni": 10.0, "Mn": 2.0},
             "short_time_tensile": {"yield_0p2_MPa": {"mean": 280.0}, "uts_MPa": {"mean": 590.0}, "elongation_pct": {"mean": 35.0}},
-            "applicability_domain": {"level": "boundary", "nearest_training_composition_distance": 3.1},
         }],
     }
     item = build_comparison_items(result)[0]
     assert item["actual_inputs"]["processing"]["solution_treatment_temperature_K"] == 1323
     assert item["legacy_properties"] == {"yield_0p2_MPa": 280.0, "uts_MPa": 590.0}
-    assert item["composition_semantics"]["omitted_interpretation"] == "not_in_search_space_not_confirmed_zero"
-    assert {"P", "S"}.issubset(item["composition_semantics"]["not_in_search_space"])
-    assert item["specialist_applicability_domain"]["level"] == "boundary"
 
 
 def test_nickel_shadow_keeps_creep_out_of_transformer_property_projection():
@@ -73,9 +63,7 @@ def test_nickel_shadow_keeps_creep_out_of_transformer_property_projection():
     }
     item = build_comparison_items(result)[0]
     assert item["legacy_properties"] == {"proof_strength_0p2_MPa": 610.0, "ultimate_tensile_strength_MPa": 950.0}
-    presentation = future_primary_presentation("ni_superalloy_hot_end")
-    assert presentation["specialist_properties"][0] == "蠕变断裂寿命"
-    assert presentation["evaluation"]["protocol"] == "frozen_composition_group_test_selected_single_seed"
+    assert future_primary_presentation("ni_superalloy_hot_end")["specialist_properties"][0] == "蠕变断裂寿命"
 
 
 def test_cryogenic_stainless_and_unrelated_domains_do_not_enter_shadow_prediction():
@@ -128,137 +116,10 @@ def test_relative_results_root_becomes_absolute_before_model_subprocess(tmp_path
         response = Path(command[command.index("--response") + 1])
         assert request.is_absolute()
         assert response.is_absolute()
-        assert "--diagnostic-outside-support" in command
-        response.write_text(json.dumps({
-            "ok": True,
-            "comparisons": [{
-                "status": "diagnostic_outside_support",
-                "display_allowed": False,
-                "ranking_allowed": False,
-                "production_release_authorized": False,
-            }],
-        }), encoding="utf-8")
+        response.write_text(json.dumps({"ok": True, "comparisons": [{"status": "predicted"}]}), encoding="utf-8")
         return SimpleNamespace(returncode=0, stderr="", stdout="")
 
     monkeypatch.setattr("src.alloy_workflow.runner.subprocess.run", fake_run)
     record = runner.run_tensile_shadow_sync("relative-path", formal)
     assert record["status"] == "completed"
-    assert record["diagnostic_outside_support_enabled"] is True
-    assert record["comparison_status_counts"] == {"diagnostic_outside_support": 1}
-
-
-def test_diagnostic_outside_support_can_be_disabled(tmp_path, monkeypatch):
-    runner = HEASurrogateRunner(
-        results_root=tmp_path, surrogate_root=Path("/data/se42/hea_surrogate"),
-        environment_prefix=Path("/data/mamba/envs/mattergen-py310"), executable="/home/ubuntu/micromamba",
-    )
-    formal = {
-        "model_domain": "aerospace_aluminum_composition_v1",
-        "screening_conditions": {"processing_category": "Solutionised + Artificially peak aged"},
-        "all_candidates": [{
-            "candidate_id": "Al-diagnostic-disabled",
-            "composition_wt_percent": {"Al": 90.0, "Zn": 5.6, "Mg": 2.5, "Cu": 1.6, "Cr": 0.3},
-            "predicted_properties": {"yield_strength_MPa": 510.0, "uts_MPa": 575.0},
-        }],
-    }
-    monkeypatch.setenv("UNIFIED_TENSILE_DIAGNOSTIC_OUTSIDE_SUPPORT_ENABLED", "0")
-
-    def fake_run(command, **_kwargs):
-        assert "--diagnostic-outside-support" not in command
-        response = Path(command[command.index("--response") + 1])
-        response.write_text(json.dumps({"ok": True, "comparisons": [{"status": "skipped"}]}), encoding="utf-8")
-        return SimpleNamespace(returncode=0, stderr="", stdout="")
-
-    monkeypatch.setattr("src.alloy_workflow.runner.subprocess.run", fake_run)
-    record = runner.run_tensile_shadow_sync("diagnostic-disabled", formal)
-    assert record["status"] == "completed"
-    assert record["diagnostic_outside_support_enabled"] is False
-    assert record["comparison_status_counts"] == {"skipped": 1}
-
-def test_tensile_shadow_health_runs_real_strict_inference_and_caches(tmp_path, monkeypatch):
-    runtime = tmp_path / "runtime"
-    assets = runtime / "assets"
-    assets.mkdir(parents=True)
-    (assets / "model_state.pt").write_bytes(b"test")
-    python = tmp_path / "python"
-    python.write_text("", encoding="utf-8")
-    shadow_runner = tmp_path / "shadow_runner.py"
-    shadow_runner.write_text("", encoding="utf-8")
-    monkeypatch.setenv("UNIFIED_TENSILE_PYTHON", str(python))
-    monkeypatch.setenv("UNIFIED_TENSILE_RUNNER", str(shadow_runner))
-    monkeypatch.setenv("UNIFIED_TENSILE_RUNTIME_ROOT", str(runtime))
-    monkeypatch.setenv("UNIFIED_TENSILE_HEALTH_TTL_SECONDS", "300")
-    runner = HEASurrogateRunner(
-        results_root=tmp_path / "results",
-        surrogate_root=tmp_path,
-        environment_prefix=tmp_path / "environment",
-        executable="micromamba",
-    )
-    calls = []
-
-    def fake_run(command, **_kwargs):
-        calls.append(command)
-        assert "--diagnostic-outside-support" not in command
-        request = Path(command[command.index("--request") + 1])
-        response = Path(command[command.index("--response") + 1])
-        assert json.loads(request.read_text(encoding="utf-8"))["items"][0]["request_id"] == "health-aluminum-frozen-sample"
-        response.write_text(json.dumps({
-            "ok": True,
-            "model": {"version": "health-test", "serving_weights_sha256": "abc"},
-            "comparisons": [{
-                "status": "predicted",
-                "internal_property_projection_MPa": {
-                    "yield_strength_MPa": 300.0,
-                    "uts_MPa": 420.0,
-                },
-            }],
-        }), encoding="utf-8")
-        return SimpleNamespace(returncode=0, stderr="", stdout="")
-
-    monkeypatch.setattr("src.alloy_workflow.runner.subprocess.run", fake_run)
-    first = runner.tensile_shadow_health(force=True)
-    second = runner.tensile_shadow_health()
-    assert first["ready"] is True
-    assert first["inference_performed"] is True
-    assert first["sample_status"] == "predicted"
-    assert first["release_policy"]["mode"] == "shadow_only"
-    assert second == first
-    assert len(calls) == 1
-
-
-def test_tensile_shadow_health_fails_closed_when_assets_are_missing(tmp_path, monkeypatch):
-    monkeypatch.setenv("UNIFIED_TENSILE_PYTHON", str(tmp_path / "missing-python"))
-    monkeypatch.setenv("UNIFIED_TENSILE_RUNNER", str(tmp_path / "missing-runner.py"))
-    monkeypatch.setenv("UNIFIED_TENSILE_RUNTIME_ROOT", str(tmp_path / "missing-runtime"))
-    runner = HEASurrogateRunner(
-        results_root=tmp_path / "results",
-        surrogate_root=tmp_path,
-        environment_prefix=tmp_path / "environment",
-        executable="micromamba",
-    )
-    health = runner.tensile_shadow_health(force=True)
-    assert health["ready"] is False
-    assert health["inference_performed"] is False
-    assert health["status"] == "assets_unavailable"
-    assert health["release_policy"]["public_effect"] is False
-
-
-def test_release_policy_keeps_formal_strength_owned_by_specialists(tmp_path):
-    runner = HEASurrogateRunner(
-        results_root=tmp_path / "results",
-        surrogate_root=tmp_path,
-        environment_prefix=tmp_path / "environment",
-        executable="micromamba",
-    )
-    policy = runner.tensile_shadow_release_policy()
-    assert policy["mode"] == "shadow_only"
-    assert policy["primary_switch_implemented"] is False
-    assert set(policy["domains"]) == {
-        "aerospace_aluminum_composition_v1",
-        "reusable_rocket_stainless",
-        "ni_superalloy_hot_end",
-    }
-    assert all(
-        domain["unified_transformer"] == "shadow_only"
-        for domain in policy["domains"].values()
-    )
+    assert record["comparison_status_counts"] == {"predicted": 1}

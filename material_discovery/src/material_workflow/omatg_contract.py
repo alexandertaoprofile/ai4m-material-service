@@ -78,10 +78,6 @@ def omatg_constraint(payload: dict, source: dict, taskid: str, raw: str, current
         raise ValueError("合金成分/比例优化请交给 alloy_composition_optimization；本服务生成周期晶体。")
     from .task_context import build_task_context
     task_context = build_task_context(payload, source, raw, current)
-    from .user_requirements import explicit_elements, explicit_property_bounds, merge_property_bounds
-    requirement_text = source.get("confirmed_requirement_text") or current
-    parsed_required, parsed_excluded = explicit_elements(requirement_text)
-    parsed_limits = explicit_property_bounds(requirement_text)
     normalized_text = current.translate(str.maketrans("₀₁₂₃₄₅₆₇₈₉", "0123456789"))
     formula = str(source.get("target_formula") or _formula_from_text(normalized_text) or "").strip() or None
     # Current formula/elements take precedence. Do not mine old assistant prose.
@@ -111,8 +107,6 @@ def omatg_constraint(payload: dict, source: dict, taskid: str, raw: str, current
     opened = source.get("allow_open_chemical_space", False)
     if not isinstance(opened, bool):
         raise ValueError("allow_open_chemical_space 需要布尔值。")
-    if opened and not explicit_allowed and not counts:
-        allowed = []  # Explicit open-space choice is not narrowed by incidental mentions.
     family = str(source.get("material_family") or "").strip()
     if not allowed and not opened:
         raise ValueError("无法确定待生成的元素体系。请提供化学式或元素集合；仅有材料大类/性质时，需要确认开放化学空间后才启动 DNG。")
@@ -120,12 +114,8 @@ def omatg_constraint(payload: dict, source: dict, taskid: str, raw: str, current
         raise ValueError("开放 DNG 仍需要材料方向或希望筛选的性质。")
     if not counts and any(term in (family + current).lower() for term in ("聚合物", "树脂", "塑料", "橡胶", "复合材料", "非晶", "玻璃", "polymer")):
         raise ValueError("当前 OMatG 主链面向周期无机晶体，该材料对象需要专项模型。")
-    excluded = element_list(list(dict.fromkeys(element_list(source.get("excluded_elements", source.get("forbidden_elements", [])), "excluded_elements") + parsed_excluded)), "excluded_elements")
-    required = element_list(list(dict.fromkeys(element_list(source.get("required_elements", []), "required_elements") + parsed_required)), "required_elements")
-    if not explicit_allowed and not counts:
-        allowed = [element for element in allowed if element not in excluded]
-    if not allowed and not opened:
-        raise ValueError("无法确定待生成的元素体系。请提供化学式、允许元素，或确认开放探索；排除元素只用于限制范围。")
+    excluded = element_list(source.get("excluded_elements", source.get("forbidden_elements", [])), "excluded_elements")
+    required = element_list(source.get("required_elements", []), "required_elements")
     if allowed and (set(allowed) & set(excluded) or not set(required) <= set(allowed)):
         raise ValueError("允许、禁止或必含元素存在冲突。")
     if set(required) & set(excluded) or counts and set(counts) & set(excluded):
@@ -155,7 +145,7 @@ def omatg_constraint(payload: dict, source: dict, taskid: str, raw: str, current
     if not isinstance(source.get("target_properties", {}), dict):
         raise ValueError("target_properties 需要对象。")
     properties = dict(source.get("target_properties") or {})
-    hull = properties.get("energy_above_hull", _ehull_from_context(requirement_text))
+    hull = properties.get("energy_above_hull", _ehull_from_context(current))
     hull = 0.05 if hull is None else hull
     if isinstance(hull, bool) or not math.isfinite(float(hull)) or float(hull) < 0:
         raise ValueError("energy_above_hull 需要非负有限数值（eV/atom）。")
@@ -172,22 +162,17 @@ def omatg_constraint(payload: dict, source: dict, taskid: str, raw: str, current
     limits = source.get("property_constraints") or {}
     if not isinstance(limits, dict):
         raise ValueError("property_constraints 需要对象。")
-    limits = merge_property_bounds(limits, parsed_limits)
     for key, bound in limits.items():
         if key not in PROPERTY_UNITS or not isinstance(bound, dict) or not ({"min", "max"} & bound.keys()):
             raise ValueError(f"{key} 没有可执行的性质上下限；请使用已接入性质的 min/max。")
-        if set(bound) - {"min", "max", "unit", "min_inclusive", "max_inclusive"} or bound.get("unit", PROPERTY_UNITS[key]) != PROPERTY_UNITS[key]:
+        if set(bound) - {"min", "max", "unit"} or bound.get("unit", PROPERTY_UNITS[key]) != PROPERTY_UNITS[key]:
             raise ValueError(f"{key} 请使用 {PROPERTY_UNITS[key]} 单位。")
         for name in ("min", "max"):
             if name in bound and (isinstance(bound[name], bool) or not math.isfinite(float(bound[name]))):
                 raise ValueError(f"{key}.{name} 需要有限数值。")
-        for name in ("min_inclusive", "max_inclusive"):
-            if name in bound and not isinstance(bound[name], bool):
-                raise ValueError(f"{key}的上下限包含关系需要布尔值。")
-        low, high = float(bound.get("min", -math.inf)), float(bound.get("max", math.inf))
-        if low > high or low == high and (bound.get("min_inclusive") is False or bound.get("max_inclusive") is False):
+        if float(bound.get("min", -math.inf)) > float(bound.get("max", math.inf)):
             raise ValueError(f"{key} 上下限冲突。")
-        limits[key] = {**{name: float(bound[name]) for name in ("min", "max") if name in bound}, **{name: bound[name] for name in ("min_inclusive", "max_inclusive") if name in bound}, "unit": PROPERTY_UNITS[key]}
+        limits[key] = {**{name: float(bound[name]) for name in ("min", "max") if name in bound}, "unit": PROPERTY_UNITS[key]}
     symmetry = source.get("symmetry_constraints") or {}
     if not isinstance(symmetry, dict) or set(symmetry) - {"non_centrosymmetric", "space_group_number"}:
         raise ValueError("symmetry_constraints 仅支持 non_centrosymmetric 和 space_group_number。")
@@ -200,19 +185,17 @@ def omatg_constraint(payload: dict, source: dict, taskid: str, raw: str, current
     parameter_sources = {
         "target_formula": "用户确认字段" if source.get("target_formula") else "当前请求解析" if formula else "DNG 生成",
         "allowed_elements": "用户确认字段" if source.get("allowed_elements") or source.get("elements") else "由化学式解析" if counts else "当前请求解析" if allowed else "用户确认开放空间",
-        "required_elements": "当前请求解析" if parsed_required else "用户确认字段" if "required_elements" in source else "服务默认：不强制所有允许元素出现",
+        "required_elements": "用户确认字段" if "required_elements" in source else "服务默认：不强制所有允许元素出现",
         "num_atoms": "化学式计数 × Z" if counts else "用户确认字段" if "num_atoms" in source else "服务默认",
         "formula_units": "用户确认字段" if "formula_units" in source else "服务默认",
         "seed": "用户确认字段" if "seed" in source else "服务默认",
         "max_candidates": "用户确认字段" if "max_candidates" in payload or "max_candidates" in source else "服务默认",
-        "energy_above_hull": "用户确认字段" if "energy_above_hull" in (source.get("target_properties") or {}) else "当前请求解析" if _ehull_from_context(requirement_text) is not None else "服务后筛默认",
+        "energy_above_hull": "用户确认字段" if "energy_above_hull" in (source.get("target_properties") or {}) else "当前请求解析" if _ehull_from_context(current) is not None else "服务后筛默认",
         "energy_above_hull_mode": "硬性上限" if stability_limit_mode == "hard" else "参考线",
         "refine_with_csp": "用户确认字段" if "refine_with_csp" in source else "服务默认",
         "min_distinct_elements": "用户确认字段" if "min_distinct_elements" in source else "服务默认：多元素空间至少两种元素；单元素/固定化学式按原组成",
         "dng_species_strategy": "用户确认字段" if "dng_species_strategy" in source else "服务默认：白名单多元素探索使用部分位点锚定",
     }
-    for key in limits:
-        parameter_sources["property_constraints." + key] = "当前请求解析" if key in parsed_limits else "用户确认字段"
     return GenerationConstraint(taskid=taskid, raw_requirement=current or raw, target_formula=formula,
         allowed_elements=allowed, required_elements=required, excluded_elements=excluded,
         generation_mode=mode, formula_units=units, num_atoms=atoms, refine_with_csp=refine, parameter_sources=parameter_sources,
@@ -220,9 +203,9 @@ def omatg_constraint(payload: dict, source: dict, taskid: str, raw: str, current
         allow_open_chemical_space=opened, material_family=family, task_context=task_context,
         min_distinct_elements=minimum, dng_species_strategy=strategy,
         target_properties=properties, property_constraints=limits, symmetry_constraints=symmetry,
-        validation_targets={**_validation_targets_from_context(requirement_text), **{key: None for key in limits}, **(source.get("validation_targets") or {})},
+        validation_targets=source.get("validation_targets") or _validation_targets_from_context(current),
         requested_candidate_count=integer(payload.get("max_candidates", source.get("max_candidates", os.getenv("OMATG_DEFAULT_CANDIDATES", "10"))), "max_candidates", 1, 10),
         notes=[str(note) for note in source.get("notes", [])] + [
             "当前请求优先；上文只作背景，固定组成请经弹窗确认后写入结构化字段。",
             "未填写 E_hull 数值时采用 0.05 eV/atom 的稳定性复核参考线；超过参考线仍继续评价，只有明确确认 hard 时才作硬性上限。基础 OMatG 不以它作为生成奖励。",
-            "明确的性质上下限写入 property_constraints；性质参考值用于对比，定性目标保留为评价方向。"])
+            "性质数值目标是对比目标；硬性范围请填写 property_constraints，定性目标不转换成数值门槛。"])

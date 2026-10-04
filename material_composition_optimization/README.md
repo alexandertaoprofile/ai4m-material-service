@@ -4,6 +4,8 @@
 
 ## 1. 当前能力与状态
 
+本目录保存 2026-10-04 核对的 75 线上源码快照，运行目录为 `/data/se42/alpha_project/material_service_hub/material_composition_optimization`。后续整合更新见[开发副本](../development/material_composition_optimization/README.md)，离线物理约束训练见[实验说明](../development/1111_physics/README.md)。这两类内容各自记录验证与部署状态。
+
 正式配置见 `config/recipe_release.json`。当前八类专项均设置为 `primary`，即采用已验收的专项优化结果作为正式输出；模型、数据和评价条件随材料类别选择。
 
 | 材料类别 | 代码路由标识 | 主要输出与含义 |
@@ -123,6 +125,6 @@ OPENAI_API_KEY=test MINIO_ENDPOINT=localhost MINIO_ACCESS_KEY_ID=test MINIO_ACCE
   'import sys; sys.path.append("/data/mamba/envs/mattergen-py310/lib/python3.10/site-packages"); import pytest; raise SystemExit(pytest.main(["-q", "tests"]))'
 ```
 
-2026-10-04 整合代码的 271 项回归通过，记录见[版本交接](../docs/RELEASE_HANDOFF_20261004.md)。此次 README 修改不改变运行逻辑，也不重新训练模型。
+本目录与开发副本分别运行回归，结果见[当前目录交接](../docs/deployment_status.md)。此前整合代码的 271 项通过属于开发副本的历史验证，见[版本交接](../docs/RELEASE_HANDOFF_20261004.md)，不作为本目录重新验收的结果。本次整理不改变线上运行逻辑，也不重新训练模型。
 
 部署验收需另检查健康状态、角色、各专项真实任务及完整图文显示。代码审阅和兼容项见[阅读指南](docs/alloy_composition_optimization_review_guide.md)、[清理审计](docs/alloy_composition_optimization_cleanup_audit.md)。较早的覆盖报告、影子方案和训练说明属于历史记录，当前路线以本页、正式配置和实际任务结果为准。

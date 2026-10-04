@@ -6,7 +6,9 @@
 
 ## 1. 当前能力与版本状态
 
-75 服务器已接入 OMatG。本次正式代码同时整合 2026-10-01 在影子副本验证的后续显示改进：上文场景承接、参数表精简、候选编号、图文一致性和逐项异常原因。影子副本是独立验证目录；这些后续改进是否已部署，以生产验收记录为准，Git 推送不改变运行进程。
+本目录是 2026-10-04 核对的 75 当前源码快照，运行目录为 `/data/se42/alpha_project/material_service_hub/material_discovery`，生成器已接入 OMatG。后续显示与异常原因改进完整保存在[开发副本](../development/material_discovery/README.md)，其中包括 `omatg_output_status.py` 和 `user_requirements.py`；这两个模块尚不属于当前线上目录。
+
+本页说明当前快照；开发版详细字段、逐项原因与回归清单以开发副本为准。GitHub 整理不改变服务器源文件、配置或运行进程。
 
 当前使用已训练 OMatG 推理和生成后的评价。OMatG-IRL 训练、PropMolFlow 分子生成、DFT 电子结构计算、有限温自由能和声子计算尚未并入此主链。已有材料查询、合金配比、聚合物或非晶材料配方分别走相应服务/专项模型。
 
@@ -44,7 +46,7 @@ DNG 默认直接评价自己的生成结构。只有 `refine_with_csp=true` 时�
 
 当前预检可用的五个 ALIGNN 属性头为：带隙、体积模量、剪切模量、电子有效质量、空穴有效质量。带隙用于描述电子能带间隔；两种模量分别描述抵抗体积压缩和剪切变形的能力；有效质量描述载流子的运动响应。介电常数属性头当前未缓存，实际可用性以预检为准。硬度由模量推算，标为工程估算，与直接模型预测分开。
 
-未收敛、缺权重、计算失败和跳过后续计算分别记录原因。ALIGNN 对符合条件的保留收敛结构执行，结果页说明缺失值的实际来源，不将所有缺失都写成“待补充计算”。
+当前任务清单保存计算状态与日志。逐项区分未收敛、缺权重、计算失败和跳过原因，以及改进结果表中重复“待补充计算”的显示，属于开发副本的待部署更新；当前线上页面尚未采用该套新说明模块。
 
 ## 4. 接口与可复制的请求格式
 
@@ -128,10 +130,7 @@ DNG：允许四种元素，明确要求其中 Li、P、S 出现，默认不追�
 ```bash
 OPENAI_API_KEY=test NEW_MATERIAL_GENERATOR=omatg PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. \
   /home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python -m unittest \
-  tests.test_omatg_contract tests.test_omatg_task_context \
-  tests.test_omatg_presentation tests.test_omatg_report_readability \
-  tests.test_requirement_review tests.test_omatg_chart tests.test_omatg_sampling \
-  tests.test_omatg_output_status tests.test_omatg_display_flow tests.test_capability_fallback -q
+  tests.test_requirement_review tests.test_capability_fallback -q
 ```
 
 科学计算依赖与绘图回归：
@@ -139,7 +138,7 @@ OPENAI_API_KEY=test NEW_MATERIAL_GENERATOR=omatg PYTHONDONTWRITEBYTECODE=1 PYTHO
 ```bash
 OPENAI_API_KEY=test NEW_MATERIAL_GENERATOR=omatg PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. \
   /data/mamba/envs/mattergen-py310/bin/python -m unittest \
-  tests.test_structure_visualization tests.test_omatg_geometry tests.test_omatg_chart -q
+  tests.test_structure_visualization -q
 ```
 
 历史后端契约回归：
@@ -147,14 +146,8 @@ OPENAI_API_KEY=test NEW_MATERIAL_GENERATOR=omatg PYTHONDONTWRITEBYTECODE=1 PYTHO
 ```bash
 OPENAI_API_KEY=test NEW_MATERIAL_GENERATOR=mattergen PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. \
   /home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python -m unittest \
-  tests.test_service_contract tests.test_alignn_property_screening -q
+  tests.test_service_contract tests.test_alignn_property_screening \
+  tests.test_constraints_formula_extraction -q
 ```
 
-OMatG 专属环境的 CPU/CUDA 采样约束测试：
-
-```bash
-OPENAI_API_KEY=test NEW_MATERIAL_GENERATOR=omatg PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. \
-  /data/mamba/envs/omatg-py312/bin/python -m unittest discover -s tests -p test_omatg_sampling_worker.py -q
-```
-
-整合代码的已执行结果见[版本交接](../docs/RELEASE_HANDOFF_20261004.md)。真实上线还需分别验证 CSP、DNG、补充输入、硬性约束、异常原因、最终图文和三维结构一致性；本次仅更新文档。用户报告规范见[格式说明](docs/omatg_customer_report_style.md)。
+完整的新报告、采样约束和异常原因测试位于[开发副本](../development/material_discovery/README.md)，其测试入口和依赖在那里单独说明。本目录测试结果见[当前状态](../docs/deployment_status.md)，此前整合验证见[版本交接](../docs/RELEASE_HANDOFF_20261004.md)。真实上线还需验证实际请求、最终图文和三维结构一致性。用户报告规范见[格式说明](docs/omatg_customer_report_style.md)，其中后续显示要求按开发版验收。

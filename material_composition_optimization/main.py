@@ -164,16 +164,7 @@ def roles():
     }
 
 @app.get("/health")
-def health():
-    shadow = RUNNER.tensile_shadow_health()
-    return {
-        "status": "ok",
-        "runner_ready": _runner_ready(),
-        "runner_prefix": str(RUNNER.environment_prefix),
-        "unified_tensile_shadow_ready": bool(shadow.get("ready")),
-        "unified_tensile_shadow_health": shadow,
-        "recipe_release_modes": {item["model_domain"]: mode_for(item["model_domain"]) for item in MODEL_CAPABILITIES},
-    }
+def health(): return {"status":"ok","runner_ready":_runner_ready(),"runner_prefix":str(RUNNER.environment_prefix),"unified_tensile_shadow_ready":RUNNER.tensile_shadow_ready(),"recipe_release_modes":{item["model_domain"]:mode_for(item["model_domain"]) for item in MODEL_CAPABILITIES}}
 @app.post("/alloy/requirements/preview")
 def requirement_preview(payload:dict=Body(...)): return _safe_requirement_plan(payload)[1]
 @app.post("/alloy/propose-space")

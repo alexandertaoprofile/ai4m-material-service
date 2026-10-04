@@ -2,11 +2,11 @@
 
 ## 版本状态
 
-2026-10-04 正式仓库代码整合 OMatG 接入与已验证的后续显示改进；Git 归档与推送不触发部署。75 服务器此前已切换为 OMatG，最近的显示流程与异常原因改进仍需按以下清单单独验收部署。
+main 的根目录 `material_discovery/` 保存当前 75 源码，后续显示流程与异常原因改进独立放在 `development/material_discovery/`。75 已接入 OMatG，后续改进仍需按以下清单单独验收部署。Git 归档与推送不触发本次生产部署。
 
-正式代码分支：`update/material-services-2026-08`。备份分支 `main` 保留原有内容。
+项目维护分支：`main`。固定历史备份分支：`backup`。
 当前生产目录：`/data/se42/alpha_project/material_service_hub/material_discovery`。
-整合验证目录：`/data/se42/worktrees/material_service_hub_release_20261004/material_discovery`。
+新 main 整理目录：`/data/se42/worktrees/material_service_hub_main_layout_20261004`；待部署副本为该目录下 `development/material_discovery/`。
 显示改进的原始影子目录：`/data/se42/omatg_local/1115_display_shadow_20261001/service`。
 
 生产目录还保留先前的本机编辑；禁止在其中直接 `git pull` 或用整目录覆盖。先核对版本差异、备份目标文件并保留其他人的改动，再实施经批准的增量部署。
@@ -39,7 +39,7 @@ cd /data/se42/worktrees/material_service_hub_release_20261004/material_discovery
 
 1. 读取 `/data/se42/AGENTS.md`，确认目标仅为1115，并与弹窗调用方核对最新字段与协议。
 2. 保存目标源文件快照、当前进程与启动命令。生产 `.env` 单独安全备份，不打印、不入 Git。
-3. 从正式分支形成明确文件清单和增量补丁，先检查冲突。保留 `.env`、端口、存储和同事新增配置，按需要合并专项变量。
+3. 从 main 的开发副本形成明确文件清单和增量补丁，先检查冲突，验收后纳入根目录服务。保留 `.env`、端口、存储和同事新增配置，按需要合并专项变量。
 4. 执行 README 所列回归与只读预检，通过后按原 tmux 启动方式仅重启1115。
 5. 检查 `/roles`、CSP/DNG 约束预览、缺少输入、冲突输入、重复任务标识以及补充后的原需求保留。
 6. 从实际前端各提交一个 CSP 与 DNG；确认默认 DNG 未追加 CSP，必含/禁止元素、数值上下限与开放授权按实际条件执行。

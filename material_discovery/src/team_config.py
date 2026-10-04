@@ -19,7 +19,6 @@ from pathlib import Path
 from typing import Any
 from types import SimpleNamespace
 
-
 from dotenv import load_dotenv
 from starlette.websockets import WebSocketDisconnect
 
@@ -42,7 +41,6 @@ from src.material_workflow.presentation import (
     build_requirement_brief,
     emit_presentation_assets,
     stream_discovery_progress,
-    write_terminal_progress,
 )
 from src.material_workflow.upstream_api import result_summary, run_upstream_request
 from src.service_paths import NEW_MATERIAL_RESULTS_ROOT
@@ -50,10 +48,6 @@ from src.service_identity import ACTION_DESCRIPTION, ACTION_NAME, ROLE_NAME, ROL
 
 
 FRONTEND_STEP_ID = "FILAMENT_SELECTION_OPTIMIZATION"
-
-
-class DiscoveryExecutionError(RuntimeError):
-    """A runtime error after input confirmation is not a request for user input."""
 
 
 load_dotenv()
@@ -176,8 +170,6 @@ class InorganicNewMaterialDiscoveryAction(Action):
         payload = self._payload_from_instruction(instruction, taskid, user_name, file_metadata)
         config = load_config("config/config.yaml")
         llm = SeLLM(base_url=config["base_url_1"], api_key=config["api_key"])
-        from src.material_workflow.omatg_contract import omatg_enabled
-        is_omatg = omatg_enabled()
         # 阶段 2：先确定性解析生成条件；缺失时仅请求受约束的 LLM 补全，随后仍须校验。
         async def announce_missing_input_inference() -> None:
             logger.info("[CONSTRAINT_LLM] deterministic extraction empty; requesting constrained LLM inference taskid={}", taskid)
@@ -192,7 +184,7 @@ class InorganicNewMaterialDiscoveryAction(Action):
         except GenerationInputRequired as exc:
             if not review_enabled():
                 raise
-            supplement = await request_element_clarification(websocket, str(payload["taskid"]), str(exc), FRONTEND_STEP_ID, payload=payload)
+            supplement = await request_element_clarification(websocket, str(payload["taskid"]), str(exc), FRONTEND_STEP_ID)
             if supplement is None:
                 raise
             # The reply is an explicit route choice; preserve the upstream
@@ -228,46 +220,13 @@ class InorganicNewMaterialDiscoveryAction(Action):
             )
         )
         try:
-            if is_omatg:
-                try:
-                    result = await asyncio.to_thread(run_upstream_request, payload, NEW_MATERIAL_RESULTS_ROOT, defer_completion=True)
-                except WebSocketDisconnect:
-                    raise
-                except Exception as exc:
-                    raise DiscoveryExecutionError("Confirmed-input calculation or rendering stage failed; inspect the saved task logs") from exc
-            else:
-                result = await asyncio.to_thread(run_upstream_request, payload, NEW_MATERIAL_RESULTS_ROOT)
+            result = await asyncio.to_thread(run_upstream_request, payload, NEW_MATERIAL_RESULTS_ROOT)
         finally:
             progress_task.cancel()
             try:
                 await progress_task
             except asyncio.CancelledError:
                 pass
-
-        # The final completion event belongs after report and asset delivery.
-        presentation = (result.artifacts or {}).get("presentation") or {}
-        if getattr(getattr(result, "generation", None), "backend", "") == "omatg":
-            from src.material_workflow.omatg_report import build_result_report, result_visuals
-            await progress_events.emit(websocket, stage="result_packaging", percent=95,
-                status="in_progress", text="正在整理并发送报告与结构图片")
-            class DeferredAssets:
-                def __init__(self):
-                    self.events = []
-                async def send_json(self, event):
-                    self.events.append(event)
-            delivery = DeferredAssets()
-            image_markdown = await emit_presentation_assets(delivery, result, step_id=FRONTEND_STEP_ID) if presentation.get("assets") else ""
-            report = build_result_report(result, result_visuals(presentation, image_markdown))
-            await self._stream_authoritative_markdown(llm, websocket, FRONTEND_STEP_ID, report)
-            for event in delivery.events:
-                await websocket.send_json(event)
-            completed = result.status == "ok"
-            description = "报告与可用结构图片已发送，请查看各候选的评价结论。" if completed else "本次计算未完成，原因和下一步建议已列于报告。"
-            write_terminal_progress(NEW_MATERIAL_RESULTS_ROOT / constraints.taskid,
-                status="completed" if completed else "failed", description=description)
-            await progress_events.emit(websocket, stage="completed" if completed else "failed",
-                percent=100 if completed else 95, status="completed" if completed else "failed", text=description)
-            return f"[[WORKFLOW_STATUS:{result.status}]]\n{report}"
 
         await progress_events.emit(
             websocket,
@@ -278,6 +237,13 @@ class InorganicNewMaterialDiscoveryAction(Action):
         )
 
         # 阶段 5：基于已保存的计算结果发送展示资产和权威结论；不由展示 LLM 改写事实。
+        presentation = (result.artifacts or {}).get("presentation") or {}
+        if getattr(getattr(result, "generation", None), "backend", "") == "omatg":
+            await self._stream_authoritative_markdown(llm, websocket, FRONTEND_STEP_ID, result_summary(result))
+            image_markdown = await emit_presentation_assets(websocket, result, step_id=FRONTEND_STEP_ID) if presentation.get("assets") else ""
+            if image_markdown:
+                await self._stream_authoritative_markdown(llm, websocket, FRONTEND_STEP_ID, image_markdown)
+            return f"[[WORKFLOW_STATUS:{result.status}]]\n{result_summary(result)}"
         if presentation.get("assets"):
             await self._stream_authoritative_markdown(
                 llm,
@@ -374,13 +340,7 @@ class InorganicNewMaterialService:
                         workflow_failed = True
                         if isinstance(exc, GenerationInputRequired):
                             workflow_requires_input = True
-                            action = single_role.rc.todo
-                            if isinstance(action, InorganicNewMaterialDiscoveryAction):
-                                config = load_config("config/config.yaml")
-                                relay_llm = SeLLM(base_url=config["base_url_1"], api_key=config["api_key"])
-                                await action._stream_authoritative_markdown(relay_llm, websocket, FRONTEND_STEP_ID, f"### 需要补充生成信息\n\n{exc}")
-                            else:
-                                await websocket.send_text(f"### 需要补充生成信息\n\n{exc}")
+                            await websocket.send_text(f"### 需要补充生成信息\n\n{exc}")
                         else:
                             traceback.print_exc()
                             print(f"代码出错，请查看日志: {exc}")
@@ -388,13 +348,11 @@ class InorganicNewMaterialService:
                             await websocket.send_text(
                                 "### 需要补充生成条件\n\n"
                                 f"{exc}\n\n"
-                                "请按上述具体原因修正化学式、元素范围、开放探索选择或相关计算条件，确认后继续生成与评价。"
+                                "收到元素体系后，服务将继续执行候选结构生成、稳定性初筛和已知竞争相比较。"
                             )
                         elif not isinstance(exc, ValueError):
                             await websocket.send_text(
-                                "### 本次材料发现流程发生异常\n\n"
-                                "服务处理过程发生异常，尚未形成可核对的最终报告；具体停止阶段需核对该任务的执行日志。"
-                                "请先检查是否已保存候选结构和计算结果，再从停止阶段恢复；已完成的计算可沿用其记录。"
+                                "### 新材料生成未能启动\n\n服务在初始化生成流程时遇到异常，已记录详细日志；请稍后重试。"
                             )
                         await websocket.send_text("[end]")
                         break
@@ -422,6 +380,6 @@ class InorganicNewMaterialService:
         elif workflow_requires_input:
             await websocket.send_text("【XXX 等待补充: 已收到任务，等待补充材料生成信息后继续执行】")
         elif workflow_failed:
-            await websocket.send_text("【XXX 未完成: 本次流程未完成，已保存结果、具体原因与后续处理请查看报告】")
+            await websocket.send_text("【XXX 未完成: 新材料生成未得到可用候选，请查看失败原因与下一步建议】")
         else:
             await websocket.send_text("【XXX 已完成: xxxx】")

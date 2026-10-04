@@ -15,11 +15,6 @@ SHADOW_DOMAINS = {
     "ni_superalloy_hot_end",
 }
 
-STAINLESS_SOLUTE_SCHEMA = {
-    "Cr", "Ni", "Mo", "Mn", "Si", "Nb", "Ti", "Zr", "Ta", "V", "W",
-    "Cu", "N", "C", "B", "P", "S", "Co", "Al", "Sn", "Pb",
-}
-
 # This metadata is private while shadow mode is active.  It is the single
 # source of truth for a future reviewed switch of property attribution in the
 # customer-facing report.  Only YS/UTS change owner; the other properties stay
@@ -29,31 +24,19 @@ FUTURE_PRIMARY_PRESENTATION = {
         "model_label": "统一合金物理约束 Transformer（航空铝合金域）",
         "transformer_properties": ["0.2% 屈服强度", "抗拉强度"],
         "specialist_properties": ["延伸率", "成分适用域", "工艺类别证据"],
-        "evaluation": {
-            "protocol": "frozen_composition_group_test_selected_single_seed",
-            "metric": "MAE_MPa",
-            "values": {"yield_strength_0p2": 57.4, "ultimate_tensile_strength": 46.7},
-        },
+        "oof_error_MPa": {"yield_strength_0p2": 57.4, "ultimate_tensile_strength": 46.7},
     },
     "reusable_rocket_stainless": {
         "model_label": "统一合金物理约束 Transformer（奥氏体不锈钢域）",
         "transformer_properties": ["0.2% 屈服强度", "抗拉强度"],
         "specialist_properties": ["延伸率", "深冷参考层", "焊接/疲劳/LOX 验证路径"],
-        "evaluation": {
-            "protocol": "frozen_composition_group_test_selected_single_seed",
-            "metric": "MAE_MPa",
-            "values": {"yield_strength_0p2": 19.5, "ultimate_tensile_strength": 27.6},
-        },
+        "oof_error_MPa": {"yield_strength_0p2": 19.5, "ultimate_tensile_strength": 27.6},
     },
     "ni_superalloy_hot_end": {
         "model_label": "统一合金物理约束 Transformer（镍基高温合金域）",
         "transformer_properties": ["0.2% 屈服/规定塑性延伸强度", "短时抗拉强度"],
         "specialist_properties": ["蠕变断裂寿命", "延伸率辅助指标", "牌号/路线/热处理证据"],
-        "evaluation": {
-            "protocol": "frozen_composition_group_test_selected_single_seed",
-            "metric": "MAE_MPa",
-            "values": {"yield_strength_0p2": 90.5, "ultimate_tensile_strength": 156.6},
-        },
+        "oof_error_MPa": {"yield_strength_0p2": 90.5, "ultimate_tensile_strength": 156.6},
     },
 }
 
@@ -69,7 +52,6 @@ def build_comparison_items(result: dict[str, Any]) -> list[dict[str, Any]]:
     if domain not in SHADOW_DOMAINS:
         return []
     conditions = result.get("screening_conditions") or {}
-    search_space = result.get("search_space") or {}
     items: list[dict[str, Any]] = []
     for candidate in _candidates(result):
         candidate_id = str(candidate.get("candidate_id") or f"candidate-{len(items)+1}")
@@ -115,33 +97,12 @@ def build_comparison_items(result: dict[str, Any]) -> list[dict[str, Any]]:
             }
         # Let the isolated adapter report malformed/missing numerical values as
         # skipped mappings; do not silently coerce them here.
-        item = {
+        items.append({
             "request_id": candidate_id,
             "service_domain": domain,
             "actual_inputs": actual,
             "legacy_properties": legacy,
-        }
-        if domain == "reusable_rocket_stainless":
-            bounds = search_space.get("element_bounds_wt_percent") or {}
-            generated = sorted(set(bounds) & STAINLESS_SOLUTE_SCHEMA)
-            fixed_zero = sorted(
-                element for element in generated
-                if isinstance(bounds.get(element), (list, tuple))
-                and len(bounds[element]) == 2
-                and float(bounds[element][0]) == 0.0
-                and float(bounds[element][1]) == 0.0
-            )
-            item["composition_semantics"] = {
-                "basis": "wt_percent",
-                "sampled_or_user_fixed_elements": generated,
-                "balance_element": "Fe",
-                "fixed_zero_by_search_constraint": fixed_zero,
-                "not_in_search_space": sorted(STAINLESS_SOLUTE_SCHEMA - set(generated)),
-                "omitted_interpretation": "not_in_search_space_not_confirmed_zero",
-                "closure_policy": "Fe balances the nominal generated solutes to 100 wt.%",
-            }
-            item["specialist_applicability_domain"] = candidate.get("applicability_domain")
-        items.append(item)
+        })
     return items
 
 

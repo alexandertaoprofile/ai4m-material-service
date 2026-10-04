@@ -25,8 +25,7 @@ def main():
     import alignn.pretrained as pretrained
     from jarvis.core.atoms import Atoms
     from alignn.graphs import Graph
-    rows = {item["candidate_id"]: {"predictions": {}, "errors": [], "property_status": {
-        key: {"code": "checkpoint_missing"} for key in request["properties"]}} for item in request["candidates"]}
+    rows = {item["candidate_id"]: {"predictions": {}, "errors": []} for item in request["candidates"]}
     structures, graphs = {}, {}
     for item in request["candidates"]:
         try:
@@ -38,7 +37,6 @@ def main():
             graphs[item["candidate_id"]] = [graph.to(pretrained.device), line.to(pretrained.device), torch.tensor(atoms.lattice_mat).to(pretrained.device)]
         except Exception as exc:
             rows[item["candidate_id"]]["errors"].append(str(exc))
-            rows[item["candidate_id"]]["property_status"] = {key: {"code": "graph_failed"} for key in request["properties"]}
     version = importlib.metadata.version("alignn")
     for key, spec in request["properties"].items():
         for name in spec["models"]:
@@ -66,9 +64,6 @@ def main():
                 checksum = hashlib.sha256(archive.read_bytes()).hexdigest()
             except Exception as exc:
                 print(f"ALIGNN head {name} unavailable: {exc}", flush=True)
-                for candidate_id, row in rows.items():
-                    if candidate_id in graphs and key not in row["predictions"]:
-                        row["property_status"][key] = {"code": "model_load_failed"}
                 continue
             for item in request["candidates"]:
                 candidate_id = item["candidate_id"]
@@ -84,10 +79,8 @@ def main():
                         "structure_path": item["cif_path"], "structure_state": "MatterSim 松弛后结构",
                         "descriptor": "原子图与键角线图；cutoff=8 Å；max_neighbors=12",
                         "display_method": spec["display_method"], "evidence_level": "C：结构模型快速预测"}
-                    rows[candidate_id]["property_status"].pop(key, None)
                 except Exception as exc:
                     rows[candidate_id]["errors"].append(f"{key}: {exc}")
-                    rows[candidate_id]["property_status"][key] = {"code": "nonfinite" if "Nonfinite" in str(exc) else "failed"}
             del model
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()

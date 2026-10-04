@@ -152,7 +152,7 @@ def parse_numeric_requirements(text, domain, supplied=None, decisions=None):
         elif domain=='perovskite_transport_stability_v2':assign('temperatures_K',[round(c+273.15,8)],span)
         elif domain=='chip_glass_thermomechanical_family_v1':issues.append('玻璃各项模型采用固定性质温区；请确认该温度用于哪项评价。')
     goals={}; gates={}; spans=[]
-    cmp=r'至少|不低于|大于等于|达到|>=|≥|不超过|至多|不高于|小于等于|<=|≤|尽量接近|接近|目标(?:值)?(?:为|是)?|匹配|为|='
+    cmp=r'至少|不低于|大于等于|达到|>=|≥|不超过|至多|不高于|小于等于|<=|≤|尽量接近|接近|目标(?:值)?(?:为|是)?|匹配|为|=' 
     if re.search(r'(?:导热率|热导率|比热容|疲劳寿命|压缩强度|T80|PCE)\s*(?:'+cmp+r')\s*'+NUMBER,text,re.I):
         issues.append('本次要求包含模型暂未支持的性质：'+ '；'.join(m[0] for m in re.finditer(r'(?:导热率|热导率|比热容|疲劳寿命|压缩强度|T80|PCE)\s*(?:'+cmp+r')\s*'+NUMBER+r'[^，。；\n]*',text,re.I)))
     units=r'GPa|MPa|ppm\s*/\s*K|(?:10\s*\^?\s*[-−]6|10⁻⁶)\s*/\s*K|g\s*/\s*cm[³3]|kg\s*/\s*m[³3]|%|h|小时|nm/\(cm[·*]MPa\)'

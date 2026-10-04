@@ -2,6 +2,8 @@
 
 本包实现 1115 的需求解析、晶体生成、结构评价和报告组织。服务用途、请求样例和环境配置见[服务 README](../../README.md)；本文用于按模块阅读代码。
 
+本目录对应 75 当前源码快照。开发副本中新加的 `user_requirements.py` 与 `omatg_output_status.py` 不在本目录中，完整改进见[开发版业务模块](../../../development/material_discovery/src/material_workflow/README.md)。
+
 ## 1. 当前调用关系
 
 ```text
@@ -22,13 +24,13 @@ main.py → src/team_config.py → upstream_api.py → pipeline.py
 
 | 职责 | 文件 | 输入与输出 |
 | --- | --- | --- |
-| 需求与历史上下文 | `constraints.py`、`user_requirements.py`、`task_context.py`、`llm_constraint_inference.py` | 上游文本、显式条件与相关历史 → 可追溯需求和约束；当前确认的信息优先。 |
+| 需求与历史上下文 | `constraints.py`、`task_context.py`、`llm_constraint_inference.py` | 上游文本、显式条件与相关历史 → 需求和约束；后续解析改进见开发副本。 |
 | OMatG 输入与补充确认 | `omatg_contract.py`、`requirement_review.py`、`capability_fallback.py` | 化学式、元素或开放探索选择 → 计算条件、补充问题或能力说明。 |
 | 生成与组成约束 | `omatg_generation.py`、`omatg_sampling.py`；服务 `tools/run_omatg_generation.py` | CSP 固定组成或 DNG 元素范围 → 晶体候选及组成核验记录。 |
 | OMatG 工作流与资源保护 | `omatg_pipeline.py`、`runtime_lock.py` | 已校验条件 → 独立任务目录、GPU 排队及分阶段计算结果。 |
 | 几何、松弛与稳定性 | 服务 `tools/crystal_checks.py`、`tools/run_omatg_mattersim.py`、`tools/mp2020_reference.py` | 周期晶体 → 几何状态、优化后结构和稳定性估算。 |
 | 性质预测 | `alignn.py`；服务 `tools/run_omatg_alignn.py` | 保留的优化后结构 → 已缓存性质模型的预测值、版本和逐项状态。 |
-| 用户报告 | `omatg_report.py`、`omatg_chart.py`、`omatg_output_status.py`、`presentation.py` | 实际计算记录 → 中文说明、表格、比较图和异常原因。 |
+| 用户报告 | `omatg_report.py`、`omatg_chart.py`、`presentation.py` | 实际计算记录 → 中文说明、表格和比较图；逐项异常原因新版见开发副本。 |
 | 请求结果与交付 | `schemas.py`、`upstream_api.py`、`emitters.py`、`payloads.py`、`llm_streaming.py` | 业务结果 → 结果清单、HTTP 响应和既有流式内容。 |
 | 历史 MatterGen 路线 | `generation.py`、`validation.py`、`mattersim.py`、`ranking.py` | 旧后端生成、结构检查、评价与排序，按显式后端配置调用。 |
 

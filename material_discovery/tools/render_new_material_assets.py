@@ -76,11 +76,7 @@ def get_top(manifest: dict) -> tuple[dict, dict]:
     ranked = manifest.get("ranked_candidates") or []
     if not ranked:
         raise ValueError("No ranked candidate is available for presentation rendering.")
-    if manifest.get("generation", {}).get("backend") == "omatg":
-        from src.material_workflow.omatg_chart import primary_structure
-        top = primary_structure(manifest) or ranked[0]
-    else:
-        top = ranked[0]
+    top = ranked[0]
     candidate = top.get("candidate") or {}
     validation = top.get("validation") or {}
     return candidate, validation
@@ -208,7 +204,7 @@ def render_structure_png(structure: Structure, output: Path, formula: str, *, re
     plt.close(figure)
 
 
-def render_rotation_gif(structure: Structure, output: Path, formula: str, *, caption=None) -> None:
+def render_rotation_gif(structure: Structure, output: Path, formula: str) -> None:
     figure = plt.figure(figsize=(6, 6), facecolor=SURFACE)
     axis = figure.add_subplot(111, projection="3d")
     writer = PillowWriter(fps=8)
@@ -218,7 +214,7 @@ def render_rotation_gif(structure: Structure, output: Path, formula: str, *, cap
     with writer.saving(figure, str(output), dpi=110):
         for angle in range(0, 360, 20):
             axis.clear()
-            draw_structure(axis, displayed, caption or f"候选晶体旋转预览 · {formula}", angle=angle,
+            draw_structure(axis, displayed, f"候选晶体旋转预览 · {formula}", angle=angle,
                            connections=connections, polyhedra=polyhedra)
             writer.grab_frame()
     plt.close(figure)
@@ -237,9 +233,7 @@ def render_scorecard(output: Path, formula: str, validation: dict, constraints: 
     figure = plt.figure(figsize=(12, 5.4), facecolor=SURFACE)
     left = figure.add_axes([0.06, 0.24, 0.50, 0.47], facecolor=PANEL)
     right = figure.add_axes([0.62, 0.18, 0.33, 0.66], facecolor=PANEL)
-    is_priority = (validation.get("metadata") or {}).get("screening", {}).get("state") == "passed"
-    structure_label = ("优选结构" if is_priority else "待复核结构") + f"（{display_name}）" if display_name else "候选晶体"
-    title = structure_label + "的稳定性估计"
+    title = f"优选结构（{display_name}）的稳定性估计" if display_name else "候选晶体的稳定性估计"
     figure.text(0.06, 0.82, title, color=TEXT, fontweight="bold", fontsize=20)
     figure.text(0.06, 0.765, "MatterSim + MP2020 校正参考相 · 混合基准估算", color=ACCENT, fontsize=10)
     if hull is None:
@@ -259,8 +253,8 @@ def render_scorecard(output: Path, formula: str, validation: dict, constraints: 
     for spine in left.spines.values(): spine.set_visible(False)
     right.axis("off")
     right.text(0.06, 0.88, formula, color=TEXT, fontsize=25, fontweight="bold", transform=right.transAxes)
-    right.text(0.06, 0.79, structure_label + " · 能量计算结果", color=ACCENT, fontsize=10, transform=right.transAxes)
-    right.text(0.06, 0.735, "形成能比较元素参考态，稳定性差值比较其他相组合", color=MUTED, fontsize=8.5, transform=right.transAxes)
+    right.text(0.06, 0.79, (f"优选结构（{display_name}）" if display_name else "候选结构") + " · 计算证据摘要", color=ACCENT, fontsize=10, transform=right.transAxes)
+    right.text(0.06, 0.735, "形成能与稳定性差值是不同指标，不能混用", color=MUTED, fontsize=8.5, transform=right.transAxes)
     screening = (validation.get("metadata") or {}).get("screening") or {}
     next_step = "建议进行 DFT 验证" if hull is not None and hull <= threshold else ("热力学计算待完成" if hull is None else "继续性质评价并优先复核稳定性")
     if screening and screening.get("state") != "passed":
@@ -269,7 +263,7 @@ def render_scorecard(output: Path, formula: str, validation: dict, constraints: 
         ("形成能（相对元素参考态）", format_energy_ev_per_atom(formation)),
         ("稳定性差值（凸包能估算）", format_energy_ev_per_atom(hull)),
         ("下一步", next_step),
-        ("评价方法", "模型能量与参考相能量比较" if hull is not None else "基础结构检查"),
+        ("如何理解", "混合参考能量估算，不是实验结论" if hull is not None else "仅有基础结构检查"),
     ]
     y = 0.61
     for label, value in rows:
@@ -304,7 +298,7 @@ def render_design_brief(output: Path, structure: Structure, constraints: dict) -
         figure.add_artist(circle)
         figure.text(x, y, element, ha="center", va="center", color=SURFACE, fontsize=10, fontweight="bold")
         figure.text(x, y - radius - 0.035, ELEMENT_NAMES.get(element, element), ha="center", va="center", color=TEXT, fontsize=10)
-    figure.text(0.06, 0.18, "当前候选晶体包含的元素", color=ACCENT, fontsize=10)
+    figure.text(0.06, 0.18, "当前显示晶体的实际元素（不是允许范围）", color=ACCENT, fontsize=10)
 
     target_properties = constraints.get("target_properties") or {}
     hull = target_properties.get("energy_above_hull")
@@ -318,7 +312,7 @@ def render_design_brief(output: Path, structure: Structure, constraints: dict) -
         "oxidation_resistance": "抗氧化能力", "thermal_fatigue": "热疲劳性能",
         "additive_manufacturability": "增材制造适配性", "ionic_conductivity": "离子电导率",
         "band_gap": "带隙", "bulk_modulus": "体积模量", "shear_modulus": "剪切模量",
-        "electron_effective_mass": "电子有效质量", "hole_effective_mass": "空穴有效质量", "dielectric_constant_x": "x方向介电常数",
+        "electron_effective_mass": "电子有效质量", "hole_effective_mass": "空穴有效质量",
     }
     focus = [target_labels.get(name, name.replace("_", " ")) for name in (constraints.get("validation_targets") or {})]
     focus_text = " · ".join(focus) if focus else "结构与热力学初筛"
@@ -379,16 +373,13 @@ def try_export_glb(structure: Structure, output: Path) -> str | None:
             draw_periodic_boundary_bonds=False,
             draw_lattice_outline=False,
         )
-        if not info.get("ok"):
-            print("GLB export did not report a successful result", flush=True)
         return str(output) if info.get("ok") else None
-    except Exception as exc:
-        print(f"GLB export failed: {type(exc).__name__}", flush=True)
+    except Exception:
         return None
 
 
 def render_omatg_comparison(manifest, output):
-    from src.material_workflow.omatg_chart import build_comparison_data, finite_number, stability_number
+    from src.material_workflow.omatg_chart import build_comparison_data, finite_number
 
     data = build_comparison_data(manifest)
     rows = data["comparison_rows"]
@@ -401,7 +392,7 @@ def render_omatg_comparison(manifest, output):
         priority = f'优选结构（{passing[0]["display_name"]}）{passing[0]["name"]} {passing[0]["formula"]}'
         lead = "建议先验证：" + priority + ("；稳定性高于参考线，需高精度复核。" if passing[0]["state"] == "review" else "。")
     else:
-        lead = "先按具体原因处理：检查原子排布、恢复结构优化或核对参考相计算。"
+        lead = "保留原有硬性条件与全部候选记录，先复核未通过原因和待补充结果。"
     figure.text(0.035, 0.877, lead, color=ACCENT, fontsize=11.5)
 
     flow = figure.add_axes([0.035, 0.705, 0.93, 0.16])
@@ -422,9 +413,9 @@ def render_omatg_comparison(manifest, output):
     reasons.axis("off")
     reasons.add_patch(plt.Rectangle((0, 0), 1, 1, transform=reasons.transAxes, facecolor=PANEL, edgecolor=PANEL_EDGE))
     remaining = data["stages"][0]["count"] - len(passing)
-    reason_title = f"其余 {remaining} 个结构的评价结果" if remaining and passing else f"全部 {remaining} 个结构的评价结果" if remaining else "候选结构的评价完成情况"
+    reason_title = f"其余 {remaining} 个结构的评价结果" if passing else f"全部 {remaining} 个结构的评价结果"
     reasons.text(0.045, 0.924, reason_title, color=TEXT, fontsize=15, fontweight="bold")
-    reasons.text(0.045, 0.856, "橙色：条件未通过  ·  黄色：结果缺失  ·  灰色：已合并", color=MUTED, fontsize=10)
+    reasons.text(0.045, 0.856, "橙色：未通过  ·  黄色：计算待补充  ·  灰色：重复", color=MUTED, fontsize=10)
     step = min(0.157, 0.72 / max(len(data["reasons"]), 1))
     for index, reason in enumerate(data["reasons"]):
         y = 0.758 - index * step
@@ -433,13 +424,12 @@ def render_omatg_comparison(manifest, output):
         reasons.text(0.935, y, f'{reason["count"]} 个', color=colors[reason["state"]], fontsize=13, va="center", ha="right", fontweight="bold")
         reasons.text(0.10, y - min(0.06, step * 0.38), reason["detail"], color=MUTED, fontsize=10, va="center")
     if not data["reasons"]:
-        message = "全部候选均可继续比较。" + ("黄色结构需复核稳定性。" if data["outcomes"]["review"] else "") if data["rows"] else "本次尚未生成可检查的候选。"
-        reasons.text(0.08, 0.57, message, color=TEXT, fontsize=12)
+        reasons.text(0.08, 0.57, "全部候选均可继续比较；黄色结构仍需复核稳定性。" if data["rows"] else "本次尚未生成可检查的候选。", color=TEXT, fontsize=12)
     reasons.text(0.045, 0.028, "完整候选及具体原因，保留在报告明细表中。", color=MUTED, fontsize=9.5)
 
     figure.add_artist(plt.Rectangle((0.465, 0.145), 0.50, 0.49, transform=figure.transFigure, facecolor=PANEL, edgecolor=PANEL_EDGE, zorder=0))
     figure.text(0.485, 0.598, "候选晶体的稳定性比较", color=TEXT, fontsize=15, fontweight="bold")
-    figure.text(0.485, 0.561, "差值越小越有利；本批次按保存的稳定性上限判定。" if data["hard_limit"] else "差值越小越有利；超过参考线仍可比较，但需复核。", color=MUTED, fontsize=10)
+    figure.text(0.485, 0.561, "差值越小越有利；超过参考线仍可比较，但需复核。", color=MUTED, fontsize=10)
     axis = figure.add_axes([0.655, 0.245, 0.215, 0.255], facecolor=PANEL)
     axis.tick_params(colors=MUTED, labelsize=9)
     for spine in axis.spines.values():
@@ -455,7 +445,7 @@ def render_omatg_comparison(manifest, output):
         if threshold is not None:
             axis.axvspan(lower, threshold, color=colors["passed"], alpha=0.10)
             axis.axvline(threshold, color=colors["incomplete"], linestyle="--", linewidth=1.7)
-            hard_limit = data["hard_limit"]
+            hard_limit = (manifest.get("constraints", {}).get("parameter_sources") or {}).get("energy_above_hull_mode") == "硬性上限"
             axis.text(threshold, 1.025, f"{'硬性上限' if hard_limit else '参考线'} {threshold:g}", transform=axis.get_xaxis_transform(), color=colors["incomplete"], ha="center", fontsize=9.5)
         axis.set_yticks(range(len(rows)), [f'{row["name"]}\n{row["formula"]} · {row["display_name"]}' for row in rows])
         axis.tick_params(axis="y", labelcolor=TEXT, labelsize=9.5, length=0, pad=9)
@@ -463,14 +453,14 @@ def render_omatg_comparison(manifest, output):
         for index, row in enumerate(rows):
             value = row["hull"]
             if value is None:
-                axis.text(1.045, index, "没有稳定性数值\n" + row["missing_hull_label"], transform=axis.get_yaxis_transform(), color=colors["incomplete"], va="center", fontsize=9.3, linespacing=1.25)
+                axis.text(1.045, index, "待补充\n暂无稳定性结果", transform=axis.get_yaxis_transform(), color=colors["incomplete"], va="center", fontsize=9.3, linespacing=1.25)
                 continue
             shade = colors[row["state"]]
             axis.barh(index, value, height=0.43, color=shade, alpha=0.85, zorder=2)
             # A point preserves a genuine zero; never lengthen it into a fake bar.
             axis.scatter([value], [index], color=shade, s=42, zorder=4, clip_on=False)
-            label = row["status_label"]
-            axis.text(1.045, index, f"{stability_number(value, threshold)}\n{label}", transform=axis.get_yaxis_transform(), color=shade, fontsize=9.3, va="center", linespacing=1.25)
+            label = {"passed": "可继续比较", "review": "稳定性需复核", "failed": "硬性稳定性超限" if row["reason"] == "hull" else "其他条件未通过", "incomplete": "其他结果待补充", "duplicate": "相似结构已合并"}[row["state"]]
+            axis.text(1.045, index, f"{value:.5f}\n{label}", transform=axis.get_yaxis_transform(), color=shade, fontsize=9.3, va="center", linespacing=1.25)
         selected = (manifest.get("generation", {}).get("metadata") or {}).get("selected_dng_composition") or {}
         selected_hull = finite_number(selected.get("energy_above_hull"))
         if selected_hull is not None:
@@ -479,8 +469,8 @@ def render_omatg_comparison(manifest, output):
         axis.set_xlabel("稳定性差值（eV/atom，越低越优）", color=MUTED, fontsize=10, labelpad=9)
     else:
         axis.axis("off")
-        axis.text(-0.25, 0.50, "本次没有收敛结构可供稳定性比较\n停止阶段与原因见左侧及报告明细", transform=axis.transAxes, color=MUTED, fontsize=12, va="center", linespacing=1.7)
-    figure.text(0.035, 0.085, "读图提示：“稳定性差值”表示相对其他相组合多出的能量；圆点标示零值，缺少数值时标注具体原因。", color=MUTED, fontsize=10.5)
+        axis.text(-0.25, 0.50, "尚无结构优化完成的候选\n请查看左侧未通过与待补充原因", transform=axis.transAxes, color=MUTED, fontsize=12, va="center", linespacing=1.7)
+    figure.text(0.035, 0.085, "读图提示：“稳定性差值”即凸包能估计，表示相对其他相组合多出的能量；圆点显示真实零值，待补充不是零。", color=MUTED, fontsize=10.5)
     figure.text(0.035, 0.045, "结果用于挑选验证对象。结构由 OMatG 生成，稳定性为 MatterSim + MP2020 混合基准估算；后续需更高精度计算或实验验证。", color=MUTED, fontsize=10)
     figure.savefig(output, dpi=160, facecolor=figure.get_facecolor())
     plt.close(figure)
@@ -489,15 +479,6 @@ def render_omatg_comparison(manifest, output):
 def main() -> None:
     args = arguments()
     manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
-    is_omatg = manifest.get("generation", {}).get("backend") == "omatg"
-    if is_omatg and not manifest.get("ranked_candidates"):
-        args.output_dir.mkdir(parents=True, exist_ok=True)
-        comparison = args.output_dir / "candidate_comparison.png"
-        render_omatg_comparison(manifest, comparison)
-        output = {"status": "ok", "assets": [{"path": str(comparison), "type": "MaterialsPNG", "name": "候选结构的评价过程与稳定性比较"}], "formal_structure_ready": False, "glb_available": False}
-        (args.output_dir / "presentation_manifest.json").write_text(json.dumps(output, ensure_ascii=False, indent=2), encoding="utf-8")
-        print(json.dumps(output, ensure_ascii=False))
-        return
     candidate, validation = get_top(manifest)
     cif_path = Path(candidate["cif_path"])
     structure = Structure.from_file(cif_path)
@@ -536,15 +517,15 @@ def main() -> None:
                 pass
     formula = candidate.get("formula_pretty") or structure.composition.reduced_formula
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    assets = []
-    if not is_omatg:
-        design_brief = args.output_dir / "design_brief.png"
-        render_design_brief(design_brief, structure, manifest.get("constraints") or {})
-        assets.append({"path": str(design_brief), "type": "MaterialsPNG", "name": "材料组成与评价条件", "docs": "允许的化学空间、当前晶体的实际元素，以及本次稳定性条件和关注性能。"})
+    design_brief = args.output_dir / "design_brief.png"
+    render_design_brief(design_brief, structure, manifest.get("constraints") or {})
+    assets = [
+        {"path": str(design_brief), "type": "MaterialsPNG", "name": "材料组成与评价条件", "docs": "允许的化学空间、当前晶体的实际元素，以及本次稳定性条件和关注性能。"},
+    ]
     if manifest["generation"].get("backend") == "omatg":
         comparison = args.output_dir / "candidate_comparison.png"
         render_omatg_comparison(manifest, comparison)
-        assets.append({"path": str(comparison), "type": "MaterialsPNG", "name": "晶体生成与评价结果", "docs": "候选编号与报告一致；列出实际完成数量、未满足条件及结果缺失原因，并比较已完成结构优化的候选稳定性。"})
+        assets.append({"path": str(comparison), "type": "MaterialsPNG", "name": "晶体生成与评价结果", "docs": "候选编号与报告一致；列出实际完成数量、未满足条件及计算待补充的原因，并比较已完成结构优化的候选稳定性。"})
     formal_structure_ready = structure_admitted and relaxed
     if manifest["generation"].get("backend") == "omatg":
         formal_structure_ready = formal_structure_ready and (validation.get("metadata") or {}).get("mattersim", {}).get("relaxation_converged") is True
@@ -552,26 +533,20 @@ def main() -> None:
         rotation_gif = args.output_dir / "candidate_rotation.gif"
         scorecard = args.output_dir / "stability_scorecard.png"
         glb_path = args.output_dir / "candidate_structure.glb"
+        render_rotation_gif(structure, rotation_gif, formula)
         from src.material_workflow.omatg_chart import scheme_names
         ranked_ids = [row.get("candidate", {}).get("candidate_id") for row in manifest.get("ranked_candidates") or []]
         display_name = scheme_names((identifier for identifier in ranked_ids if identifier), manifest.get("taskid", "")).get(candidate.get("candidate_id"), "")
-        priority = validation.get("metadata", {}).get("screening", {}).get("state") == "passed"
-        label = ("优选结构" if priority else "待复核结构") + f"（{display_name}）" if is_omatg else "候选晶体"
-        render_rotation_gif(structure, rotation_gif, formula, caption=f"{label}\n{formula}")
-        if not is_omatg:
-            render_scorecard(scorecard, formula, validation, manifest.get("constraints") or {}, display_name)
+        render_scorecard(scorecard, formula, validation, manifest.get("constraints") or {}, display_name)
         glb = try_export_glb(structure, glb_path)
         assets.extend([
-            {"path": str(rotation_gif), "type": "MaterialsPNG", "name": f"{label}的旋转预览 · {formula}", "docs": "这个候选已完成结构检查和结构优化，可从不同角度查看原子排布。"},
+            {"path": str(rotation_gif), "type": "MaterialsPNG", "name": f"候选晶体旋转预览（{formula}）", "docs": "这个候选已完成结构检查和结构优化，可从不同角度查看原子排布。"},
+            {"path": str(scorecard), "type": "MaterialsPNG", "name": f"候选晶体的稳定性估计（{formula}）", "docs": "候选相对竞争相组合的能量差及复核参考线；超线仍继续评价，但后续需统一精度的计算验证。"},
         ])
-        if not is_omatg:
-            assets.append({"path": str(scorecard), "type": "MaterialsPNG", "name": f"候选晶体的稳定性估计（{formula}）", "docs": "候选相对竞争相组合的能量差及复核参考线。"})
         if glb:
-            assets.append({"path": glb, "type": "MaterialsGLB", "name": f"{label}的三维模型 · {formula}", "docs": "颜色区分组成元素，连线展示相邻原子的排布；三维模型与旋转预览对应同一保留结构。"})
-    readiness_message = "候选已完成结构检查和结构优化，可查看结构模型及报告中的评价结果。" if formal_structure_ready else "本轮未形成通过检查且优化收敛的结构，具体停止阶段和原因见报告；恢复评价后可生成三维预览。"
+            assets.append({"path": glb, "type": "MaterialsGLB", "name": f"候选晶体三维模型（{formula}）", "docs": "该 GLB 与旋转预览使用同一标准化 2×2×2 结构、元素色板、CrystalNN 周期近邻连线与识别出的局部配位多面体；GIF 仅增加自动旋转。连线用于阅读结构拓扑，不代表计算得到的键级或键能。"})
+    readiness_message = "候选已完成结构检查和结构优化，可查看结构模型与热力学初筛。" if formal_structure_ready else "候选仍在结构检查或结构优化阶段，暂不展示正式结构模型和热力学初筛结果。"
     output = {"status": "ok", "formula": formula, "assets": assets, "glb_available": bool(formal_structure_ready and glb), "formal_structure_ready": formal_structure_ready, "message": readiness_message}
-    if is_omatg and formal_structure_ready and not glb:
-        output["glb_error_code"] = "export_failed"
     (args.output_dir / "presentation_manifest.json").write_text(json.dumps(output, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(output, ensure_ascii=False))
 

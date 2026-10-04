@@ -28,9 +28,9 @@ def test_rocket_candidate_card_explains_composition_prediction_and_validation() 
     page = rocket_stainless_summary_block(result)
     assert "### 5.2 优先候选" in page
     assert "### 奥氏体不锈钢｜本次优选配方" in page
-    assert "| 铁（Fe） · 平衡组分 | 约 72.99% |" in page
-    assert "| 铬（Cr） | 18% |" in page
-    assert "| 氮（N） | 0.011% |" in page
+    assert "铁（Fe）约73.0%" in page
+    assert "铬（Cr）18.0%" in page
+    assert "氮（N）0.011%" in page
     assert "293 K（约 20 °C）" in page
     assert "1323 K（约 1050 °C），保温 3600 s（1 h）；水淬" in page
     assert "| 0.2% 屈服强度（开始产生永久变形） | 250 MPa | 16.2 MPa |" in page

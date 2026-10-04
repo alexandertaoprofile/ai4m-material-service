@@ -28,7 +28,7 @@ from .presentation import (
 logger = logging.getLogger("mattergen_workflow")
 
 
-def run_upstream_request(payload: Dict[str, Any], results_root: Path, *, defer_completion: bool = False):
+def run_upstream_request(payload: Dict[str, Any], results_root: Path):
     constraints, provenance = upstream_contract(payload)
     # A conversational front end should not accidentally launch an 8-candidate
     # GPU job when the user supplied only prose. Structured callers can still
@@ -50,12 +50,11 @@ def run_upstream_request(payload: Dict[str, Any], results_root: Path, *, defer_c
     result.artifacts["presentation"] = render_presentation_assets(result)
     write_pipeline_manifest(result, Path(result.artifacts["result_dir"]))
     completed = result.status == "ok"
-    if not defer_completion:
-        write_terminal_progress(
-            Path(result.artifacts["result_dir"]),
-            status="completed" if completed else "failed",
-            description=("候选结构、热力学评价结果和可视化资产已生成。" if completed else result.message),
-        )
+    write_terminal_progress(
+        Path(result.artifacts["result_dir"]),
+        status="completed" if completed else "failed",
+        description=("候选结构、热力学初筛结果和可视化资产已生成。" if completed else result.message),
+    )
     logger.info("[DISCOVERY][%s] completed: status=%s", constraints.taskid, result.status)
     return result
 

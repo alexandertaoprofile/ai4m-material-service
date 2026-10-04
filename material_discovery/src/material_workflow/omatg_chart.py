@@ -27,11 +27,9 @@ REASONS = {
     "geometry": ("原子排布未通过", "原子间距离等结构检查未通过", "failed"),
     "hull": ("稳定性估计超过上限", "未满足本次稳定性筛选条件", "failed"),
     "conditions": ("其他设定条件未通过", "性质或对称性等条件未全部满足", "failed"),
-    "relaxation": ("结构优化未收敛", "优化已结束，力指标未达收敛要求", "incomplete"),
-    "relaxation_error": ("结构优化执行异常", "核对优化环境、运行日志及输入文件", "incomplete"),
-    "record": ("评价记录缺失", "停止原因未记录，需核对任务日志", "incomplete"),
-    "hull_missing": ("稳定性计算缺少结果", "结构已收敛，需核对参考相计算", "incomplete"),
-    "other_missing": ("部分性能尚无法判断", "对应性质或对称性缺少有效结果", "incomplete"),
+    "relaxation": ("结构优化尚未完成", "尚未达到计算的收敛要求", "incomplete"),
+    "hull_missing": ("稳定性结果待补充", "结构优化完成，稳定性暂未有结果", "incomplete"),
+    "other_missing": ("其他结果待补充", "现有计算证据尚不足以判定", "incomplete"),
     "duplicate": ("相似结构已合并", "与已有候选相似，不重复计数", "duplicate"),
     "review": ("稳定性需要复核", "高于参考线，仍保留后续评价", "review"),
 }
@@ -41,29 +39,6 @@ def finite_number(value):
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return None
     return float(value) if math.isfinite(value) else None
-
-
-def stability_number(value, reference=.05):
-    """Keep the shown side of a reference line consistent with the raw value."""
-    value = finite_number(value)
-    if value is None:
-        return "—（稳定性结果未记录）"
-    for digits in range(5, 13):
-        shown = f"{value:.{digits}f}"
-        rounded = float(shown)
-        if reference is None or (rounded > reference) == (value > reference) and (rounded < reference) == (value < reference):
-            return shown
-    return f"{value:.17g}"
-
-
-def primary_structure(manifest):
-    """One shared choice for report, rotation preview and interactive model."""
-    ranked = manifest.get("ranked_candidates") or []
-    eligible = [row for row in ranked if (row.get("validation") or {}).get("is_valid") is True
-                and (row.get("validation") or {}).get("metadata", {}).get("mattersim", {}).get("relaxation_converged") is True
-                and not (row.get("validation") or {}).get("metadata", {}).get("duplicate_of")]
-    passing = [row for row in eligible if (row.get("validation") or {}).get("metadata", {}).get("screening", {}).get("state") == "passed"]
-    return (passing or eligible or [None])[0]
 
 
 def crystal_identity(candidate, validation):
@@ -86,7 +61,6 @@ def build_comparison_data(manifest: dict) -> dict:
     This is a view of saved screening states, not a second pass/fail algorithm:
     a low hull value alone can never promote a failed or incomplete candidate.
     """
-    from .omatg_output_status import prerequisite_issue, missing_output_issue
     generation = manifest.get("generation") or {}
     ranked = manifest.get("ranked_candidates") or []
     candidates = generation.get("candidates") or [item.get("candidate") or {} for item in ranked]
@@ -116,9 +90,9 @@ def build_comparison_data(manifest: dict) -> dict:
         elif screening.get("state") == "failed":
             reason = "hull" if "凸包能超过上限" in screening.get("failures", []) else "conditions"
         elif composition is not True or geometry is not True:
-            reason = "record"
+            reason = "other_missing"
         elif not converged:
-            reason = (prerequisite_issue(validation) or {}).get("code", "record")
+            reason = "relaxation"
         elif hull is None:
             reason = "hull_missing"
         elif screening.get("state") != "passed":
@@ -137,9 +111,7 @@ def build_comparison_data(manifest: dict) -> dict:
         rows.append({"candidate_id": identifier, "formula": formula, "name": name,
             "composition_ok": composition is True, "geometry_ok": geometry is True,
             "converged": converged, "hull": hull, "state": state, "reason": reason,
-            "duplicate_of": duplicate,
-            "missing_hull_label": missing_output_issue(validation, "energy_above_hull")["title"] if hull is None else None,
-            "status_label": "可继续比较" if reason == "passed" else REASONS[reason][0]})
+            "duplicate_of": duplicate})
     names = scheme_names((row["candidate_id"] for row in rows), manifest.get("taskid", ""))
     for row in rows:
         row["display_name"] = names[row["candidate_id"]]
@@ -161,8 +133,7 @@ def build_comparison_data(manifest: dict) -> dict:
             starting_point += f"；每个候选至少 {minimum} 种元素"
     scope += " · " + (starting_point or "化学式见报告")
     return {
-        "hard_limit": constraints.get("parameter_sources", {}).get("energy_above_hull_mode") == "硬性上限" or any("凸包能超过上限" in v.get("metadata", {}).get("screening", {}).get("failures", []) for v in validations.values()),
-        "title": (f"生成 {len(rows)} 个候选结构，{passed} 个可继续比较" + (f"（{outcome_counts['review']} 个稳定性需复核）" if outcome_counts['review'] else "")) if passed else f"生成 {len(rows)} 个候选结构，暂未得到可继续比较的结构",
+        "title": f"生成 {len(rows)} 个候选结构，{passed} 个可继续比较（{outcome_counts['review']} 个稳定性需复核）" if passed else f"生成 {len(rows)} 个候选结构，暂未得到可继续比较的结构",
         "scope": scope, "threshold": threshold,
         "stages": [
             {"label": "生成结构", "count": len(rows), "caption": "候选晶体结构"},
@@ -170,7 +141,7 @@ def build_comparison_data(manifest: dict) -> dict:
             {"label": "原子排布通过", "count": len(geometry_rows), "caption": "检查原子间距离"},
             {"label": "结构优化完成", "count": len(converged_rows), "caption": "达到计算收敛要求"},
             {"label": "稳定性有结果", "count": len(hull_rows), "caption": "可与竞争相比较"},
-            {"label": "可继续比较", "count": passed, "caption": "核对全部设定条件\n相似结构只保留一个" if passed else "暂未获得可比较结构\n按停止原因恢复评价"},
+            {"label": "可继续比较", "count": passed, "caption": "超参考线需复核\n相似结构只保留一个" if passed else "暂未获得可比较结构\n复核原因或补充计算"},
         ],
         "outcomes": {key: outcome_counts[key] for key in ("passed", "review", "failed", "incomplete", "duplicate")},
         "reasons": [{"code": key, "label": REASONS[key][0], "detail": REASONS[key][1], "state": REASONS[key][2], "count": reason_counts[key]} for key in REASONS if reason_counts[key]],

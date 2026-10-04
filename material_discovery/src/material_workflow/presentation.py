@@ -182,19 +182,13 @@ def render_presentation_assets(result) -> dict[str, Any]:
     except subprocess.TimeoutExpired:
         (output_dir / "presentation.log").write_text("Presentation rendering exceeded its timeout.", encoding="utf-8")
         return {"status": "unavailable", "message": "Presentation rendering timed out.", "log_path": str(output_dir / "presentation.log")}
-    except OSError as exc:
-        (output_dir / "presentation.log").write_text(f"Presentation environment unavailable: {type(exc).__name__}", encoding="utf-8")
-        return {"status": "unavailable", "error_code": "environment_unavailable", "log_path": str(output_dir / "presentation.log")}
     (output_dir / "presentation.log").write_text(
         (completed.stdout or "") + ("\n" + completed.stderr if completed.stderr else ""), encoding="utf-8"
     )
     presentation_manifest = output_dir / "presentation_manifest.json"
     if completed.returncode != 0 or not presentation_manifest.exists():
         return {"status": "unavailable", "message": "Presentation assets were not rendered.", "log_path": str(output_dir / "presentation.log")}
-    try:
-        return json.loads(presentation_manifest.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return {"status": "unavailable", "error_code": "invalid_manifest", "log_path": str(output_dir / "presentation.log")}
+    return json.loads(presentation_manifest.read_text(encoding="utf-8"))
 
 
 def build_discovery_conclusion(result) -> str:
@@ -576,8 +570,6 @@ async def stream_discovery_progress(
     """Emit concise, evidence-based JSON progress events for the frontend bar."""
     progress_events = progress_events or DiscoveryProgressEvents(request_id)
     last_phase: int | None = None
-    last_stage_signature = None
-    last_percent = 0
     last_sampling_current: int | None = None
     last_heartbeat = 0.0
     started_at = time.monotonic()
@@ -589,16 +581,14 @@ async def stream_discovery_progress(
         if phase == 2 and not is_omatg:
             title, description = _mattergen_runtime_stage(task_dir)
         now = time.monotonic()
-        signature = (phase, title, description)
         phase_changed = phase != last_phase
-        stage_changed = signature != last_stage_signature
         if phase_changed:
             phase_started_at = now
         total_elapsed = int(now - started_at)
         phase_elapsed = int(now - phase_started_at)
         expected, expectation_note = PHASE_EXPECTATIONS[phase]
         if is_omatg:
-            expected, expectation_note = "随原子数与候选数变化", ""
+            expected, expectation_note = "随原子数与候选数变化", "显示实际阶段；不以等待时间冒充采样进度。"
         sampling = _mattergen_sampling_progress(task_dir) if phase == 2 and not is_omatg else None
         sampling_changed = sampling is not None and sampling["current"] != last_sampling_current
         sampling_text = (
@@ -610,8 +600,8 @@ async def stream_discovery_progress(
             f"本阶段已进行 {phase_elapsed // 60} 分 {phase_elapsed % 60} 秒；"
             f"常见耗时：{expected}。{expectation_note}"
         )
-        if stage_changed or sampling_changed or now - last_heartbeat >= 15:
-            description_for_state = full_description if stage_changed else (
+        if phase_changed or sampling_changed or now - last_heartbeat >= 15:
+            description_for_state = full_description if phase_changed else (
                 f"第 {phase}/4 阶段；"
                 + (f"当前扩散步数 {sampling['current']}/{sampling['total']}（{sampling['percent']}%）" if sampling else "正在执行。")
             )
@@ -619,7 +609,7 @@ async def stream_discovery_progress(
                 task_dir, phase=phase, title=title, description=description_for_state,
                 total_elapsed=total_elapsed, phase_elapsed=phase_elapsed,
             )
-            if stage_changed or sampling_changed:
+            if phase_changed or sampling_changed:
                 if phase == 1:
                     stage, percent, text = "preparing", 5, "正在准备计算"
                 elif phase == 2:
@@ -641,10 +631,8 @@ async def stream_discovery_progress(
                     try:
                         percent = json.loads((task_dir / "omatg_stage.json").read_text())["percent"]
                     except (OSError, KeyError, json.JSONDecodeError):
-                        percent = last_percent or 5
+                        percent = 5
                     text = description
-                    percent = max(last_percent, min(95, int(percent)))
-                last_percent = percent
                 await progress_events.emit(
                     websocket,
                     stage=stage,
@@ -654,7 +642,6 @@ async def stream_discovery_progress(
                 )
             if phase_changed:
                 last_phase = phase
-            last_stage_signature = signature
             if sampling is not None:
                 last_sampling_current = sampling["current"]
             last_heartbeat = now
@@ -671,12 +658,6 @@ async def emit_presentation_assets(websocket, result, *, step_id: str = "FILAMEN
     taskid = str(result.taskid).replace("/", "_")
     pipeline = "inorganic_new_material"
     jobid = taskid or "job"
-
-    def delivery_status(asset, code):
-        if getattr(result.generation, "backend", "") == "omatg":
-            presentation.setdefault("delivery_status", []).append({
-                "name": str(asset.get("name") or "结构预览"), "code": code,
-            })
 
     def _trace(path: Path, event: str, **details: Any) -> None:
         """Persist per-asset delivery diagnostics next to the generated assets.
@@ -705,7 +686,6 @@ async def emit_presentation_assets(websocket, result, *, step_id: str = "FILAMEN
     for asset in assets:
         path = Path(asset.get("path") or "")
         if not path.exists():
-            delivery_status(asset, "source_missing")
             _trace(path, "source_missing", asset_type=asset.get("type"), asset_name=asset.get("name"))
             continue
         resolved_path = path.resolve()
@@ -736,24 +716,20 @@ async def emit_presentation_assets(websocket, result, *, step_id: str = "FILAMEN
             response = await oss_upload("alpha", object_key, path.read_bytes())
             _trace(path, "upload_finished", response=response, object_key=object_key)
             if not isinstance(response, dict) or response.get("status") != 200:
-                delivery_status(asset, "upload_rejected")
                 logger.warning("[new-material-assets] upload failed: key=%s response=%s", object_key, response)
                 _trace(path, "upload_rejected", response=response, object_key=object_key)
                 continue
             # Confirm that the S3-compatible endpoint can see the object before
             # handing its URL to the browser.  This catches a failed/minio-race
             # rather than displaying a permanent broken asset card.
-            verification_error = False
             try:
                 exists = await get_storage_client().aobject_exists("alpha", object_key)
             except Exception as exc:
                 logger.warning("[new-material-assets] object verification failed: key=%s error=%s", object_key, exc)
                 _trace(path, "storage_verification_error", object_key=object_key, error=repr(exc))
                 exists = False
-                verification_error = True
             _trace(path, "storage_verified", object_key=object_key, exists=exists)
             if not exists:
-                delivery_status(asset, "verification_error" if verification_error else "storage_absent")
                 logger.warning("[new-material-assets] object absent after upload: key=%s", object_key)
                 _trace(path, "storage_absent", object_key=object_key)
                 continue
@@ -779,7 +755,6 @@ async def emit_presentation_assets(websocket, result, *, step_id: str = "FILAMEN
                 _trace(path, "markdown_image_ready", asset_type=asset_type, public_url=public_url)
                 logger.info("[new-material-assets] prepared Markdown image key=%s url=%s", object_key, public_url)
         except Exception as exc:
-            delivery_status(asset, "delivery_error")
             logger.exception("[new-material-assets] failed to emit asset path=%s error=%s", path, exc)
             _trace(path, "delivery_error", error=repr(exc), object_key=object_key, public_url=public_url)
             continue
