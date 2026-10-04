@@ -28,6 +28,8 @@ git clone --branch update/material-services-2026-08 git@github.com:AI4SciFoundat
 [材料发现说明](material_discovery/README.md)。本次正式代码同时归档后续显示优化；代码提交与服务部署分开执行，不随 Git 推送更新线上进程。
 模型源码、模型权重、科学计算参考库、环境缓存、任务结果和生产密钥由服务器单独管理。
 
+交接入口：[2026-10-04 整合版本说明](docs/RELEASE_HANDOFF_20261004.md)，包含已执行测试、外部资源、生产版本差异及默认分支设置步骤。
+
 ## 统一职责路线
 
 各服务均遵循同一职责方向，不要求使用完全相同的目录名：
