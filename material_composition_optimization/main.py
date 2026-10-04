@@ -246,10 +246,10 @@ async def start(websocket:WebSocket):
         print(f"[WS /alloy/start] upstream received taskid={taskid} peer={peer} keys={context_keys} context_chars={len(context)} preview={context_preview!r}", flush=True)
         print(f"[ALLOY][{taskid}] accepted template={plan.get('template')!r} domain={effective.get('model_domain')!r}", flush=True)
         await websocket.send_text("[start]")
-        await websocket.send_json({"version":"1.0.0","agent":"alloy_composition_optimization","request_id":taskid,"type":"progress","data":{"id":FRONTEND_STEP_ID,"stepId":FRONTEND_STEP_ID,"title":FRONTEND_STEP_TITLE,"status":"completed","description":"已生成可覆盖的探索模板和待确认项。","result":plan}})
+        await websocket.send_json({"version":"1.0.0","agent":"alloy_composition_optimization","request_id":taskid,"type":"progress","data":{"id":FRONTEND_STEP_ID,"stepId":FRONTEND_STEP_ID,"title":FRONTEND_STEP_TITLE,"status":"completed","description":"已确定本次采用的条件与设计方案。","result":plan}})
         await stream_authoritative_markdown(
             websocket,
-            primary_preflight(effective.get("model_domain")) if effective_mode(effective) == "primary" else f"{planned_alloy_method_block(payload)}\n\n待确认：{'；'.join(plan['questions_to_confirm'])}",
+            primary_preflight(effective.get("model_domain"), effective) if effective_mode(effective) == "primary" else f"{planned_alloy_method_block(payload)}\n\n后续可补充：{'；'.join(plan['questions_to_confirm'])}",
             step_id=FRONTEND_STEP_ID,
         )
         if plan.get("requires_domain_confirmation"):
@@ -262,7 +262,8 @@ async def start(websocket:WebSocket):
             await websocket.send_json({"version":"1.0.0","agent":"alloy_composition_optimization","request_id":taskid,"type":"result","data":waiting})
             await websocket.send_text("[end]")
             return
-        if effective.get("model_domain") == "ni_superalloy_hot_end" and plan.get("missing_required_inputs"):
+        if (effective.get("model_domain") == "ni_superalloy_hot_end" and plan.get("missing_required_inputs")
+                and not effective.get('_calculation_blockers')):
             waiting = {
                 "taskid": taskid, "status": "waiting_for_input", "service": SERVICE,
                 "model_domain": "ni_superalloy_hot_end", "requirement_interpretation": plan,

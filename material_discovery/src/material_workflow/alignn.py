@@ -169,7 +169,17 @@ def enrich_validations_with_alignn(
 ) -> list[ValidationResult]:
     """Run the lightweight screen only after structural admission succeeds."""
     if os.environ.get("ALIGNN_ENABLED", "1").lower() not in {"1", "true", "yes"}:
+        from .omatg_contract import omatg_enabled
+        if omatg_enabled():
+            selected = {item.candidate_id for item in candidates}
+            for validation in validations:
+                if validation.candidate_id in selected:
+                    validation.metadata["alignn_property_screening"] = {"status": "disabled"}
+                    write_validation_result(validation, validation_dir)
         return validations
+    from .omatg_contract import omatg_enabled
+    if omatg_enabled():
+        return enrich_omatg_with_alignn(validations, list(candidates), validation_dir, target_properties or {}, validation_targets or {})
     candidates_by_id = {candidate.candidate_id: candidate for candidate in candidates}
     property_names = requested_properties(target_properties or {}, validation_targets or {})
     for validation in validations:
@@ -177,5 +187,65 @@ def enrich_validations_with_alignn(
         if candidate is None:
             continue
         predict_candidate_properties(candidate, validation, property_names)
+        write_validation_result(validation, validation_dir)
+    return validations
+
+
+def enrich_omatg_with_alignn(validations, candidates, validation_dir, target_properties, validation_targets):
+    import json
+    candidates = list(candidates)
+    if not candidates:
+        return validations
+    directory = validation_dir.parent / "alignn"
+    directory.mkdir(parents=True, exist_ok=True)
+    request_path, output_path = directory / "request.json", directory / "predictions.json"
+    property_names = requested_properties(target_properties, validation_targets)
+    validation_by_id = {item.candidate_id: item for item in validations}
+    request_path.write_text(json.dumps({"candidates": [{"candidate_id": item.candidate_id, "cif_path": str(item.cif_path),
+        "structure": validation_by_id[item.candidate_id].metadata.get("mattersim", {}).get("alignn_structure")} for item in candidates],
+        "properties": {key: _PREDICTED_PROPERTIES[key] for key in property_names}, "output_path": str(output_path)}, ensure_ascii=False), encoding="utf-8")
+    helper = Path(__file__).resolve().parents[2] / "tools" / "run_omatg_alignn.py"
+    python = os.getenv("ALIGNN_PYTHON", "/home/ubuntu/miniconda3/envs/dsc2/bin/python")
+    environment = os.environ.copy()
+    temporary = Path(os.getenv("OMATG_RUNTIME_ROOT", "/data/se42/omatg_local/runtime")) / "tmp"
+    temporary.mkdir(parents=True, exist_ok=True)
+    environment["TMPDIR"] = str(temporary)
+    failure_status = None
+    try:
+        completed = subprocess.run([python, str(helper), "--request", str(request_path)], env=environment,
+            text=True, capture_output=True, timeout=int(os.getenv("ALIGNN_TIMEOUT_SEC", "300")), check=False)
+        (directory / "alignn.log").write_text((completed.stdout or "") + (completed.stderr or ""), encoding="utf-8")
+        if completed.returncode:
+            failure_status = "process_failed"
+            predictions = {}
+        elif not output_path.exists():
+            failure_status = "missing_results"
+            predictions = {}
+        else:
+            predictions = json.loads(output_path.read_text())
+            if not isinstance(predictions, dict):
+                raise ValueError("Malformed ALIGNN result")
+    except (OSError, subprocess.TimeoutExpired, ValueError) as exc:
+        failure_status = "timeout" if isinstance(exc, subprocess.TimeoutExpired) else "invalid_results" if isinstance(exc, ValueError) else "unavailable"
+        (directory / "alignn.log").write_text(f"ALIGNN execution status: {failure_status}; {type(exc).__name__}", encoding="utf-8")
+        predictions = {}
+    selected = {item.candidate_id for item in candidates}
+    for validation in validations:
+        if validation.candidate_id not in selected:
+            continue
+        if validation.candidate_id not in predictions:
+            validation.metadata["alignn_property_screening"] = {"status": failure_status or "missing_results", "requested_properties": list(property_names)}
+            write_validation_result(validation, validation_dir)
+            continue
+        row = predictions[validation.candidate_id]
+        if not isinstance(row, dict) or not isinstance(row.get("predictions"), dict) or any(not isinstance(value, dict) for value in row["predictions"].values()):
+            validation.metadata["alignn_property_screening"] = {"status": "invalid_results", "requested_properties": list(property_names)}
+            write_validation_result(validation, validation_dir)
+            continue
+        validation.property_predictions = row["predictions"]
+        validation.band_gap = row["predictions"].get("band_gap", {}).get("value")
+        validation.metadata["alignn_errors"] = row.get("errors", [])
+        validation.metadata["alignn_property_screening"] = {"status": "completed", "requested_properties": list(property_names),
+            "completed_properties": sorted(row["predictions"]), "property_status": row.get("property_status", {})}
         write_validation_result(validation, validation_dir)
     return validations

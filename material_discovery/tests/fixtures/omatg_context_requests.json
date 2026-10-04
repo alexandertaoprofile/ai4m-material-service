@@ -1,0 +1,41 @@
+{
+  "source_note": "上文用户场景原句来自用户提供的 ximu-conversation-针对30x类不锈钢做一个配方优化-2026-09-28T03-01-27.md；本次 Fe6CrNi / Fe-Cr-Ni 是单独确认的影子结构测试条件，不是从 RSS-021 配方换算得出，也不是实际工程材料推荐。",
+  "csp": {
+    "idea": "对 Fe6CrNi 进行周期晶体结构探索，比较结构稳定性、体积模量和剪切模量。",
+    "history": [
+      {
+        "role": "user",
+        "content": "补充的信息为：现在我想用这个筛出来的配方作为火箭外壳的部分 你做一个物理验证"
+      },
+      {
+        "role": "assistant",
+        "content": "围绕火箭外壳筒段，在低温、内压、轴压和热梯度工况下，建立物理验证模型。几何参数与典型材料性质采用假设，未由用户确认。"
+      }
+    ],
+    "new_material": {
+      "generation_mode": "csp",
+      "target_formula": "Fe6CrNi",
+      "formula_units": 1,
+      "seed": 73,
+      "max_candidates": 10,
+      "material_family": "铁铬镍周期晶体结构测试",
+      "target_properties": {"energy_above_hull": 0.05},
+      "validation_targets": {"bulk_modulus": null, "shear_modulus": null}
+    }
+  },
+  "dng": {
+    "idea": "[用户原始目标]\n补充的信息为：现在我想用这个筛出来的配方作为火箭外壳的部分 你做一个物理验证\n=== 对话历史 ===\n用户：补充的信息为：现在我想用这个筛出来的配方作为火箭外壳的部分 你做一个物理验证\n助手：围绕火箭外壳筒段建立低温、内压、轴压和热梯度模型，参数仍需用户确认。\n接下来需要进行执行的任务：在确认的 Fe-Cr-Ni 元素空间内探索周期晶体组成与结构，比较结构稳定性、体积模量和剪切模量。",
+    "new_material": {
+      "generation_mode": "dng",
+      "allowed_elements": ["Fe", "Cr", "Ni"],
+      "required_elements": ["Fe"],
+      "num_atoms": 8,
+      "seed": 51,
+      "max_candidates": 10,
+      "refine_with_csp": false,
+      "material_family": "铁铬镍周期晶体结构测试",
+      "target_properties": {"energy_above_hull": 0.05},
+      "validation_targets": {"bulk_modulus": null, "shear_modulus": null}
+    }
+  }
+}

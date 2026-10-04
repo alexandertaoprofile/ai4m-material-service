@@ -143,24 +143,51 @@ def _blueprint(text: str) -> dict[str, Any]:
 
 
 def generic_fallback_plan(payload: dict[str, Any], reason: str) -> tuple[dict[str, Any], dict[str, Any]]:
+    notes = []
+    material_options = []
     try:
+        if isinstance(reason, MaterialContextError):
+            raise reason
         text, keys = upstream_requirement(payload)
     except MaterialContextError as exc:
-        effective = {"model_domain": "routing_confirmation", "raw_requirement": exc.request}
-        return effective, {
-            "parser": "rule_template_v0", "template": "alloy_domain_confirmation",
-            "raw_requirement": exc.request, "upstream_context_keys": exc.keys,
-            "effective_model_input": effective, "field_provenance": {}, "default_assumptions": [],
-            "requires_domain_confirmation": True, "confirmation_message": str(exc),
-            "questions_to_confirm": [str(exc)],
-            "evidence_notice": "确认材料身份后再选择预测模型或配方试验设计，不预设材料家族。",
-        }
+        # Finish the service with a useful design result. No new waiting state
+        # and no fabricated model inputs when the ambiguity cannot be resolved.
+        text, keys = exc.request, exc.keys
+        from src.alloy_workflow.contracts import _material_records, _UPSTREAM_MATERIAL_KEYS, _HISTORY_KEYS
+        for key in _UPSTREAM_MATERIAL_KEYS:
+            for fact,_ in _material_records(payload.get(key),history=key in _HISTORY_KEYS):
+                if fact not in material_options:material_options.append(fact[:800])
+        material_options=material_options[:8]
+        if material_options:
+            text += '\n已提供的材料上下文：\n'+'\n'.join(material_options)
+        reason = str(exc)
+        notes = getattr(exc,'decisions',[]) + [{'field':'material_context','parameter':'本次处理方式','adopted':'继续提供配方设计与验证方案',
+            'reason':'材料或关键条件存在多种解释，先保留原始要求并给出可推进的方案；补充信息可用于下一次更新。'}]
     blueprint = _blueprint(text)
+    from src.alloy_workflow.requirement_semantics import material_families, canonical_text
+    if not material_families(canonical_text(text)) and not re.search(r'树脂|塑料|聚合物|陶瓷|玻璃|复合|环氧|材料名|合金|polymer|plastic|epoxy',text,re.I):
+        blueprint.update(material_family='材料体系待明确的配方设计',composition_basis='按实际材料分别采用质量、摩尔或体积百分比',
+            formulation_components=[{'role':'基准组分','symbol':'c_i','range':'保留现有配方允许范围','purpose':'从已有原料与基准配方开始局部调整'}],
+            process_variables=[{'variable':'制备和测试条件','levels':'按当前应用记录','purpose':'保持各方案评价条件一致'}],
+            first_round_strategy='先整理目标性能、可用原料和基准配方，固定制备条件，逐项比较组分调整方向。',
+            next_actions=['补充材料或原料名称即可更新为分体系方案','记录希望提高、降低或接近目标的性质','以基准方案和局部变体安排首轮验证'])
+    if len(material_families(canonical_text(text)))>1:
+        blueprint.update(material_family='多材料分体系配方设计',
+            composition_basis='各材料分别注明质量百分比、摩尔百分比或体积分数',
+            formulation_components=[{'role':'各材料的基准组分','symbol':'c_i','range':'按各体系已知边界分别设置',
+                'purpose':'分别建立配方，保留每种材料自己的组分、单位和限制'}],
+            process_variables=[{'variable':'各材料的制备与评价条件','levels':'分别记录处理状态、温度和制造路线',
+                'purpose':'在同材料、同条件下比较配方效果'}],
+            first_round_strategy='为各材料分别建立基准配方和局部调整方案，按共同需求比较可计算性质与验证重点。',
+            next_actions=['分别明确各材料的基准配方和允许变化范围','采用相同应用要求比较各体系的性能与加工取舍','补充信息后更新相应材料的定量优化'])
+    from src.alloy_workflow.fallback_design import explicit_parameters
     effective = {
         "model_domain": "generic_composition_design_fallback_v1",
         **blueprint,
+        "explicit_parameters": explicit_parameters(payload),
         "raw_requirement": text,
         "fallback_reason": reason,
+        "material_options": material_options,
     }
     plan = {
         "parser": "generic_rule_assisted_fallback_v2",
@@ -172,12 +199,13 @@ def generic_fallback_plan(payload: dict[str, Any], reason: str) -> tuple[dict[st
         "default_assumptions": [{"field": "trained_expert", "value": "本次输入尚未匹配到可执行的预测模型", "status": "fallback_notice"}],
         "questions_to_confirm": blueprint["next_actions"],
         "evidence_notice": "本次输出配方变量与首轮试验方案；数值窗口是建议探索范围，不是预测配方。",
+        "execution_notes": notes,
     }
     return effective, plan
 
 
-def generic_fallback_result(payload: dict[str, Any], reason: str, service_name: str) -> tuple[dict[str, Any], dict[str, Any]]:
-    effective, plan = generic_fallback_plan(payload, reason)
+def generic_fallback_result(payload: dict[str, Any], reason: str, service_name: str, *, resolved_plan=None) -> tuple[dict[str, Any], dict[str, Any]]:
+    effective, plan = resolved_plan if resolved_plan is not None else generic_fallback_plan(payload, reason)
     taskid = task_id(payload)
     if plan.get("requires_domain_confirmation"):
         return {
@@ -205,7 +233,7 @@ def generic_fallback_result(payload: dict[str, Any], reason: str, service_name: 
         "supported_model_capabilities": capability_cards,
         "requirement_interpretation": plan,
         "screening_conditions": {"material_family": effective["material_family"], "composition_basis": effective["composition_basis"], "recommendation_scope": "配方变量与首轮试验设计"},
-        "sampling": {"generated": 1, "feasible": 1, "funnel_stages": stages},
+        "sampling": {"generated": 0, "feasible": 0, "design_templates": 1, "funnel_stages": stages},
         "initial_candidates": [{"candidate_id": "GEN-01", "material_family": effective["material_family"], "composition_basis": effective["composition_basis"], "formulation_components": effective["formulation_components"], "process_variables": effective["process_variables"], "first_round_strategy": effective["first_round_strategy"], "minimum_record_fields": effective["minimum_record_fields"], "candidate_kind": "rule_assisted_experiment_template"}],
         "all_candidates": [{"candidate_id": "GEN-01", "material_family": effective["material_family"], "composition_basis": effective["composition_basis"], "formulation_components": effective["formulation_components"], "process_variables": effective["process_variables"], "first_round_strategy": effective["first_round_strategy"], "minimum_record_fields": effective["minimum_record_fields"], "candidate_kind": "rule_assisted_experiment_template"}],
         "model_evidence": {"model_version": "本次未选择预测模型", "data_type": "材料家族规则辅助的配方与试验设计框架", "validation": "本次未调用性能预测模型。"},
@@ -215,4 +243,7 @@ def generic_fallback_result(payload: dict[str, Any], reason: str, service_name: 
         "downstream_handoff_text": "交接通用配比变量、闭合约束、待补工艺字段和首轮试验记录模板；在形成可追溯数据集前不得将本结果用于性能门槛筛选。",
         "elapsed_seconds": 0.0,
     }
+    for collection in ('initial_candidates', 'all_candidates'):
+        for index, candidate in enumerate(result[collection], 1):
+            candidate['candidate_id'] = f'GEN{index:03d}'
     return result, {"taskid": taskid, "raw_scope": effective, "model_domain": result["model_domain"]}

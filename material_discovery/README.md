@@ -1,203 +1,147 @@
-# material_discovery
+# material_discovery（1115）
 
-无机新材料服务，面向生成式无机晶体发现：MatterGen 候选生成、pymatgen 结构准入和确定性排序。
+周期性无机晶体发现服务。现行生成主链是 **OMatG CSP / DNG → 周期几何与组成检查 → MatterSim 结构松弛及稳定性估算 → ALIGNN 性质预测 → 相似结构合并与候选比较 → 图文及三维结构输出**。
 
-## 当前状态
+本次正式代码整合已部署的 OMatG 适配与 2026-10-01 验证过的后续显示优化，包括需求承接、精简参数表、图文一致性、弹窗起点说明及逐项异常原因。后续显示优化此前仅在影子目录验证，是否部署以生产验收记录为准；本次 Git 归档不改变线上运行进程。
 
-- 服务可启动（FastAPI/WebSocket 主入口存在）
-- 已移除退役的 `handler/pipeline` 案例执行链；主线由 `src/team_config.py` 和 `src/material_workflow/` 承担
-- 已新增 `src/material_workflow/` 作为新材料主线的规范接口层
-- `POST /new-material/generate` 已接入真实 MatterGen 子进程；每次任务保留命令、日志、CIF 与 manifest
-- `POST /new-material/constraints`：上游任务的约束预览，不占用 GPU
-- `WS /new-material/start`：兼容现有 `/start` 的 `taskid / idea / user_name / file_metadata` envelope
-- `GET /new-material/tasks/{taskid}`：查询已落盘的任务 manifest
-- 生成后使用 pymatgen 执行轻量结构准入（有序性、最短原子间距、密度与空间群）
-- `team_config_en.py` 暂保留，后续用于英文流程设计
+## 1. 输入与计算路线
 
-## 主要入口
+| 用户提供的信息 | 执行路线 |
+| --- | --- |
+| 确定的整数化学式 | CSP：固定化学计量，生成不同晶格和原子排布。 |
+| 允许使用的元素集合 | DNG：在元素白名单内生成组成与晶体结构，并检查必含、禁止元素及组成条件。 |
+| 探索需求与明确的开放化学空间授权 | DNG：在模型支持的化学空间生成结构，再根据实际可计算的目标比较。 |
+| 组成未确定，也未授权开放探索 | 展示可选输入与能力说明；用户补充后进入计算。 |
 
-- `main.py`：服务启动入口
-- `team_config.py`：兼容入口（桥接 `src/team_config.py`）
-- `src/`：核心业务代码
+每个生成阶段默认 10 个候选，接口允许 1–10 个；每个晶胞最多 20 个原子。DNG 默认直接评估其生成结构；选定组成后的追加 CSP 由 `refine_with_csp` 显式开启。
 
-## 新材料主线规划
+稳定性默认采用 `0.05 eV/atom` 作为复核参考线：超过参考线仍继续结构与性质评估，报告标明复核需求。用户明确设置硬性稳定性上限时，按该上限判断。性质与稳定性目标通过生成后的评价实现；当前主链使用预训练 OMatG 推理，未接入 OMatG-IRL 在线训练。
 
-目标链路：
+可直接计算的性质取决于实际可用的 ALIGNN 权重，包括带隙、体积模量、剪切模量和有效质量。硬度由模量推算，单独标为工程估算。聚合物配方、独立有机分子生成、已有材料检索及合金配比优化分别由其他专项服务处理。
 
-1. 需求解析：把用户输入整理为生成约束与验证目标
-2. 候选生成：通过 MatterGen 或兼容生成器产生候选结构
-3. 结构验证：通过 pymatgen 结构准入检查，再进入后续热力学评估
-4. 性质初筛：对通过结构准入的候选使用 ALIGNN 快速预测带隙、弹性、介电和有效质量；模量齐全时另给出带不确定性区间的硬度工程估算
-5. 候选排序：基于真实验证结果和用户目标进行确定性排序
-6. 前端输出：基于 manifest 渲染摘要、动图和可追溯资源
+## 2. 接口与上游上下文
 
-主链实现位于：
+- `WS /start`、`WS /new-material/start`：兼容既有 `taskid / idea / user_name / file_metadata` envelope。
+- `POST /new-material/constraints`：约束预览及补充条件解析。
+- `POST /new-material/generate`：运行真实候选生成与评价。
+- `GET /new-material/tasks/{taskid}`：查询已保存任务。
+- `GET /roles`：供上游发现服务能力。
 
-- `src/material_workflow/schemas.py`：Generation/Validation/Ranking/Pipeline schema
-- `src/material_workflow/generation.py`：MatterGen CLI runner、CIF 解包、生成 manifest
-- `src/material_workflow/validation.py`：pymatgen 结构准入与 validation manifest
-- `src/material_workflow/alignn.py`：ALIGNN 轻量结构性质初筛；离子电导率等无对应预训练模型的性质不会生成虚构数值
-- `src/material_workflow/ranking.py`：确定性排序帮助函数
-- `src/material_workflow/emitters.py`：前端 payload 与 manifest 输出
-- `src/material_workflow/pipeline.py`：新材料主线编排骨架
-- `docs/new_material_pipeline_plan.md`：后续接入计划
+上游需传递当前用户要求及相关历史上下文；显式确认的化学式、元素与数值条件优先于历史线索。结构化输入放在 `new_material` 内。弹窗接入说明见 [OMATG_POPUP_INPUTS.md](docs/OMATG_POPUP_INPUTS.md)，补充确认约定见 [REQUIREMENT_REVIEW.md](docs/REQUIREMENT_REVIEW.md)。
 
-## 目录说明
-
-- `config/`：配置文件
-- `src/`：业务实现
-- `src/material_workflow/`：新材料主线规范接口层
-- `tools/`：工具脚本
-- `alpha/`：历史框架代码（暂保留）
-- `docs/`：结构规范与迁移计划
-
-## 运行方式（开发态）
-
-主服务应运行在 `ai4m-service-py310` 环境；MatterGen 仍由独立的
-`mattergen-py310` 环境执行。不要在基础 `base` 环境直接启动旧 `alpha` 外壳。
-
-```bash
-conda run -n ai4m-service-py310 python main.py
-```
-
-生产/联调环境由 tmux 会话直接启动和守护，不以 `start.sh` 作为标准入口。实际密钥写入本机
-`.env`，可从 `.env.example` 复制后填写；`.env` 不提交到 Git。
-
-## 环境与调用
-
-Web 服务与 GPU 生成环境隔离：主服务继续在 `conda` 的 `ai4m-service-py310` 环境中运行；
-MatterGen 使用 `micromamba` 的 `/data/mamba/envs/mattergen-py310` 子环境。官方源码默认安装到
-Git 仓库之外的 `/data/third_party/mattergen`，首次调用会下载预训练权重。
-
-### HEA v2 条件路由
-
-当请求明确给出 `Co-Cr-Fe-Mn-Ni` 与 `energy_above_hull` 时，服务使用本地
-`hea_mattergen_v2` 的验证最优 checkpoint（epoch 18）；其他元素体系继续使用官方
-MatterGen 条件模型。v2 从官方 chemical-system + E_hull 条件模型全参数微调而来，训练数据为
-Cantor HEA DFT 数据中 5--7 元、最多 32 原子的已弛豫结构：训练/验证/测试分别为
-15,520 / 774 / 630 条，按 chemical system 分组切分。v2 同时保留 chemical_system 和
-energy_above_hull 两个条件嵌入，使用 30 epoch 训练，最佳验证损失 checkpoint 为 epoch 18。
-
-该路由以元素列表传递 chemical_system，并沿用 v2 已验证的 1000 步采样与 guidance=1.0。
-当前已完成的 32 样本对照显示，Co-Cr-Fe-Mn-Ni 精确元素集合命中率由官方基础模型的
-15.6% 提升至 v2 的 56.2%。E_hull 仍由后续 MatterSim + MP2020 凸包初筛；它不是生成器
-直接计算的 DFT 结论，五元体系的有限温稳定性与 DFT 复核仍是后续工作。
-
-```bash
-bash tools/setup_mattergen_env.sh
-python main.py
-```
-
-请求示例：
+CSP 示例：
 
 ```json
 {
-  "taskid": "solid-electrolyte-001",
-  "allowed_elements": ["Li", "P", "S", "Cl"],
-  "target_properties": {"energy_above_hull": 0.05},
-  "max_candidates": 8
-}
-```
-
-生成结果位置由 `src/service_paths.py` 统一定义；当前落在历史兼容目录
-`src/MNS_CaseHub/cases/material_discovery_demo/results/new_material/<taskid>/`。
-`target_formula` 目前用于提取元素体系，而非严格化学计量 CSP；严格组分生成需要部署自训练的 CSP checkpoint。
-
-### 上游接口约定
-
-上游可直接提交既有任务 envelope，并把可计算约束放入 `new_material`（也兼容
-`constraints` / `mattergen` / `generation_constraints`）。显式约束优先。没有 JSON 时，服务会从
-当前需求与上文中确定性提取元素体系（如 `Nb-Mo-Ta-W` 或“铌、钼、钽、钨”）、化学式、明确写出的
-`E_hull` 阈值（支持 `meV/atom`）以及高温/蠕变/抗氧化等验证关注点；提取结果会显示在“解析说明”中。
-如果用户未给出 `E_hull`，服务会使用默认值 `E_hull ≤ 0.05 eV/atom` 作为 MatterGen 生成引导，确保能够选用相应的条件模型；无法确定元素体系时仍会要求补充，而不是启动无约束生成。
-
-对于明确但未给出元素的无机固态电解质方向，服务可使用可见、可覆盖的领域起始模板，并优先由受限 LLM 结合完整上游材料结论细化元素体系。模板仅作为生成起点，默认 `E_hull ≤ 0.05 eV/atom`，会在前端“解析说明”和设计约束卡中标记；用户一旦明确给出元素或 JSON，模板立即失效。
-
-高熵合金、难熔合金、元素比例、原子百分比与成分空间优化不属于本服务；这些请求会被明确拒绝，应进入 `alloy_composition_optimization`。
-
-```json
-{
-  "taskid": "solid-electrolyte-001",
+  "taskid": "crystal-csp-001",
   "user_name": "upstream-agent",
-  "idea": "开发 Li-P-S-Cl 固态电解质",
+  "idea": "探索 BaTiO3 的周期晶体结构，比较结构稳定性",
   "file_metadata": [],
   "new_material": {
-    "allowed_elements": ["Li", "P", "S", "Cl"],
-    "target_properties": {"energy_above_hull": 0.05},
-    "validation_targets": {"ionic_conductivity": 0.001},
-    "max_candidates": 4
+    "generation_mode": "csp",
+    "target_formula": "BaTiO3",
+    "formula_units": 1,
+    "max_candidates": 10
   }
 }
 ```
 
-`target_properties` 仅放 MatterGen 已支持的生成引导目标；`validation_targets` 会记录到
-manifest，供后续 MatterSim/DFT/实验验证使用，不会被误报为本轮计算结果。
+DNG 示例：
 
-通过结构准入后，服务默认使用 `ALIGNN_ENV=alignn-gpu-test` 为每个候选快速计算带隙、体积模量和剪切模量；`ALIGNN_TIMEOUT_SEC` 默认 600 秒，以容纳新部署节点的首次权重下载。生产启动前可预热这三套 ALIGNN 权重，后续推理不需要分子动力学。
-
-### 前端叙事与真实可视化
-
-WebSocket 结果按“设计任务解读 → 生成与筛选证据 → 阶段判断”流式输出 Markdown 文本和候选表格。
-每个完成任务还会基于真实候选结构生成 `presentation/` 资产：晶体结构 PNG、旋转 GIF、
-MatterSim--MP 热力学评分卡，以及可交互的 GLB。资产通过既有 `MaterialsPNG` / `MaterialsGLB`
-协议下发；若对象存储不可用，计算结果与本地资产路径仍保存在 manifest 中。
-
-### 供母 Agent 复用
-
-`InorganicNewMaterialDiscoveryRole` 是“生成式无机新材料发现”专属角色，而不是已有材料 MP 检索角色。
-母 Agent 在需要探索新结构时调用 `WS /new-material/start` 并传递上游 envelope；优先提供
-`new_material.allowed_elements` 和数值化 `target_properties`。若只有自然语言，上文中至少应包含
-元素体系；服务会自动提取明确的稳定性阈值和验证关注点，并标记其解析来源。纯对话请求默认只生成
-1 个候选，可通过 `max_candidates` 或 `MATTERGEN_DEFAULT_CANDIDATES` 调整。
-角色会返回候选结构、MatterSim--MP 热力学初筛、阶段结论和 manifest；其结论只能用于决定
-是否进入 DFT/专项性能验证，不能替代这些验证。
-
-## 依赖建议
-
-- `requirements.minimal.txt`：Web 与新材料主线的最小依赖；旧 `alpha` 通用框架仍需
-  `ai4m-service-py310` 环境中的完整运行依赖，后续解耦后再统一。
-- `pip_requirements.txt`：历史全量依赖（体积大，建议按需补装）
-
-## 无 GPU 回归测试
-
-下列测试不启动 MatterGen、MatterSim 或 MP 请求，可验证入口导入、`/roles`、约束预览和 WebSocket 事件边界：
-
-```bash
-conda run -n ai4m-service-py310 python -m unittest discover -s tests -v
+```json
+{
+  "taskid": "crystal-dng-001",
+  "user_name": "upstream-agent",
+  "idea": "在 Li-P-S-Cl 元素范围内探索无机晶体，关注结构稳定性",
+  "file_metadata": [],
+  "new_material": {
+    "generation_mode": "dng",
+    "allowed_elements": ["Li", "P", "S", "Cl"],
+    "max_candidates": 10,
+    "refine_with_csp": false
+  }
+}
 ```
 
-## 后续演进方向
+结果保存在 `src/MNS_CaseHub/cases/material_discovery_demo/results/new_material/<taskid>/`。
+每次任务使用独立标识；重复 `taskid` 返回冲突，原结果保留。候选 CIF、计算 manifest、模型日志、预测值和可视化资产均可追溯。
 
-1. 继续扩展对更多 MatterGen 可条件化性质的自然语言数值解析。
-2. MatterSim 评估默认开启；
-   默认会在 MatterGen 后对通过基础结构准入的候选自动执行 MatterSim 松弛，回填
-   `formation_energy_per_atom` 与 `energy_above_hull`。默认使用完整 MatterGen MP2020/Alexandria
-   校正参考库，确保候选与凸包参考采用兼容的能量体系；结果仍仅作模型初筛，不能替代 DFT。
-   如需诊断旧的轻量 MP API 路径，可显式设置 `MATTERSIM_REFERENCE_MODE=mp_api`。参考数据准备：
+## 3. 环境与配置
 
-   ```bash
-   bash tools/setup_mattersim_reference.sh
-   ```
+Web 服务与科学计算解释器隔离，沿用服务器既有环境：
 
-   首次使用官方模式会将参考库展开为约 3.85 GB 的只读缓存，默认位置为
-   `/data/mattersim_reference_cache`；可通过 `MATTERSIM_REFERENCE_CACHE_DIR` 配置到持久磁盘。
-   每个元素体系的凸包会另存到 `/data/mattersim_phase_diagram_cache`，首次构建后可直接复用。
-   可在低峰期预热当前常用体系：
+| 环节 | 解释器或目录 |
+| --- | --- |
+| Web 服务 | `/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python` |
+| OMatG 推理 | `/data/mamba/envs/omatg-py312/bin/python` |
+| OMatG 官方源码 | `/data/third_party/OMatG` |
+| OMatG 与性质模型权重 | `/data/se42/omatg_local/checkpoints` |
+| MatterSim | `/data/mamba/envs/mattergen-py310/bin/python`，环境名称为历史兼容名称 |
+| ALIGNN | `/home/ubuntu/miniconda3/envs/dsc2/bin/python`，复用 `/data/mamba/envs/alignn-gpu-test/lib/python3.10/site-packages` |
+| MP2020 参考库 | `/data/mattersim_reference_cache/reference_MP2020correction` |
+| 缓存、队列锁与临时文件 | `/data/se42/omatg_local/runtime` |
 
-   ```bash
-   micromamba run -p /data/mamba/envs/mattergen-py310 \
-     python tools/precompute_mattersim_phase_diagrams.py
-   ```
+`.env.example` 提供服务及外部接口变量；[.env.omatg.example](.env.omatg.example) 提供 OMatG 专项配置。按需合并到本机 `.env`，保留当前密钥、对象存储、端口和弹窗配置。生产 `.env` 不提交。新增依赖、下载、临时文件与缓存应放在 `/data`，避免占用系统盘。
 
-   也可单独对已有输出运行：
+只读环境预检：
 
-   ```bash
-   micromamba run -p /data/mamba/envs/mattergen-py310 python \
-     tools/run_mattersim_evaluation.py \
-     --input src/MNS_CaseHub/cases/material_discovery_demo/results/new_material/<taskid>/generation/cifs/gen_0.cif \
-     --output-dir src/MNS_CaseHub/cases/material_discovery_demo/results/new_material/<taskid>/mattersim
-   ```
-3. 与已有材料服务共享的公共能力逐步抽到通用层
+```bash
+/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python tools/preflight_omatg.py --env-file .env.omatg.example
+```
 
-详细的交接、协议和排障说明见
-[`docs/inorganic_new_material_service_guide.md`](docs/inorganic_new_material_service_guide.md)。
+预检检查已有解释器、依赖、检查点与参考库，不安装环境、下载模型或启动结构生成。运行时按 `.env` 选择 `NEW_MATERIAL_GENERATOR=omatg`。生产服务由既有 tmux 会话管理；Git 推送不触发启动、重启或部署。
+
+## 4. 实现位置
+
+| 模块 | 作用 |
+| --- | --- |
+| `main.py`、`src/team_config.py` | HTTP / WebSocket 入口、角色与服务编排。 |
+| `omatg_contract.py`、`task_context.py`、`requirement_review.py` | 组成与条件契约、历史上下文解析、补充确认。 |
+| `omatg_generation.py`、`omatg_sampling.py`、`tools/run_omatg_generation.py` | 独立生成进程、元素域及组成约束。 |
+| `omatg_pipeline.py`、`runtime_lock.py` | CSP / DNG 流程、GPU 队列与任务唯一性。 |
+| `tools/crystal_checks.py`、`tools/run_omatg_mattersim.py`、`tools/mp2020_reference.py` | 周期几何、松弛与混合参考凸包评价。 |
+| `alignn.py`、`tools/run_omatg_alignn.py` | 从保留结构计算已接入性质。 |
+| `omatg_report.py`、`omatg_chart.py`、`omatg_output_status.py`、`presentation.py` | 可追溯图文报告、候选比较图及逐项执行状态解释。 |
+| `tools/render_new_material_assets.py` | 晶体 PNG、旋转 GIF 和 GLB。 |
+
+MatterGen 及其 HEA 微调适配器作为旧后端兼容代码保留，通过显式配置选择；旧 MatterGen 文档见 `docs/inorganic_new_material_service_guide.md`，不作为现行 OMatG 部署指南。
+
+## 5. 回归验证
+
+以下回归采用 mock 和本地夹具，不启动真实生成任务，也不请求 MP 或对象存储：
+
+```bash
+OPENAI_API_KEY=test NEW_MATERIAL_GENERATOR=omatg PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. \
+  /home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python -m unittest \
+  tests.test_omatg_contract tests.test_omatg_task_context \
+  tests.test_omatg_presentation tests.test_omatg_report_readability \
+  tests.test_requirement_review tests.test_omatg_chart tests.test_omatg_sampling \
+  tests.test_omatg_output_status tests.test_omatg_display_flow tests.test_capability_fallback -q
+```
+
+科学计算依赖与绘图回归：
+
+```bash
+OPENAI_API_KEY=test NEW_MATERIAL_GENERATOR=omatg PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. \
+  /data/mamba/envs/mattergen-py310/bin/python -m unittest \
+  tests.test_structure_visualization tests.test_omatg_geometry tests.test_omatg_chart -q
+```
+
+历史后端契约回归：
+
+```bash
+OPENAI_API_KEY=test NEW_MATERIAL_GENERATOR=mattergen PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. \
+  /home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python -m unittest \
+  tests.test_service_contract tests.test_alignn_property_screening -q
+```
+
+模型结果用于候选比较；采用前结合对应的稳定性、性质及制备条件安排 DFT 或实验核验。
+
+采样掩码与必含元素锚点测试使用 OMatG 专属环境：
+
+```bash
+OPENAI_API_KEY=test NEW_MATERIAL_GENERATOR=omatg PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. \
+  /data/mamba/envs/omatg-py312/bin/python -m unittest discover -s tests -p test_omatg_sampling_worker.py -q
+```
+
+部署验收与回退说明见 [OMATG_DEPLOYMENT.md](docs/OMATG_DEPLOYMENT.md)；用户报告格式规范见 [omatg_customer_report_style.md](docs/omatg_customer_report_style.md)。

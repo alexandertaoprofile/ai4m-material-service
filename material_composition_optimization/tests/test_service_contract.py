@@ -321,12 +321,11 @@ class AlloyServiceContractTest(unittest.TestCase):
                 "heat_treatment",
                 "test_temperature_C",
                 "applied_stress_MPa",
-                "screening_thresholds",
             },
         )
         self.assertEqual(
             effective["screening_thresholds"],
-            {"uts_min_MPa": 900, "proof_strength_min_MPa": 500, "rupture_life_min_h": 250},
+            {},
         )
 
     def test_hot_end_context_conditions_override_platform_defaults(self) -> None:

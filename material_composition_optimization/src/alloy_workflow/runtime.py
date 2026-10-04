@@ -49,6 +49,9 @@ class AlloyRuntime:
     def propose(self, payload: dict[str, Any]) -> dict[str, Any]:
         """执行候选提议并生成任务级展示资产。"""
         result, constraints = self.application.propose_space(payload)
+        if result.get("model_domain") == "generic_composition_design_fallback_v1":
+            from src.alloy_workflow.fallback_design import enrich_fallback
+            enrich_fallback(result)
         if result.get("status") == "waiting_for_input":
             # Identity clarification has no candidates, figures or predictions.
             result["presentation"] = {"assets": []}
@@ -376,10 +379,12 @@ class AlloyRuntime:
             fig, ax = plt.subplots(figsize=(8.8, 5.8), facecolor="#FFFFFF"); used: set[str] = set(); styles={"inside":("#1F77B4","训练邻域内"),"boundary":("#F28E2B","数据边界附近")}
             for item in candidates:
                 tensile=item["short_time_tensile"]; level=(item.get("applicability_domain") or {}).get("level","boundary"); color,label=styles.get(level,styles["boundary"]); ax.scatter(tensile["yield_0p2_MPa"]["mean"],tensile["ultimate_tensile_strength_MPa"]["mean"],s=54,color=color,alpha=.78,edgecolor="white",linewidth=.6,label=label if level not in used else None); used.add(level)
-            top=(result.get("initial_candidates") or candidates)[0]; tensile=top["short_time_tensile"]; ax.scatter(tensile["yield_0p2_MPa"]["mean"],tensile["ultimate_tensile_strength_MPa"]["mean"],marker="*",s=250,color="#D62728",edgecolor="white",linewidth=1,label="优先候选",zorder=4)
+            selected = result.get("initial_candidates") or result.get("nearest_candidates") or []
+            if selected:
+                top=selected[0]; tensile=top["short_time_tensile"]; ax.scatter(tensile["yield_0p2_MPa"]["mean"],tensile["ultimate_tensile_strength_MPa"]["mean"],marker="*",s=250,color="#D62728",edgecolor="white",linewidth=1,label="优先候选" if result.get("initial_candidates") else "接近目标的配方",zorder=4)
             ax.set_xlabel("预测 0.2% 屈服强度（MPa）",fontproperties=font); ax.set_ylabel("预测短时 UTS（MPa）",fontproperties=font); ax.set_title("候选短时强度比较",fontproperties=font,fontsize=15); legend=ax.legend(); [label.set_fontproperties(font) for label in legend.get_texts()]; self._apply_chart_font(ax,font); ax.grid(alpha=.16); ax.set_axisbelow(True); ax.spines[["top","right"]].set_visible(False)
             path=task_dir/"copper_local_strength_tradeoff.png"; fig.tight_layout(); fig.savefig(path,dpi=220,facecolor=fig.get_facecolor(),bbox_inches="tight"); plt.close(fig); assets["copper_local_strength_tradeoff"] = path
-            composition=top.get("composition_wt_percent") or {}; names=[key for key,value in composition.items() if float(value)>0]; values=[float(composition[key]) for key in names]
+            composition=selected[0].get("composition_wt_percent") if selected else {}; names=[key for key,value in composition.items() if float(value)>0]; values=[float(composition[key]) for key in names]
             fig,ax=plt.subplots(figsize=(10,5),facecolor="#FFFFFF"); colors=plt.cm.tab20(np.linspace(0,1,len(names))); ax.bar(names,values,color=colors); ax.set_ylabel("质量百分比（wt.%）",fontproperties=font); ax.set_title("优先候选成分与来源锚点可追溯性",fontproperties=font,fontsize=15); ax.tick_params(axis="x",rotation=35); self._apply_chart_font(ax,font); ax.grid(axis="y",alpha=.16); ax.set_axisbelow(True); ax.spines[["top","right"]].set_visible(False)
             path=task_dir/"copper_local_composition_traceability.png"; fig.tight_layout(); fig.savefig(path,dpi=220,facecolor=fig.get_facecolor(),bbox_inches="tight"); plt.close(fig); assets["copper_local_composition_traceability"] = path
         summary = task_dir / "summary.md"; summary.write_text(copper_hot_end_local_summary_block(result), encoding="utf-8"); assets["summary_markdown"] = summary

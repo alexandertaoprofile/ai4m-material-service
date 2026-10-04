@@ -173,26 +173,39 @@ async def get_teams():
             *[address for address in legacy_addresses if address != canonical_address],
         ]
         metadata["role_id"] = f"{SERVICE_ID}_v1"
-        metadata["goal"] = "形成全新的候选材料结构、稳定性与性能评估结果，以及合成路径预测。"
-        metadata["constraints"] = "结合当前请求与完整上文，从目标性能、元素体系、材料类别或应用场景中归纳受限生成条件，在元素空间或晶体结构空间中组织新材料探索任务。"
-        metadata["desc"] = "面向材料候选尚未确定的探索性研发，结合当前任务与完整上文中的材料方向、应用场景、性能目标、元素体系或材料类别，归纳受限生成条件，生成全新的候选材料结构并评估其稳定性、电子结构及潜在性能。"
+        metadata["goal"] = "生成周期性无机晶体候选，并完成结构准入、已接入性质快速预测与热力学稳定性初筛。"
+        metadata["constraints"] = "只在可形成明确无机元素体系的任务中启动；结果属于模型筛选，不替代 DFT、实验或真实合成路线验证。"
+        metadata["desc"] = "使用 MatterGen（含准确 Co-Cr-Fe-Mn-Ni 体系的 HEA 微调模型）生成候选 CIF，经 pymatgen、ALIGNN 和 MatterSim 完成结构、性质与 E_hull 初筛并排序。"
         metadata["routing"] = {
             "service_id": SERVICE_ID,
             "priority": 3,
-            "match_when": "材料候选尚未确定，并需要围绕超导、超高强等目标性能，在元素空间或晶体结构空间中探索全新材料时。",
-            "include_keywords": ["新材料发现", "新材料探索", "候选材料生成", "超导", "超高强", "从头计算", "First-principles", "高通量筛选", "元素空间", "晶体结构空间", "晶体结构", "新晶体", "新无机材料", "MatterGen", "晶体生成", "化学式生成", "数据库外材料", "固态电解质", "陶瓷晶体", "热力学稳定性", "电子结构", "潜在性能", "合成路径"],
-            "exclude_keywords": [],
+            "match_when": "候选尚未确定，需要在明确无机元素体系中生成新的周期性晶体结构，并进行结构或热力学初筛时。",
+            "include_keywords": ["新材料发现", "新材料探索", "候选材料生成", "高通量晶体筛选", "元素体系", "晶体结构空间", "晶体结构", "新晶体", "新无机材料", "MatterGen", "晶体生成", "候选 CIF", "固态电解质晶体", "陶瓷晶体", "热力学稳定性", "E_hull"],
+            "exclude_keywords": ["已有材料检索", "牌号查询", "元素配比优化", "聚合物配方", "复合材料配比", "合成路线预测"],
             "input_contract": {
-                "required": "当前请求或完整上文中至少包含一种可理解的材料探索线索。",
-                "required_any": ["材料方向或已有材料结论", "目标性能", "元素体系", "材料类别", "晶体结构空间", "应用场景"],
+                "required": "当前请求或完整上文中能够形成可追溯的无机元素体系。",
+                "required_any": ["明确元素集合", "可解析为元素集合的无机化学式", "已配置且有证据的无机应用模板"],
                 "optional": ["new_material.allowed_elements", "new_material.target_properties", "new_material.validation_targets", "new_material.max_candidates", "new_material.structure_space"],
             },
             "output_contract": {
-                "generation_started": "全新候选材料结构、稳定性与性能评估结果、合成路径预测和 manifest。",
+                "generation_started": "候选 CIF、结构准入结果、实际完成的 ALIGNN/MatterSim 初筛、候选排序、可视化和 manifest。",
                 "waiting_for_input": "只有完全没有材料、应用、性能、元素体系或材料类别线索时，才返回所需的材料探索信息。",
-                "screening_limit": "候选材料探索结果与计算评估记录。",
+                "screening_limit": "模型结果只用于候选初筛；不提供已有材料事实、配比优化、严格化学计量保证、真实合成路线或 DFT/实验结论。",
             },
         }
+        from src.material_workflow.omatg_contract import omatg_enabled
+        if omatg_enabled():
+            metadata["desc"] = "OMatG 固定化学式 CSP 或限定元素/已确认开放空间 DNG，直接经周期几何检查、MatterSim 松弛与混合参考凸包、ALIGNN 快速预测和结构去重交付候选；DNG 后追加 CSP 可选，默认关闭。"
+            metadata["constraints"] = "周期无机晶体；每胞最多20原子；每阶段1–10个候选。组成需明确，或显式确认开放化学空间；性质目标通过后筛实现。"
+            routing = metadata["routing"]
+            routing["include_keywords"] = [word for word in routing["include_keywords"] if word != "MatterGen"]
+            routing["include_keywords"].extend(["OMatG", "CSP", "DNG", "固定化学式结构预测"])
+            routing["match_when"] = "需要生成周期无机晶体，已有确认化学式/元素集合，或已明确确认开放化学空间时。"
+            routing["input_contract"] = {"required": "已确认整数化学式，或元素白名单；无组成时需显式确认开放化学空间与探索方向。",
+                "required_any": ["target_formula", "allowed_elements", "allow_open_chemical_space=true + 探索方向"],
+                "optional": ["generation_mode", "formula_units", "num_atoms", "required_elements", "excluded_elements", "target_properties", "property_constraints", "symmetry_constraints", "max_candidates", "seed", "refine_with_csp"]}
+            routing["output_contract"]["waiting_for_input"] = "没有已确认组成且没有开放化学空间授权时，说明可做的任务、缺少的条件与补充方式。"
+            routing["output_contract"]["screening_limit"] = "基础预训练模型生成 + 后筛，不保证命中必含元素/指定性能或新颖性；稳定性为混合模型估算，需DFT及实验验证。"
         roles[role_name] = metadata
     return roles
 
@@ -268,6 +281,8 @@ async def generate_new_material(payload: dict = Body(...)):
         payload, _constraints = await resolve_generation_request(payload)
         result = await asyncio.to_thread(run_upstream_request, payload, NEW_MATERIAL_RESULTS_ROOT)
         return JSONResponse(content={"frontend": build_frontend_payload(result), "manifest": result.to_dict()})
+    except FileExistsError as exc:
+        raise HTTPException(status_code=409, detail="taskid已存在；不会覆盖原结果。请查询该任务，或使用新的taskid重新采样。") from exc
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except Exception as exc:

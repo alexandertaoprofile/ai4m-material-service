@@ -8,6 +8,7 @@ import time
 from pathlib import Path
 from typing import Any, Dict
 
+from .capability_fallback import build_capability_fallback, needs_capability_fallback
 from .constraints import upstream_contract
 from .emitters import (
     build_frontend_payload,
@@ -27,12 +28,16 @@ from .presentation import (
 logger = logging.getLogger("mattergen_workflow")
 
 
-def run_upstream_request(payload: Dict[str, Any], results_root: Path):
+def run_upstream_request(payload: Dict[str, Any], results_root: Path, *, defer_completion: bool = False):
     constraints, provenance = upstream_contract(payload)
     # A conversational front end should not accidentally launch an 8-candidate
     # GPU job when the user supplied only prose. Structured callers can still
     # request a larger batch explicitly.
-    max_candidates = int(payload.get("max_candidates") or payload.get("new_material", {}).get("max_candidates") or os.environ.get("MATTERGEN_DEFAULT_CANDIDATES", "1"))
+    from .omatg_contract import integer, omatg_enabled
+    if omatg_enabled():
+        max_candidates = constraints.requested_candidate_count
+    else:
+        max_candidates = int(payload.get("max_candidates") or payload.get("new_material", {}).get("max_candidates") or os.environ.get("MATTERGEN_DEFAULT_CANDIDATES", "1"))
     if not 1 <= max_candidates <= 64:
         raise ValueError("max_candidates must be between 1 and 64")
     started = time.monotonic()
@@ -45,16 +50,20 @@ def run_upstream_request(payload: Dict[str, Any], results_root: Path):
     result.artifacts["presentation"] = render_presentation_assets(result)
     write_pipeline_manifest(result, Path(result.artifacts["result_dir"]))
     completed = result.status == "ok"
-    write_terminal_progress(
-        Path(result.artifacts["result_dir"]),
-        status="completed" if completed else "failed",
-        description=("候选结构、热力学初筛结果和可视化资产已生成。" if completed else result.message),
-    )
+    if not defer_completion:
+        write_terminal_progress(
+            Path(result.artifacts["result_dir"]),
+            status="completed" if completed else "failed",
+            description=("候选结构、热力学评价结果和可视化资产已生成。" if completed else result.message),
+        )
     logger.info("[DISCOVERY][%s] completed: status=%s", constraints.taskid, result.status)
     return result
 
 
 def result_summary(result) -> str:
+    if result.generation.backend == "omatg":
+        from .omatg_report import build_result_report
+        return build_result_report(result)
     status_text = "已完成" if result.status == "ok" else "未完成"
     lines = [
         "### 新材料候选结果",
@@ -79,6 +88,11 @@ def result_summary(result) -> str:
         ])
     if result.status != "ok":
         elements = " / ".join(result.constraints.allowed_elements) or "未能确定"
+        retry_guidance = {
+            "unavailable": "本轮生成模型、检查点或运行依赖不可用；资源恢复后可按已保留条件重试。",
+            "timeout": "本轮生成在时限内没有完成；可降低候选数、检查运行资源或延长任务时限后重试。",
+            "failed": "本轮生成进程结束但没有产出可读取结构；应先检查本次任务日志和采样配置，再决定是否重试。",
+        }.get(result.status, "可根据上方具体原因检查生成条件和运行资源后重试。")
         return "\n".join(lines + [
             "",
             "#### 本轮未得到候选的原因",
@@ -90,7 +104,9 @@ def result_summary(result) -> str:
             f"- 后续关注：{'、'.join(result.constraints.validation_targets) or '基础结构与热力学稳定性'}",
             "",
             "#### 下一步",
-            "补齐对应 MatterGen 模型权重后，可在相同任务条件下重新执行；无需重新编写需求。",
+            retry_guidance,
+            "",
+            build_capability_fallback(result),
         ])
     if result.ranked_candidates:
         lines.append("\n### 本轮候选结果")
@@ -108,6 +124,8 @@ def result_summary(result) -> str:
     property_card = build_property_screening_card(result)
     if property_card:
         lines.extend(["", property_card])
+    if needs_capability_fallback(result):
+        lines.extend(["", build_capability_fallback(result)])
     return "\n".join(lines)
 
 

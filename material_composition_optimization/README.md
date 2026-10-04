@@ -1,4 +1,59 @@
-# material_composition_optimization
+# material_composition_optimization（1111）
+
+## 当前正式计算范围
+
+本服务负责材料配比优化。正式配置以 `config/recipe_release.json` 为准；当前八个专项域已设置为 `primary`，用户条件经解析后调用对应数值模型与优化器。此表替代下文早期合金主线说明作为当前入口。
+
+| 材料类别 | 路由域 | 主要输出 |
+| --- | --- | --- |
+| 高熵与多主元合金 | `hea_mpea` | 屈服强度、硬度及相组成相关预测，候选配比与比较。 |
+| 热端镍基高温合金 | `ni_superalloy_hot_end` | 指定工况下的短时抗拉/屈服强度、蠕变断裂寿命及延性辅助预测。 |
+| 铜基再生冷却热壁材料 | `copper_hot_end_local_composition_v1` | 局部组成范围内的强度、导电率辅助预测与配比优化。 |
+| 可回收火箭奥氏体不锈钢 | `reusable_rocket_stainless` | 成分与状态条件下的强度、延性及配比比较；深冷请求进入参考与验证路径。 |
+| 航空铝合金 | `aerospace_aluminum_composition_v1` | 对应工艺类别下的强度、延性及候选成分。 |
+| 芯片封装玻璃 | `chip_glass_thermomechanical_family_v1` | 氧化物摩尔配比、热膨胀、模量、密度及专项可用性质。 |
+| 短碳纤维热塑性复合材料 | `short_cf_thermomechanical_rve_v1` | 配比及结构参数、热机械性能和仿真代理结果。 |
+| 钙钛矿 | `perovskite_transport_stability_v2` | 文档化组成与温度范围内的输运响应和稳定性比较。 |
+
+未匹配专项模型的材料请求进入通用配比设计准备：展示支持类别、当前需求对应的组分角色、配比变量与试验安排。通用内容是设计框架，专项模型的数值预测只在实际执行对应模型后提供。
+
+`recipe_primary.py` 按逐域授权配置选择正式结果；镍基与铜基额外校验专项适配器版本和验收记录。统一 Transformer 与材料专项模型各有属性职责，模型与数据状态见具体报告，不能只按架构名推断所有性质使用同一个模型。
+
+## 关键实现与外部运行资源
+
+| 位置 | 职责 |
+| --- | --- |
+| `src/alloy_workflow/application.py`、`contracts.py` | 请求入口、材料路由与计算条件。 |
+| `requirement_semantics.py`、`numeric_conditions.py` | 当前需求与历史场景、数值条件解析。 |
+| `recipe_primary.py`、`config/recipe_release.json` | 正式配比优化适配与逐域版本开关。 |
+| `runner.py`、`recipe_shadow.py` | 隔离数值执行器、资源检查与可选影子对照。 |
+| `request_capabilities.py`、`fallback_design.py`、`specialist_outcome.py` | 能力说明、通用设计准备与专项计算结果解释。 |
+| `presentation.py`、`protocol.py` | 结果页、图像与既有流式交付协议。 |
+
+本仓库归档服务代码，不打包训练数据、环境或模型权重。75 服务器实际依赖下列外部资源，接手者应同时核对，而不是仅拉取仓库后重新训练：
+
+- `/data/se42/hea_surrogate`：专项数值 runner、训练/推理代码、模型与来源记录。
+- `/data/se42/experiments/material_shadow_frontend_v2_20260928`：`shadow_recipe_runner.py` 与正式报告所用的 `recipe_*` 展示模块；目录名为历史名称，正式适配器仍调用其中模块。
+- `/data/se42/experiments/material_rsi_prelaunch_20260928/package/runtime`：冻结的优化运行时，入口为 `rsi_api.py`。
+- `/data/se42/experiments/patent_optimization_v0_20260922/.venv/bin/python`：该优化运行时的独立解释器。
+- `/data/mamba/envs/mattergen-py310`：材料专项数值环境，名称沿用旧版本。
+
+后续部署保留原有 `.env`、对象存储设置与模型目录。新增下载、环境、缓存和中间结果均放在 `/data`；Git 推送不触发模型训练或服务重启。
+
+## 回归验证
+
+测试使用本地夹具与 mock。Web 解释器未安装 pytest 时，可复用已有数值环境的测试依赖；将其追加到搜索路径，保持 Web 环境自身依赖优先：
+
+```bash
+OPENAI_API_KEY=test MINIO_ENDPOINT=localhost MINIO_ACCESS_KEY_ID=test MINIO_ACCESS_KEY_SECRET=test \
+  PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. \
+  /home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python -c \
+  'import sys; sys.path.append("/data/mamba/envs/mattergen-py310/lib/python3.10/site-packages"); import pytest; raise SystemExit(pytest.main(["-q", "tests"]))'
+```
+
+部署时先检查 `/health`、角色信息和数值资源，再逐域验收真实图文输出。下面保留早期合金接口与模型演进说明，供理解兼容调用；当前正式路由以本页首表和逐域配置为准。
+
+## 历史合金主线与兼容接口
 
 合金配比优化总服务。它使用共享的合金成分解析、描述符、任务 envelope 和流式进度协议，但按材料域路由至**独立训练和验证的模型**：
 

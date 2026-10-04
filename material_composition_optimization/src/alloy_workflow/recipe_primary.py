@@ -16,9 +16,11 @@ import time
 from src.alloy_workflow.recipe_shadow import DISPLAY_ROOT, RecipeShadowDispatcher
 
 VERSION = 'material_recipe_primary_v1_20260928'
+NICU_ADAPTER_VERSION = 'nicu_specialist_nsga_v1_20260929'
+NICU = frozenset({'ni_superalloy_hot_end', 'copper_hot_end_local_composition_v1'})
 ELIGIBLE = frozenset({'reusable_rocket_stainless', 'aerospace_aluminum_composition_v1',
     'chip_glass_thermomechanical_family_v1', 'hea_mpea',
-    'short_cf_thermomechanical_rve_v1', 'perovskite_transport_stability_v2'})
+    'short_cf_thermomechanical_rve_v1', 'perovskite_transport_stability_v2'}) | NICU
 CONFIG = Path(__file__).resolve().parents[2] / 'config/recipe_release.json'
 
 
@@ -31,6 +33,14 @@ def mode_for(domain):
             return 'shadow'
         if mode == 'primary' and (domain not in ELIGIBLE or config.get('approved_after_acceptance') is not True):
             return 'shadow'
+        # The previous six-domain approval does not approve a new adapter.
+        if mode == 'primary' and domain in NICU:
+            acceptance = config.get('domain_acceptance', {}).get(domain, {})
+            if (acceptance.get('approved_after_acceptance') is not True
+                    or acceptance.get('adapter_version') != NICU_ADAPTER_VERSION
+                    or acceptance.get('model_stack') != 'specialist'
+                    or not acceptance.get('authorization')):
+                return 'shadow'
         return mode
     except (OSError, ValueError, TypeError):
         return 'shadow'
@@ -65,7 +75,18 @@ def bootstrap_constraints(constraints):
     Its ranking is NOT the production ranking. Remove objectives only from
     this private seed-generation copy; NSGA receives the untouched user plan.
     """
-    if constraints.get('model_domain') != 'reusable_rocket_stainless' or mode_for('reusable_rocket_stainless') != 'primary':
+    domain = constraints.get('model_domain')
+    if domain == 'chip_glass_thermomechanical_family_v1' and mode_for(domain) == 'primary':
+        # The legacy glass proposal builds starting references and accepts
+        # only min/max. The untouched user plan supplies NSGA target goals.
+        if any(isinstance(value, dict) and value.get('goal') == 'target'
+               for value in constraints.get('objectives', {}).values()):
+            seed = deepcopy(constraints)
+            seed['objectives'] = {}
+            if isinstance(seed.get('raw_scope'), dict):
+                seed['raw_scope']['objectives'] = {}
+            return seed
+    if domain != 'reusable_rocket_stainless' or mode_for(domain) != 'primary':
         return constraints
     if not any(isinstance(value, dict) for value in constraints.get('objectives', {}).values()):
         return constraints
@@ -81,11 +102,20 @@ def primary_description(domain):
         return '正在按文档化组分网格计算钙钛矿输运响应并比较配方。'
     if domain == 'short_cf_thermomechanical_rve_v1':
         return '正在以短碳纤维专项本构模型和NSGA-II优化配方与结构参数。'
+    if domain in NICU:
+        return '正在使用条件化专项性质模型，通过NSGA-II优化配方。'
     return '正在使用Transformer与专项性质模型，通过NSGA-II优化配方。'
 
 
-def primary_preflight(domain):
-    return primary_description(domain) + '本次计算采用已训练的固定模型，保留用户设定的组成范围、材料状态和性能目标。'
+def primary_preflight(domain, scope=None):
+    scope = scope or {}
+    conditions = ''
+    if domain == 'ni_superalloy_hot_end':
+        temperature = scope.get('test_temperature_C')
+        stress = scope.get('applied_stress_MPa')
+        if temperature is not None and stress is not None:
+            conditions = f'本次评价工况为 {float(temperature):g} °C / {float(stress):g} MPa。'
+    return primary_description(domain) + conditions + '本次计算采用已训练的固定模型，保留用户设定的组成范围、材料状态和性能目标。'
 
 
 def predicted(value, source, unit):
@@ -99,21 +129,8 @@ def predicted(value, source, unit):
 
 def downstream_summary(report, taskid, display):
     """The Action return value must stand alone without the chat's tables."""
-    if not report['candidates']:
-        return '当前条件下没有满足要求的配方。'
-    top = report['candidates'][0]
-    label = display.DOMAINS[report['domain']][0]
-    components = []
-    for group, amounts, unit in display.component_groups(report, top):
-        values = '；'.join(name + '=' + display.number(value) for name, value in amounts.items() if value > 0)
-        components.append(group + '（' + unit + '）：' + values)
-    conditions = '；'.join(str(row[0]) + '=' + str(row[1]) for row in display.condition_rows(report))
-    results = '；'.join(name + '=' + value + ' ' + unit
-        for key, value in top['values'].items()
-        for name, value, unit in [display.property_value(key, value)])
-    return (label + '优选配方 ' + top['display_id'] + '。' + '。'.join(components) + '。'
-            + '评价条件：' + conditions + '。计算结果：' + results + '。'
-            + '完整条件与性质文件：/alloy/tasks/' + taskid + '。')
+    return (helper('recipe_conclusion').build_conclusion(report, display)
+            + '\n\n完整条件与性质文件：/alloy/tasks/' + taskid + '。')
 
 
 def support(row):
@@ -138,13 +155,13 @@ def require_matching(values, evaluated, mapping):
             raise ValueError('production specialist differs from frozen optimizer: ' + key)
 
 
-def compatible_candidates(runner, task, report, constraints):
+def compatible_candidates(runner, task, report, constraints, *, nearest=False):
     domain = task['model_domain']
-    rows = report['candidates']
+    rows = report.get('nearest_candidates', []) if nearest else report['candidates']
     extra = [{} for _ in rows]
     # Re-evaluate the SELECTED compositions, not the old top candidate. This
     # preserves downstream glass estimates, HEA hardness and the CF matrix.
-    if rows and domain in {'chip_glass_thermomechanical_family_v1', 'hea_mpea', 'short_cf_thermomechanical_rve_v1'}:
+    if rows and domain in ({'chip_glass_thermomechanical_family_v1', 'hea_mpea', 'short_cf_thermomechanical_rve_v1'} | NICU):
         requests = []
         for row in rows:
             c = row['composition']['values']
@@ -152,6 +169,8 @@ def compatible_candidates(runner, task, report, constraints):
                 requests.append({'composition_mol_percent': c})
             elif domain == 'hea_mpea':
                 requests.append({'composition': c})
+            elif domain in NICU:
+                requests.append({'composition_wt_percent': c})
             else:
                 profiles = {}
                 for previous in task.get('all_candidates') or task.get('initial_candidates') or []:
@@ -163,7 +182,7 @@ def compatible_candidates(runner, task, report, constraints):
         base.update(report['conditions'])
         if domain == 'chip_glass_thermomechanical_family_v1':
             base['composition_basis'] = 'mol_percent'
-        extra = runner.run(task['taskid'] + '-properties', 'evaluate_batch', base, requests)['results']
+        extra = runner.run(task['taskid'] + ('-near-properties' if nearest else '-properties'), 'evaluate_batch', base, requests)['results']
         if len(extra) != len(rows):
             raise ValueError('selected property batch size mismatch')
     output = []
@@ -174,6 +193,26 @@ def compatible_candidates(runner, task, report, constraints):
             'property_sources': deepcopy(sources), 'applicability_domain': support(row),
             'selection_score': 1 - row.get('preference_score', 0),
             'preference_score': row.get('preference_score', 0), 'score_basis': 'mean_normalized_objective_gap'}
+        if nearest:
+            if row.get('feasible') is not False or row.get('admissible') is not True:
+                raise ValueError('nearest candidate is not an admitted near-miss')
+            candidate.update(admissible=True, feasible=False, selection_score=None, preference_score=None,
+                score_basis='sum_relative_constraint_shortfall',
+                strict_screening={'passed': False, 'constraint_gaps': deepcopy(row.get('constraint_gaps', {})),
+                    'total_relative_gap': row.get('constraint_violation', 0)})
+        if domain in NICU:
+            if row.get('admissible') is not True or row.get('feasible') is not (not nearest):
+                raise ValueError('nickel/copper selection has invalid support or feasibility')
+            if any(source != 'specialist' for source in sources.values()):
+                raise ValueError('nickel/copper primary adapter currently requires specialist sources')
+            if nearest and not any(gap['shortfall'] > 0 for gap in row.get('constraint_gaps', {}).values()):
+                raise ValueError('nearest candidate requires an explicit unmet requirement')
+            candidate.update(admissible=True, feasible=not nearest,
+                strict_screening={'passed': not nearest, 'constraint_gaps': deepcopy(row.get('constraint_gaps', {})),
+                    'total_relative_gap': row.get('constraint_violation', 0)},
+                inputs=deepcopy(report['conditions']), adapter_version=NICU_ADAPTER_VERSION)
+            if nearest:
+                candidate.update(selection_score=None, preference_score=None, score_basis='sum_relative_constraint_shortfall')
         if domain == 'reusable_rocket_stainless':
             candidate.update(composition_wt_percent=c, short_time_tensile={
                 target: predicted(values[key], sources[key], '%' if key == 'elongation_pct' else 'MPa')
@@ -217,9 +256,35 @@ def compatible_candidates(runner, task, report, constraints):
             candidate.update(deepcopy(ancillary))
             candidate.update(candidate_id=row['display_id'], rank=len(output) + 1,
                 matrix_name=requests[len(output)]['matrix_name'], property_sources=deepcopy(sources))
+        elif domain == 'ni_superalloy_hot_end':
+            require_matching(values, ancillary['short_time_strength'],
+                {'YS_MPa': 'proof_strength_0p2_MPa', 'UTS_MPa': 'ultimate_tensile_strength_MPa'})
+            require_matching(values, ancillary['tensile_ductility'], {'elongation_pct': 'elongation_percent'})
+            require_matching(values, ancillary['creep_rupture'], {'rupture_hours': 'predicted_hours'})
+            if ancillary['creep_rupture'].get('applicability_domain', {}).get('level') == 'outside':
+                raise ValueError('selected nickel composition outside specialist support')
+            candidate.update(composition_wt_percent=c,
+                ultimate_tensile_strength_MPa=deepcopy(ancillary['short_time_strength']['ultimate_tensile_strength_MPa']),
+                proof_strength_0p2_MPa=deepcopy(ancillary['short_time_strength']['proof_strength_0p2_MPa']),
+                creep_rupture=deepcopy(ancillary['creep_rupture']),
+                elongation_percent_auxiliary=deepcopy(ancillary['tensile_ductility']),
+                inputs=deepcopy(ancillary['inputs']),
+                source_anchor={'kind': 'frozen_reference', 'anchor_index': row['composition']['anchor_index']})
+        elif domain == 'copper_hot_end_local_composition_v1':
+            require_matching(values, ancillary['short_time_tensile'],
+                {'YS_MPa': 'yield_0p2_MPa', 'UTS_MPa': 'ultimate_tensile_strength_MPa'})
+            if ancillary['applicability_domain'].get('level') != 'inside':
+                raise ValueError('selected copper composition outside joint composition/process/temperature support')
+            candidate.update(composition_wt_percent=c, material_state=ancillary['material_state'],
+                source_anchor=deepcopy(ancillary['source_anchor']),
+                short_time_tensile=deepcopy(ancillary['short_time_tensile']),
+                additional_properties=deepcopy(ancillary['additional_properties']),
+                inputs=deepcopy(ancillary['screening_conditions']))
         else:
             raise ValueError('domain lacks a production candidate contract')
         candidate['model_version'] = VERSION
+        if domain in NICU:
+            candidate['specialist_model_version'] = ancillary.get('model_version')
         output.append(candidate)
     return output
 
@@ -239,7 +304,20 @@ def promote(runner, task, constraints):
         raise RuntimeError('primary calculation did not pass its isolated contract')
     completed = record['results'][0]
     if completed['status'] == 'input_requires_revision':
-        raise ValueError('input has no eligible optimization starting reference')
+        from src.alloy_workflow.specialist_outcome import scoped_outcome
+        directory=Path(completed['presentation_directory']).parent
+        response=json.loads((directory/'optimization_response.json').read_text())
+        plan=task.get('requirement_interpretation') or {}
+        scope=plan.get('effective_model_input') or constraints.get('raw_scope') or {'model_domain':domain}
+        code=response.get('error_code','NO_ELIGIBLE_STARTING_REFERENCE')
+        messages={'NO_ELIGIBLE_STARTING_REFERENCE':'指定范围内没有可用的优化起始参考配方。',
+            'TEMPERATURE_SCOPE':'本次评价温度超出当前专项模型的验证温区。',
+            'BOUNDS':'本次配比范围与模型可计算范围不相容。',
+            'CONDITION_CONFLICT':'本次要求与模型可用的材料状态或评价条件不一致。',
+            'UNSUPPORTED_CONSTRAINT':'本次包含当前优化器尚未支持的条件，原要求已保留。'}
+        return scoped_outcome({'taskid':task['taskid']},scope,plan,task.get('service','alloy_optimization'),
+            code,[messages.get(code,'当前专项模型无法在给定条件下形成可用配方。')],
+            diagnostic=response.get('error'))[0]
     display = helper('recipe_display')
     directory = Path(completed['presentation_directory']).parent
     if domain == 'perovskite_transport_stability_v2':
@@ -247,6 +325,7 @@ def promote(runner, task, constraints):
         candidates = deepcopy(task.get('initial_candidates', [])[:5])
         for candidate, row in zip(candidates, report['candidates']):
             candidate['candidate_id'] = row['display_id']
+        nearest_candidates = []
     else:
         raw = json.loads((directory / 'optimization_response.json').read_text())
         request = json.loads((directory / 'optimization_request.json').read_text())
@@ -254,6 +333,7 @@ def promote(runner, task, constraints):
             raise ValueError('approved primary optimizer was not used')
         report = display.from_rsi(raw, task, request=request)
         candidates = compatible_candidates(runner, task, report, constraints)
+        nearest_candidates = compatible_candidates(runner, task, report, constraints, nearest=True)
     # Validate the SAME exact report that the frontend will render.
     markdown = display.build_markdown(report)
     display.validate_markdown(markdown)
@@ -262,13 +342,14 @@ def promote(runner, task, constraints):
                 'nearest_candidates', 'reference_candidates', 'validation', 'uncertainty', 'nonlinear_response_function'):
         result.pop(key, None)
     result['initial_candidates'] = candidates
-    result['all_candidates'] = deepcopy(candidates)
+    result['nearest_candidates'] = nearest_candidates
+    result['all_candidates'] = deepcopy(candidates or nearest_candidates)
     result['model_version'] = VERSION
     result['sampling'] = {'generated': report['counters']['model_evaluations'],
         'feasible': report['counters'].get('feasible', len(candidates)),
         'pareto_count': report['counters'].get('pareto_count', 0), 'method': report['method'],
-        'stop_reason': report['stop_reason'], 'selected': len(candidates)}
-    sources = {k: v for row in report['candidates'] for k, v in row['property_sources'].items()}
+        'stop_reason': report['stop_reason'], 'selected': len(candidates), 'nearest_count': len(nearest_candidates)}
+    sources = {k: v for row in (report['candidates'] or report.get('nearest_candidates', [])) for k, v in row['property_sources'].items()}
     if domain == 'short_cf_thermomechanical_rve_v1':
         sources['fiber_volume_fraction'] = 'design_input'
         sources['anisotropy_ratio_E11_E22'] = 'derived_E11_over_E22'
@@ -279,10 +360,17 @@ def promote(runner, task, constraints):
         'property_sources': sources, 'model_metadata': deepcopy(report['model_metadata']),
         'authorization': 'user_approved_after_acceptance_20260928', 'public_effect': True,
         'display_allowed': True, 'production_release_authorized': True}
+    if domain in NICU:
+        config = json.loads(Path(os.getenv('MATERIAL_RECIPE_RELEASE_CONFIG', str(CONFIG))).read_text(encoding='utf-8'))
+        acceptance = config['domain_acceptance'][domain]
+        result['recipe_release'].update(adapter_version=NICU_ADAPTER_VERSION,
+            authorization=acceptance['authorization'], model_stack='specialist')
     result['model_evidence'] = {'model_version': VERSION, 'property_sources': sources,
         'model_metadata': deepcopy(report['model_metadata'])}
     result['user_conclusion'] = downstream_summary(report, task['taskid'], display)
-    result['downstream_handoff_text'] = '本次优选配方及性质采用recipe_release记录的模型与优化方法；组成、条件和完整性质保留在initial_candidates。'
+    result['downstream_handoff_text'] = ('本次配方及性质采用recipe_release记录的模型与优化方法；'
+        + ('没有全部达标配方；接近方案及要求缺口保留在nearest_candidates，不作为通过方案。' if nearest_candidates else
+           '组成、条件和完整性质保留在initial_candidates。'))
     result['nonlinear_response_function'] = {'name': VERSION, 'property_sources': sources,
         'mathematical_form': 'fixed predictor(composition, descriptors, temperature, process)',
         'public_evaluate_endpoints': 'existing specialist versions; consult response model_version',

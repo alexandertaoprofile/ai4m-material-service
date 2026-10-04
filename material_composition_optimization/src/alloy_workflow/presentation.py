@@ -140,7 +140,8 @@ def _hot_end_plan_block(effective: dict[str, Any]) -> str:
     bounds = effective.get("element_bounds_wt_percent") or {}
     bounds_text = "；".join(f"{e} {v[0]}–{v[1]} wt.%" for e, v in bounds.items() if isinstance(v, (list, tuple)) and len(v) == 2) or "以任务输入为准"
     thresholds = effective.get("screening_thresholds") or {}
-    thresholds_text = f"UTS ≥ {thresholds.get('uts_min_MPa', '-')} MPa；0.2% 屈服 ≥ {thresholds.get('proof_strength_min_MPa', '-')} MPa；蠕变寿命 ≥ {thresholds.get('rupture_life_min_h', '-')} h"
+    labels = {"uts_min_MPa": ("UTS", "MPa"), "proof_strength_min_MPa": ("0.2% 屈服", "MPa"), "rupture_life_min_h": ("蠕变寿命", "h")}
+    thresholds_text = "；".join(f"{labels[key][0]} ≥ {value} {labels[key][1]}" for key, value in thresholds.items() if key in labels) or "未设置数值门槛，按强度与蠕变寿命比较配方"
     return "\n".join([
         "### 1. 问题描述",
         f"针对 {route} 路线高温合金，在 {effective.get('test_temperature_C', '-')} °C / {effective.get('applied_stress_MPa', '-')} MPa 和指定热处理条件下，生成并比较镍基候选配方。",
@@ -148,7 +149,7 @@ def _hot_end_plan_block(effective: dict[str, Any]) -> str:
         "| $\mathbf{c}_{wt.\%}$ | 合金元素质量百分比向量 | " + bounds_text + "；Ni 为平衡元素 |",
         f"| $r,h$ | 制造路线与热处理 | {route}；{_heat_treatment_text(effective.get('heat_treatment'))} |",
         f"| $T,\sigma$ | 温度与蠕变载荷 | {effective.get('test_temperature_C', '-')} °C；{effective.get('applied_stress_MPa', '-')} MPa |",
-        f"| $g$ | 平台初筛门槛 | {thresholds_text} |",
+        f"| $g$ | 本次性能要求 | {thresholds_text} |",
         "", "### 3. 计划计算链与模型定义",
         "### 3.1 成分约束与候选生成",
         "候选在当前 wt.% 边界内局部调整，Ni 自动平衡至 100 wt.%：",
@@ -178,9 +179,9 @@ def planned_alloy_method_block(payload: dict[str, Any]) -> str:
             "### 配方设计：任务准备", "",
             f"材料体系：{effective.get('material_family', '当前材料体系')}。先整理配方变量、工艺条件和首轮试验方案。",
             "", "#### 本次采用的方法", "",
-            "采用材料家族规则和单因素试验设计，输出变量探索窗口、固定工艺条件及数据记录要求。",
-            "", "#### 配比基准与需确认的条件", "",
-            f"配比基准：{effective.get('composition_basis', '由首轮试验统一确定')}。请确认基准材料、目标性能及制造工艺。",
+            "先核对已适配的材料模型，再结合材料家族规则、需求分析和单因素试验设计，整理配方调整方向、工艺条件与数据记录要求。",
+            "", "#### 配比基准与本次采用条件", "",
+            f"配比基准：{effective.get('composition_basis', '按各材料体系分别确定')}。先沿用已有材料和工况形成方案，补充信息后可直接更新。",
         ])
     if plan.get("requires_domain_confirmation"):
         if plan.get("confirmation_message"):
@@ -598,6 +599,12 @@ def final_conclusion_block(result: dict[str, Any]) -> str:
 
 def generic_composition_fallback_summary_block(result: dict[str, Any]) -> str:
     """Use the same task-first structure without inventing a prediction run."""
+    from src.alloy_workflow.fallback_design import render_fallback
+    return render_fallback(result)
+
+
+def _legacy_generic_composition_fallback_summary_block(result: dict[str, Any]) -> str:
+    """Retained for historical report comparisons only."""
     conditions = result.get("screening_conditions") or {}
     candidate = (result.get("initial_candidates") or [{}])[0]
     components = candidate.get("formulation_components") or []
@@ -717,6 +724,8 @@ def copper_hot_end_summary_block(result: dict[str, Any]) -> str:
 def copper_hot_end_local_summary_block(result: dict[str, Any]) -> str:
     """Full 1111 customer page for the condition-aware local Cu model."""
     conditions = result.get("screening_conditions") or {}; candidates = result.get("initial_candidates") or []; validation = result.get("validation") or {}
+    nearest = not candidates and bool(result.get("nearest_candidates"))
+    candidates = candidates or result.get("nearest_candidates") or []
     temperature = float(conditions.get("test_temperature_C") or 0); state = conditions.get("processing_state") or "-"
     bounds = conditions.get("element_bounds_wt_percent") or {}
     family = conditions.get("composition_family") or "custom"
@@ -744,6 +753,8 @@ def copper_hot_end_local_summary_block(result: dict[str, Any]) -> str:
         lines.append(f"| {label} | 成分留出 R² {float(chemistry.get('r2',0)):.3f}，MAE {float(chemistry.get('mae_MPa',0)):.1f} MPa；牌号—状态留出 R² {float(state_oof.get('r2',0)):.3f}，MAE {float(state_oof.get('mae_MPa',0)):.1f} MPa | B：成分、状态和温度均在联合适用域内的直接短时拉伸预测 |")
     lines.append(f"| 室温电导率 | 成分分组 OOF R² {float(aux_validation.get('r2', 0)):.3f}，MAE {float(aux_validation.get('mae_percent_IACS', 0)):.1f} %IACS（{int(aux_validation.get('rows', 0))} 条） | C：Gorsse CC0 室温数据、需完整默认/用户工艺；不外推到热壁温度 |")
     lines += ["", "### 5.1 筛选过程", "", "围绕已收录成分局部调整 → 专项模型批量预测 → 成分、工艺与温度核对 → 优先配方比较。排序采用强度预测；室温辅助预测及工程估算用于测试规划。", "", "| 条件核对 | 保留配方数 |", "|---|---:|", *[f"| {item.get('label','-')} | {int(item.get('count',0))} |" for item in (result.get('sampling') or {}).get('funnel_stages', [])], "", "{{VISUAL:copper_local_screening_funnel}}", "", "### 5.2 优先候选", "", "{{VISUAL:copper_local_strength_tradeoff}}", "", "| 排名 | 配方编号 | 成分参考 | UTS（MPa） | 0.2%屈服（MPa） | 室温电导率（%IACS） | 成分比较范围 |", "|---:|---|---|---:|---:|---:|---|"]
+    if nearest:
+        lines += ["", "本次没有配方同时满足全部性能要求；以下为相同工况下性能缺口最小的配方，原要求保持不变。", ""]
     for candidate in candidates:
         tensile = candidate.get("short_time_tensile") or {}; uts = (tensile.get("ultimate_tensile_strength_MPa") or {}).get("mean", 0); ys = (tensile.get("yield_0p2_MPa") or {}).get("mean", 0)
         anchor = candidate.get("source_anchor") or {}; domain = candidate.get("applicability_domain") or {}; domain_label = {"inside": "组成、状态和温度均有相近数据", "composition_boundary": "接近已收录成分范围边缘", "state_extrapolation": "需补充该工艺状态数据", "temperature_extrapolation": "需补充该温度数据"}.get(domain.get("level"), str(domain.get("level") or "-"))
@@ -763,7 +774,13 @@ def copper_hot_end_local_summary_block(result: dict[str, Any]) -> str:
             interval = f"（{float(low):.2f}–{float(high):.2f} {record.get('unit', '')}）" if low is not None and high is not None and math.isfinite(float(low)) and math.isfinite(float(high)) else f" {record.get('unit', '')}"
             return f"{float(value):.2f}" + interval
         uts_level = tensile['ultimate_tensile_strength_MPa'].get('evidence_level', 'B'); ys_level = tensile['yield_0p2_MPa'].get('evidence_level', 'B')
-        lines += ["", f"### 铜基热壁合金｜本次优选配方：{top['candidate_id']}", "", "下表为本次设计组成，铜为平衡元素；参考合金用于追溯成分邻域。", "", *_recipe_composition_table(top.get("composition_wt_percent") or {}, "Cu"), "", "{{VISUAL:copper_local_composition_traceability}}", "", "| 适用条件与来源 | 本次采用 |", "|---|---|", f"| 强度状态与评价温度 | {state}；{temperature:.0f} °C |", f"| 室温辅助性质工艺 | {process_text} |", f"| 成分参考 | {anchor.get('alloy_name','-')}；{anchor.get('alloy_state','-')}；{float(anchor.get('test_temperature_C',0)):.0f} °C |", f"| 成分比较范围 | {domain_label} |", "", "#### 优先候选的完整性质卡", "", "| 性质 | 预测或估算结果 | 计算来源与条件 |", "|---|---|---|", f"| 抗拉强度（{uts_level}） | {tensile['ultimate_tensile_strength_MPa']['mean']:.0f} MPa | 铜基强度专项模型；成分分组 OOF MAE {tensile['ultimate_tensile_strength_MPa']['screening_MAE_MPa']:.0f} MPa |", f"| 0.2%屈服强度（{ys_level}） | {tensile['yield_0p2_MPa']['mean']:.0f} MPa | 铜基强度专项模型；成分分组 OOF MAE {tensile['yield_0p2_MPa']['screening_MAE_MPa']:.0f} MPa |", f"| 电导率（C） | {prop('electrical_conductivity_percent_IACS')} | 约25 °C；Gorsse全工艺字段辅助模型 |", f"| 热导率（D） | {prop('thermal_conductivity_room_temperature_W_mK')} | 约25 °C；由%IACS按Wiedemann–Franz关系估算 |", f"| 维氏硬度（D） | {prop('hardness_HV')} | 由预测屈服强度按Tabor型关系估算 |", f"| 密度（D） | {prop('density_g_cm3')} | 纯元素密度混合估算 |", f"| 热膨胀系数（D） | {prop('CTE_room_temperature_ppm_per_K')} | 约20–100 °C；纯元素CTE加权代理 |", "", "验证指标描述模型历史表现；工程估算与直接强度预测分别记录，用于安排同条件验证。"]
+        if nearest:
+            lines += ["", "| 性能要求 | 用户要求 | 模型预测 | 差距 |", "|---|---:|---:|---:|"]
+            for key, gap in top["strict_screening"]["constraint_gaps"].items():
+                label = {"uts_min_MPa": "抗拉强度", "proof_strength_min_MPa": "0.2%屈服强度"}[key]
+                lines.append(f"| {label} | ≥ {gap['target']:g} MPa | {gap['observed']:.1f} MPa | {'满足' if gap['shortfall'] == 0 else format(gap['shortfall'], '.1f') + ' MPa'} |")
+        heading = "本次接近目标的配方" if nearest else "本次优选配方"
+        lines += ["", f"### 铜基热壁合金｜{heading}：{top['candidate_id']}", "", "下表为本次设计组成，铜为平衡元素；参考合金用于追溯成分邻域。", "", *_recipe_composition_table(top.get("composition_wt_percent") or {}, "Cu"), "", "{{VISUAL:copper_local_composition_traceability}}", "", "| 适用条件与来源 | 本次采用 |", "|---|---|", f"| 强度状态与评价温度 | {state}；{temperature:.0f} °C |", f"| 室温辅助性质工艺 | {process_text} |", f"| 成分参考 | {anchor.get('alloy_name','-')}；{anchor.get('alloy_state','-')}；{float(anchor.get('test_temperature_C',0)):.0f} °C |", f"| 成分比较范围 | {domain_label} |", "", "#### 优先候选的完整性质卡", "", "| 性质 | 预测或估算结果 | 计算来源与条件 |", "|---|---|---|", f"| 抗拉强度（{uts_level}） | {tensile['ultimate_tensile_strength_MPa']['mean']:.0f} MPa | 铜基强度专项模型；成分分组 OOF MAE {tensile['ultimate_tensile_strength_MPa']['screening_MAE_MPa']:.0f} MPa |", f"| 0.2%屈服强度（{ys_level}） | {tensile['yield_0p2_MPa']['mean']:.0f} MPa | 铜基强度专项模型；成分分组 OOF MAE {tensile['yield_0p2_MPa']['screening_MAE_MPa']:.0f} MPa |", f"| 电导率（C） | {prop('electrical_conductivity_percent_IACS')} | 约25 °C；Gorsse全工艺字段辅助模型 |", f"| 热导率（D） | {prop('thermal_conductivity_room_temperature_W_mK')} | 约25 °C；由%IACS按Wiedemann–Franz关系估算 |", f"| 维氏硬度（D） | {prop('hardness_HV')} | 由预测屈服强度按Tabor型关系估算 |", f"| 密度（D） | {prop('density_g_cm3')} | 纯元素密度混合估算 |", f"| 热膨胀系数（D） | {prop('CTE_room_temperature_ppm_per_K')} | 约20–100 °C；纯元素CTE加权代理 |", "", "验证指标描述模型历史表现；工程估算与直接强度预测分别记录，用于安排同条件验证。"]
     lines += ["", "#### 结论", "", str(result.get("user_conclusion") or "当前结果用于下一轮同条件试验的优先级比较。")]
     return "\n".join(lines)
 

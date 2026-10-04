@@ -37,6 +37,21 @@ class GenerationConstraint:
     target_properties: JsonDict = field(default_factory=dict)
     validation_targets: JsonDict = field(default_factory=dict)
     notes: List[str] = field(default_factory=list)
+    generation_mode: str = "auto"
+    required_elements: List[str] = field(default_factory=list)
+    formula_units: int = 1
+    num_atoms: int = 8
+    seed: int = 42
+    allow_open_chemical_space: bool = False
+    material_family: str = ""
+    property_constraints: JsonDict = field(default_factory=dict)
+    symmetry_constraints: JsonDict = field(default_factory=dict)
+    requested_candidate_count: int = 10
+    refine_with_csp: bool = False
+    parameter_sources: JsonDict = field(default_factory=dict)
+    task_context: JsonDict = field(default_factory=dict)
+    min_distinct_elements: int = 1
+    dng_species_strategy: str = "masked"
 
     def to_dict(self) -> JsonDict:
         return asdict(self)

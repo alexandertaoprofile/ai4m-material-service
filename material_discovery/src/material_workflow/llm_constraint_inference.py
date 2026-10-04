@@ -85,7 +85,8 @@ def infer_element_system_from_text(payload: Mapping[str, Any]) -> dict[str, Any]
         ),
     )
     for signals, elements, material_family, reason in rules:
-        if any(signal in text for signal in signals):
+        if any((bool(re.search(r"(?<![a-z])sin(?![a-z])", text)) if signal == "sin" else signal in text)
+               for signal in signals):
             return {
                 "allowed_elements": list(elements),
                 "material_family": material_family,
@@ -184,6 +185,13 @@ async def infer_element_system(payload: Mapping[str, Any]) -> dict[str, Any] | N
         logger.warning("[CONSTRAINT_LLM] unavailable: LLM configuration is missing")
         return None
     current, evidence = _context(payload)
+    # Generic classes such as “金属” are not a chemical system. With no
+    # upstream material conclusion, choosing particular atoms would invent a
+    # constraint rather than extract one; request clarification instead.
+    if ("金属" in current
+            and not any(term in current for term in ("氧化物", "电解质", "合金", "氮化物", "碳化物"))
+            and not any(payload.get(key) for key in ("upstream_result", "upstream_context", "history", "messages", "conversation_context"))):
+        return None
     prompt = (
         "你是无机新材料生成流程的约束解析器。当前请求缺少显式化学式或元素组合。"
         "请根据当前执行任务和完整的上游材料结论，归纳一个用于‘起始探索’的元素体系。"
@@ -192,7 +200,7 @@ async def infer_element_system(payload: Mapping[str, Any]) -> dict[str, Any] | N
         "规则：\n"
         "1. 只可输出有效元素符号，2–8 个；不能输出材料名、缩写、商品名或猜测的比例。\n"
         "2. 若文本给出材料类别、应用场景或上游材料结论但没有显式元素，可提出低置信度的起始体系；理由必须说明依据。\n"
-        "3. 仅当完整上游信息中没有任何可追溯的材料对象或材料应用线索时，才返回 allowed_elements 空数组。\n"
+        "3. 金属等泛称不构成具体元素线索；没有可追溯的具体材料对象或元素时返回 allowed_elements 空数组，不得猜测元素。\n"
         "4. 不要声称已经计算、检索数据库或验证性能。\n\n"
         f"当前执行任务：\n{current or '未提供'}\n\n"
         f"上游证据（仅供核对，不是强制约束）：\n{evidence or '未提供'}"
@@ -277,6 +285,15 @@ async def resolve_generation_request(
     the last fallback and fuller upstream evidence may refine it.
     """
     effective_payload = dict(payload)
+    from .omatg_contract import omatg_enabled
+    if omatg_enabled():
+        try:
+            return effective_payload, constraint_from_payload(effective_payload)
+        except ValueError as exc:
+            if "无法确定待生成的元素体系" in str(exc) or "CSP 需要 target_formula" in str(exc):
+                from .omatg_report import build_missing_input_report
+                raise GenerationInputRequired(build_missing_input_report(effective_payload, str(exc))) from exc
+            raise
     try:
         constraints = constraint_from_payload(effective_payload)
     except ValueError as exc:

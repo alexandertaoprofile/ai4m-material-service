@@ -187,6 +187,22 @@ def _current_task_text(text: str) -> str:
 
 
 def _elements_from_context(text: str) -> list[str]:
+    # A clarification may explicitly name one element. Do not enable single
+    # symbol mining in arbitrary prose (where Fe, C, etc. may be incidental).
+    supplement = re.search(r"(?:^|\n)用户补充[：:]\s*([^\n]+)\s*$", text.strip())
+    if supplement:
+        value = supplement.group(1).strip()
+        if value in _VALID_ELEMENTS:
+            return [value]
+        # Accept explicit symbols such as "fe" or "fe ag", without mining
+        # element-looking tokens from prose. Validate every normalized symbol
+        # against the periodic table before using it as a constraint.
+        if re.fullmatch(r"[A-Za-z][a-z]?(?:[ \t]+[A-Za-z][a-z]?)*", value):
+            symbols = [token.capitalize() for token in value.split()]
+            if all(symbol in _VALID_ELEMENTS for symbol in symbols):
+                return list(dict.fromkeys(symbols))
+        if value in _CHINESE_ELEMENTS:
+            return [_CHINESE_ELEMENTS[value]]
     formula_elements = _formula_elements(_formula_from_text(text))
     if len(formula_elements) >= 2:
         return list(dict.fromkeys(formula_elements))
@@ -357,6 +373,10 @@ def constraint_from_payload(payload: Dict[str, Any]) -> GenerationConstraint:
     # final orchestration instruction; it is the only free-text source allowed
     # to become a MatterGen chemical-system constraint.
     extraction_text = _current_task_text(raw_requirement or context)
+    from .omatg_contract import omatg_enabled, omatg_constraint
+    if omatg_enabled():
+        extraction_text = _current_task_text(raw_requirement)
+        return omatg_constraint(payload, source, taskid, raw_requirement, extraction_text)
     fallback_text = _current_task_text(_fallback_context_text(payload, source))
     if _is_alloy_optimization_request(extraction_text):
         raise ValueError(
@@ -463,4 +483,5 @@ def upstream_contract(payload: Mapping[str, Any]) -> Tuple[GenerationConstraint,
         "user_name": str(payload.get("user_name") or ""),
         "has_file_metadata": bool(payload.get("file_metadata")),
         "upstream_contract": next((key for key in _CONSTRAINT_KEYS if isinstance(payload.get(key), Mapping)), "legacy_envelope"),
+        **({"task_context": constraint.task_context} if constraint.task_context else {}),
     }

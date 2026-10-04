@@ -5,7 +5,7 @@ import math
 import time
 from typing import Any
 
-from src.alloy_workflow.contracts import contract, requirement_plan
+from src.alloy_workflow.contracts import contract, requirement_plan, MaterialContextError
 from src.alloy_workflow.fallback import generic_fallback_result
 from src.alloy_workflow.runner import HEASurrogateRunner
 
@@ -29,17 +29,38 @@ class AlloyOptimizationApplication:
             # The gateway has already selected this service.  Return a clearly
             # bounded formulation-design result instead of surfacing a raw
             # routing exception to the customer.
-            return generic_fallback_result(payload, str(exc), self.service_name)
+            return generic_fallback_result(payload, exc if isinstance(exc, MaterialContextError) else str(exc), self.service_name)
+        if effective.get("model_domain") == "generic_composition_design_fallback_v1":
+            return generic_fallback_result(payload, effective.get("fallback_reason", "按已有信息继续形成设计方案"),
+                self.service_name, resolved_plan=(effective, plan))
         if plan.get("requires_domain_confirmation"):
-            raise ValueError("请先确认采用高温镍基合金还是 HEA/MPEA 路线后开始配方筛选")
+            return generic_fallback_result(payload, MaterialContextError(
+                plan["confirmation_message"], plan.get("raw_requirement", ""), plan.get("upstream_context_keys", [])), self.service_name)
         normalized = dict(payload)
         normalized["alloy_optimization"] = effective
-        constraints = contract(normalized)
+        from src.alloy_workflow.specialist_outcome import scoped_outcome
+        if effective.get('_calculation_blockers'):
+            return scoped_outcome(payload, effective, plan, self.service_name,
+                'input_conditions', effective['_calculation_blockers'])
+        try:
+            constraints = contract(normalized)
+        except ValueError as exc:
+            return scoped_outcome(payload, effective, plan, self.service_name,
+                'input_conditions', ['本次专项输入存在范围、单位或条件冲突，原要求已保留。'],diagnostic=repr(exc))
         constraints["raw_scope"] = effective
         started = time.perf_counter()
         operation = "propose_space" if effective.get("model_domain") in {"chip_glass_thermomechanical_family_v1", "short_cf_thermomechanical_rve_v1", "perovskite_transport_stability_v2"} else "propose"
         from src.alloy_workflow.recipe_primary import bootstrap_constraints
-        result = self.runner.run(constraints["taskid"], operation, bootstrap_constraints(constraints))
+        try:
+            result = self.runner.run(constraints["taskid"], operation, bootstrap_constraints(constraints))
+        except (ValueError, RuntimeError) as exc:
+            return scoped_outcome(payload, effective, plan, self.service_name,
+                'calculation_error', ['本次专项计算未形成可用结果，原配比范围、工况与性能要求均已保留。'],
+                diagnostic=repr(exc))
+        if (effective.get('model_domain') == 'short_cf_thermomechanical_rve_v1'
+                and effective.get('candidate_windows') and not result.get('all_candidates')):
+            return scoped_outcome(payload, effective, plan, self.service_name,
+                'no_supported_reference', ['指定范围内未找到当前复材模型可用的参考配方。'], seed=result)
         # Fire-and-record only: formal candidates, ranking, Markdown and charts
         # continue to use the specialist result while the unified Transformer
         # is evaluated privately against the same resolved candidate batch.
@@ -54,12 +75,9 @@ class AlloyOptimizationApplication:
                 if promoted is not None:
                     return promoted, constraints
             except Exception as exc:
-                # Keep an explicit legacy result, never label a failed/new
-                # calculation as Transformer or overwrite its prediction.
-                result["recipe_release"] = {
-                    "mode": "legacy", "requested_mode": "primary",
-                    "fallback_reason": type(exc).__name__,
-                }
+                return scoped_outcome(payload, effective, plan, self.service_name,
+                    'calculation_error', ['本次专项优化未形成可交付结果，原要求均已保留；当前未判定存在达标配方。'],
+                    diagnostic=repr(exc))
         # Resolved conditions/provenance are available only after enrichment.
         # This is a private copy, not a replacement for the formal result.
         submit_recipe = getattr(self.runner, "submit_recipe_shadow", None)
@@ -205,7 +223,11 @@ class AlloyOptimizationApplication:
             aux_text = f"；室温 %IACS（C 级辅助预测）{float(iacs):.1f}" if iacs is not None else ""
             strength_level = tensile["ultimate_tensile_strength_MPa"].get("evidence_level", "B")
             result["user_conclusion"] = f"在给定工艺状态和温度下，优先进入验证的局部候选为 {top['candidate_id']}（{comp} wt.%）：短时 UTS 筛选值 {tensile['ultimate_tensile_strength_MPa']['mean']:.0f} MPa、0.2% 屈服筛选值 {tensile['yield_0p2_MPa']['mean']:.0f} MPa{aux_text}。{strength_level} 级强度结果反映成分、状态和温度的联合适用域；C/D 级附加性质仅用于工艺窗口和验证规划。"
+        elif result.get("nearest_candidates"):
+            top = result["nearest_candidates"][0]
+            gap_text = "；".join(f"{ {'uts_min_MPa': '抗拉强度', 'proof_strength_min_MPa': '0.2%屈服强度'}[key]}缺口 {gap['shortfall']:.1f} MPa" for key, gap in top["strict_screening"]["constraint_gaps"].items() if gap["shortfall"] > 0)
+            result["user_conclusion"] = f"本次未找到全部达标的配方，接近目标的配方为 {top['candidate_id']}：{gap_text}。组成、加工状态和评价温度有相近数据支持；按上述差距继续优化，原性能要求保持不变。"
         else:
-            result["user_conclusion"] = "当前边界未生成物理有序的局部候选；请收窄到主元素域并确认工艺状态。"
+            result["user_conclusion"] = "当前边界没有组成、加工状态和评价温度均有支持的有效配方；请核对主元素范围与工艺条件。"
         result["next_actions"] = ["确认候选的实际制造/热处理状态和目标温度", "对前 2–3 个候选开展同状态短时拉伸与室温电导复测", "以热导/CTE/硬度 D 级区间制定验证计划；低周疲劳、蠕变在补齐载荷与温度边界后建立独立试验关卡"]
         result["downstream_handoff_text"] = "交接内容包含 wt.% 配比、工艺状态、温度、独立分组验证误差和来源锚点；后续优化必须保留主域与状态条件。"

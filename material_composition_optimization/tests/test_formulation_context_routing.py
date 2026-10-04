@@ -4,7 +4,7 @@ from __future__ import annotations
 import asyncio
 import json
 from types import SimpleNamespace
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, AsyncMock
 
 import pytest
 
@@ -168,14 +168,13 @@ def test_missing_or_ambiguous_identity_is_confirmation_not_an_untrained_alloy(pa
     with pytest.raises(MaterialContextError):
         upstream_requirement(payload)
     effective, plan = generic_fallback_plan(payload, "routing")
-    assert effective["model_domain"] == "routing_confirmation"
-    assert plan["requires_domain_confirmation"]
-    assert not plan["default_assumptions"]
-    assert "material_family" not in effective
+    assert effective["model_domain"] == "generic_composition_design_fallback_v1"
+    assert not plan.get("requires_domain_confirmation")
+    assert effective["material_family"]
     result, _ = generic_fallback_result(payload, "routing", "alloy-composition-optimization")
-    assert result["status"] == "waiting_for_input"
-    assert not result["initial_candidates"]
-    assert "model_evidence" not in result
+    assert result["status"] == "completed_with_fallback"
+    assert result["initial_candidates"]
+    assert 'predicted_properties' not in result['initial_candidates'][0]
 
 
 def test_resolved_untrained_family_still_receives_its_specific_trial_design():
@@ -264,25 +263,31 @@ async def stream_locally(websocket, markdown, *, step_id):
 def test_direct_websocket_reuses_existing_waiting_protocol_and_does_not_infer():
     import main
     websocket = CaptureWebSocket({"taskid": "context-missing", "idea": REQUEST})
-    with patch.object(main, "_proposal") as infer, patch.object(main, "stream_authoritative_markdown", stream_locally):
+    result,_=generic_fallback_result(websocket.payload,'routing','test')
+    async def emit(ws,value,**kwargs):
+        from src.alloy_workflow.fallback_design import render_fallback
+        await stream_locally(ws,render_fallback(value),step_id=kwargs['step_id'])
+    with patch.object(main, "_proposal",return_value=result) as infer, patch.object(main, "stream_authoritative_markdown", stream_locally), \
+         patch.object(main,'prepare_public_assets',AsyncMock(return_value=({},[],[],[]))),patch.object(main,'emit_result_content',emit):
         asyncio.run(main.start(websocket))
-    infer.assert_not_called()
+    infer.assert_called_once()
     texts = [event for kind, event in websocket.events if kind == "text"]
     results = [event for kind, event in websocket.events if kind == "json" and event["type"] == "result"]
     assert texts[0] == "[start]" and texts[-1] == "[end]"
-    assert results[0]["data"]["status"] == "waiting_for_input"
-    assert "上述材料" in results[0]["data"]["user_conclusion"]
+    assert results[0]["data"]["status"] == "completed_with_fallback"
+    assert any('配方' in part for part in texts)
     assert all(event["data"]["stepId"] == "FILAMENT_SELECTION_OPTIMIZATION" for kind, event in websocket.events if kind == "json" and event["type"] == "progress")
 
 
 def test_alpha_role_reuses_the_same_context_and_waiting_branch():
     import src.team_config as team
     websocket = CaptureWebSocket({})
-    with patch.object(team, "execute_alloy_optimization") as infer, patch.object(team, "stream_authoritative_markdown", stream_locally):
+    result,_=generic_fallback_result({'idea':REQUEST},'routing','test')
+    with patch.object(team, "execute_alloy_optimization",AsyncMock(return_value=result)) as infer, patch.object(team, "stream_authoritative_markdown", stream_locally):
         message = asyncio.run(team.Coding.run(SimpleNamespace(), {"idea": REQUEST}, websocket, "tester", "context-alpha", []))
-    infer.assert_not_called()
-    assert "上述材料" in message
-    assert any(kind == "json" and event["type"] == "result" and event["data"]["status"] == "waiting_for_input" for kind, event in websocket.events)
+    infer.assert_called_once()
+    assert "配方" in message
+    assert any(kind == "json" and event["type"] == "result" and event["data"]["status"] == "completed_with_fallback" for kind, event in websocket.events)
 
 
 def test_alpha_message_adapter_preserves_prior_user_material_for_a_reference():
@@ -312,11 +317,11 @@ def test_runtime_confirmation_does_not_call_runner_or_create_fake_charts(tmp_pat
     runtime = AlloyRuntime.__new__(AlloyRuntime)
     runtime.application = AlloyOptimizationApplication(runner, "alloy-composition-optimization")
     runtime.results_root = tmp_path
-    runtime._render = Mock()
+    runtime._render = Mock(return_value={})
     result = runtime.propose({"taskid": "waiting-no-prediction", "idea": REQUEST})
-    assert result["status"] == "waiting_for_input"
+    assert result["status"] == "completed_with_fallback"
     runner.run.assert_not_called()
-    runtime._render.assert_not_called()
+    runtime._render.assert_called_once()
     assert result["presentation"]["assets"] == []
 
 
@@ -324,4 +329,4 @@ def test_rest_evaluate_preserves_waiting_status_in_outer_manifest():
     import main
     with patch.object(main.RUNTIME, "save"):
         result = main.evaluate({"taskid": "waiting-evaluate", "idea": REQUEST})
-    assert result["status"] == result["result"]["status"] == "waiting_for_input"
+    assert result["status"] == result["result"]["status"] == "completed_with_fallback"

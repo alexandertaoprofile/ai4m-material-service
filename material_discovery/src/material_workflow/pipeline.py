@@ -25,6 +25,10 @@ def run_new_material_pipeline(
     validation_runner: Optional[ValidationRunner] = None,
 ) -> NewMaterialPipelineResult:
     """Run MatterGen generation, structural admission checks, and ranking."""
+    from .omatg_contract import omatg_enabled
+    if omatg_enabled():
+        from .omatg_pipeline import run_omatg_pipeline
+        return run_omatg_pipeline(constraints, results_root, max_candidates)
     task_dir = results_root / constraints.taskid
     generation_dir = task_dir / "generation"
     validation_dir = task_dir / "validation"

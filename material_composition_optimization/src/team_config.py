@@ -142,7 +142,7 @@ class Coding(Action):
                 "status": "in_progress", "description": progress_description,
             },
         })
-        method = primary_preflight(effective.get("model_domain")) if effective_mode(effective) == "primary" else planned_alloy_method_block(payload)
+        method = primary_preflight(effective.get("model_domain"), effective) if effective_mode(effective) == "primary" else planned_alloy_method_block(payload)
         await stream_authoritative_markdown(websocket, method, step_id=FRONTEND_STEP_ID)
 
         if plan.get("requires_domain_confirmation"):

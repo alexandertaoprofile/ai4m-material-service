@@ -1,17 +1,36 @@
 # material_service_hub
 
-材料服务聚合仓。当前维护三个可独立运行、独立配置、独立部署的服务：
+材料服务聚合仓。当前维护四个可独立运行、独立配置、独立部署的服务：
 
 | 服务 | 业务边界 | 主职责 |
 | --- | --- | --- |
-| `material_composition_optimization/` | 高熵合金/多主元合金（HEA/MPEA）及明确合金体系 | 成分空间、元素约束、代理评估、候选配比提议。 |
+| `material_composition_optimization/` | 合金、芯片封装玻璃、短碳纤维复合材料及钙钛矿专项 | 组成约束、条件化性质预测与材料配比优化。 |
 | `material_database/` | 已有商品/牌号材料 | 目录检索、证据核验、性质比较；不生成新材料或配方。 |
 | `material_discovery/` | 数据库外无机晶体 | 生成、结构准入、热力学初筛和候选排序；不做已有材料查询或合金配比优化。 |
 | `material_validation/` | 难熔金属跨尺度性能计算与验证 | 对已有 W / 难熔金属候选按 DFT、MLIP、MD 与实验/文献证据链进行验证；首版为 W-14 标杆案例。 |
 
+## 正式版本与备份版本
+
+本项目使用一个 GitHub 仓库、两条主要分支：
+
+| 分支 | 用途 |
+| --- | --- |
+| `update/material-services-2026-08` | 正式维护分支，即服务维护中所称的 `service-08`；新增服务改动在此提交。 |
+| `main` | 备份分支，保留此前版本；未经确认不以正式分支覆盖。 |
+
+正式版本的拉取方式：
+
+```bash
+git clone --branch update/material-services-2026-08 git@github.com:AI4SciFoundation/Material-Computation.git
+```
+
+1115 已接入 OMatG CSP / DNG，运行配置与回归命令见
+[材料发现说明](material_discovery/README.md)。本次正式代码同时归档后续显示优化；代码提交与服务部署分开执行，不随 Git 推送更新线上进程。
+模型源码、模型权重、科学计算参考库、环境缓存、任务结果和生产密钥由服务器单独管理。
+
 ## 统一职责路线
 
-三个服务均遵循同一职责方向，不要求使用完全相同的目录名：
+各服务均遵循同一职责方向，不要求使用完全相同的目录名：
 
 ```text
 main.py（HTTP / WebSocket 传输入口）

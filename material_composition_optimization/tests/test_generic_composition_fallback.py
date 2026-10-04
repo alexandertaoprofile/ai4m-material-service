@@ -19,18 +19,19 @@ def test_untrained_material_family_returns_a_visible_generic_formulation_instead
     assert len(result["supported_model_capabilities"]) == 8
     assert result["initial_candidates"][0]["candidate_kind"] == "rule_assisted_experiment_template"
     report = generic_composition_fallback_summary_block(result)
-    assert report.startswith("### 1. 问题描述")
-    assert "本次输入尚未匹配到可执行的预测模型" in report
+    assert report.startswith("### 1. 设计需求与优化目标")
+    assert "尚未匹配到可执行的专项预测路线" in report
     assert "当前材料类型没有已训练完成的专项模型" not in report
     assert "| 支持的材料类别 |" not in report
-    headings = ["### 1.", "### 2.", "### 3.", "### 4.", "### 5.", "### 5.1", "### 5.2", "#### 结论"]
+    headings = ["### 1.", "### 2.", "### 3.", "### 4.", "### 5."]
     assert [report.index(heading) for heading in headings] == sorted(report.index(heading) for heading in headings)
     assert "复合材料/多相体系" in report
-    assert "必须同步锁定的工艺变量" in report
-    assert "每个样品至少记录" in report
+    assert "制备与评价条件" in report
+    assert "试验记录" in report
     assert "{{VISUAL:" not in report
-    assert "\n- " in report and "\n\n- " in report
-    assert "$x_i$" in report and "$l_i$" in report and "$u_i$" in report
+    assert "\n\n1. " in report and "\n\n2. " in report
+    assert "$c_i$" in report and "$l_i$" in report and "$u_i$" in report
+    assert '| 配方方案 |' in report and 'GEN001' in report
 
 
 def test_titanium_fallback_uses_a_family_specific_first_round_design():

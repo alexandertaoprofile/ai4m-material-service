@@ -108,6 +108,15 @@ def build_preparation_traceability_report(result) -> str:
     if not isinstance(traceability, dict):
         return ""
 
+    if result.generation.backend == "omatg":
+        fingerprint = traceability.get("candidate_crystallography") or {}
+        phases = traceability.get("same_system_stable_phases") or []
+        rows = ["#### 候选与参考相记录", "",
+            f"候选 {fingerprint.get('formula_pretty')}；松弛后空间群 {fingerprint.get('space_group_symbol')}。",
+            "参考相用于稳定性比较，不作为原型匹配结论或制备路线。", ""]
+        rows.extend(f"- {phase.get('formula_pretty')}：{phase.get('material_id') or '本地参考相'}" for phase in phases[:6])
+        return "\n".join(rows)
+
     fingerprint = traceability.get("candidate_crystallography") or {}
     prototype = traceability.get("prototype_match")
     rows = [
@@ -159,6 +168,8 @@ def render_presentation_assets(result) -> dict[str, Any]:
     command = (["micromamba", "run", "-p", env_prefix] if env_prefix else []) + [
         "python", str(helper), "--manifest", str(manifest_path), "--output-dir", str(output_dir),
     ]
+    if result.generation.backend == "omatg":
+        command = [os.getenv("MATTERSIM_PYTHON", str(Path(os.getenv("MATTERSIM_ENV_PREFIX", env_prefix)) / "bin" / "python")), str(helper), "--manifest", str(manifest_path), "--output-dir", str(output_dir)]
     environment = os.environ.copy()
     temporary_root = environment.setdefault("MATTERSIM_TMPDIR", "/data/mattersim_tmp")
     Path(temporary_root).mkdir(parents=True, exist_ok=True)
@@ -171,13 +182,19 @@ def render_presentation_assets(result) -> dict[str, Any]:
     except subprocess.TimeoutExpired:
         (output_dir / "presentation.log").write_text("Presentation rendering exceeded its timeout.", encoding="utf-8")
         return {"status": "unavailable", "message": "Presentation rendering timed out.", "log_path": str(output_dir / "presentation.log")}
+    except OSError as exc:
+        (output_dir / "presentation.log").write_text(f"Presentation environment unavailable: {type(exc).__name__}", encoding="utf-8")
+        return {"status": "unavailable", "error_code": "environment_unavailable", "log_path": str(output_dir / "presentation.log")}
     (output_dir / "presentation.log").write_text(
         (completed.stdout or "") + ("\n" + completed.stderr if completed.stderr else ""), encoding="utf-8"
     )
     presentation_manifest = output_dir / "presentation_manifest.json"
     if completed.returncode != 0 or not presentation_manifest.exists():
         return {"status": "unavailable", "message": "Presentation assets were not rendered.", "log_path": str(output_dir / "presentation.log")}
-    return json.loads(presentation_manifest.read_text(encoding="utf-8"))
+    try:
+        return json.loads(presentation_manifest.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {"status": "unavailable", "error_code": "invalid_manifest", "log_path": str(output_dir / "presentation.log")}
 
 
 def build_discovery_conclusion(result) -> str:
@@ -201,6 +218,7 @@ def build_discovery_conclusion(result) -> str:
             next_step = "建议先完成稳定性评估，再决定后续验证优先级。"
         else:
             threshold = float((result.constraints.target_properties or {}).get("energy_above_hull", 0.05))
+            reference_mode = result.generation.backend == "omatg" and result.constraints.parameter_sources.get("energy_above_hull_mode") != "硬性上限"
             if conclusion.get("decision") == "comparison_candidate":
                 finding = (
                     f"本轮候选均未达到 {threshold:.2f} eV/atom 的稳定性初筛阈值；"
@@ -209,7 +227,10 @@ def build_discovery_conclusion(result) -> str:
                 next_step = "建议保留该结构及下方性质初筛结果作为本轮比较基准，并调整元素体系或生成条件后继续探索。"
             else:
                 status = "达到" if hull <= threshold else "未达到"
-                finding = f"排名第一的候选为 `{formula}`，E_hull 为 {hull:.4f} eV/atom，{status} {threshold:.2f} eV/atom 的本轮初筛阈值。"
+                if reference_mode:
+                    finding = f"优先比较的候选为 `{formula}`，E_hull 为 {hull:.4f} eV/atom，{status} {threshold:.2f} eV/atom 的稳定性复核参考线；超过参考线不阻断性质评价，但须高精度复核。"
+                else:
+                    finding = f"排名第一的候选为 `{formula}`，E_hull 为 {hull:.4f} eV/atom，{status} {threshold:.2f} eV/atom 的本轮初筛阈值。"
                 next_step = {
                     "shortlist_for_dft": "建议优先开展高精度计算与目标性能验证，并结合实际工况确认制备与服役可行性。",
                     "structure_only": "建议先完成稳定性评估，再决定后续验证优先级。",
@@ -387,6 +408,10 @@ def planned_discovery_method_block(constraints) -> str:
 
 def build_requirement_brief(constraints) -> str:
     """A small, truthful streamable brief displayed before GPU work starts."""
+    from .omatg_contract import omatg_enabled
+    if omatg_enabled():
+        from .omatg_report import build_plan
+        return build_plan(constraints, getattr(constraints, "requested_candidate_count", int(os.getenv("OMATG_DEFAULT_CANDIDATES", "10"))))
     elements = " · ".join(constraints.allowed_elements) or "从化学式解析"
     properties = constraints.target_properties or {}
     friendly_names = {
@@ -436,6 +461,14 @@ def build_requirement_brief(constraints) -> str:
 
 def _phase_from_files(task_dir: Path) -> tuple[int, str, str]:
     """Derive a truthful phase from durable artifacts rather than fake timers."""
+    from .omatg_contract import omatg_enabled
+    if omatg_enabled():
+        try:
+            progress = json.loads((task_dir / "omatg_stage.json").read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return 1, "正在准备计算或等待资源", "已保留当前化学式/元素约束。"
+        phase = {"generation": 2, "validation": 3, "properties": 3, "rendering": 4}.get(progress.get("stage"), 1)
+        return phase, progress.get("text", "正在计算"), progress.get("text", "正在计算")
     if (task_dir / "presentation" / "presentation_manifest.json").exists():
         return 4, "结果正在整理", "稳定性评估已形成，正在生成结构模型、评分卡和可视化结论。"
     if (task_dir / "mattersim" / "mattersim_results.json").exists():
@@ -493,6 +526,9 @@ def _write_progress_state(task_dir: Path, *, phase: int, title: str, description
     """Persist progress so HTTP clients can poll while a WebSocket job runs."""
     task_dir.mkdir(parents=True, exist_ok=True)
     expected, _ = PHASE_EXPECTATIONS[phase]
+    from .omatg_contract import omatg_enabled
+    if omatg_enabled():
+        expected = "随原子数和候选数变化；显示实际执行阶段"
     payload = {
         "status": "in_progress",
         "phase": phase,
@@ -540,22 +576,30 @@ async def stream_discovery_progress(
     """Emit concise, evidence-based JSON progress events for the frontend bar."""
     progress_events = progress_events or DiscoveryProgressEvents(request_id)
     last_phase: int | None = None
+    last_stage_signature = None
+    last_percent = 0
     last_sampling_current: int | None = None
     last_heartbeat = 0.0
     started_at = time.monotonic()
     phase_started_at = started_at
     while True:
         phase, title, description = _phase_from_files(task_dir)
-        if phase == 2:
+        from .omatg_contract import omatg_enabled
+        is_omatg = omatg_enabled()
+        if phase == 2 and not is_omatg:
             title, description = _mattergen_runtime_stage(task_dir)
         now = time.monotonic()
+        signature = (phase, title, description)
         phase_changed = phase != last_phase
+        stage_changed = signature != last_stage_signature
         if phase_changed:
             phase_started_at = now
         total_elapsed = int(now - started_at)
         phase_elapsed = int(now - phase_started_at)
         expected, expectation_note = PHASE_EXPECTATIONS[phase]
-        sampling = _mattergen_sampling_progress(task_dir) if phase == 2 else None
+        if is_omatg:
+            expected, expectation_note = "随原子数与候选数变化", ""
+        sampling = _mattergen_sampling_progress(task_dir) if phase == 2 and not is_omatg else None
         sampling_changed = sampling is not None and sampling["current"] != last_sampling_current
         sampling_text = (
             f" 当前已完成真实扩散步数 {sampling['current']}/{sampling['total']}（{sampling['percent']}%）；"
@@ -566,8 +610,8 @@ async def stream_discovery_progress(
             f"本阶段已进行 {phase_elapsed // 60} 分 {phase_elapsed % 60} 秒；"
             f"常见耗时：{expected}。{expectation_note}"
         )
-        if phase_changed or sampling_changed or now - last_heartbeat >= 15:
-            description_for_state = full_description if phase_changed else (
+        if stage_changed or sampling_changed or now - last_heartbeat >= 15:
+            description_for_state = full_description if stage_changed else (
                 f"第 {phase}/4 阶段；"
                 + (f"当前扩散步数 {sampling['current']}/{sampling['total']}（{sampling['percent']}%）" if sampling else "正在执行。")
             )
@@ -575,7 +619,7 @@ async def stream_discovery_progress(
                 task_dir, phase=phase, title=title, description=description_for_state,
                 total_elapsed=total_elapsed, phase_elapsed=phase_elapsed,
             )
-            if phase_changed or sampling_changed:
+            if stage_changed or sampling_changed:
                 if phase == 1:
                     stage, percent, text = "preparing", 5, "正在准备计算"
                 elif phase == 2:
@@ -587,10 +631,20 @@ async def stream_discovery_progress(
                         f"正在生成候选结构：{sampling['current']}/{sampling['total']} 步"
                         if sampling else "正在加载生成模型"
                     )
+                    if is_omatg:
+                        text = description
                 elif phase == 3:
                     stage, percent, text = "structure_validation", 80, "正在检查候选结构"
                 else:
                     stage, percent, text = "result_packaging", 95, "正在整理结果"
+                if is_omatg:
+                    try:
+                        percent = json.loads((task_dir / "omatg_stage.json").read_text())["percent"]
+                    except (OSError, KeyError, json.JSONDecodeError):
+                        percent = last_percent or 5
+                    text = description
+                    percent = max(last_percent, min(95, int(percent)))
+                last_percent = percent
                 await progress_events.emit(
                     websocket,
                     stage=stage,
@@ -600,6 +654,7 @@ async def stream_discovery_progress(
                 )
             if phase_changed:
                 last_phase = phase
+            last_stage_signature = signature
             if sampling is not None:
                 last_sampling_current = sampling["current"]
             last_heartbeat = now
@@ -616,6 +671,12 @@ async def emit_presentation_assets(websocket, result, *, step_id: str = "FILAMEN
     taskid = str(result.taskid).replace("/", "_")
     pipeline = "inorganic_new_material"
     jobid = taskid or "job"
+
+    def delivery_status(asset, code):
+        if getattr(result.generation, "backend", "") == "omatg":
+            presentation.setdefault("delivery_status", []).append({
+                "name": str(asset.get("name") or "结构预览"), "code": code,
+            })
 
     def _trace(path: Path, event: str, **details: Any) -> None:
         """Persist per-asset delivery diagnostics next to the generated assets.
@@ -644,6 +705,7 @@ async def emit_presentation_assets(websocket, result, *, step_id: str = "FILAMEN
     for asset in assets:
         path = Path(asset.get("path") or "")
         if not path.exists():
+            delivery_status(asset, "source_missing")
             _trace(path, "source_missing", asset_type=asset.get("type"), asset_name=asset.get("name"))
             continue
         resolved_path = path.resolve()
@@ -674,20 +736,24 @@ async def emit_presentation_assets(websocket, result, *, step_id: str = "FILAMEN
             response = await oss_upload("alpha", object_key, path.read_bytes())
             _trace(path, "upload_finished", response=response, object_key=object_key)
             if not isinstance(response, dict) or response.get("status") != 200:
+                delivery_status(asset, "upload_rejected")
                 logger.warning("[new-material-assets] upload failed: key=%s response=%s", object_key, response)
                 _trace(path, "upload_rejected", response=response, object_key=object_key)
                 continue
             # Confirm that the S3-compatible endpoint can see the object before
             # handing its URL to the browser.  This catches a failed/minio-race
             # rather than displaying a permanent broken asset card.
+            verification_error = False
             try:
                 exists = await get_storage_client().aobject_exists("alpha", object_key)
             except Exception as exc:
                 logger.warning("[new-material-assets] object verification failed: key=%s error=%s", object_key, exc)
                 _trace(path, "storage_verification_error", object_key=object_key, error=repr(exc))
                 exists = False
+                verification_error = True
             _trace(path, "storage_verified", object_key=object_key, exists=exists)
             if not exists:
+                delivery_status(asset, "verification_error" if verification_error else "storage_absent")
                 logger.warning("[new-material-assets] object absent after upload: key=%s", object_key)
                 _trace(path, "storage_absent", object_key=object_key)
                 continue
@@ -713,6 +779,7 @@ async def emit_presentation_assets(websocket, result, *, step_id: str = "FILAMEN
                 _trace(path, "markdown_image_ready", asset_type=asset_type, public_url=public_url)
                 logger.info("[new-material-assets] prepared Markdown image key=%s url=%s", object_key, public_url)
         except Exception as exc:
+            delivery_status(asset, "delivery_error")
             logger.exception("[new-material-assets] failed to emit asset path=%s error=%s", path, exc)
             _trace(path, "delivery_error", error=repr(exc), object_key=object_key, public_url=public_url)
             continue

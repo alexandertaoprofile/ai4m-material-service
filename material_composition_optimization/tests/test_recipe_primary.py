@@ -12,7 +12,7 @@ def test_only_accepted_domain_can_be_promoted(tmp_path, monkeypatch, domain, app
     path = tmp_path / 'release.json'
     path.write_text(json.dumps({'approved_after_acceptance': approved, 'domains': {domain: 'primary'}}))
     monkeypatch.setenv('MATERIAL_RECIPE_RELEASE_CONFIG', str(path))
-    assert p.mode_for(domain) == ('primary' if approved and domain in p.ELIGIBLE else 'shadow')
+    assert p.mode_for(domain) == ('primary' if approved and domain in p.ELIGIBLE and domain not in p.NICU else 'shadow')
 
 
 def test_unknown_or_broken_config_is_shadow(tmp_path, monkeypatch):
@@ -98,8 +98,8 @@ def test_action_summary_contains_actual_composition_and_conditions_not_just_id()
         condition_rows=lambda report: [('评价温度', '293 K', '用户指定')],
         number=lambda v: str(v), property_value=lambda k, v: (k, str(v), 'MPa'))
     text = p.downstream_summary({'domain': 'reusable_rocket_stainless', 'candidates': [row()]}, 'handoff-case', display)
-    assert 'Fe=70' in text and 'Cr=18' in text and 'Ni=12' in text
-    assert '293 K' in text and 'YS_MPa=250 MPa' in text
+    assert 'Fe为70%' in text and 'Cr为18%' in text and 'Ni为12%' in text
+    assert '293 K' in text and 'YS_MPa为250 MPa' in text
     assert '/alloy/tasks/handoff-case' in text and '见上表' not in text
 
 

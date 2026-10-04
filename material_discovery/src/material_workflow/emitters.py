@@ -44,6 +44,10 @@ def build_scientific_conclusion(result: NewMaterialPipelineResult) -> JsonDict:
     """Create a conservative, frontend-ready decision from computed evidence."""
     top = result.ranked_candidates[0] if result.ranked_candidates else None
     if top is None or top.validation is None:
+        if result.generation.backend == "omatg":
+            from .omatg_output_status import generation_issue, candidate_issues
+            reason = candidate_issues(None)[0] if top else generation_issue(result.generation, result.message)
+            return {"decision": "no_candidate", "text": reason["cause"] + reason["effect"] + reason["action"], "evidence_level": "none"}
         return {"decision": "no_candidate", "text": "未生成可进入验证阶段的候选结构。", "evidence_level": "none"}
     validation = top.validation
     formula = top.candidate.formula_pretty or validation.formula_pretty or top.candidate.candidate_id
@@ -58,18 +62,35 @@ def build_scientific_conclusion(result: NewMaterialPipelineResult) -> JsonDict:
     ehull = validation.energy_above_hull
     formation = validation.formation_energy_per_atom
     threshold = float((result.constraints.target_properties or {}).get("energy_above_hull", 0.05))
+    if result.generation.backend == "omatg":
+        screening = validation.metadata.get("screening", {})
+        if screening.get("state") != "passed":
+            from .omatg_output_status import candidate_issues, readable_reason
+            issues = candidate_issues(validation, screening.get("missing", []))
+            detail = "；".join(readable_reason(item) for item in screening.get("failures", []))
+            detail += ("；" if detail and issues else "") + "；".join(item["cause"] + item["effect"] + item["action"] for item in issues)
+            if not detail:
+                detail = "评价结论缺少可识别的具体原因，请核对该候选的评价记录与任务日志"
+            return {"decision": "comparison_candidate" if screening.get("state") == "failed" else "structure_only",
+                "candidate_id": top.candidate.candidate_id, "formula": formula,
+                "energy_above_hull_ev_per_atom": ehull, "text": f"{formula}：{detail}。",
+                "evidence_level": "D：MatterSim/参考相混合凸包估算", "screening": screening}
     if ehull is None:
         return {
             "decision": "structure_only",
             "text": "候选已通过基础结构检查；尚未完成稳定性评估，因此还不能判断它是否值得合成验证。",
             "evidence_level": "pymatgen_structure_check",
         }
+    hard_limit = result.constraints.parameter_sources.get("energy_above_hull_mode") == "硬性上限"
     if ehull <= threshold:
         decision = "shortlist_for_dft"
         thermal = "稳定性初筛表现良好，建议进入 DFT 与目标性能验证。"
+    elif not hard_limit and result.generation.backend == "omatg":
+        decision = "shortlist_for_dft"
+        thermal = "高于稳定性复核参考线；继续保留结构和已完成的性质评价，优先进行统一精度稳定性复算，不能据此宣称热力学稳定。"
     else:
         decision = "comparison_candidate"
-        thermal = "本轮没有候选达到稳定性初筛阈值；它仍是当前批次中最接近该目标的比较候选。"
+        thermal = "未达到明确设置的稳定性硬性上限；已完成的后续计算仍保留作比较，不标为达标结构。"
     formation_text = f"形成能（相对组成元素的能量变化）为 {formation:.4f} eV/atom，" if formation is not None else ""
     return {
         "decision": decision,
@@ -87,10 +108,19 @@ def build_scientific_conclusion(result: NewMaterialPipelineResult) -> JsonDict:
 def build_frontend_payload(result: NewMaterialPipelineResult) -> JsonDict:
     """Build a compact payload suitable for websocket/frontend rendering."""
     top = result.ranked_candidates[0] if result.ranked_candidates else None
+    message = result.message
+    if result.generation.backend == "omatg":
+        from .omatg_report import evaluation_completion_text
+        from .omatg_output_status import generation_issue
+        if result.generation.status == "ok":
+            message = evaluation_completion_text(result.generation.candidates, result.validations)
+        else:
+            problem = generation_issue(result.generation, result.message)
+            message = problem["cause"] + problem["action"]
     return {
         "taskid": result.taskid,
         "status": result.status,
-        "message": result.message,
+        "message": message,
         "constraints": result.constraints.to_dict(),
         "top_candidate": top.to_dict() if top else None,
         "candidate_count": len(result.generation.candidates),

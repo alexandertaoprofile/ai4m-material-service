@@ -75,7 +75,7 @@ def result_event_data(result: dict[str, Any]) -> dict[str, Any]:
     Alpha parent views to stringify internal fields such as ``model_evidence``
     and ``presentation`` into the conversation.
     """
-    candidates = result.get("initial_candidates") or []
+    candidates = result.get("initial_candidates") or result.get("nearest_candidates") or []
     top = candidates[0] if isinstance(candidates, list) and candidates and isinstance(candidates[0], dict) else {}
     sampling = result.get("sampling") or {}
     taskid = str(result.get("taskid") or "")
@@ -126,5 +126,20 @@ async def prepare_public_assets(websocket: Any, taskid: str, result: dict[str, A
     else:
         print(f"[ALLOY][{taskid}] published PNG assets count={len(public_urls)} names={sorted(public_urls)}", flush=True)
         logger.info("published %s alloy PNG asset(s) taskid=%s", len(public_urls), taskid)
-    visual_assets = [{"name": item["name"], "url": public_urls[item["name"]], "title": ASSET_TITLES.get(item["name"], item["name"]), "description": ASSET_DOCS.get(item["name"], "")} for item in result["presentation"]["assets"] if item["name"] in public_urls]
-    return public_urls, ASSET_DOCS, ASSET_TITLES, visual_assets
+    titles, docs = dict(ASSET_TITLES), dict(ASSET_DOCS)
+    report = result.get("_recipe_report") or {}
+    if not report.get("candidates") and report.get("nearest_candidates"):
+        titles.update(recipe_tradeoff="目标性质与接近要求的方案", recipe_composition_0="接近要求的配方组成")
+        docs.update(recipe_tradeoff="比较当前计算中接近性能要求的配方；未满足项见要求对照表。",
+                    recipe_composition_0="展示接近要求的配方组分比例；完整组成和性能缺口见表格。")
+    if result.get('recipe_release', {}).get('mode') == 'primary':
+        selected = result.get('initial_candidates') or result.get('nearest_candidates') or []
+        if selected:
+            label = ('优选配方' if result.get('initial_candidates') else '接近目标配方') + '（' + str(selected[0]['candidate_id']) + '）'
+            titles.update(recipe_tradeoff='目标性能比较与'+label,
+                          recipe_composition_0=label+'的完整配比',
+                          recipe_composition_1=label+'的卤素位组成')
+            docs.update(recipe_tradeoff='比较各配方的目标性能，星形标出'+label+'。',
+                        recipe_composition_0='展示'+label+'的组分比例；具体含量见配比表。')
+    visual_assets = [{"name": item["name"], "url": public_urls[item["name"]], "title": titles.get(item["name"], item["name"]), "description": docs.get(item["name"], "")} for item in result["presentation"]["assets"] if item["name"] in public_urls]
+    return public_urls, docs, titles, visual_assets
