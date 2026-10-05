@@ -16,7 +16,7 @@ data/reference_cases/w14_phase_i/
 
 W-14 的现有 LAMMPS 复现脚本和输出在迁入前目录中。导入时请一并保留其所引用的冻结势、实际 LAMMPS/DeepMD 版本、运行命令和后处理脚本，以便服务判断一条性质是 MD 直接输出、派生量还是工程估算。
 
-当前服务的本机 `.env` 已将 `DeepMD-W-14-commercial-level` 配置为训练/势源，将 `DeepMD_W-14_commercial-level` 配置为 MD 验证源。两者以只读方式统一汇总，不能相互覆盖或删除。
+2026-10-05 已确认训练与势文件归档位于 `/data/se42/cache/DeepMD-W-14-commercial-level`，MD 验证归档位于 `/data/se42/cache/DeepMD_W-14_commercial-level`。75 服务的 `.env` 的 `W14_MLIP_ROOT`、`W14_MD_ROOT` 仍记录不含 `cache/` 的旧路径，联调前需按实际目录核对。两个目录分别保留训练和模拟证据。历史副本位置及主要文件见[运行说明](../../docs/service_setup.md)。
 
 ## 前端图表映射
 

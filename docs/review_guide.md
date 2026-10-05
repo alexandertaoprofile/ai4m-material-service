@@ -1,6 +1,6 @@
 # 仓库评审阅读指南
 
-这份指南帮助评审者先了解项目，再按需要进入代码。核对日期为 2026-10-04；后续部署以[部署记录](deployment_status.md)中的日期和结果为准。
+这份指南帮助评审者先了解项目，再按需要进入代码。源码快照核对日期为 2026-10-04；2026-10-05 补充实际入口和运行资源说明。后续部署以[部署记录](deployment_status.md)中的日期和结果为准。
 
 ## 1. 先了解项目和版本
 
@@ -9,30 +9,40 @@
 | 服务分别做什么 | [仓库首页](../README.md) | 1105 查已有材料，1111 调整配比，1115 生成晶体结构，1116 检查计算与实验依据。 |
 | 哪些来自线上，哪些仍在开发 | [部署记录](deployment_status.md) | 根目录保留已核对的服务器源码；开发目录保存后续更新。1116 尚需确认在线进程。 |
 | 下一版实际改了什么 | [开发改动清单](development_changes.md) | 不同文件及修改目的，测试位置，需要一起更新的模块。 |
-| 新同事是否能直接运行 | [外部依赖说明](external_dependencies.md) | 仓库外的计算程序、模型、数据和 Python 环境；已确认的版本与迁移准备。 |
+| 拉取后怎样准备环境和运行 | [服务运行与复现说明](service_setup.md)及[外部依赖说明](external_dependencies.md) | 每个服务的环境、数据与模型位置、取得方式、启动命令和最小验证。 |
 | 服务器改完代码怎样同步 | [代码同步说明](code_synchronization.md) | 服务目录与发布副本的区别、文件应放的位置、提交和推送步骤。 |
 
 评审当前维护版本用 `main`。`backup` 是固定的历史代码。历史交接文件保留当时的情况，查看当前服务时优先使用上表中的说明。
 
 ## 2. 代码的阅读顺序
 
-先看请求如何进入，再跟到实际计算和报告。以下是职责关系，具体函数名看各服务 README。
+先读运行说明，明确所需资源和启动方式，再看请求进入后的实际调用。各服务 main.py 是 HTTP/WebSocket 入口；team_config.py 是编排或角色适配文件。当前调用关系有差别：
 
 ```text
-用户或上游服务发送请求
-  → main.py：接收请求、检查字段、管理连接
-  → src/team_config.py：组织解析、计算和交付的执行顺序
-  → 业务模块：查询材料、优化配比、生成结构或读取证据
-      ↔ 外部计算环境、模型文件和数据
-  → 展示与文件模块：生成报告、表格、图片和三维文件
-  → 通过既有接口返回结果，同时保存任务记录
+1105 HTTP 查询 / WebSocket
+  main.py → team_config.MaterialMature → catalog / fluid_lubricant
+
+1111 HTTP / WebSocket
+  main.py → alloy_workflow.runtime.RUNTIME → 专项计算与报告
+1111 Alpha Role
+  team_config.AlloyCompositionOptimizationRole / Coding → 同一 RUNTIME
+
+1115 WebSocket
+  main.py → team_config.Service / Team / Role → run_upstream_request
+1115 HTTP 生成
+  main.py → run_upstream_request → pipeline → omatg_pipeline
+
+1116 HTTP / WebSocket
+  main.py → team_config.execute_refractory_validation → validation_workflow
+
+业务计算读取对应数据及模型，再生成报告和文件，通过原接口交付。
 ```
 
 | 服务 | 从哪里开始 | 接下来读什么 |
 | --- | --- | --- |
 | 1105 已有材料查询 | [服务 README](../material_database/README.md)、[请求入口](../material_database/main.py)、[执行流程](../material_database/src/team_config.py) | `src/catalog/` 的查询与条件比较，再看报告模块；导电润滑剂有独立的内部查询流程。 |
-| 1111 配比优化 | [服务 README](../material_composition_optimization/README.md)、[请求入口](../material_composition_optimization/main.py)、[执行流程](../material_composition_optimization/src/team_config.py) | `src/alloy_workflow/` 的输入校验、类别选择、计算程序和报告；具体阅读路径见服务内代码审阅指南。 |
-| 1115 晶体结构生成 | [服务 README](../material_discovery/README.md)、[请求入口](../material_discovery/main.py)、[执行流程](../material_discovery/src/team_config.py) | `src/material_workflow/` 的输入、OMatG 执行流程、结构评价和报告，再看 `tools/` 中的独立模型调用。 |
+| 1111 配比优化 | [服务 README](../material_composition_optimization/README.md)、[请求入口](../material_composition_optimization/main.py)、[运行模块](../material_composition_optimization/src/alloy_workflow/runtime.py)；Role 调用再看[角色适配](../material_composition_optimization/src/team_config.py) | `src/alloy_workflow/` 的输入校验、类别选择、计算程序和报告；具体阅读路径见服务内代码审阅指南。 |
+| 1115 晶体结构生成 | [服务 README](../material_discovery/README.md)、[请求入口](../material_discovery/main.py)、[WebSocket 编排](../material_discovery/src/team_config.py)、[共用业务入口](../material_discovery/src/material_workflow/upstream_api.py) | `src/material_workflow/` 的输入、OMatG 执行流程、结构评价和报告，再看 `tools/` 中的独立模型调用。 |
 | 1116 计算证据核验 | [服务 README](../material_validation/README.md)、[请求入口](../material_validation/main.py)、[执行流程](../material_validation/src/team_config.py) | `src/application/` 的四阶段流程、`src/infrastructure/` 的数据读取及 `src/presentation/` 的报告。 |
 
 `alpha/`、旧英文流程和历史启动文件是保留的兼容内容。检查某项功能从上述入口开始；删除兼容文件前先核对是否仍有代码或外部程序调用。

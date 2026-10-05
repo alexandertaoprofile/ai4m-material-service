@@ -1,4 +1,4 @@
-# 已有材料查询服务（1105）
+# 已有材料选型与性质核验服务（1105）
 
 本服务从已整理的材料目录中查询和比较材料，回答“已有哪个材料符合条件、数据从哪里来”。牌号是材料的规格或型号，例如 IN718。服务保留材料状态、测试条件和来源，不生成新配比或晶体结构。
 
@@ -12,7 +12,41 @@
 
 相近牌号和不同状态分别管理。例如 316、316L、特定样品及不同热处理状态可能具有不同性质，查询时保留这种区别。原始 PDF 尚未自动入库，来源核验及结构化导入另行进行。
 
-## 2. 一次请求与代码分层
+## 2. 运行环境、数据与启动
+
+随 Git 提供的通用数据包括 materials.csv、material_aliases.csv、property_points.csv、curve_data.csv、composition_long.csv 及清洗记录。导电润滑剂专项 SQLite 仅在 75 运行目录，2026-10-05 核对为 381,964,288 字节，约 364 MiB，迁移时需单独取得。原始工作簿与 PDF 用于重建和导入，存放在外部数据目录。
+
+软件分工为 FastAPI/Uvicorn 接收请求，CSV/SQLite 查询和规则比较提供材料证据，Matplotlib 生成图像。环境定义见[环境说明](../env/README.md)，完整资源交接和最小检查见[运行说明](../docs/service_setup.md)。
+
+| 配置 | 用途 |
+| --- | --- |
+| `PORT` | 默认端口 1105。 |
+| `PROPERTY_DATA_ROOT` | 原始材料数据目录。 |
+| `MATURE_MATERIAL_CATALOG_ROOT` | 已整理目录，默认 `data/processed`。 |
+| `MATURE_MATERIAL_RESULTS_ROOT` | 任务结果目录，默认 `results/mature_material`。 |
+| `MINIO_*`、`PICTURE_PUBLIC_BASE_URL` | 图片对象存储和公开访问配置，凭据放本服务 `.env`。 |
+
+75 服务器 Web 环境为 `/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python`。在其他机器上先准备对应环境和目录，参考 `.env.example` 配置本机变量。`requirements.minimal.txt` 是依赖清单；已有生产环境复用，不在系统 Python 中直接安装。
+
+导电润滑剂证据使用版本化 SQLite 文件 `data/processed/fluid_lubricant/2026-08-04_v1/fluid_property_evidence.sqlite`。聊天流程按目录配置读取；独立流体 HTTP 路由当前使用服务目录下的该文件，迁移时两处路径需同时核对。
+
+配置完成、端口空闲后，在单独联调 tmux 会话内启动：
+
+```bash
+cd /path/to/material_database
+/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python main.py
+```
+
+目录重建是数据维护操作，会更新整理结果；只有准备了来源文件并确认目标目录后才执行。例如：
+
+```bash
+python scripts/clean_catalog.py \
+  --workbook "/data/se42/backend/property datasets/alloy_material_dataset_v0.1.xlsx"
+```
+
+原始文件、任务结果、日志和凭据与源码分开管理。正式验收后可由运维登记 `material-database-1105` 系统服务；避免与 tmux 在同一端口重复运行。
+
+## 3. 一次请求与代码分层
 
 ```text
 材料名称/类别 + 工况 + 性质要求
@@ -32,9 +66,11 @@
 | `src/fluid_lubricant/` | 导电润滑剂专项查询、证据比较、短名单和图文组织。 |
 | `data/processed/`、`tests/` | 整理后的目录、别名映射和已有测试。 |
 
+HTTP 查询与 WebSocket 主流程从 main.py 调用 src/team_config.py 中的 MaterialMature.contract() 和 run()。后者选择通用目录或导电润滑剂流程；独立流体 HTTP 路由保留自己的查询适配。
+
 数据接入与前端事件详情见[服务手册](docs/mature_material_service_guide.md)。
 
-## 3. 输入与接口
+## 4. 输入与接口
 
 | 接口 | 用途 |
 | --- | --- |
@@ -68,36 +104,6 @@
 ```
 
 可选 `upstream_evidence` 接收上游给出的材料、性质、数值、工况和来源；这些记录原样保留，只有与目录核对后的数据才标记为已核验。别名表 `data/processed/material_aliases.csv` 若匹配多个材料状态，返回歧义信息供确认。
-
-## 4. 环境、数据与结果
-
-| 配置 | 用途 |
-| --- | --- |
-| `PORT` | 默认端口 1105。 |
-| `PROPERTY_DATA_ROOT` | 原始材料数据目录。 |
-| `MATURE_MATERIAL_CATALOG_ROOT` | 已整理目录，默认 `data/processed`。 |
-| `MATURE_MATERIAL_RESULTS_ROOT` | 任务结果目录，默认 `results/mature_material`。 |
-| `MINIO_*`、`PICTURE_PUBLIC_BASE_URL` | 图片对象存储和公开访问配置，凭据放本服务 `.env`。 |
-
-75 服务器 Web 环境为 `/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python`。在其他机器上先准备对应环境和目录，参考 `.env.example` 配置本机变量。`requirements.minimal.txt` 是依赖清单；已有生产环境复用，不在系统 Python 中直接安装。
-
-导电润滑剂证据使用版本化 SQLite 文件 `data/processed/fluid_lubricant/2026-08-04_v1/fluid_property_evidence.sqlite`。聊天流程按目录配置读取；独立流体 HTTP 路由当前使用服务目录下的该文件，迁移时两处路径需同时核对。
-
-配置完成、端口空闲后，在单独联调 tmux 会话内启动：
-
-```bash
-cd /path/to/material_database
-/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python main.py
-```
-
-目录重建是数据维护操作，会更新整理结果；只有准备了来源文件并确认目标目录后才执行。例如：
-
-```bash
-python scripts/clean_catalog.py \
-  --workbook "/data/se42/backend/property datasets/alloy_material_dataset_v0.1.xlsx"
-```
-
-原始文件、任务结果、日志和凭据与源码分开管理。正式验收后可由运维登记 `material-database-1105` 系统服务；避免与 tmux 在同一端口重复运行。
 
 ## 5. 验证与交接
 

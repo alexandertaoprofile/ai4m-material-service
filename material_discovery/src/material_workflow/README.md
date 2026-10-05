@@ -7,16 +7,18 @@
 ## 1. 当前调用关系
 
 ```text
-main.py → src/team_config.py → upstream_api.py → pipeline.py
-                                                   ↓
-                                 OMatG：omatg_pipeline.py
-                                                   ↓
-                            生成 → 检查 → 松弛 → 预测 → 比较
-                                                   ↓
-                           报告与资产 → 前端流式交付
+WebSocket：main.py → src/team_config.py 的 Service / Team / Role
+                                     ↓
+HTTP 生成：main.py → upstream_api.py → pipeline.py
+                                           ↓
+                              OMatG：omatg_pipeline.py
+                                           ↓
+                         生成 → 检查 → 松弛 → 预测 → 比较
+                                           ↓
+                           报告与资产 → 对应接口交付
 ```
 
-`src/team_config.py` 管理服务阶段、角色生命周期和内容输出次序；`main.py` 管理 WebSocket 连接和协议。`pipeline.py` 根据配置选择后端；现行 OMatG 使用 `omatg_pipeline.py`，旧 MatterGen 实现显式保留为兼容路线。
+`src/team_config.py` 管理 WebSocket 路线的服务阶段、角色生命周期和内容输出次序；`main.py` 管理连接与接口，HTTP 生成直接调用 `upstream_api.py`。两条入口共用实际计算模块。`pipeline.py` 根据配置选择后端；现行 OMatG 使用 `omatg_pipeline.py`，旧 MatterGen 实现显式保留为兼容路线。
 
 ## 2. 模块职责
 

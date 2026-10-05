@@ -21,7 +21,32 @@
 
 专项开关只决定使用哪个结果版本，具体请求仍需满足该模型支持的材料、组成、工艺和工况。未命中专项的请求提供通用设计准备：支持类别、组分角色、配比变量和试验安排。数值预测以实际执行的模型为准。
 
-## 2. 一次请求如何完成
+## 2. 运行环境、模型数据与启动
+
+Web 解释器为 `/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python`。服务配置参考 `.env.example`，重点包括端口、数值资源路径、结果目录、语言模型和对象存储设置。正式优化配置可由 `MATERIAL_RECIPE_RELEASE_CONFIG` 指定。
+
+| 资源 | 75 位置与获取方式 |
+| --- | --- |
+| 专项代码、模型及整理数据 | `/data/se42/hea_surrogate`；交接 `src/api/`、`models/` 和实际读取的 `data/processed/`。 |
+| 固定优化包 | `/data/se42/experiments/material_rsi_prelaunch_20260928/package/runtime`；交接 `rsi_api.py`、`models/` 和包内版本清单。 |
+| 正式报告辅助模块 | `/data/se42/experiments/material_shadow_frontend_v2_20260928`；正式计算仍依赖该目录的 `recipe_*` 模块。 |
+| 独立计算环境 | 专项环境为 `/data/mamba/envs/mattergen-py310`；固定优化包使用 `/data/se42/experiments/patent_optimization_v0_20260922/.venv`。 |
+
+PyTorch 运行已训练性质模型，scikit-learn/joblib 运行树模型等专项模型，pymoo 的 NSGA-II 搜索含量范围内的多目标配比；钙钛矿采用组成网格计算。固定包模型包括 models/alloy_v10/model_state.pt 和 models/glass_v1/model_state.pt；专项权重与支持数据分散在 hea_surrogate 的 models/、data/processed/ 中，按材料类别选择。
+
+GitHub 提供服务及适配代码；计算程序、模型和数据需另行取得。逐类资源位置、包清单和最小检查见[运行说明](../docs/service_setup.md)，版本与哈希见[外部依赖说明](../docs/external_dependencies.md)。
+
+新联调副本仅在 `.env` 尚不存在时复制样例，再填入本机配置；已有生产配置保留。启动前先核对端口和数值资源，不执行历史训练命令。
+
+```bash
+cd /path/to/material_composition_optimization
+# 配置完成、端口空闲后，在联调 tmux 会话内运行：
+/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python main.py
+```
+
+调试使用 tmux，稳定运行可由运维登记系统服务。旧 `start.sh` 与 Docker 文件不是当前标准启动路径。
+
+## 3. 一次请求如何完成
 
 ```text
 当前需求 + 相关上文 + 显式条件
@@ -36,7 +61,17 @@
 
 训练是离线准备模型的工作；推理是用已有模型计算性质；配比优化反复调整输入并比较推理结果。正常部署和用户请求复用已验收模型，不重新训练。
 
-## 3. 代码分层与外部资源
+当前入口分为两类：
+
+| 调用方式 | 实际入口 |
+| --- | --- |
+| HTTP /alloy/propose-space 和 WebSocket | main.py 直接调用 src/alloy_workflow/runtime.py 中的 RUNTIME.propose()。 |
+| HTTP /alloy/evaluate、/alloy/evaluate-batch | main.py 调用 RUNTIME.application 的评价函数。 |
+| Alpha Role | src/team_config.py 中的 AlloyCompositionOptimizationRole / Coding 调用同一 RUNTIME。 |
+
+三类入口共用内部业务计算，外层流程仍分别实现。阅读时按上表的调用入口跟到 runtime.py，Role 适配另看 team_config.py。
+
+## 4. 代码分层与外部资源
 
 下表除注明外，模块均位于 `src/alloy_workflow/`。
 
@@ -62,7 +97,7 @@
 
 迁移时同时交接这些资源的版本。当前 Git 仓库并未将所有外部算法包、权重和数据收拢为自包含安装包；不要因目录名看似实验用途而删除实际依赖。
 
-## 4. 输入、接口与结果
+## 5. 输入、接口与结果
 
 所有请求使用任务号 `taskid`、需求文本 `idea` 等通用字段，专项条件放在 `alloy_optimization` 中。旧字段 `hea_optimization` 仍兼容。
 
@@ -99,20 +134,6 @@
 镍基请求还需制造路线、温度、载荷和热处理等条件，完整约定见[镍基专项手册](docs/hot_end_ni_superalloy_service_v1.md)；铜基约定见[铜基局部组成手册](docs/copper_hot_end_local_composition_service_v1.md)。
 
 任务默认保存于 `results/alloy_composition_optimization/<taskid>/`，可由 `ALLOY_RESULTS_ROOT` 配置。结果清单记录计算条件、方法和资产；正文给出优选配比、预测性质、比较图与验证建议。保存的 `summary.md` 可含内部图像占位符，用户页面以完成资产替换后的流式报告为准。
-
-## 5. 环境、配置与联调
-
-Web 解释器为 `/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python`。服务配置参考 `.env.example`，重点包括端口、数值资源路径、结果目录、语言模型和对象存储设置。正式优化配置可由 `MATERIAL_RECIPE_RELEASE_CONFIG` 指定。
-
-新联调副本仅在 `.env` 尚不存在时复制样例，再填入本机配置；已有生产配置保留。启动前先核对端口和数值资源，不执行历史训练命令。
-
-```bash
-cd /path/to/material_composition_optimization
-# 配置完成、端口空闲后，在联调 tmux 会话内运行：
-/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python main.py
-```
-
-调试使用 tmux，稳定运行可由运维登记系统服务。旧 `start.sh` 与 Docker 文件不是当前标准启动路径。
 
 ## 6. 测试与交接
 

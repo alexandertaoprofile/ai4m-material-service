@@ -1,6 +1,6 @@
 # 仓库外的计算程序、模型与环境
 
-核对日期：2026-10-04。仓库负责服务源码、测试和说明；下表资源在 75 服务器其他目录中管理。阅读代码只需仓库，运行计算还需准备这些资源。
+主要版本记录日期：2026-10-04；2026-10-05 补充 1105 专项数据库和 1116 证据归档说明。仓库负责服务源码、测试和说明；下表资源在 75 服务器其他目录中管理。每个服务的准备顺序和启动方式见[运行与复现说明](service_setup.md)。
 
 按无密钥配置样例及服务 README 中的路径记录软件版本、源码和模型文件校验值。完整记录见[资源版本 JSON](external_resources_20261004.json)。这些记录用于核对资源版本；运行能力按服务 README 执行预检及真实请求检查。
 
@@ -9,6 +9,8 @@
 | 资源 | 服务用途 | 75 服务器位置 | 已记录的内容 |
 | --- | --- | --- | --- |
 | 主 Web 环境 | 接收请求、组织计算和返回报告。 | `/home/ubuntu/miniconda3/envs/ai4m-service-py310` | Python 3.10.19 和主要软件包的安装版本。 |
+| 1105 导电润滑剂数据库 | 读取专项材料性质和来源证据。 | `/data/se42/alpha_project/material_service_hub/material_database/data/processed/fluid_lubricant/2026-08-04_v1/fluid_property_evidence.sqlite` | 2026-10-05 核对为 381,964,288 字节，约 364 MiB；当前 Git 提交不含该文件，需单独交接。 |
+| 1105 原始材料资料 | 重建通用目录、核验和导入新增数据。 | `PROPERTY_DATA_ROOT`，样例为 `/data/se42/backend/property datasets` | 通用整理 CSV 已随 Git 提供；原始工作簿和 PDF 从资料维护者取得。 |
 | OMatG 源码 | 固定组成生成结构（CSP），或探索组成与结构（DNG）。 | `/data/third_party/OMatG` | 已核对选定的 83 个源码及配置文件；目录没有 Git 提交信息，当前版本按文件校验值识别。 |
 | OMatG 环境 | 运行结构生成。 | `/data/mamba/envs/omatg-py312` | Python 3.12.14、OMatG 2.0.0、PyTorch 2.8.0+cu126；162 条软件包安装版本记录。 |
 | OMatG 模型文件 | 分别支持 DNG 和 CSP。 | `/data/se42/omatg_local/checkpoints` 下的 `MP-20-DNG/Linear-SDE-Gamma`、`Alex-MP-20-CSP/Trig-SDE-Gamma` | 两个 `checkpoint.ckpt` 和各自 `train.yaml` 的大小及 SHA256。配置文件说明模型训练时的设置。 |
@@ -19,8 +21,9 @@
 | 1111 优化程序 | 运行已验收的配比优化。 | `/data/se42/experiments/material_rsi_prelaunch_20260928/package/runtime` | 顶层 44 个 Python 文件、两份模型文件和四份版本/依赖清单的校验值。 |
 | 1111 优化环境 | 运行上述优化程序。 | `/data/se42/experiments/patent_optimization_v0_20260922/.venv` | Python 3.13.11 和主要软件包安装版本。 |
 | 1111 报告程序 | 生成当前请求的配比报告与图像。 | `/data/se42/experiments/material_shadow_frontend_v2_20260928` | 六个运行入口或 `recipe_*` 模块的实际校验值；这些文件虽在实验目录，仍是运行依赖。 |
+| 1116 训练、模型与 MD 归档 | 读取纯钨 W-14 标杆计算证据。 | `/data/se42/cache/DeepMD-W-14-commercial-level`、`/data/se42/cache/DeepMD_W-14_commercial-level` | 2026-10-05 确认主要训练和 MD 文件存在；75 服务的 `.env` 仍记录两处旧路径，联调前核对。文件说明和历史副本位置见运行说明。 |
 
-SHA256 是由文件内容计算出的校验值。转移文件后值相同，可以确认内容一致。JSON 中列明具体文件、大小、校验值和本次检查范围，便于逐项核对。
+SHA256 是由文件内容计算出的校验值。转移文件后值相同，可以确认内容一致。JSON 保存 2026-10-04 记录的具体文件、大小、校验值和检查范围；新增的 1105/1116 说明不是该 JSON 的追加哈希记录，后续交接时单独记录对应资源校验值。
 
 ## 2. 软件包记录怎样使用
 

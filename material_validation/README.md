@@ -8,7 +8,30 @@
 
 随仓库提交的证据清单状态为 `awaiting_evidence_import`，即完整证据仍需导入。仓库包含用户提供的 300 K 内部对标记录，外部训练和模拟数据按部署配置读取；完整 DFT 数据划分、模型与 MD 势文件绑定，以及正式实验/文献来源定位需要分别核对。具体可展示的数据以实际挂载文件和证据检查为准。
 
-## 2. 四个阶段分别说明什么
+## 2. 运行环境、证据文件与启动
+
+Web 环境复用主服务环境，使用 FastAPI/Uvicorn、NumPy、Matplotlib 等软件。随 Git 提供 data/reference_cases/w14_phase_i/ 中的证据清单和内部对标记录；完整训练数据、模型与 MD 输出在外部归档。
+
+| 资源 | 配置与交接内容 |
+| --- | --- |
+| 本仓库标杆文件 | REFERENCE_CASE_ROOT，默认 data/reference_cases/w14_phase_i。 |
+| 训练及模型归档 | `/data/se42/cache/DeepMD-W-14-commercial-level`，配置为 `W14_MLIP_ROOT`；包括 input.json、frozen_300000.pb、lcurve.out、train/set.000/ 等。 |
+| MD 模拟输出 | `/data/se42/cache/DeepMD_W-14_commercial-level`，配置为 `W14_MD_ROOT`；包括不同温度的 NPT 平衡、弹性、热容原始输出及 LAMMPS 脚本。 |
+
+2026-10-05 已确认上表归档存在。75 服务的 `.env` 仍记录不含 `cache/` 的两处旧路径，联调前按实际资源位置核对；配置样例保留为空，迁移时填写目标机器路径。当前请求读取已有归档，DeepMD/LAMMPS 是这些归档的来源软件。完整资源说明、历史副本位置、函数入口及 Role 注册需要对齐的事项见[运行说明](../docs/service_setup.md)。
+
+配置参考 `.env.example`：`REFERENCE_CASE_ROOT` 指定标杆目录，`W14_MLIP_ROOT` 和 `W14_MD_ROOT` 指定外部只读数据。导入文件按 `raw/`、`models/`、`literature/` 分类，并记录 SHA-256 文件校验和以识别版本。密钥、图片发布和语言模型设置放本服务 `.env`。
+
+配置完成、端口空闲后，在已准备的 Web 环境和联调 tmux 会话中运行：
+
+```bash
+cd /path/to/material_validation
+PORT=1116 /home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python main.py
+```
+
+75 服务器可复用 `/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python`；绘图等依赖需按实际环境核对。
+
+## 3. 四个阶段分别说明什么
 
 | 阶段 | 方法含义 | 核验内容 |
 | --- | --- | --- |
@@ -19,7 +42,7 @@
 
 DeepMD 用于训练/运行机器学习势，LAMMPS 用于原子模拟。模型相对 DFT 的误差与模拟相对实验的误差属于不同验证环节，报告分别保留。
 
-## 3. 输入、接口与输出
+## 4. 输入、接口与输出
 
 通用任务字段外，条件放在 `refractory_validation` 中。例如读取 300/600/900 K 下的标杆证据：
 
@@ -50,7 +73,7 @@ DeepMD 用于训练/运行机器学习势，LAMMPS 用于原子模拟。模型�
 
 任务默认保存在 `results/<taskid>/`，包括结果清单、诊断记录和展示资产。页面说明已有证据、缺失原因及补充事项。图表依据实际源文件或证据状态生成；DFT 覆盖、预测-参考一致性图等需要对应原始数据后才能展示。
 
-## 4. 代码分层与配置
+## 5. 代码入口与模块职责
 
 | 位置 | 职责 |
 | --- | --- |
@@ -61,18 +84,9 @@ DeepMD 用于训练/运行机器学习势，LAMMPS 用于原子模拟。模型�
 | `src/presentation/` | 中文报告、诊断、图表、对象存储和流式适配。 |
 | `data/reference_cases/w14_phase_i/` | 标杆清单和内部对标记录，不包含完整训练/模拟数据。 |
 
-配置参考 `.env.example`：`REFERENCE_CASE_ROOT` 指定标杆目录，`W14_MLIP_ROOT` 和 `W14_MD_ROOT` 指定外部只读数据。导入文件按 `raw/`、`models/`、`literature/` 分类，并记录 SHA-256 文件校验和以识别版本。密钥、图片发布和语言模型设置放本服务 `.env`。
+HTTP 和 WebSocket 均调用 src/team_config.py 的 execute_refractory_validation()，再进入 src/application/validation_workflow.py。
 
-配置完成、端口空闲后，在已准备的 Web 环境和联调 tmux 会话中运行：
-
-```bash
-cd /path/to/material_validation
-python main.py
-```
-
-75 服务器可复用 `/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python`；绘图等依赖需按实际环境核对。
-
-## 5. 验证与交接
+## 6. 验证与交接
 
 ```bash
 python -m unittest discover -s tests -v

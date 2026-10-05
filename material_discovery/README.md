@@ -12,7 +12,35 @@
 
 当前使用已训练 OMatG 推理和生成后的评价。OMatG-IRL 训练、PropMolFlow 分子生成、DFT 电子结构计算、有限温自由能和声子计算尚未接入上述计算流程。已有材料查询、合金配比、聚合物或非晶材料配方分别走相应服务/专项模型。
 
-## 2. 输入如何决定路线
+## 2. 运行环境、模型数据与启动
+
+| 环节 | 当前 75 服务器解释器或目录 |
+| --- | --- |
+| Web 服务 | `/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python` |
+| OMatG 推理 / 官方源码 | `/data/mamba/envs/omatg-py312/bin/python` / `/data/third_party/OMatG` |
+| OMatG、MatterSim 和性质模型权重 | `/data/se42/omatg_local/checkpoints` |
+| MatterSim | `/data/mamba/envs/mattergen-py310/bin/python`，名称沿用历史版本。 |
+| ALIGNN | `/home/ubuntu/miniconda3/envs/dsc2/bin/python`，复用 `/data/mamba/envs/alignn-gpu-test/lib/python3.10/site-packages`。 |
+| MP2020 参考库 | `/data/mattersim_reference_cache/reference_MP2020correction` |
+| 缓存、GPU 锁及临时文件 | `/data/se42/omatg_local/runtime` |
+
+`.env.example` 提供服务与外部接口变量；[.env.omatg.example](.env.omatg.example) 提供模型专项配置。获批部署时按需合并到本机 `.env`，保留密钥、端口、对象存储及弹窗设置。运行时显式设置 `NEW_MATERIAL_GENERATOR=omatg` 和 `PORT=1115`。缺少后端配置时可能选择历史后端；缺少端口配置时 `main.py` 默认 1107。
+
+GitHub 提供服务和独立执行脚本；表中的官方源码、环境、权重与参考库需单独取得。DNG 权重为 checkpoints/MP-20-DNG/Linear-SDE-Gamma/，CSP 权重为 checkpoints/Alex-MP-20-CSP/Trig-SDE-Gamma/，各需 checkpoint.ckpt 和 train.yaml。MatterSim 权重为 checkpoints/mattersim-v1.0.0-1M.pth；ALIGNN 模型在 checkpoints/alignn/。环境版本、用途和最小检查见[运行说明](../docs/service_setup.md)。
+
+科学软件分工为 OMatG 生成结构，MatterSim 提供能量与力，ASE 调整晶胞和原子位置，pymatgen 检查组成、几何、相图及相似结构，ALIGNN 预测性质。已有 GPU 测试硬件为 RTX 4090 24 GB，目标机器需匹配 PyTorch/CUDA 和图计算依赖。
+
+主要业务模块在 src/material_workflow/，独立模型执行器在 tools/。WebSocket 从 main.py 经 src/team_config.py 的 Service/Team/Role 调用 run_upstream_request()；HTTP /new-material/generate 直接调用该函数，随后共用 pipeline.py 和 omatg_pipeline.py。具体模块表见[业务模块 README](src/material_workflow/README.md)。旧 MatterGen 与已适配的 HEA 微调路线按显式配置保留；`metal_alloy_mattergen_v0` 是另外保存的历史训练骨架，状态见其 README。
+
+只读预检，在本服务目录执行：
+
+```bash
+/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python tools/preflight_omatg.py --env-file .env.omatg.example
+```
+
+预检检查解释器、模型文件及参考库，输出可用性报告。新增依赖、缓存和输出文件放在 `/data`。联调启动使用已有 Web 环境，在配置完成、端口空闲的 tmux 会话内执行 `PORT=1115 NEW_MATERIAL_GENERATOR=omatg /home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python main.py`；线上部署、配置合并与回退按[部署指南](docs/OMATG_DEPLOYMENT.md)审批和验收。
+
+## 3. 输入如何决定路线
 
 | 用户提供的信息 | 执行路线 | 实际改变什么 |
 | --- | --- | --- |
@@ -29,7 +57,7 @@ DNG 默认直接评价自己的生成结构。只有 `refine_with_csp=true` 时�
 
 上游当前要求和显式确认字段优先于历史线索；相关上文用于说明应用场景。固定化学式、元素及数值条件经确认后写入 `new_material`。弹窗字段见[输入说明](docs/OMATG_POPUP_INPUTS.md)，补充确认见[约定](docs/REQUIREMENT_REVIEW.md)。
 
-## 3. 模型、评价与输出怎样理解
+## 4. 模型、评价与输出怎样理解
 
 | 环节 | 模型或工具 | 输入与输出 | 用途 |
 | --- | --- | --- | --- |
@@ -48,7 +76,7 @@ DNG 默认直接评价自己的生成结构。只有 `refine_with_csp=true` 时�
 
 当前任务清单保存计算状态与日志。逐项区分未收敛、缺权重、计算失败和跳过原因，以及改进结果表中重复“待补充计算”的显示，属于开发副本的待部署更新；当前线上页面尚未采用该套新说明模块。
 
-## 4. 接口与可复制的请求格式
+## 5. 接口与可复制的请求格式
 
 | 接口 | 用途 |
 | --- | --- |
@@ -98,30 +126,6 @@ DNG：允许四种元素，明确要求其中 Li、P、S 出现，默认不追�
 开放探索时设置 `allow_open_chemical_space=true`，并保留具体材料方向或性质需求。完整字段和冲突输入说明见[弹窗输入文档](docs/OMATG_POPUP_INPUTS.md)。
 
 每次任务使用独立 `taskid`，重复任务号返回冲突并保留原结果。默认结果位于 `src/MNS_CaseHub/cases/material_discovery_demo/results/new_material/<taskid>/`，由 `src/service_paths.py` 统一定义。结果包含晶体 CIF、输入与计算清单（manifest）、模型日志、预测值和 PNG/GIF/GLB 资产。
-
-## 5. 环境、外部资源与实现位置
-
-| 环节 | 当前 75 服务器解释器或目录 |
-| --- | --- |
-| Web 服务 | `/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python` |
-| OMatG 推理 / 官方源码 | `/data/mamba/envs/omatg-py312/bin/python` / `/data/third_party/OMatG` |
-| OMatG、MatterSim 和性质模型权重 | `/data/se42/omatg_local/checkpoints` |
-| MatterSim | `/data/mamba/envs/mattergen-py310/bin/python`，名称沿用历史版本。 |
-| ALIGNN | `/home/ubuntu/miniconda3/envs/dsc2/bin/python`，复用 `/data/mamba/envs/alignn-gpu-test/lib/python3.10/site-packages`。 |
-| MP2020 参考库 | `/data/mattersim_reference_cache/reference_MP2020correction` |
-| 缓存、GPU 锁及临时文件 | `/data/se42/omatg_local/runtime` |
-
-`.env.example` 提供服务与外部接口变量；[.env.omatg.example](.env.omatg.example) 提供模型专项配置。获批部署时按需合并到本机 `.env`，保留密钥、端口、对象存储及弹窗设置。运行时显式设置 `NEW_MATERIAL_GENERATOR=omatg`；缺少该配置时仍可能走历史后端默认值。
-
-入口为 `main.py` 和 `src/team_config.py`，主要业务模块在 `src/material_workflow/`，独立模型执行器在 `tools/`。具体模块表见[业务模块 README](src/material_workflow/README.md)。旧 MatterGen 与已适配的 HEA 微调路线按显式配置保留；`metal_alloy_mattergen_v0` 是另外保存的历史训练骨架，状态见其 README。
-
-只读预检，在本服务目录执行：
-
-```bash
-/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python tools/preflight_omatg.py --env-file .env.omatg.example
-```
-
-预检检查解释器、模型文件及参考库，输出可用性报告。新增依赖、缓存和输出文件放在 `/data`。联调启动使用已有 Web 环境，在配置完成、端口空闲的 tmux 会话内执行 `python main.py`；线上部署、配置合并与回退按[部署指南](docs/OMATG_DEPLOYMENT.md)审批和验收。
 
 ## 6. 测试与验收
 

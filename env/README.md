@@ -1,6 +1,6 @@
 # 服务环境与外部计算资源
 
-本目录保存环境定义、软件包版本及历史依赖记录。运行模型所需源码和权重在服务器外部目录中管理。以下说明对应 75 服务器当前分工；其他机器按硬件、CUDA 和模型版本核对路径及依赖。
+本目录保存环境定义、软件包版本及历史依赖记录。每个服务的环境、数据与模型位置、启动及最小检查集中在[运行与复现说明](../docs/service_setup.md)。以下说明对应 75 服务器当前分工；其他机器按硬件、CUDA 和模型版本核对路径及依赖。
 
 ## 1. 为什么使用多个环境
 
@@ -20,7 +20,7 @@ Web 服务负责连接、需求解析和报告交付；OMatG、MatterSim、ALIGN
 
 | 文件 | 用途与状态 |
 | --- | --- |
-| `ai4m-service-py310.yml` | 主服务 Conda 环境定义，供准备依赖和比较版本时参考。 |
+| `ai4m-service-py310.yml` | 历史 Web 环境快照，文件内环境名为 `ai4pdeMyh`、Python 为 3.10.15；当前部署 Python 为 3.10.19，主要版本见资源 JSON。迁移时据此比较并验证安装。 |
 | `hea-surrogate-py310.yml` | HEA 专项计算独立环境的定义，供需要单独重建时参考。HEA 指高熵/多主元合金。 |
 | `mattergen-py310.yml`、`mattergen-py310.requirements.txt` | 原 MatterGen/结构计算依赖记录；当前同名数值环境也承载 MatterSim 等任务。 |
 | `alignn-gpu-test.conda.before.txt`、`alignn-gpu-test.freeze.before.txt` | 历史 ALIGNN 环境快照；当前 1115 解释器选择见上表。 |

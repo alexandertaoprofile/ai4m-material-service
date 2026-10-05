@@ -28,6 +28,8 @@ GitHub 历史备份与生产回退备份用途不同：部署前仍需保存当�
 
 1115 的 OMatG 源码、模型文件、MatterSim/ALIGNN 环境和参考库保持现有路径，见[1115 README](../material_discovery/README.md)与[环境说明](../env/README.md)。已核对的版本、文件校验值和迁移准备事项集中在[外部依赖说明](external_dependencies.md)。
 
+2026-10-05 资源路径补充：1116 的训练与 MD 归档已在 `/data/se42/cache/DeepMD-W-14-commercial-level` 和 `/data/se42/cache/DeepMD_W-14_commercial-level` 确认主要文件。75 服务配置仍记录不含 `cache/` 的旧路径。联调或部署前需核对配置与证据目录，并完成读取检查；在线状态按实际部署验收记录确认。完整环境、模型、数据和启动说明见[运行说明](service_setup.md)。
+
 ## 4. 源码和目录检查
 
 整理在 `/data/se42/worktrees/material_service_hub_main_layout_20261004` 的独立克隆中进行。根目录源码与服务器逐文件核对；开发副本与原整合提交核对；物理约束脚本与原实验文件核对。比较范围为代码及受版本管理的配置，服务器资源及版本见外部依赖说明。
