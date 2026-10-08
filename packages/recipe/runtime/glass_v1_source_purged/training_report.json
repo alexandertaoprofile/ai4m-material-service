@@ -1,0 +1,1182 @@
+{
+  "model": "oxide_glass_multitask_transformer_v1_strict_20260928",
+  "status": "offline_research_candidate_not_deployed",
+  "regime": "source",
+  "folds": 3,
+  "split_policy": "source KOD held out and train rows sharing test compositions purged",
+  "inner_validation_policy": "grouped inner 10% split; outer test untouched until selected epoch",
+  "descriptor_fit_scope": "unique_training_compositions_only",
+  "species_dictionary_policy": "fixed audited oxide vocabulary; no held-out targets or scaling statistics",
+  "source_code_sha256": "b72f217c4ee7ed9f2aa83e46591f3a5966b427c196a4edc4eb46dc6bb9985e64",
+  "data": "/data/se42/experiments/material_release_validation_20260928/frozen_data/glass_v0.csv.gz",
+  "data_sha256": "98810be535a0300273f78fbd360e0a1623cc383748a5e2bd2e9842e413bf1a4d",
+  "rows": 159461,
+  "canonical_compositions": 67679,
+  "source_groups": 8088,
+  "tasks": [
+    "CTE_BELOW_TG",
+    "CTE_FIXED_T",
+    "DENSITY_20C",
+    "POISSON_RATIO",
+    "TG",
+    "THERMAL_CONDUCTIVITY",
+    "YOUNG_MODULUS"
+  ],
+  "species_vocab_size": 96,
+  "max_tokens": 20,
+  "architecture": {
+    "d_model": 128,
+    "layers": 3,
+    "heads": 8,
+    "dropout": 0.1,
+    "physics_outputs": {
+      "positive_log_tasks": [
+        "DENSITY_20C",
+        "TG",
+        "THERMAL_CONDUCTIVITY",
+        "YOUNG_MODULUS"
+      ],
+      "bounded_tasks": {
+        "POISSON_RATIO": [
+          -0.2,
+          0.6
+        ]
+      }
+    }
+  },
+  "task_balancing": "inverse square root task-frequency weighted sampling",
+  "fold_reports": [
+    {
+      "fold": 1,
+      "train_rows": 85377,
+      "validation_rows": 10221,
+      "test_rows": 53154,
+      "train_sources": 4444,
+      "test_sources": 2695,
+      "train_compositions": 39196,
+      "test_compositions": 23637,
+      "composition_overlap_train_test": 0,
+      "source_overlap_train_test": 0,
+      "best_epoch": 16,
+      "best_inner_validation_normalized_MAE": 0.14531472325325012,
+      "history": [
+        {
+          "epoch": 1,
+          "train_smooth_l1": 0.2915017372833755,
+          "val_normalized_MAE": 0.2453763335943222
+        },
+        {
+          "epoch": 2,
+          "train_smooth_l1": 0.13082066535235878,
+          "val_normalized_MAE": 0.18730682134628296
+        },
+        {
+          "epoch": 3,
+          "train_smooth_l1": 0.10213903279718525,
+          "val_normalized_MAE": 0.17319762706756592
+        },
+        {
+          "epoch": 4,
+          "train_smooth_l1": 0.09211920607768133,
+          "val_normalized_MAE": 0.160551518201828
+        },
+        {
+          "epoch": 5,
+          "train_smooth_l1": 0.0844346099271032,
+          "val_normalized_MAE": 0.1593763828277588
+        },
+        {
+          "epoch": 6,
+          "train_smooth_l1": 0.0815711437228197,
+          "val_normalized_MAE": 0.1540069431066513
+        },
+        {
+          "epoch": 7,
+          "train_smooth_l1": 0.07860431226784598,
+          "val_normalized_MAE": 0.15429888665676117
+        },
+        {
+          "epoch": 8,
+          "train_smooth_l1": 0.07519488612156429,
+          "val_normalized_MAE": 0.15213455259799957
+        },
+        {
+          "epoch": 9,
+          "train_smooth_l1": 0.07098154056661143,
+          "val_normalized_MAE": 0.15117600560188293
+        },
+        {
+          "epoch": 10,
+          "train_smooth_l1": 0.06951340910292671,
+          "val_normalized_MAE": 0.15326496958732605
+        },
+        {
+          "epoch": 11,
+          "train_smooth_l1": 0.06526270160774984,
+          "val_normalized_MAE": 0.14809972047805786
+        },
+        {
+          "epoch": 12,
+          "train_smooth_l1": 0.06505936620656602,
+          "val_normalized_MAE": 0.1495128720998764
+        },
+        {
+          "epoch": 13,
+          "train_smooth_l1": 0.06230885885700494,
+          "val_normalized_MAE": 0.14872100949287415
+        },
+        {
+          "epoch": 14,
+          "train_smooth_l1": 0.06115237239770547,
+          "val_normalized_MAE": 0.15149427950382233
+        },
+        {
+          "epoch": 15,
+          "train_smooth_l1": 0.060772227982204115,
+          "val_normalized_MAE": 0.14977435767650604
+        },
+        {
+          "epoch": 16,
+          "train_smooth_l1": 0.05778263681038411,
+          "val_normalized_MAE": 0.14531472325325012
+        },
+        {
+          "epoch": 17,
+          "train_smooth_l1": 0.05692674284298977,
+          "val_normalized_MAE": 0.14990724623203278
+        },
+        {
+          "epoch": 18,
+          "train_smooth_l1": 0.0580507075402908,
+          "val_normalized_MAE": 0.14669468998908997
+        },
+        {
+          "epoch": 19,
+          "train_smooth_l1": 0.054166745896378675,
+          "val_normalized_MAE": 0.14826558530330658
+        },
+        {
+          "epoch": 20,
+          "train_smooth_l1": 0.055091844748951006,
+          "val_normalized_MAE": 0.14737457036972046
+        },
+        {
+          "epoch": 21,
+          "train_smooth_l1": 0.05488913747186432,
+          "val_normalized_MAE": 0.1464838981628418
+        },
+        {
+          "epoch": 22,
+          "train_smooth_l1": 0.05142665792725044,
+          "val_normalized_MAE": 0.14846712350845337
+        }
+      ],
+      "descriptor_fit_scope": "unique_training_compositions_only",
+      "descriptor_training_compositions": 39196,
+      "descriptor_scaling_overlap_heldout": 0,
+      "metrics": {
+        "overall": {
+          "n": 53154,
+          "MAE": 7.594243505418249,
+          "RMSE": 22.23383460772003,
+          "R2": 0.9896112827400182
+        },
+        "by_task": {
+          "CTE_BELOW_TG": {
+            "n": 14274,
+            "MAE": 6.09947622824798,
+            "RMSE": 18.642917617970244,
+            "R2": 0.7141665586515563
+          },
+          "CTE_FIXED_T": {
+            "n": 9650,
+            "MAE": 5.462239487530191,
+            "RMSE": 21.584395284485797,
+            "R2": 0.6529452757026136
+          },
+          "DENSITY_20C": {
+            "n": 14000,
+            "MAE": 0.08273806099151002,
+            "RMSE": 0.1729759238835059,
+            "R2": 0.9651454213787684
+          },
+          "POISSON_RATIO": {
+            "n": 1536,
+            "MAE": 0.011413808651906143,
+            "RMSE": 0.01892176605922389,
+            "R2": 0.5851965013825087
+          },
+          "TG": {
+            "n": 9932,
+            "MAE": 24.901190638882415,
+            "RMSE": 40.806997094412964,
+            "R2": 0.8922635806772138
+          },
+          "THERMAL_CONDUCTIVITY": {
+            "n": 193,
+            "MAE": 0.12058753128067774,
+            "RMSE": 0.1571249292498984,
+            "R2": 0.48460081757378737
+          },
+          "YOUNG_MODULUS": {
+            "n": 3569,
+            "MAE": 4.307122798384935,
+            "RMSE": 8.86023363537955,
+            "R2": 0.777252696495029
+          }
+        },
+        "by_task_evidence": {
+          "CTE_BELOW_TG/database_observation_unmarked": {
+            "n": 14158,
+            "MAE": 6.127319864437736,
+            "RMSE": 18.713505673906152,
+            "R2": 0.7124426177168791
+          },
+          "CTE_BELOW_TG/explicit_measurement_marker": {
+            "n": 116,
+            "MAE": 2.701112425019001,
+            "RMSE": 5.07129912503381,
+            "R2": 0.9713902488905353
+          },
+          "CTE_FIXED_T/database_observation_unmarked": {
+            "n": 9543,
+            "MAE": 5.501008837051197,
+            "RMSE": 21.70283840677275,
+            "R2": 0.6504854351672673
+          },
+          "CTE_FIXED_T/explicit_measurement_marker": {
+            "n": 107,
+            "MAE": 2.0045207727735286,
+            "RMSE": 2.935660554863025,
+            "R2": 0.988387153051795
+          },
+          "DENSITY_20C/database_observation_unmarked": {
+            "n": 13733,
+            "MAE": 0.08329147826689273,
+            "RMSE": 0.1740483781088797,
+            "R2": 0.9643866254378767
+          },
+          "DENSITY_20C/explicit_measurement_marker": {
+            "n": 267,
+            "MAE": 0.05427334397716308,
+            "RMSE": 0.10381920722388026,
+            "R2": 0.9913752219044861
+          },
+          "POISSON_RATIO/database_observation_unmarked": {
+            "n": 1532,
+            "MAE": 0.011415323070248408,
+            "RMSE": 0.018934122583689227,
+            "R2": 0.585093370780332
+          },
+          "POISSON_RATIO/explicit_measurement_marker": {
+            "n": 4,
+            "MAE": 0.010833786426817864,
+            "RMSE": 0.013374542525697405,
+            "R2": 0.04946736453836331
+          },
+          "TG/database_observation_unmarked": {
+            "n": 9838,
+            "MAE": 24.755916115549848,
+            "RMSE": 40.632302762486326,
+            "R2": 0.8930638672983806
+          },
+          "TG/explicit_measurement_marker": {
+            "n": 94,
+            "MAE": 40.10556043192245,
+            "RMSE": 56.16227480927836,
+            "R2": 0.7986446049763225
+          },
+          "THERMAL_CONDUCTIVITY/database_observation_unmarked": {
+            "n": 191,
+            "MAE": 0.11853629186027742,
+            "RMSE": 0.15395839907183817,
+            "R2": 0.49846196314028546
+          },
+          "THERMAL_CONDUCTIVITY/explicit_measurement_marker": {
+            "n": 2,
+            "MAE": 0.3164808959289073,
+            "RMSE": 0.34461713789712495,
+            "R2": -130.9568869458968
+          },
+          "YOUNG_MODULUS/database_observation_unmarked": {
+            "n": 3515,
+            "MAE": 4.315560960695543,
+            "RMSE": 8.90969224673328,
+            "R2": 0.7768657022517536
+          },
+          "YOUNG_MODULUS/explicit_measurement_marker": {
+            "n": 54,
+            "MAE": 3.7578609368704132,
+            "RMSE": 4.6146973801139595,
+            "R2": 0.04931352315412896
+          }
+        }
+      }
+    },
+    {
+      "fold": 2,
+      "train_rows": 85158,
+      "validation_rows": 9382,
+      "test_rows": 53154,
+      "train_sources": 4455,
+      "test_sources": 2697,
+      "train_compositions": 38515,
+      "test_compositions": 24687,
+      "composition_overlap_train_test": 0,
+      "source_overlap_train_test": 0,
+      "best_epoch": 31,
+      "best_inner_validation_normalized_MAE": 0.14013797044754028,
+      "history": [
+        {
+          "epoch": 1,
+          "train_smooth_l1": 0.2849663013291216,
+          "val_normalized_MAE": 0.2540379464626312
+        },
+        {
+          "epoch": 2,
+          "train_smooth_l1": 0.1254491715017193,
+          "val_normalized_MAE": 0.20359688997268677
+        },
+        {
+          "epoch": 3,
+          "train_smooth_l1": 0.09926157868550924,
+          "val_normalized_MAE": 0.18036848306655884
+        },
+        {
+          "epoch": 4,
+          "train_smooth_l1": 0.08955265427688638,
+          "val_normalized_MAE": 0.17352557182312012
+        },
+        {
+          "epoch": 5,
+          "train_smooth_l1": 0.08170098523626071,
+          "val_normalized_MAE": 0.16206251084804535
+        },
+        {
+          "epoch": 6,
+          "train_smooth_l1": 0.07819318463523944,
+          "val_normalized_MAE": 0.15615859627723694
+        },
+        {
+          "epoch": 7,
+          "train_smooth_l1": 0.07420076811295784,
+          "val_normalized_MAE": 0.15448522567749023
+        },
+        {
+          "epoch": 8,
+          "train_smooth_l1": 0.07396391819337171,
+          "val_normalized_MAE": 0.15479035675525665
+        },
+        {
+          "epoch": 9,
+          "train_smooth_l1": 0.06913216925131346,
+          "val_normalized_MAE": 0.15426801145076752
+        },
+        {
+          "epoch": 10,
+          "train_smooth_l1": 0.06554813613880894,
+          "val_normalized_MAE": 0.15089181065559387
+        },
+        {
+          "epoch": 11,
+          "train_smooth_l1": 0.06549668095693617,
+          "val_normalized_MAE": 0.1501532346010208
+        },
+        {
+          "epoch": 12,
+          "train_smooth_l1": 0.0657698019089813,
+          "val_normalized_MAE": 0.1454668790102005
+        },
+        {
+          "epoch": 13,
+          "train_smooth_l1": 0.0633761249705703,
+          "val_normalized_MAE": 0.14683187007904053
+        },
+        {
+          "epoch": 14,
+          "train_smooth_l1": 0.061999320693894064,
+          "val_normalized_MAE": 0.14530660212039948
+        },
+        {
+          "epoch": 15,
+          "train_smooth_l1": 0.061064162899455626,
+          "val_normalized_MAE": 0.14911635220050812
+        },
+        {
+          "epoch": 16,
+          "train_smooth_l1": 0.06433948823167178,
+          "val_normalized_MAE": 0.14772355556488037
+        },
+        {
+          "epoch": 17,
+          "train_smooth_l1": 0.06123752923247343,
+          "val_normalized_MAE": 0.14538413286209106
+        },
+        {
+          "epoch": 18,
+          "train_smooth_l1": 0.06132870560099265,
+          "val_normalized_MAE": 0.14240364730358124
+        },
+        {
+          "epoch": 19,
+          "train_smooth_l1": 0.05929982106753452,
+          "val_normalized_MAE": 0.14534327387809753
+        },
+        {
+          "epoch": 20,
+          "train_smooth_l1": 0.05536493580944524,
+          "val_normalized_MAE": 0.14341692626476288
+        },
+        {
+          "epoch": 21,
+          "train_smooth_l1": 0.05727625270178932,
+          "val_normalized_MAE": 0.1428038775920868
+        },
+        {
+          "epoch": 22,
+          "train_smooth_l1": 0.053458096827575546,
+          "val_normalized_MAE": 0.1428852379322052
+        },
+        {
+          "epoch": 23,
+          "train_smooth_l1": 0.053780479758174835,
+          "val_normalized_MAE": 0.14196895062923431
+        },
+        {
+          "epoch": 24,
+          "train_smooth_l1": 0.05299847315394593,
+          "val_normalized_MAE": 0.14391225576400757
+        },
+        {
+          "epoch": 25,
+          "train_smooth_l1": 0.05384774494938508,
+          "val_normalized_MAE": 0.14099350571632385
+        },
+        {
+          "epoch": 26,
+          "train_smooth_l1": 0.053080465131534076,
+          "val_normalized_MAE": 0.14247775077819824
+        },
+        {
+          "epoch": 27,
+          "train_smooth_l1": 0.05186739711168997,
+          "val_normalized_MAE": 0.14102506637573242
+        },
+        {
+          "epoch": 28,
+          "train_smooth_l1": 0.05181021004647552,
+          "val_normalized_MAE": 0.14120972156524658
+        },
+        {
+          "epoch": 29,
+          "train_smooth_l1": 0.05218898977883562,
+          "val_normalized_MAE": 0.14090748131275177
+        },
+        {
+          "epoch": 30,
+          "train_smooth_l1": 0.05021938541067575,
+          "val_normalized_MAE": 0.14046964049339294
+        },
+        {
+          "epoch": 31,
+          "train_smooth_l1": 0.05337465537745439,
+          "val_normalized_MAE": 0.14013797044754028
+        },
+        {
+          "epoch": 32,
+          "train_smooth_l1": 0.05437939910742337,
+          "val_normalized_MAE": 0.14167693257331848
+        },
+        {
+          "epoch": 33,
+          "train_smooth_l1": 0.05256183635064228,
+          "val_normalized_MAE": 0.14037756621837616
+        },
+        {
+          "epoch": 34,
+          "train_smooth_l1": 0.04952195147331246,
+          "val_normalized_MAE": 0.14011693000793457
+        },
+        {
+          "epoch": 35,
+          "train_smooth_l1": 0.05077183854481774,
+          "val_normalized_MAE": 0.14051878452301025
+        }
+      ],
+      "descriptor_fit_scope": "unique_training_compositions_only",
+      "descriptor_training_compositions": 38515,
+      "descriptor_scaling_overlap_heldout": 0,
+      "metrics": {
+        "overall": {
+          "n": 53154,
+          "MAE": 7.6495875595596425,
+          "RMSE": 20.529798067972358,
+          "R2": 0.9910976033974638
+        },
+        "by_task": {
+          "CTE_BELOW_TG": {
+            "n": 14784,
+            "MAE": 6.053678761684393,
+            "RMSE": 12.91985293742941,
+            "R2": 0.8057451579100565
+          },
+          "CTE_FIXED_T": {
+            "n": 9829,
+            "MAE": 5.257514158080551,
+            "RMSE": 12.358824194357515,
+            "R2": 0.829874025179916
+          },
+          "DENSITY_20C": {
+            "n": 13467,
+            "MAE": 0.07744378991146805,
+            "RMSE": 0.17730279674649044,
+            "R2": 0.9564030733393719
+          },
+          "POISSON_RATIO": {
+            "n": 970,
+            "MAE": 0.01532491952237798,
+            "RMSE": 0.022857844440356715,
+            "R2": 0.5142437524845684
+          },
+          "TG": {
+            "n": 10244,
+            "MAE": 24.432432408911467,
+            "RMSE": 42.179050265871524,
+            "R2": 0.890062187335597
+          },
+          "THERMAL_CONDUCTIVITY": {
+            "n": 229,
+            "MAE": 0.15164141554340668,
+            "RMSE": 0.2752822068946725,
+            "R2": 0.14730961695707145
+          },
+          "YOUNG_MODULUS": {
+            "n": 3631,
+            "MAE": 3.87059198474098,
+            "RMSE": 7.580049991064504,
+            "R2": 0.7653631825819259
+          }
+        },
+        "by_task_evidence": {
+          "CTE_BELOW_TG/database_observation_unmarked": {
+            "n": 14654,
+            "MAE": 6.065869108414433,
+            "RMSE": 12.962006682103558,
+            "R2": 0.805353060243474
+          },
+          "CTE_BELOW_TG/explicit_measurement_marker": {
+            "n": 130,
+            "MAE": 4.679545369515052,
+            "RMSE": 6.62870821928801,
+            "R2": 0.8951348576156659
+          },
+          "CTE_FIXED_T/database_observation_unmarked": {
+            "n": 9714,
+            "MAE": 5.274476074537123,
+            "RMSE": 12.41746108094562,
+            "R2": 0.8292077319012022
+          },
+          "CTE_FIXED_T/explicit_measurement_marker": {
+            "n": 115,
+            "MAE": 3.8247484497402024,
+            "RMSE": 5.47930596271275,
+            "R2": 0.9366198694856763
+          },
+          "DENSITY_20C/database_observation_unmarked": {
+            "n": 13329,
+            "MAE": 0.07794721086471035,
+            "RMSE": 0.17810384446254673,
+            "R2": 0.9563247459724412
+          },
+          "DENSITY_20C/explicit_measurement_marker": {
+            "n": 138,
+            "MAE": 0.028819892188523027,
+            "RMSE": 0.06275507522782495,
+            "R2": 0.9270301775725818
+          },
+          "POISSON_RATIO/database_observation_unmarked": {
+            "n": 957,
+            "MAE": 0.01512645618330963,
+            "RMSE": 0.0227040289221634,
+            "R2": 0.5157412392286216
+          },
+          "POISSON_RATIO/explicit_measurement_marker": {
+            "n": 13,
+            "MAE": 0.029934874559948206,
+            "RMSE": 0.032224008664301286,
+            "R2": -3.5598456536877734
+          },
+          "TG/database_observation_unmarked": {
+            "n": 10162,
+            "MAE": 24.50548223646578,
+            "RMSE": 42.265634523257596,
+            "R2": 0.8900109399242029
+          },
+          "TG/explicit_measurement_marker": {
+            "n": 82,
+            "MAE": 15.379598901510048,
+            "RMSE": 29.546087981359108,
+            "R2": 0.901194167054183
+          },
+          "THERMAL_CONDUCTIVITY/database_observation_unmarked": {
+            "n": 183,
+            "MAE": 0.1722677120451367,
+            "RMSE": 0.304607167194893,
+            "R2": 0.11642864561171218
+          },
+          "THERMAL_CONDUCTIVITY/explicit_measurement_marker": {
+            "n": 46,
+            "MAE": 0.0695846272865241,
+            "RMSE": 0.09016119405559944,
+            "R2": -1.0031733054040854
+          },
+          "YOUNG_MODULUS/database_observation_unmarked": {
+            "n": 3529,
+            "MAE": 3.896441849491103,
+            "RMSE": 7.618822770302579,
+            "R2": 0.7656869901191534
+          },
+          "YOUNG_MODULUS/explicit_measurement_marker": {
+            "n": 102,
+            "MAE": 2.9762373503960435,
+            "RMSE": 6.088386119405105,
+            "R2": 0.7104068988906741
+          }
+        }
+      }
+    },
+    {
+      "fold": 3,
+      "train_rows": 86288,
+      "validation_rows": 9098,
+      "test_rows": 53153,
+      "train_sources": 4489,
+      "test_sources": 2696,
+      "train_compositions": 39152,
+      "test_compositions": 24078,
+      "composition_overlap_train_test": 0,
+      "source_overlap_train_test": 0,
+      "best_epoch": 22,
+      "best_inner_validation_normalized_MAE": 0.15737631916999817,
+      "history": [
+        {
+          "epoch": 1,
+          "train_smooth_l1": 0.29253282274543885,
+          "val_normalized_MAE": 0.22744588553905487
+        },
+        {
+          "epoch": 2,
+          "train_smooth_l1": 0.1303491487922753,
+          "val_normalized_MAE": 0.20115038752555847
+        },
+        {
+          "epoch": 3,
+          "train_smooth_l1": 0.10316489883781185,
+          "val_normalized_MAE": 0.17917171120643616
+        },
+        {
+          "epoch": 4,
+          "train_smooth_l1": 0.08746859955893466,
+          "val_normalized_MAE": 0.17755356431007385
+        },
+        {
+          "epoch": 5,
+          "train_smooth_l1": 0.08401890897010206,
+          "val_normalized_MAE": 0.17167076468467712
+        },
+        {
+          "epoch": 6,
+          "train_smooth_l1": 0.07684655011405606,
+          "val_normalized_MAE": 0.16973036527633667
+        },
+        {
+          "epoch": 7,
+          "train_smooth_l1": 0.0749963987508469,
+          "val_normalized_MAE": 0.17501544952392578
+        },
+        {
+          "epoch": 8,
+          "train_smooth_l1": 0.07080083461643676,
+          "val_normalized_MAE": 0.16758757829666138
+        },
+        {
+          "epoch": 9,
+          "train_smooth_l1": 0.06760418207864084,
+          "val_normalized_MAE": 0.16790586709976196
+        },
+        {
+          "epoch": 10,
+          "train_smooth_l1": 0.06722287253956118,
+          "val_normalized_MAE": 0.16344085335731506
+        },
+        {
+          "epoch": 11,
+          "train_smooth_l1": 0.0659984632136201,
+          "val_normalized_MAE": 0.1624027043581009
+        },
+        {
+          "epoch": 12,
+          "train_smooth_l1": 0.06404878576038152,
+          "val_normalized_MAE": 0.17126940190792084
+        },
+        {
+          "epoch": 13,
+          "train_smooth_l1": 0.061875370546029165,
+          "val_normalized_MAE": 0.16220037639141083
+        },
+        {
+          "epoch": 14,
+          "train_smooth_l1": 0.06188403226479271,
+          "val_normalized_MAE": 0.16419629752635956
+        },
+        {
+          "epoch": 15,
+          "train_smooth_l1": 0.059200000106053946,
+          "val_normalized_MAE": 0.16347754001617432
+        },
+        {
+          "epoch": 16,
+          "train_smooth_l1": 0.059401767295316835,
+          "val_normalized_MAE": 0.16142922639846802
+        },
+        {
+          "epoch": 17,
+          "train_smooth_l1": 0.05545606938075032,
+          "val_normalized_MAE": 0.16194650530815125
+        },
+        {
+          "epoch": 18,
+          "train_smooth_l1": 0.055552964137327035,
+          "val_normalized_MAE": 0.16446152329444885
+        },
+        {
+          "epoch": 19,
+          "train_smooth_l1": 0.05635978506337962,
+          "val_normalized_MAE": 0.1600738763809204
+        },
+        {
+          "epoch": 20,
+          "train_smooth_l1": 0.057004611134617286,
+          "val_normalized_MAE": 0.15840132534503937
+        },
+        {
+          "epoch": 21,
+          "train_smooth_l1": 0.05323511326806785,
+          "val_normalized_MAE": 0.1591607630252838
+        },
+        {
+          "epoch": 22,
+          "train_smooth_l1": 0.053605302000010506,
+          "val_normalized_MAE": 0.15737631916999817
+        },
+        {
+          "epoch": 23,
+          "train_smooth_l1": 0.0542993155148255,
+          "val_normalized_MAE": 0.16143682599067688
+        },
+        {
+          "epoch": 24,
+          "train_smooth_l1": 0.05461365754919997,
+          "val_normalized_MAE": 0.16001395881175995
+        },
+        {
+          "epoch": 25,
+          "train_smooth_l1": 0.05147982106582653,
+          "val_normalized_MAE": 0.15800955891609192
+        },
+        {
+          "epoch": 26,
+          "train_smooth_l1": 0.051569424558585215,
+          "val_normalized_MAE": 0.15889185667037964
+        },
+        {
+          "epoch": 27,
+          "train_smooth_l1": 0.05001870637550156,
+          "val_normalized_MAE": 0.15932567417621613
+        },
+        {
+          "epoch": 28,
+          "train_smooth_l1": 0.050828902877470446,
+          "val_normalized_MAE": 0.15889018774032593
+        }
+      ],
+      "descriptor_fit_scope": "unique_training_compositions_only",
+      "descriptor_training_compositions": 39152,
+      "descriptor_scaling_overlap_heldout": 0,
+      "metrics": {
+        "overall": {
+          "n": 53153,
+          "MAE": 7.510219209851291,
+          "RMSE": 21.10481520669083,
+          "R2": 0.9904385540729717
+        },
+        "by_task": {
+          "CTE_BELOW_TG": {
+            "n": 13908,
+            "MAE": 6.166815430782778,
+            "RMSE": 16.48616769460106,
+            "R2": 0.7297401111089158
+          },
+          "CTE_FIXED_T": {
+            "n": 9553,
+            "MAE": 5.337835887995479,
+            "RMSE": 17.3103092381047,
+            "R2": 0.7093905688784182
+          },
+          "DENSITY_20C": {
+            "n": 14638,
+            "MAE": 0.06718671739134814,
+            "RMSE": 0.15067641761316852,
+            "R2": 0.9665754172653853
+          },
+          "POISSON_RATIO": {
+            "n": 1185,
+            "MAE": 0.012654544813192187,
+            "RMSE": 0.02142961397976699,
+            "R2": 0.43686537924091084
+          },
+          "TG": {
+            "n": 9663,
+            "MAE": 25.520775085705587,
+            "RMSE": 41.79579988415559,
+            "R2": 0.8942449566894178
+          },
+          "THERMAL_CONDUCTIVITY": {
+            "n": 225,
+            "MAE": 0.288294918786431,
+            "RMSE": 0.9230520154410604,
+            "R2": -0.061663229961131494
+          },
+          "YOUNG_MODULUS": {
+            "n": 3981,
+            "MAE": 3.707529665209694,
+            "RMSE": 6.173090868712118,
+            "R2": 0.8875049326758244
+          }
+        },
+        "by_task_evidence": {
+          "CTE_BELOW_TG/database_observation_unmarked": {
+            "n": 13741,
+            "MAE": 6.204723760807454,
+            "RMSE": 16.573792605549894,
+            "R2": 0.7284378170074461
+          },
+          "CTE_BELOW_TG/explicit_measurement_marker": {
+            "n": 167,
+            "MAE": 3.047663557315301,
+            "RMSE": 5.782265857024108,
+            "R2": 0.9260350089329619
+          },
+          "CTE_FIXED_T/database_observation_unmarked": {
+            "n": 9409,
+            "MAE": 5.38367818236606,
+            "RMSE": 17.437162835743372,
+            "R2": 0.7074536661287166
+          },
+          "CTE_FIXED_T/explicit_measurement_marker": {
+            "n": 144,
+            "MAE": 2.3424876398510404,
+            "RMSE": 3.4113334050075244,
+            "R2": 0.9739150453346805
+          },
+          "DENSITY_20C/database_observation_unmarked": {
+            "n": 14418,
+            "MAE": 0.06770887543278294,
+            "RMSE": 0.15124984971927663,
+            "R2": 0.9667278014899822
+          },
+          "DENSITY_20C/explicit_measurement_marker": {
+            "n": 220,
+            "MAE": 0.03296637811222512,
+            "RMSE": 0.10656826886380595,
+            "R2": 0.6472424877535827
+          },
+          "POISSON_RATIO/database_observation_unmarked": {
+            "n": 1164,
+            "MAE": 0.012718472038222432,
+            "RMSE": 0.021548005054817288,
+            "R2": 0.433725272663094
+          },
+          "POISSON_RATIO/explicit_measurement_marker": {
+            "n": 21,
+            "MAE": 0.00911115005437304,
+            "RMSE": 0.013311594716408682,
+            "R2": 0.620712729764181
+          },
+          "TG/database_observation_unmarked": {
+            "n": 9599,
+            "MAE": 25.590493396226663,
+            "RMSE": 41.90147601253978,
+            "R2": 0.8938849309235276
+          },
+          "TG/explicit_measurement_marker": {
+            "n": 64,
+            "MAE": 15.064117856145955,
+            "RMSE": 20.501377442993487,
+            "R2": 0.9660529182557288
+          },
+          "THERMAL_CONDUCTIVITY/database_observation_unmarked": {
+            "n": 212,
+            "MAE": 0.3005011131820565,
+            "RMSE": 0.9504185983819708,
+            "R2": -0.07492475563852374
+          },
+          "THERMAL_CONDUCTIVITY/explicit_measurement_marker": {
+            "n": 13,
+            "MAE": 0.08924005633469087,
+            "RMSE": 0.12618108060414615,
+            "R2": -1.3707145532679847
+          },
+          "YOUNG_MODULUS/database_observation_unmarked": {
+            "n": 3921,
+            "MAE": 3.7057001979142092,
+            "RMSE": 6.145373791448841,
+            "R2": 0.8894873536804496
+          },
+          "YOUNG_MODULUS/explicit_measurement_marker": {
+            "n": 60,
+            "MAE": 3.82708535296963,
+            "RMSE": 7.773005943972509,
+            "R2": 0.5407604716033557
+          }
+        }
+      }
+    }
+  ],
+  "oof_metrics": {
+    "overall": {
+      "n": 159461,
+      "MAE": 7.584683891917527,
+      "RMSE": 21.30124715986067,
+      "R2": 0.9903820680436156
+    },
+    "by_task": {
+      "CTE_BELOW_TG": {
+        "n": 42966,
+        "MAE": 6.105515512407034,
+        "RMSE": 16.15175778565801,
+        "R2": 0.7456448510807052
+      },
+      "CTE_FIXED_T": {
+        "n": 29032,
+        "MAE": 5.351993109412403,
+        "RMSE": 17.469035034604595,
+        "R2": 0.7199068180325325
+      },
+      "DENSITY_20C": {
+        "n": 42105,
+        "MAE": 0.07563822685651192,
+        "RMSE": 0.16702186877918535,
+        "R2": 0.9631089873153449
+      },
+      "POISSON_RATIO": {
+        "n": 3691,
+        "MAE": 0.01283999393922168,
+        "RMSE": 0.020826405516643498,
+        "R2": 0.5218523107152351
+      },
+      "TG": {
+        "n": 29839,
+        "MAE": 24.94090662138283,
+        "RMSE": 41.6022957930447,
+        "R2": 0.8922126410888838
+      },
+      "THERMAL_CONDUCTIVITY": {
+        "n": 647,
+        "MAE": 0.18990051688339707,
+        "RMSE": 0.5748787230384924,
+        "R2": -0.0026518586800914346
+      },
+      "YOUNG_MODULUS": {
+        "n": 11181,
+        "MAE": 3.951875177643335,
+        "RMSE": 7.568729049715125,
+        "R2": 0.8180273264865449
+      }
+    },
+    "by_task_evidence": {
+      "CTE_BELOW_TG/database_observation_unmarked": {
+        "n": 42553,
+        "MAE": 6.131152909375832,
+        "RMSE": 16.219608371945196,
+        "R2": 0.7444799551434275
+      },
+      "CTE_BELOW_TG/explicit_measurement_marker": {
+        "n": 413,
+        "MAE": 3.4639945603167464,
+        "RMSE": 5.87996249918934,
+        "R2": 0.9402553107275885
+      },
+      "CTE_FIXED_T/database_observation_unmarked": {
+        "n": 28666,
+        "MAE": 5.38573278231757,
+        "RMSE": 17.574197295402733,
+        "R2": 0.7181394149361041
+      },
+      "CTE_FIXED_T/explicit_measurement_marker": {
+        "n": 366,
+        "MAE": 2.7094208047689636,
+        "RMSE": 4.065889852396382,
+        "R2": 0.9709175957061665
+      },
+      "DENSITY_20C/database_observation_unmarked": {
+        "n": 41480,
+        "MAE": 0.07615783053627836,
+        "RMSE": 0.16785087894224518,
+        "R2": 0.9628218007211238
+      },
+      "DENSITY_20C/explicit_measurement_marker": {
+        "n": 625,
+        "MAE": 0.0411531698377732,
+        "RMSE": 0.09732261279088977,
+        "R2": 0.9839723848377319
+      },
+      "POISSON_RATIO/database_observation_unmarked": {
+        "n": 3653,
+        "MAE": 0.012802790846848834,
+        "RMSE": 0.020816849932091947,
+        "R2": 0.5219009680760553
+      },
+      "POISSON_RATIO/explicit_measurement_marker": {
+        "n": 38,
+        "MAE": 0.016416385950748208,
+        "RMSE": 0.02172538578787716,
+        "R2": 0.05366740853572527
+      },
+      "TG/database_observation_unmarked": {
+        "n": 29599,
+        "MAE": 24.940591213964137,
+        "RMSE": 41.610579158306585,
+        "R2": 0.8923265288321701
+      },
+      "TG/explicit_measurement_marker": {
+        "n": 240,
+        "MAE": 24.97980555549115,
+        "RMSE": 40.567750269703126,
+        "R2": 0.8712741550083717
+      },
+      "THERMAL_CONDUCTIVITY/database_observation_unmarked": {
+        "n": 586,
+        "MAE": 0.2011461758432918,
+        "RMSE": 0.6029021237772694,
+        "R2": -0.020787176105594884
+      },
+      "THERMAL_CONDUCTIVITY/explicit_measurement_marker": {
+        "n": 61,
+        "MAE": 0.08186844884244107,
+        "RMSE": 0.1158319494855391,
+        "R2": 0.46701040579914244
+      },
+      "YOUNG_MODULUS/database_observation_unmarked": {
+        "n": 10965,
+        "MAE": 3.962589196508942,
+        "RMSE": 7.59169420391348,
+        "R2": 0.8186988591580258
+      },
+      "YOUNG_MODULUS/explicit_measurement_marker": {
+        "n": 216,
+        "MAE": 3.407989914396188,
+        "RMSE": 6.293777075199395,
+        "R2": 0.7215426794496675
+      }
+    }
+  },
+  "median_best_epoch": 22,
+  "elapsed_seconds_before_full_fit": 540.1344540119171,
+  "full_fit": {
+    "epochs": 22,
+    "history": [
+      {
+        "epoch": 1,
+        "train_smooth_l1": 0.21315224857953113
+      },
+      {
+        "epoch": 2,
+        "train_smooth_l1": 0.09972995594860269
+      },
+      {
+        "epoch": 3,
+        "train_smooth_l1": 0.08599942893936084
+      },
+      {
+        "epoch": 4,
+        "train_smooth_l1": 0.07939293348970704
+      },
+      {
+        "epoch": 5,
+        "train_smooth_l1": 0.075654675754217
+      },
+      {
+        "epoch": 6,
+        "train_smooth_l1": 0.07225632457396923
+      },
+      {
+        "epoch": 7,
+        "train_smooth_l1": 0.06909402241357245
+      },
+      {
+        "epoch": 8,
+        "train_smooth_l1": 0.06811650844816214
+      },
+      {
+        "epoch": 9,
+        "train_smooth_l1": 0.06594440610840535
+      },
+      {
+        "epoch": 10,
+        "train_smooth_l1": 0.0628515389174796
+      },
+      {
+        "epoch": 11,
+        "train_smooth_l1": 0.062397351273550436
+      },
+      {
+        "epoch": 12,
+        "train_smooth_l1": 0.06187504706665491
+      },
+      {
+        "epoch": 13,
+        "train_smooth_l1": 0.060885754198982164
+      },
+      {
+        "epoch": 14,
+        "train_smooth_l1": 0.05848470769631557
+      },
+      {
+        "epoch": 15,
+        "train_smooth_l1": 0.056774424394974723
+      },
+      {
+        "epoch": 16,
+        "train_smooth_l1": 0.057306296478670374
+      },
+      {
+        "epoch": 17,
+        "train_smooth_l1": 0.056473552488172665
+      },
+      {
+        "epoch": 18,
+        "train_smooth_l1": 0.057547557119948745
+      },
+      {
+        "epoch": 19,
+        "train_smooth_l1": 0.05676985263394622
+      },
+      {
+        "epoch": 20,
+        "train_smooth_l1": 0.05521658338749638
+      },
+      {
+        "epoch": 21,
+        "train_smooth_l1": 0.05551135793137245
+      },
+      {
+        "epoch": 22,
+        "train_smooth_l1": 0.054840768329226054
+      }
+    ],
+    "checkpoint": "/data/se42/experiments/material_release_validation_20260928/glass_v1_source_purged/oxide_glass_multitask_transformer_v1_strict.pt",
+    "checkpoint_sha256": "601fefce1d36aabb4e1de77f85baf96a7eec6cc8daebfedc8490d0535b6976a6"
+  },
+  "elapsed_seconds_total": 747.3190846443176
+}

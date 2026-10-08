@@ -1,0 +1,15 @@
+{
+  "parity-0": {
+    "task": "DENSITY_20C",
+    "unit": "g_cm-3",
+    "value": 2.782350453498888
+  },
+  "parity-64": {
+    "task": "YOUNG_MODULUS",
+    "unit": "GPa",
+    "value": 72.64723449432775
+  },
+  "unsupported-thermal": {
+    "status": "skipped"
+  }
+}

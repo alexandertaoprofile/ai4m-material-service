@@ -1,0 +1,42 @@
+{
+  "target_root": "/data/se42/alpha_project/material_service_hub/material_composition_optimization",
+  "files": [
+    {
+      "source": "/data/se42/experiments/material_release_validation_20260928/1111_patch/application.py",
+      "target": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/src/alloy_workflow/application.py",
+      "base_sha256": "bdde2a50c4d22ed0ac3505abbb36c51a56a849b11210d0c09042470a5dd80f7c",
+      "candidate_sha256": "c3b142aaf4f90b4a9eedfe8e8c0f0881ee867af72911e60d4a000c50a58d63e9"
+    },
+    {
+      "source": "/data/se42/experiments/material_release_validation_20260928/1111_patch/glass_shadow_compare.py",
+      "target": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/src/alloy_workflow/glass_shadow_compare.py",
+      "base_sha256": null,
+      "candidate_sha256": "2d5c2ed43269a5938c204a11eb4d25be99796fab590d5a314743a1aec8dba133"
+    },
+    {
+      "source": "/data/se42/experiments/material_release_validation_20260928/1111_patch/optimization_contract.py",
+      "target": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/src/alloy_workflow/optimization_contract.py",
+      "base_sha256": null,
+      "candidate_sha256": "a3cbdbba873b3928af55b4f6a30911a42621bd32d60a5473b96297a0bb035222"
+    },
+    {
+      "source": "/data/se42/experiments/material_release_validation_20260928/1111_patch/private_shadow_dispatcher.py",
+      "target": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/src/alloy_workflow/private_shadow_dispatcher.py",
+      "base_sha256": null,
+      "candidate_sha256": "eac67ae8dea9f679dc1e481af9b6bac7a2ba6f97cc95fccaf8907e50568c5e11"
+    },
+    {
+      "source": "/data/se42/experiments/material_release_validation_20260928/1111_patch/runner.py",
+      "target": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/src/alloy_workflow/runner.py",
+      "base_sha256": "b8a6cd765395528351ac00b6db8e31e7d2cbff0c2e9ab9301011aa5b4975aa0b",
+      "candidate_sha256": "ef1b3faf3ca914769509089f35284045caa383b62e9c83be14d0887f8418cc1a"
+    },
+    {
+      "source": "/data/se42/experiments/material_release_validation_20260928/1111_patch/shadow_channel_configs.py",
+      "target": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/src/alloy_workflow/shadow_channel_configs.py",
+      "base_sha256": null,
+      "candidate_sha256": "c295b2e71281ec1b73dbb39b459fa8a3765a5510ca5a564cc1631e2c525930b5"
+    }
+  ],
+  "automatic_apply": false
+}

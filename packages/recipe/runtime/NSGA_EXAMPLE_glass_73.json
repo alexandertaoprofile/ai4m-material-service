@@ -1,0 +1,3731 @@
+{
+  "ok": true,
+  "mode": "shadow",
+  "display_allowed": false,
+  "production_release_authorized": false,
+  "public_effect": false,
+  "method": "nsga2",
+  "seed": 73,
+  "status": "completed",
+  "objectives": [
+    {
+      "property": "density_g_cm3",
+      "mode": "min",
+      "unit": "g/cm3",
+      "scale": 1.0
+    },
+    {
+      "property": "young_modulus_GPa",
+      "mode": "max",
+      "unit": "GPa",
+      "scale": 1.0
+    }
+  ],
+  "stop_reason": "model_evaluation_budget",
+  "counters": {
+    "proposals": 416,
+    "model_evaluations": 256,
+    "feasible": 256,
+    "pareto_count": 77
+  },
+  "elapsed_seconds": 4.5395986549556255,
+  "pareto_front": [
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.099792866829578,
+          "B2O3": 1.96,
+          "BaO": 2.86,
+          "CaO": 6.54,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 6.06097822650911,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.20922890666131,
+          "SnO2": 0.1,
+          "SrO": 1.06,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 63
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.650692999999989,
+        "density_g_cm3": 2.591426662985455,
+        "young_modulus_GPa": 83.33870407786246,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.668950692415166,
+        "viscosity_temperature_200_poise_C": 1631.707188633496,
+        "viscosity_temperature_35kpoise_C": 1265.4840966620914
+      },
+      "F": [
+        2.591426662985455,
+        -83.33870407786246
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.012428789292102,
+          "B2O3": 1.96,
+          "BaO": 2.86,
+          "CaO": 6.54,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 6.06,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.36961651541385,
+          "SnO2": 0.1,
+          "SrO": 0.9879546952940287,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 63
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.667393833333332,
+        "density_g_cm3": 2.5892828838458724,
+        "young_modulus_GPa": 83.25612797160261,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.700278497818026,
+        "viscosity_temperature_200_poise_C": 1634.3797681581957,
+        "viscosity_temperature_35kpoise_C": 1266.918513808955
+      },
+      "F": [
+        2.5892828838458724,
+        -83.25612797160261
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.095987175120163,
+          "B2O3": 1.96,
+          "BaO": 2.86,
+          "CaO": 6.54,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 6.06097822650911,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.21303459837073,
+          "SnO2": 0.1,
+          "SrO": 1.06,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 63
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.651204666666657,
+        "density_g_cm3": 2.591399776205767,
+        "young_modulus_GPa": 83.33645778737832,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.669369567470696,
+        "viscosity_temperature_200_poise_C": 1631.7616804744064,
+        "viscosity_temperature_35kpoise_C": 1265.508016708842
+      },
+      "F": [
+        2.591399776205767,
+        -83.33645778737832
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 11.805987175120162,
+          "B2O3": 1.45,
+          "BaO": 2.69,
+          "CaO": 6.47,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 6.040610978432082,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.58340184644776,
+          "SnO2": 0.11,
+          "SrO": 1.73,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 64
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.7532283333333414,
+        "density_g_cm3": 2.602018247645825,
+        "young_modulus_GPa": 83.66193941634232,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.476816992520074,
+        "viscosity_temperature_200_poise_C": 1636.423122428787,
+        "viscosity_temperature_35kpoise_C": 1268.8052943048388
+      },
+      "F": [
+        2.602018247645825,
+        -83.66193941634232
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.17,
+          "B2O3": 2.19,
+          "BaO": 2.287566835849013,
+          "CaO": 6.223442265835889,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 5.56,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 69.4989908983151,
+          "SnO2": 0.11,
+          "SrO": 1.91,
+          "TiO2": 0.02,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 38
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.598906833333344,
+        "density_g_cm3": 2.581857283731434,
+        "young_modulus_GPa": 83.09413354459537,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.94361362689213,
+        "viscosity_temperature_200_poise_C": 1637.3838219904876,
+        "viscosity_temperature_35kpoise_C": 1268.8155618605354
+      },
+      "F": [
+        2.581857283731434,
+        -83.09413354459537
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.17,
+          "B2O3": 2.0716396789179936,
+          "BaO": 2.38,
+          "CaO": 6.16,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 5.453406486103856,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 69.69495383497815,
+          "SnO2": 0.11,
+          "SrO": 1.91,
+          "TiO2": 0.02,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 38
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.615049833333341,
+        "density_g_cm3": 2.58419214233458,
+        "young_modulus_GPa": 83.11946457173626,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.93161433493028,
+        "viscosity_temperature_200_poise_C": 1642.511952481735,
+        "viscosity_temperature_35kpoise_C": 1272.1312935121543
+      },
+      "F": [
+        2.58419214233458,
+        -83.11946457173626
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.074520898199303,
+          "B2O3": 1.8809979037954805,
+          "BaO": 2.86,
+          "CaO": 6.54,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 6.06,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.31448119800521,
+          "SnO2": 0.1,
+          "SrO": 1.06,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 63
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.660518833333328,
+        "density_g_cm3": 2.591975443532269,
+        "young_modulus_GPa": 83.38584707621682,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.654880354676045,
+        "viscosity_temperature_200_poise_C": 1633.6351790737808,
+        "viscosity_temperature_35kpoise_C": 1266.7601914849938
+      },
+      "F": [
+        2.591975443532269,
+        -83.38584707621682
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 10.55,
+          "B2O3": 0.99,
+          "BaO": 2.6180176325320725,
+          "CaO": 7.217418767683681,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 6.16,
+          "Na2O": 0.02,
+          "P2O5": 0.0,
+          "SiO2": 69.12456359978425,
+          "SnO2": 0.12,
+          "SrO": 3.15,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 20
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.9583628333332705,
+        "density_g_cm3": 2.639497573675795,
+        "young_modulus_GPa": 84.34411220803199,
+        "stress_optical_coefficient_nm_cm_per_MPa": 27.86948728948902,
+        "viscosity_temperature_200_poise_C": 1616.4612266176855,
+        "viscosity_temperature_35kpoise_C": 1253.664417393547
+      },
+      "F": [
+        2.639497573675795,
+        -84.34411220803199
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.17,
+          "B2O3": 2.19,
+          "BaO": 2.287566835849013,
+          "CaO": 6.2174003658473955,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 5.56,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 69.50503279830359,
+          "SnO2": 0.11,
+          "SrO": 1.91,
+          "TiO2": 0.02,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 38
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.598683500000011,
+        "density_g_cm3": 2.581780053964734,
+        "young_modulus_GPa": 83.09181201341035,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.94534631488949,
+        "viscosity_temperature_200_poise_C": 1637.5264327677125,
+        "viscosity_temperature_35kpoise_C": 1268.903702429359
+      },
+      "F": [
+        2.581780053964734,
+        -83.09181201341035
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.099792866829578,
+          "B2O3": 1.96,
+          "BaO": 2.86,
+          "CaO": 6.54,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 6.06,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.2801623639925,
+          "SnO2": 0.1,
+          "SrO": 0.9900447691779156,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 63
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.652889666666657,
+        "density_g_cm3": 2.589944460204416,
+        "young_modulus_GPa": 83.30871962434355,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.690050488690684,
+        "viscosity_temperature_200_poise_C": 1633.0884087727447,
+        "viscosity_temperature_35kpoise_C": 1266.3443479661325
+      },
+      "F": [
+        2.589944460204416,
+        -83.30871962434355
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 10.55,
+          "B2O3": 0.99,
+          "BaO": 2.6330500055323633,
+          "CaO": 7.324225632182295,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 6.16,
+          "Na2O": 0.02,
+          "P2O5": 0.0,
+          "SiO2": 69.00272436228535,
+          "SnO2": 0.12,
+          "SrO": 3.15,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 20
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.9585994999999365,
+        "density_g_cm3": 2.6414072186907256,
+        "young_modulus_GPa": 84.38034880182848,
+        "stress_optical_coefficient_nm_cm_per_MPa": 27.83175093027833,
+        "viscosity_temperature_200_poise_C": 1613.7234439884244,
+        "viscosity_temperature_35kpoise_C": 1251.960902817357
+      },
+      "F": [
+        2.6414072186907256,
+        -84.38034880182848
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.099792866829578,
+          "B2O3": 1.8831967534418574,
+          "BaO": 2.86,
+          "CaO": 6.54,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 6.06,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.28701037972856,
+          "SnO2": 0.1,
+          "SrO": 1.06,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 63
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.655606333333324,
+        "density_g_cm3": 2.5921329569094826,
+        "young_modulus_GPa": 83.39897644193435,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.652570633090512,
+        "viscosity_temperature_200_poise_C": 1633.230475930089,
+        "viscosity_temperature_35kpoise_C": 1266.5707489975864
+      },
+      "F": [
+        2.5921329569094826,
+        -83.39897644193435
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.17,
+          "B2O3": 2.19,
+          "BaO": 2.287566835849013,
+          "CaO": 6.228207474628385,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 5.56,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 69.49422568952261,
+          "SnO2": 0.11,
+          "SrO": 1.91,
+          "TiO2": 0.02,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 38
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.5991301666666766,
+        "density_g_cm3": 2.5819182659284983,
+        "young_modulus_GPa": 83.09596567397023,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.94224706277299,
+        "viscosity_temperature_200_poise_C": 1637.271345603069,
+        "viscosity_temperature_35kpoise_C": 1268.7460457289608
+      },
+      "F": [
+        2.5819182659284983,
+        -83.09596567397023
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.012428789292102,
+          "B2O3": 1.96,
+          "BaO": 2.86,
+          "CaO": 6.54,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 6.06,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.36615690080728,
+          "SnO2": 0.1,
+          "SrO": 0.9914143099006045,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 63
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.6674371666666654,
+        "density_g_cm3": 2.5893556818612136,
+        "young_modulus_GPa": 83.25758019244695,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.699250317978603,
+        "viscosity_temperature_200_poise_C": 1634.3126630466595,
+        "viscosity_temperature_35kpoise_C": 1266.876702022939
+      },
+      "F": [
+        2.5893556818612136,
+        -83.25758019244695
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.73,
+          "B2O3": 2.44,
+          "BaO": 1.5,
+          "CaO": 5.546714425022164,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 5.293351252496145,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 70.7099343224817,
+          "SnO2": 0.1,
+          "SrO": 1.66,
+          "TiO2": 0.0,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 23
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.435413333333377,
+        "density_g_cm3": 2.538026790324043,
+        "young_modulus_GPa": 82.47296299474475,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.602177230018338,
+        "viscosity_temperature_200_poise_C": 1664.1226409182154,
+        "viscosity_temperature_35kpoise_C": 1286.9435879590621
+      },
+      "F": [
+        2.538026790324043,
+        -82.47296299474475
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.099792866829578,
+          "B2O3": 1.96,
+          "BaO": 2.86,
+          "CaO": 6.54,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 6.06,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.28674177323875,
+          "SnO2": 0.1,
+          "SrO": 0.9834653599316645,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 63
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.653426333333323,
+        "density_g_cm3": 2.5898059664336395,
+        "young_modulus_GPa": 83.30596160157857,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.692005665505146,
+        "viscosity_temperature_200_poise_C": 1633.2160271714972,
+        "viscosity_temperature_35kpoise_C": 1266.423863741223
+      },
+      "F": [
+        2.5898059664336395,
+        -83.30596160157857
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 10.55,
+          "B2O3": 0.99,
+          "BaO": 2.73,
+          "CaO": 7.3,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 6.237015947300987,
+          "Na2O": 0.02,
+          "P2O5": 0.0,
+          "SiO2": 68.95713383203987,
+          "SnO2": 0.12,
+          "SrO": 3.045850220659138,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 20
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.958975499999939,
+        "density_g_cm3": 2.642896826937242,
+        "young_modulus_GPa": 84.39748214376912,
+        "stress_optical_coefficient_nm_cm_per_MPa": 27.804169429704213,
+        "viscosity_temperature_200_poise_C": 1613.0040600498955,
+        "viscosity_temperature_35kpoise_C": 1251.4856283317977
+      },
+      "F": [
+        2.642896826937242,
+        -84.39748214376912
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 10.55,
+          "B2O3": 0.99,
+          "BaO": 2.617423972567448,
+          "CaO": 7.217418767683681,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 6.16,
+          "Na2O": 0.02,
+          "P2O5": 0.0,
+          "SiO2": 69.12515725974887,
+          "SnO2": 0.12,
+          "SrO": 3.15,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 20
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.9583628333332697,
+        "density_g_cm3": 2.6394761210262323,
+        "young_modulus_GPa": 84.34403640632202,
+        "stress_optical_coefficient_nm_cm_per_MPa": 27.86973817019177,
+        "viscosity_temperature_200_poise_C": 1616.4697637231288,
+        "viscosity_temperature_35kpoise_C": 1253.67004183855
+      },
+      "F": [
+        2.6394761210262323,
+        -84.34403640632202
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.023738293605897,
+          "B2O3": 1.8831967534418574,
+          "BaO": 2.86,
+          "CaO": 6.54,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 6.06,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.36306495295224,
+          "SnO2": 0.1,
+          "SrO": 1.06,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 63
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.6673455,
+        "density_g_cm3": 2.5915971989737896,
+        "young_modulus_GPa": 83.35421817970553,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.66095175581219,
+        "viscosity_temperature_200_poise_C": 1634.3192182019627,
+        "viscosity_temperature_35kpoise_C": 1267.0484228597786
+      },
+      "F": [
+        2.5915971989737896,
+        -83.35421817970553
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 11.7,
+          "B2O3": 1.45,
+          "BaO": 2.5835381024445847,
+          "CaO": 6.385017753109578,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 6.05,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.87144414444585,
+          "SnO2": 0.11,
+          "SrO": 1.73,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 64
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.757370000000016,
+        "density_g_cm3": 2.596595764258368,
+        "young_modulus_GPa": 83.55629217233621,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.55477675990612,
+        "viscosity_temperature_200_poise_C": 1641.2396095333118,
+        "viscosity_temperature_35kpoise_C": 1271.570629439777
+      },
+      "F": [
+        2.596595764258368,
+        -83.55629217233621
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 10.55,
+          "B2O3": 0.99,
+          "BaO": 2.638769872181378,
+          "CaO": 7.217418767683681,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 6.16,
+          "Na2O": 0.02,
+          "P2O5": 0.0,
+          "SiO2": 69.10381136013494,
+          "SnO2": 0.12,
+          "SrO": 3.15,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 20
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.958649499999936,
+        "density_g_cm3": 2.640247904544481,
+        "young_modulus_GPa": 84.34678363013424,
+        "stress_optical_coefficient_nm_cm_per_MPa": 27.860717327308375,
+        "viscosity_temperature_200_poise_C": 1616.1627985073444,
+        "viscosity_temperature_35kpoise_C": 1253.4678050132222
+      },
+      "F": [
+        2.640247904544481,
+        -84.34678363013424
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 11.785127306329823,
+          "B2O3": 1.365425480358057,
+          "BaO": 2.69,
+          "CaO": 6.47,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 6.05,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.67944721331213,
+          "SnO2": 0.11,
+          "SrO": 1.73,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 64
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.756410166666676,
+        "density_g_cm3": 2.6025755853647805,
+        "young_modulus_GPa": 83.71403944465732,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.457967719659052,
+        "viscosity_temperature_200_poise_C": 1638.1366118826031,
+        "viscosity_temperature_35kpoise_C": 1269.971700814378
+      },
+      "F": [
+        2.6025755853647805,
+        -83.71403944465732
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.648016037975687,
+          "B2O3": 2.44,
+          "BaO": 1.5,
+          "CaO": 5.45,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 5.346255456445661,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 70.83572850557866,
+          "SnO2": 0.1,
+          "SrO": 1.66,
+          "TiO2": 0.0,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 23
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.400310833333374,
+        "density_g_cm3": 2.536621503705377,
+        "young_modulus_GPa": 82.41565965784535,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.622425389221416,
+        "viscosity_temperature_200_poise_C": 1666.2687857213082,
+        "viscosity_temperature_35kpoise_C": 1288.0781368090181
+      },
+      "F": [
+        2.536621503705377,
+        -82.41565965784535
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.43,
+          "B2O3": 2.32,
+          "BaO": 2.1701016730547225,
+          "CaO": 5.836724974277386,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 5.4,
+          "Na2O": 0.03,
+          "P2O5": 0.0,
+          "SiO2": 69.90317335266788,
+          "SnO2": 0.09,
+          "SrO": 1.78,
+          "TiO2": 0.02,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 14
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.698852000000001,
+        "density_g_cm3": 2.5687619211803767,
+        "young_modulus_GPa": 82.79142024969072,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.177579670314664,
+        "viscosity_temperature_200_poise_C": 1648.4485151301344,
+        "viscosity_temperature_35kpoise_C": 1276.3619272963651
+      },
+      "F": [
+        2.5687619211803767,
+        -82.79142024969072
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.096352550470609,
+          "B2O3": 1.8594787232778534,
+          "BaO": 2.86,
+          "CaO": 6.54,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 6.06,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.31416872625154,
+          "SnO2": 0.1,
+          "SrO": 1.06,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 63
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.6583454999999914,
+        "density_g_cm3": 2.592327549825729,
+        "young_modulus_GPa": 83.4156122093944,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.647802960332676,
+        "viscosity_temperature_200_poise_C": 1633.7425656410055,
+        "viscosity_temperature_35kpoise_C": 1266.923289527231
+      },
+      "F": [
+        2.592327549825729,
+        -83.4156122093944
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.835987175120163,
+          "B2O3": 2.44,
+          "BaO": 1.5,
+          "CaO": 5.45,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 5.220610978432083,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 70.77340184644775,
+          "SnO2": 0.1,
+          "SrO": 1.66,
+          "TiO2": 0.0,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 23
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.4005250000000395,
+        "density_g_cm3": 2.5367511798409432,
+        "young_modulus_GPa": 82.44502877075524,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.64051313634163,
+        "viscosity_temperature_200_poise_C": 1666.687343859472,
+        "viscosity_temperature_35kpoise_C": 1288.7721713317155
+      },
+      "F": [
+        2.5367511798409432,
+        -82.44502877075524
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.023738293605897,
+          "B2O3": 1.8994376988712514,
+          "BaO": 2.86,
+          "CaO": 6.54,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 6.06,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.34682400752286,
+          "SnO2": 0.1,
+          "SrO": 1.06,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 63
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.667183833333334,
+        "density_g_cm3": 2.5914465971053597,
+        "young_modulus_GPa": 83.34136238091587,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.664474570021774,
+        "viscosity_temperature_200_poise_C": 1634.0023055153522,
+        "viscosity_temperature_35kpoise_C": 1266.8218392449833
+      },
+      "F": [
+        2.5914465971053597,
+        -83.34136238091587
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 11.7,
+          "B2O3": 1.45,
+          "BaO": 2.5835381024445847,
+          "CaO": 6.3969092671973184,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 6.05,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.85955263035811,
+          "SnO2": 0.11,
+          "SrO": 1.73,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 64
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.757433333333349,
+        "density_g_cm3": 2.5967439971018345,
+        "young_modulus_GPa": 83.56072281895203,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.551328159612876,
+        "viscosity_temperature_200_poise_C": 1640.959039607949,
+        "viscosity_temperature_35kpoise_C": 1271.3972170068835
+      },
+      "F": [
+        2.5967439971018345,
+        -83.56072281895203
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.099792866829578,
+          "B2O3": 1.96,
+          "BaO": 2.86,
+          "CaO": 6.54,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 6.06,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.29498585814918,
+          "SnO2": 0.1,
+          "SrO": 0.9752212750212336,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 63
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.653963833333323,
+        "density_g_cm3": 2.589632517775016,
+        "young_modulus_GPa": 83.302512407867,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.69445553682299,
+        "viscosity_temperature_200_poise_C": 1633.375934573273,
+        "viscosity_temperature_35kpoise_C": 1266.5234979122442
+      },
+      "F": [
+        2.589632517775016,
+        -83.302512407867
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.17,
+          "B2O3": 2.19,
+          "BaO": 2.267407945326794,
+          "CaO": 6.079394529817992,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 5.56,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 69.6631975248552,
+          "SnO2": 0.11,
+          "SrO": 1.91,
+          "TiO2": 0.02,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 38
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.5963651666666796,
+        "density_g_cm3": 2.5793140435790125,
+        "young_modulus_GPa": 83.03437190397825,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.99329877359035,
+        "viscosity_temperature_200_poise_C": 1641.0735849337423,
+        "viscosity_temperature_35kpoise_C": 1271.107293020467
+      },
+      "F": [
+        2.5793140435790125,
+        -83.03437190397825
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 11.99,
+          "B2O3": 1.96,
+          "BaO": 2.86,
+          "CaO": 6.540018754157897,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 6.06,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.39202655054807,
+          "SnO2": 0.1,
+          "SrO": 0.9879546952940287,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 63
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.6711854999999987,
+        "density_g_cm3": 2.5891241395357785,
+        "young_modulus_GPa": 83.2428396749703,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.702735675553267,
+        "viscosity_temperature_200_poise_C": 1634.7004080906627,
+        "viscosity_temperature_35kpoise_C": 1267.0590857503787
+      },
+      "F": [
+        2.5891241395357785,
+        -83.2428396749703
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.43,
+          "B2O3": 2.32,
+          "BaO": 2.175546794243529,
+          "CaO": 5.836724974277386,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 5.4,
+          "Na2O": 0.03,
+          "P2O5": 0.0,
+          "SiO2": 69.89772823147908,
+          "SnO2": 0.09,
+          "SrO": 1.78,
+          "TiO2": 0.02,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 14
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.699123666666668,
+        "density_g_cm3": 2.568948160346238,
+        "young_modulus_GPa": 82.79263835193,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.175321796762606,
+        "viscosity_temperature_200_poise_C": 1648.37025975335,
+        "viscosity_temperature_35kpoise_C": 1276.3105299406113
+      },
+      "F": [
+        2.568948160346238,
+        -82.79263835193
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 11.785127306329823,
+          "B2O3": 1.3736695652684878,
+          "BaO": 2.69,
+          "CaO": 6.47,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 6.05,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.6712031284017,
+          "SnO2": 0.11,
+          "SrO": 1.73,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 64
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.7566318333333433,
+        "density_g_cm3": 2.6025164923280744,
+        "young_modulus_GPa": 83.70844524630623,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.459735013528583,
+        "viscosity_temperature_200_poise_C": 1637.975930389029,
+        "viscosity_temperature_35kpoise_C": 1269.8569042708125
+      },
+      "F": [
+        2.6025164923280744,
+        -83.70844524630623
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.73,
+          "B2O3": 2.44,
+          "BaO": 1.5,
+          "CaO": 5.45,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 5.307015947300988,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 70.67926203667564,
+          "SnO2": 0.1,
+          "SrO": 1.7737220160233773,
+          "TiO2": 0.0,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 23
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.3949075000000404,
+        "density_g_cm3": 2.53945137487114,
+        "young_modulus_GPa": 82.50382033306614,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.591823772960208,
+        "viscosity_temperature_200_poise_C": 1663.8588080549778,
+        "viscosity_temperature_35kpoise_C": 1286.7717312613506
+      },
+      "F": [
+        2.53945137487114,
+        -82.50382033306614
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.089140690001035,
+          "B2O3": 1.8594787232778534,
+          "BaO": 2.86,
+          "CaO": 6.54,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 6.06,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.3213805867211,
+          "SnO2": 0.1,
+          "SrO": 1.06,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 63
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.6595488333333255,
+        "density_g_cm3": 2.5922768654729995,
+        "young_modulus_GPa": 83.41137572842544,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.648598917158317,
+        "viscosity_temperature_200_poise_C": 1633.8458073434226,
+        "viscosity_temperature_35kpoise_C": 1266.9685924950181
+      },
+      "F": [
+        2.5922768654729995,
+        -83.41137572842544
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 11.7,
+          "B2O3": 1.45,
+          "BaO": 2.573851282863199,
+          "CaO": 6.385017753109578,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 6.05,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.88113096402722,
+          "SnO2": 0.11,
+          "SrO": 1.73,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 64
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.7567150000000167,
+        "density_g_cm3": 2.5962600481554032,
+        "young_modulus_GPa": 83.5545431328774,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.558833479967273,
+        "viscosity_temperature_200_poise_C": 1641.3787691534321,
+        "viscosity_temperature_35kpoise_C": 1271.662087406312
+      },
+      "F": [
+        2.5962600481554032,
+        -83.5545431328774
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 11.785127306329823,
+          "B2O3": 1.3712330550681155,
+          "BaO": 2.69,
+          "CaO": 6.47,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 6.05,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.67363963860207,
+          "SnO2": 0.11,
+          "SrO": 1.73,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 64
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.7564651666666764,
+        "density_g_cm3": 2.6025339861042207,
+        "young_modulus_GPa": 83.71010033273174,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.45921265353285,
+        "viscosity_temperature_200_poise_C": 1638.0234196172719,
+        "viscosity_temperature_35kpoise_C": 1269.890832430896
+      },
+      "F": [
+        2.6025339861042207,
+        -83.71010033273174
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.43,
+          "B2O3": 2.32,
+          "BaO": 2.1701396584115598,
+          "CaO": 5.836724974277386,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 5.4,
+          "Na2O": 0.03,
+          "P2O5": 0.0,
+          "SiO2": 69.90313536731104,
+          "SnO2": 0.09,
+          "SrO": 1.78,
+          "TiO2": 0.02,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 14
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.6988520000000022,
+        "density_g_cm3": 2.5687632409379866,
+        "young_modulus_GPa": 82.79143110061146,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.177563919323198,
+        "viscosity_temperature_200_poise_C": 1648.4479692184984,
+        "viscosity_temperature_35kpoise_C": 1276.3615687474526
+      },
+      "F": [
+        2.5687632409379866,
+        -82.79143110061146
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.17,
+          "B2O3": 2.0706606175028957,
+          "BaO": 2.38,
+          "CaO": 6.16,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 5.453406486103856,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 69.69593289639324,
+          "SnO2": 0.11,
+          "SrO": 1.91,
+          "TiO2": 0.02,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 38
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.6150498333333414,
+        "density_g_cm3": 2.584200993582287,
+        "young_modulus_GPa": 83.12032519544522,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.931402489186514,
+        "viscosity_temperature_200_poise_C": 1642.5310524332192,
+        "viscosity_temperature_35kpoise_C": 1272.1449472882032
+      },
+      "F": [
+        2.584200993582287,
+        -83.12032519544522
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 11.786203346195684,
+          "B2O3": 1.357756796483659,
+          "BaO": 2.69,
+          "CaO": 6.47,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 6.05,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.68603985732067,
+          "SnO2": 0.11,
+          "SrO": 1.73,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 64
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.7563068333333427,
+        "density_g_cm3": 2.602638022645748,
+        "young_modulus_GPa": 83.71985503616496,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.456204550908843,
+        "viscosity_temperature_200_poise_C": 1638.2706935897768,
+        "viscosity_temperature_35kpoise_C": 1270.0717540524051
+      },
+      "F": [
+        2.602638022645748,
+        -83.71985503616496
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 11.94329837543963,
+          "B2O3": 1.8591793488505073,
+          "BaO": 2.86,
+          "CaO": 6.54,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 6.06,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.46752227570985,
+          "SnO2": 0.1,
+          "SrO": 1.06,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 63
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.6838378333333277,
+        "density_g_cm3": 2.5912506650443032,
+        "young_modulus_GPa": 83.32578327390361,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.66459610040192,
+        "viscosity_temperature_200_poise_C": 1635.9391222879162,
+        "viscosity_temperature_35kpoise_C": 1267.8882427466497
+      },
+      "F": [
+        2.5912506650443032,
+        -83.32578327390361
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 10.55,
+          "B2O3": 0.99,
+          "BaO": 2.73,
+          "CaO": 7.3,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 6.237015947300987,
+          "Na2O": 0.02,
+          "P2O5": 0.0,
+          "SiO2": 68.95560725636604,
+          "SnO2": 0.12,
+          "SrO": 3.047376796332981,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 20
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.9589754999999385,
+        "density_g_cm3": 2.642933470165927,
+        "young_modulus_GPa": 84.39801751799443,
+        "stress_optical_coefficient_nm_cm_per_MPa": 27.803710705425214,
+        "viscosity_temperature_200_poise_C": 1612.9744793509917,
+        "viscosity_temperature_35kpoise_C": 1251.467211396776
+      },
+      "F": [
+        2.642933470165927,
+        -84.39801751799443
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.17,
+          "B2O3": 2.19,
+          "BaO": 2.28870949207408,
+          "CaO": 6.2578307679683975,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 5.56,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 69.46345973995751,
+          "SnO2": 0.11,
+          "SrO": 1.91,
+          "TiO2": 0.02,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 38
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.601175166666675,
+        "density_g_cm3": 2.582336226187952,
+        "young_modulus_GPa": 83.10756926824672,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.933276779568594,
+        "viscosity_temperature_200_poise_C": 1636.555697765525,
+        "viscosity_temperature_35kpoise_C": 1268.3030940517383
+      },
+      "F": [
+        2.582336226187952,
+        -83.10756926824672
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.648016037975687,
+          "B2O3": 2.55787538375954,
+          "BaO": 1.5,
+          "CaO": 5.45,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 5.23,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 70.83410857826478,
+          "SnO2": 0.1,
+          "SrO": 1.66,
+          "TiO2": 0.0,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 23
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.406940833333371,
+        "density_g_cm3": 2.5344005172311728,
+        "young_modulus_GPa": 82.22221522713853,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.68438123953532,
+        "viscosity_temperature_200_poise_C": 1666.8608402434381,
+        "viscosity_temperature_35kpoise_C": 1288.1936348348845
+      },
+      "F": [
+        2.5344005172311728,
+        -82.22221522713853
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 10.55,
+          "B2O3": 0.99,
+          "BaO": 2.652560516130754,
+          "CaO": 7.3,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 6.16,
+          "Na2O": 0.02,
+          "P2O5": 0.0,
+          "SiO2": 69.10972935344923,
+          "SnO2": 0.12,
+          "SrO": 3.0477101304200196,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 20
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.957496166666603,
+        "density_g_cm3": 2.6393463729403,
+        "young_modulus_GPa": 84.33921303093155,
+        "stress_optical_coefficient_nm_cm_per_MPa": 27.861358935424963,
+        "viscosity_temperature_200_poise_C": 1615.9968498820572,
+        "viscosity_temperature_35kpoise_C": 1253.3641094484253
+      },
+      "F": [
+        2.6393463729403,
+        -84.33921303093155
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 10.55,
+          "B2O3": 0.99,
+          "BaO": 2.73,
+          "CaO": 7.3,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 6.261521404715447,
+          "Na2O": 0.02,
+          "P2O5": 0.0,
+          "SiO2": 68.940755247817,
+          "SnO2": 0.12,
+          "SrO": 3.0377233474675664,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 20
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.959698833333272,
+        "density_g_cm3": 2.6429507452765075,
+        "young_modulus_GPa": 84.4102448221538,
+        "stress_optical_coefficient_nm_cm_per_MPa": 27.798650179363165,
+        "viscosity_temperature_200_poise_C": 1612.5521471830748,
+        "viscosity_temperature_35kpoise_C": 1251.2122815046416
+      },
+      "F": [
+        2.6429507452765075,
+        -84.4102448221538
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.43,
+          "B2O3": 2.32,
+          "BaO": 2.3250193481379533,
+          "CaO": 5.830130109517389,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 5.4,
+          "Na2O": 0.03,
+          "P2O5": 0.0,
+          "SiO2": 69.75485054234466,
+          "SnO2": 0.09,
+          "SrO": 1.78,
+          "TiO2": 0.02,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 14
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.7116129999999963,
+        "density_g_cm3": 2.5740065759789093,
+        "young_modulus_GPa": 82.82272983258152,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.11522539860597,
+        "viscosity_temperature_200_poise_C": 1646.3776658221707,
+        "viscosity_temperature_35kpoise_C": 1274.9957034856411
+      },
+      "F": [
+        2.5740065759789093,
+        -82.82272983258152
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 11.695669451004346,
+          "B2O3": 1.3778383977559092,
+          "BaO": 2.69,
+          "CaO": 6.47,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 6.05,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.75649215123975,
+          "SnO2": 0.11,
+          "SrO": 1.73,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 64
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.761159333333346,
+        "density_g_cm3": 2.6018504420718207,
+        "young_modulus_GPa": 83.65371355459969,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.470552305185596,
+        "viscosity_temperature_200_poise_C": 1639.173369226731,
+        "viscosity_temperature_35kpoise_C": 1270.3579270203857
+      },
+      "F": [
+        2.6018504420718207,
+        -83.65371355459969
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 10.657692890110074,
+          "B2O3": 0.928006141959704,
+          "BaO": 2.73,
+          "CaO": 7.3,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 6.16,
+          "Na2O": 0.02,
+          "P2O5": 0.0,
+          "SiO2": 68.88430096793023,
+          "SnO2": 0.12,
+          "SrO": 3.15,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 20
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.957546166666605,
+        "density_g_cm3": 2.645753844117882,
+        "young_modulus_GPa": 84.48791306992369,
+        "stress_optical_coefficient_nm_cm_per_MPa": 27.773168145491844,
+        "viscosity_temperature_200_poise_C": 1612.5783214894002,
+        "viscosity_temperature_35kpoise_C": 1251.6013685032217
+      },
+      "F": [
+        2.645753844117882,
+        -84.48791306992369
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.656494882299128,
+          "B2O3": 2.44,
+          "BaO": 1.5,
+          "CaO": 5.45,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 5.332786288288867,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 70.84071882941201,
+          "SnO2": 0.1,
+          "SrO": 1.66,
+          "TiO2": 0.0,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 23
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.39924750000004,
+        "density_g_cm3": 2.5365421518411075,
+        "young_modulus_GPa": 82.41174213898327,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.625709819787094,
+        "viscosity_temperature_200_poise_C": 1666.4815739714707,
+        "viscosity_temperature_35kpoise_C": 1288.227363791346
+      },
+      "F": [
+        2.5365421518411075,
+        -82.41174213898327
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 11.989442787407109,
+          "B2O3": 1.8594787232778534,
+          "BaO": 2.86,
+          "CaO": 6.54,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 6.06,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.42107848931504,
+          "SnO2": 0.1,
+          "SrO": 1.06,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 63
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.67483883333333,
+        "density_g_cm3": 2.5915741938980834,
+        "young_modulus_GPa": 83.35274117575914,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.65958603823683,
+        "viscosity_temperature_200_poise_C": 1635.2728763828318,
+        "viscosity_temperature_35kpoise_C": 1267.594550490135
+      },
+      "F": [
+        2.5915741938980834,
+        -83.35274117575914
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.73,
+          "B2O3": 2.44,
+          "BaO": 1.5,
+          "CaO": 5.45,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 5.308633989190147,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 70.67358122505773,
+          "SnO2": 0.1,
+          "SrO": 1.7777847857521274,
+          "TiO2": 0.0,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 23
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.3949075000000404,
+        "density_g_cm3": 2.539562602840491,
+        "young_modulus_GPa": 82.50721297530526,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.59011257832045,
+        "viscosity_temperature_200_poise_C": 1663.7397876557689,
+        "viscosity_temperature_35kpoise_C": 1286.6981878722715
+      },
+      "F": [
+        2.539562602840491,
+        -82.50721297530526
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 11.94329837543963,
+          "B2O3": 1.8588326346264472,
+          "BaO": 2.86,
+          "CaO": 6.54,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 6.06,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.46786898993392,
+          "SnO2": 0.1,
+          "SrO": 1.06,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 63
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.683837833333328,
+        "density_g_cm3": 2.5912538823820674,
+        "young_modulus_GPa": 83.326058794463,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.66452105047055,
+        "viscosity_temperature_200_poise_C": 1635.945886398788,
+        "viscosity_temperature_35kpoise_C": 1267.8930782537066
+      },
+      "F": [
+        2.5912538823820674,
+        -83.326058794463
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 10.55,
+          "B2O3": 0.99,
+          "BaO": 2.656046130838105,
+          "CaO": 7.3,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 6.16,
+          "Na2O": 0.02,
+          "P2O5": 0.0,
+          "SiO2": 69.10624373874188,
+          "SnO2": 0.12,
+          "SrO": 3.0477101304200196,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 20
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.957496166666604,
+        "density_g_cm3": 2.6394725801315673,
+        "young_modulus_GPa": 84.33965960478176,
+        "stress_optical_coefficient_nm_cm_per_MPa": 27.85988583338103,
+        "viscosity_temperature_200_poise_C": 1615.9467239440432,
+        "viscosity_temperature_35kpoise_C": 1253.3310844019952
+      },
+      "F": [
+        2.6394725801315673,
+        -84.33965960478176
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 11.7,
+          "B2O3": 1.45,
+          "BaO": 2.5725267827835414,
+          "CaO": 6.383409100460354,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 6.05,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.88406411675611,
+          "SnO2": 0.11,
+          "SrO": 1.73,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 64
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.7566700000000157,
+        "density_g_cm3": 2.5961940957887855,
+        "young_modulus_GPa": 83.55370273087551,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.55985467350858,
+        "viscosity_temperature_200_poise_C": 1641.4357513075367,
+        "viscosity_temperature_35kpoise_C": 1271.6980511470792
+      },
+      "F": [
+        2.5961940957887855,
+        -83.55370273087551
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.653702053409964,
+          "B2O3": 2.55787538375954,
+          "BaO": 1.5,
+          "CaO": 5.45,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 5.23,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 70.8284225628305,
+          "SnO2": 0.1,
+          "SrO": 1.66,
+          "TiO2": 0.0,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 23
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.4059575000000373,
+        "density_g_cm3": 2.534445801896782,
+        "young_modulus_GPa": 82.22572684235347,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.683730416901884,
+        "viscosity_temperature_200_poise_C": 1666.7790452283193,
+        "viscosity_temperature_35kpoise_C": 1288.1572115905126
+      },
+      "F": [
+        2.534445801896782,
+        -82.22572684235347
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.4,
+          "B2O3": 2.36,
+          "BaO": 2.3,
+          "CaO": 5.82,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 5.464350032185523,
+          "Na2O": 0.03,
+          "P2O5": 0.0,
+          "SiO2": 69.5692125478252,
+          "SnO2": 0.09,
+          "SrO": 1.9264374199892673,
+          "TiO2": 0.02,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 15
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.7154094999999843,
+        "density_g_cm3": 2.5762245112728976,
+        "young_modulus_GPa": 82.85509963388846,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.076863043815766,
+        "viscosity_temperature_200_poise_C": 1642.1857313235007,
+        "viscosity_temperature_35kpoise_C": 1272.2687570871637
+      },
+      "F": [
+        2.5762245112728976,
+        -82.85509963388846
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.17,
+          "B2O3": 2.0703140213428526,
+          "BaO": 2.38,
+          "CaO": 6.16,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 5.453406486103856,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 69.69627949255329,
+          "SnO2": 0.11,
+          "SrO": 1.91,
+          "TiO2": 0.02,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 38
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.615049833333341,
+        "density_g_cm3": 2.584204091526147,
+        "young_modulus_GPa": 83.12062991751303,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.931327495365267,
+        "viscosity_temperature_200_poise_C": 1642.5378139678387,
+        "viscosity_temperature_35kpoise_C": 1272.1497808276945
+      },
+      "F": [
+        2.584204091526147,
+        -83.12062991751303
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 10.616083313207753,
+          "B2O3": 0.928006141959704,
+          "BaO": 2.73,
+          "CaO": 7.3,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 6.16,
+          "Na2O": 0.02,
+          "P2O5": 0.0,
+          "SiO2": 68.92591054483255,
+          "SnO2": 0.12,
+          "SrO": 3.15,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 20
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.95756283333327,
+        "density_g_cm3": 2.6454781066313893,
+        "young_modulus_GPa": 84.4631834383394,
+        "stress_optical_coefficient_nm_cm_per_MPa": 27.777570194713807,
+        "viscosity_temperature_200_poise_C": 1613.170165793904,
+        "viscosity_temperature_35kpoise_C": 1251.8560614225698
+      },
+      "F": [
+        2.6454781066313893,
+        -84.4631834383394
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 11.7,
+          "B2O3": 1.45,
+          "BaO": 2.69,
+          "CaO": 6.47,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 6.126835366560548,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.6747227435974,
+          "SnO2": 0.11,
+          "SrO": 1.6584418898420572,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 64
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.75883516666668,
+        "density_g_cm3": 2.600560345716289,
+        "young_modulus_GPa": 83.62999065024184,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.482254290089656,
+        "viscosity_temperature_200_poise_C": 1637.1824493619902,
+        "viscosity_temperature_35kpoise_C": 1269.0277787629973
+      },
+      "F": [
+        2.600560345716289,
+        -83.62999065024184
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.43,
+          "B2O3": 2.32,
+          "BaO": 2.29,
+          "CaO": 5.77,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 5.2820153401932375,
+          "Na2O": 0.03,
+          "P2O5": 0.0,
+          "SiO2": 70.07971053447467,
+          "SnO2": 0.09,
+          "SrO": 1.6682741253320956,
+          "TiO2": 0.02,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 14
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.696576333333336,
+        "density_g_cm3": 2.568386990840411,
+        "young_modulus_GPa": 82.66945437753184,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.21737388540085,
+        "viscosity_temperature_200_poise_C": 1653.400272146617,
+        "viscosity_temperature_35kpoise_C": 1279.3372958379614
+      },
+      "F": [
+        2.568386990840411,
+        -82.66945437753184
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 11.7,
+          "B2O3": 1.45,
+          "BaO": 2.583282660875075,
+          "CaO": 6.3969092671973184,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 6.05,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.85980807192762,
+          "SnO2": 0.11,
+          "SrO": 1.73,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 64
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.757433333333348,
+        "density_g_cm3": 2.5967351770108813,
+        "young_modulus_GPa": 83.56067776034638,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.55143513635264,
+        "viscosity_temperature_200_poise_C": 1640.9627092733635,
+        "viscosity_temperature_35kpoise_C": 1271.3996287883429
+      },
+      "F": [
+        2.5967351770108813,
+        -83.56067776034638
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.631764777150643,
+          "B2O3": 2.552190985070702,
+          "BaO": 1.5,
+          "CaO": 5.45,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 5.23,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 70.85604423777866,
+          "SnO2": 0.1,
+          "SrO": 1.66,
+          "TiO2": 0.0,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 23
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.4075541666667033,
+        "density_g_cm3": 2.5343171116499734,
+        "young_modulus_GPa": 82.21772809072255,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.685023392016824,
+        "viscosity_temperature_200_poise_C": 1667.2053989573571,
+        "viscosity_temperature_35kpoise_C": 1288.376872656002
+      },
+      "F": [
+        2.5343171116499734,
+        -82.21772809072255
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.73,
+          "B2O3": 2.44,
+          "BaO": 1.5,
+          "CaO": 5.546714425022164,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 5.3347665776662,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 70.66851899731165,
+          "SnO2": 0.1,
+          "SrO": 1.66,
+          "TiO2": 0.0,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 23
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.435951666666711,
+        "density_g_cm3": 2.5384777854459064,
+        "young_modulus_GPa": 82.50095302425008,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.589093368989996,
+        "viscosity_temperature_200_poise_C": 1663.0934450456023,
+        "viscosity_temperature_35kpoise_C": 1286.317939920929
+      },
+      "F": [
+        2.5384777854459064,
+        -82.50095302425008
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.64790321203868,
+          "B2O3": 2.55787538375954,
+          "BaO": 1.5,
+          "CaO": 5.45,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 5.23,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 70.83422140420178,
+          "SnO2": 0.1,
+          "SrO": 1.66,
+          "TiO2": 0.0,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 23
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.4069408333333704,
+        "density_g_cm3": 2.5343995406538466,
+        "young_modulus_GPa": 82.22214595083702,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.684394152966508,
+        "viscosity_temperature_200_poise_C": 1666.8624632709275,
+        "viscosity_temperature_35kpoise_C": 1288.1943575570133
+      },
+      "F": [
+        2.5343995406538466,
+        -82.22214595083702
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.65351748511173,
+          "B2O3": 2.44,
+          "BaO": 1.5,
+          "CaO": 5.45,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 5.340756716073419,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 70.83572579881485,
+          "SnO2": 0.1,
+          "SrO": 1.66,
+          "TiO2": 0.0,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 23
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.39945250000004,
+        "density_g_cm3": 2.5366053580062893,
+        "young_modulus_GPa": 82.41530443792557,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.623532408139713,
+        "viscosity_temperature_200_poise_C": 1666.326319383573,
+        "viscosity_temperature_35kpoise_C": 1288.1260040524369
+      },
+      "F": [
+        2.5366053580062893,
+        -82.41530443792557
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.634697089210805,
+          "B2O3": 2.5597451047282727,
+          "BaO": 1.5,
+          "CaO": 5.45,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 5.23,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 70.84555780606094,
+          "SnO2": 0.1,
+          "SrO": 1.66,
+          "TiO2": 0.0,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 23
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.408134166666704,
+        "density_g_cm3": 2.534279243673313,
+        "young_modulus_GPa": 82.21216800205191,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.68630603536924,
+        "viscosity_temperature_200_poise_C": 1667.0159950028876,
+        "viscosity_temperature_35kpoise_C": 1288.2529148870772
+      },
+      "F": [
+        2.534279243673313,
+        -82.21216800205191
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 10.55,
+          "B2O3": 0.99,
+          "BaO": 2.73,
+          "CaO": 7.3,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 6.2676988291548135,
+          "Na2O": 0.02,
+          "P2O5": 0.0,
+          "SiO2": 68.88429502888549,
+          "SnO2": 0.12,
+          "SrO": 3.088006141959704,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 20
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.9602488333332726,
+        "density_g_cm3": 2.6442210581291494,
+        "young_modulus_GPa": 84.4317592650785,
+        "stress_optical_coefficient_nm_cm_per_MPa": 27.781533505920365,
+        "viscosity_temperature_200_poise_C": 1611.424185798446,
+        "viscosity_temperature_35kpoise_C": 1250.5120282089003
+      },
+      "F": [
+        2.6442210581291494,
+        -84.4317592650785
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.629331141030045,
+          "B2O3": 2.55983326699797,
+          "BaO": 1.5,
+          "CaO": 5.45,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 5.23,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 70.85083559197199,
+          "SnO2": 0.1,
+          "SrO": 1.66,
+          "TiO2": 0.0,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 23
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.409062500000037,
+        "density_g_cm3": 2.534235698008015,
+        "young_modulus_GPa": 82.20875947802105,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.686938876965634,
+        "viscosity_temperature_200_poise_C": 1667.0914656461728,
+        "viscosity_temperature_35kpoise_C": 1288.2860564610398
+      },
+      "F": [
+        2.534235698008015,
+        -82.20875947802105
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.634678345246707,
+          "B2O3": 2.5561077363450724,
+          "BaO": 1.5,
+          "CaO": 5.45,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 5.23,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 70.84921391840822,
+          "SnO2": 0.1,
+          "SrO": 1.66,
+          "TiO2": 0.0,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 23
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.4079925000000375,
+        "density_g_cm3": 2.534308575934395,
+        "young_modulus_GPa": 82.21570258630973,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.685528950447885,
+        "viscosity_temperature_200_poise_C": 1667.0871542129632,
+        "viscosity_temperature_35kpoise_C": 1288.3036788350394
+      },
+      "F": [
+        2.534308575934395,
+        -82.21570258630973
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.17,
+          "B2O3": 2.19,
+          "BaO": 2.2605766578409217,
+          "CaO": 6.16,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 5.56,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 69.69601685605522,
+          "SnO2": 0.11,
+          "SrO": 1.803406486103856,
+          "TiO2": 0.02,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 38
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.5984035000000167,
+        "density_g_cm3": 2.577812574815141,
+        "young_modulus_GPa": 83.02597363482093,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.004604688985033,
+        "viscosity_temperature_200_poise_C": 1641.3370315129346,
+        "viscosity_temperature_35kpoise_C": 1271.2844102546192
+      },
+      "F": [
+        2.577812574815141,
+        -83.02597363482093
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.4,
+          "B2O3": 2.36,
+          "BaO": 2.3,
+          "CaO": 5.82,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 5.508633989190146,
+          "Na2O": 0.03,
+          "P2O5": 0.0,
+          "SiO2": 69.52358122505773,
+          "SnO2": 0.09,
+          "SrO": 1.9277847857521275,
+          "TiO2": 0.02,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 15
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.7117104999999846,
+        "density_g_cm3": 2.576725943817973,
+        "young_modulus_GPa": 82.88687993969657,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.062435059526447,
+        "viscosity_temperature_200_poise_C": 1641.0586629662985,
+        "viscosity_temperature_35kpoise_C": 1271.5827588468712
+      },
+      "F": [
+        2.576725943817973,
+        -82.88687993969657
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.17,
+          "B2O3": 2.19,
+          "BaO": 2.3064003054710907,
+          "CaO": 6.079394529817992,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 5.56,
+          "Na2O": 0.01,
+          "P2O5": 0.0,
+          "SiO2": 69.62420516471092,
+          "SnO2": 0.11,
+          "SrO": 1.91,
+          "TiO2": 0.02,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 38
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.5967176666666805,
+        "density_g_cm3": 2.580661955103751,
+        "young_modulus_GPa": 83.04253188896821,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.97709580618876,
+        "viscosity_temperature_200_poise_C": 1640.5130865538106,
+        "viscosity_temperature_35kpoise_C": 1270.738981431345
+      },
+      "F": [
+        2.580661955103751,
+        -83.04253188896821
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.4,
+          "B2O3": 2.36,
+          "BaO": 2.3,
+          "CaO": 5.82,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 5.469793873721193,
+          "Na2O": 0.03,
+          "P2O5": 0.0,
+          "SiO2": 69.56388007561755,
+          "SnO2": 0.09,
+          "SrO": 1.9263260506612547,
+          "TiO2": 0.02,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 15
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.715062833333318,
+        "density_g_cm3": 2.576280213010566,
+        "young_modulus_GPa": 82.85891287534137,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.07517131918254,
+        "viscosity_temperature_200_poise_C": 1642.0525554736987,
+        "viscosity_temperature_35kpoise_C": 1272.1877771052182
+      },
+      "F": [
+        2.576280213010566,
+        -82.85891287534137
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.43,
+          "B2O3": 2.32,
+          "BaO": 2.1701016730547225,
+          "CaO": 5.872375646523916,
+          "Fe2O3": 0.01,
+          "K2O": 0.01,
+          "Li2O": 0.0,
+          "MgO": 5.4,
+          "Na2O": 0.03,
+          "P2O5": 0.0,
+          "SiO2": 69.86752268042136,
+          "SnO2": 0.09,
+          "SrO": 1.78,
+          "TiO2": 0.02,
+          "ZnO": 0.0,
+          "ZrO2": 0.0
+        },
+        "anchor_index": 14
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.6913370000000016,
+        "density_g_cm3": 2.5692211644376193,
+        "young_modulus_GPa": 82.80548578683471,
+        "stress_optical_coefficient_nm_cm_per_MPa": 29.167387962602973,
+        "viscosity_temperature_200_poise_C": 1647.6071615161968,
+        "viscosity_temperature_35kpoise_C": 1275.8421196878576
+      },
+      "F": [
+        2.5692211644376193,
+        -82.80548578683471
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 11.99,
+          "B2O3": 1.96,
+          "BaO": 2.758852986729014,
+          "CaO": 6.428788141312906,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 6.06,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.53235887195808,
+          "SnO2": 0.1,
+          "SrO": 1.06,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 63
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.6689446666666647,
+        "density_g_cm3": 2.5856249638736903,
+        "young_modulus_GPa": 83.20081715850644,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.7555149508773,
+        "viscosity_temperature_200_poise_C": 1637.382514882131,
+        "viscosity_temperature_35kpoise_C": 1268.7672281801965
+      },
+      "F": [
+        2.5856249638736903,
+        -83.20081715850644
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Al2O3": 12.096352550470609,
+          "B2O3": 1.865914521911007,
+          "BaO": 2.86,
+          "CaO": 6.54,
+          "Fe2O3": 0.01,
+          "K2O": 0.0,
+          "Li2O": 0.0,
+          "MgO": 6.06,
+          "Na2O": 0.05,
+          "P2O5": 0.0,
+          "SiO2": 69.30773292761839,
+          "SnO2": 0.1,
+          "SrO": 1.06,
+          "TiO2": 0.03,
+          "ZnO": 0.0,
+          "ZrO2": 0.02
+        },
+        "anchor_index": 63
+      },
+      "values": {
+        "cte_0_300_ppm_K": 3.65765049999999,
+        "density_g_cm3": 2.5922683565182303,
+        "young_modulus_GPa": 83.41055987992799,
+        "stress_optical_coefficient_nm_cm_per_MPa": 28.64919928587611,
+        "viscosity_temperature_200_poise_C": 1633.6169796283305,
+        "viscosity_temperature_35kpoise_C": 1266.8334976764609
+      },
+      "F": [
+        2.5922683565182303,
+        -83.41055987992799
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "patent_family_local_anchor",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "cte_0_300_ppm_K": "specialist",
+        "density_g_cm3": "glass_v1_strict",
+        "young_modulus_GPa": "glass_v1_strict",
+        "stress_optical_coefficient_nm_cm_per_MPa": "specialist",
+        "viscosity_temperature_200_poise_C": "specialist",
+        "viscosity_temperature_35kpoise_C": "specialist"
+      }
+    }
+  ],
+  "prediction_is_experimental_validation": false
+}

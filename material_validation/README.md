@@ -10,6 +10,8 @@
 
 ## 2. 运行环境、证据文件与启动
 
+新机器按[复现指南](../docs/reproduction.md)创建 `web` 环境，恢复 `1116` 资源组，再用本机路径读取 W-14 证据。该资源组用于当前参考案例报告；训练研究的追加资料见[研究资源说明](../docs/research_resources.md)。
+
 Web 环境复用主服务环境，使用 FastAPI/Uvicorn、NumPy、Matplotlib 等软件。随 Git 提供 data/reference_cases/w14_phase_i/ 中的证据清单和内部对标记录；完整训练数据、模型与 MD 输出在外部归档。
 
 | 资源 | 配置与交接内容 |

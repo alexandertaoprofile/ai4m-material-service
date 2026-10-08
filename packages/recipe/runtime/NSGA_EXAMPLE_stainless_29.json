@@ -1,0 +1,530 @@
+{
+  "ok": true,
+  "mode": "shadow",
+  "display_allowed": false,
+  "production_release_authorized": false,
+  "public_effect": false,
+  "method": "nsga2",
+  "seed": 29,
+  "status": "completed",
+  "objectives": [
+    {
+      "property": "YS_MPa",
+      "mode": "max",
+      "unit": "MPa",
+      "scale": 1.0
+    },
+    {
+      "property": "elongation_pct",
+      "mode": "max",
+      "unit": "%",
+      "scale": 1.0
+    }
+  ],
+  "stop_reason": "model_evaluation_budget",
+  "counters": {
+    "proposals": 288,
+    "model_evaluations": 256,
+    "feasible": 210,
+    "pareto_count": 15
+  },
+  "elapsed_seconds": 4.033498603850603,
+  "pareto_front": [
+    {
+      "composition": {
+        "values": {
+          "Cr": 19.383937778708102,
+          "Ni": 11.853645917947746,
+          "Mn": 1.6643344400335334,
+          "Si": 0.6454935026361239,
+          "C": 0.06955722017691998,
+          "N": 0.022084276364420945,
+          "Fe": 66.36094686413315
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "YS_MPa": 250.8932342529297,
+        "UTS_MPa": 582.0775146484375,
+        "elongation_pct": 60.59956000000006
+      },
+      "F": [
+        -250.8932342529297,
+        -60.59956000000006
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "boundary",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Cr": 19.350617639060395,
+          "Ni": 10.128589588210877,
+          "Mn": 1.4374971689504017,
+          "Si": 0.5875900198729527,
+          "C": 0.07065725102168113,
+          "N": 0.04875938034775897,
+          "Fe": 68.37628895253593
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "YS_MPa": 230.24368286132812,
+        "UTS_MPa": 573.051025390625,
+        "elongation_pct": 61.96621000000007
+      },
+      "F": [
+        -230.24368286132812,
+        -61.96621000000007
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "boundary",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Cr": 19.426931195258703,
+          "Ni": 11.89274225641386,
+          "Mn": 1.4939050255238495,
+          "Si": 0.5090258859705901,
+          "C": 0.07999091744412028,
+          "N": 0.046593599588767555,
+          "Fe": 66.5508111198001
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "YS_MPa": 249.39178466796875,
+        "UTS_MPa": 581.2207641601562,
+        "elongation_pct": 61.05327333333339
+      },
+      "F": [
+        -249.39178466796875,
+        -61.05327333333339
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "boundary",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Cr": 19.42029676198208,
+          "Ni": 10.794943207279882,
+          "Mn": 1.4948890712222833,
+          "Si": 0.5020570185079426,
+          "C": 0.07970170866664061,
+          "N": 0.05365891417956577,
+          "Fe": 67.65445331816161
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "YS_MPa": 238.71458435058594,
+        "UTS_MPa": 575.7852783203125,
+        "elongation_pct": 61.71677333333339
+      },
+      "F": [
+        -238.71458435058594,
+        -61.71677333333339
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "boundary",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Cr": 19.350617639060395,
+          "Ni": 11.861800669096985,
+          "Mn": 1.5374785756342289,
+          "Si": 0.6333434212209075,
+          "C": 0.07065725102168113,
+          "N": 0.04865087853811161,
+          "Fe": 66.4974515654277
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "YS_MPa": 250.72323608398438,
+        "UTS_MPa": 582.0742797851562,
+        "elongation_pct": 60.93664333333339
+      },
+      "F": [
+        -250.72323608398438,
+        -60.93664333333339
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "boundary",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Cr": 19.4184662743375,
+          "Ni": 11.559217553484947,
+          "Mn": 1.4952836523389763,
+          "Si": 0.6384007290317666,
+          "C": 0.07957467323347375,
+          "N": 0.03566285582441729,
+          "Fe": 66.77339426174892
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "YS_MPa": 249.02627563476562,
+        "UTS_MPa": 581.7413940429688,
+        "elongation_pct": 61.12342666666673
+      },
+      "F": [
+        -249.02627563476562,
+        -61.12342666666673
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "boundary",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Cr": 18.77723844247686,
+          "Ni": 9.843903750275391,
+          "Mn": 1.4620047831506904,
+          "Si": 0.6275397829979561,
+          "C": 0.07797991291032856,
+          "N": 0.036278005839183586,
+          "Fe": 69.17505532234959
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "YS_MPa": 226.1880340576172,
+        "UTS_MPa": 575.3541870117188,
+        "elongation_pct": 62.08611000000008
+      },
+      "F": [
+        -226.1880340576172,
+        -62.08611000000008
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "boundary",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Cr": 19.153523737822724,
+          "Ni": 10.122757938772741,
+          "Mn": 1.4350080688015234,
+          "Si": 0.5882333987179889,
+          "C": 0.06956487488885686,
+          "N": 0.03431724878509106,
+          "Fe": 68.59659473221107
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "YS_MPa": 227.6275634765625,
+        "UTS_MPa": 572.3908081054688,
+        "elongation_pct": 61.97471000000007
+      },
+      "F": [
+        -227.6275634765625,
+        -61.97471000000007
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "boundary",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Cr": 19.319765745967388,
+          "Ni": 10.788819361182899,
+          "Mn": 1.5619455710520085,
+          "Si": 0.5743478155843011,
+          "C": 0.07929453531201369,
+          "N": 0.0474391573847003,
+          "Fe": 67.6283878135167
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "YS_MPa": 239.96774291992188,
+        "UTS_MPa": 577.0934448242188,
+        "elongation_pct": 61.46209333333337
+      },
+      "F": [
+        -239.96774291992188,
+        -61.46209333333337
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "boundary",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Cr": 19.38539399961059,
+          "Ni": 11.855422786136549,
+          "Mn": 1.4933890495699647,
+          "Si": 0.6454935026361239,
+          "C": 0.06955722017691998,
+          "N": 0.031360083685861226,
+          "Fe": 66.519383358184
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "YS_MPa": 250.00942993164062,
+        "UTS_MPa": 581.89599609375,
+        "elongation_pct": 61.03081000000007
+      },
+      "F": [
+        -250.00942993164062,
+        -61.03081000000007
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "boundary",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Cr": 19.400120257928638,
+          "Ni": 11.313884978453256,
+          "Mn": 1.4617905687504977,
+          "Si": 0.6452590484110943,
+          "C": 0.0713294593676027,
+          "N": 0.035483656829020466,
+          "Fe": 67.0721320302599
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "YS_MPa": 245.193603515625,
+        "UTS_MPa": 579.2109375,
+        "elongation_pct": 61.229360000000064
+      },
+      "F": [
+        -245.193603515625,
+        -61.229360000000064
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "boundary",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Cr": 19.319765745967388,
+          "Ni": 10.78893510375855,
+          "Mn": 1.4936586020788378,
+          "Si": 0.5743478155843011,
+          "C": 0.07971585558550447,
+          "N": 0.05276071679464243,
+          "Fe": 67.69081616023078
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "YS_MPa": 239.4723358154297,
+        "UTS_MPa": 577.083251953125,
+        "elongation_pct": 61.6968933333334
+      },
+      "F": [
+        -239.4723358154297,
+        -61.6968933333334
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "boundary",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Cr": 19.36559320105301,
+          "Ni": 11.315229655683282,
+          "Mn": 1.504398258315573,
+          "Si": 0.5875900198729527,
+          "C": 0.06956945101226328,
+          "N": 0.047264195320341804,
+          "Fe": 67.11035521874257
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "YS_MPa": 244.32904052734375,
+        "UTS_MPa": 578.2587890625,
+        "elongation_pct": 61.27922666666672
+      },
+      "F": [
+        -244.32904052734375,
+        -61.27922666666672
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "boundary",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Cr": 19.42029676198208,
+          "Ni": 10.794943207279882,
+          "Mn": 1.4948890712222833,
+          "Si": 0.5031735908568069,
+          "C": 0.07990104364531296,
+          "N": 0.05282928156629316,
+          "Fe": 67.65396704344735
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "YS_MPa": 238.7425994873047,
+        "UTS_MPa": 575.843505859375,
+        "elongation_pct": 61.715773333333395
+      },
+      "F": [
+        -238.7425994873047,
+        -61.715773333333395
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "boundary",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Cr": 19.36640156539235,
+          "Ni": 11.048495777116942,
+          "Mn": 1.5385869374906687,
+          "Si": 0.5875900198729527,
+          "C": 0.07008459936428502,
+          "N": 0.035265421760247065,
+          "Fe": 67.35357567900255
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "YS_MPa": 241.39283752441406,
+        "UTS_MPa": 576.876220703125,
+        "elongation_pct": 61.30797666666671
+      },
+      "F": [
+        -241.39283752441406,
+        -61.30797666666671
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "boundary",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    }
+  ],
+  "prediction_is_experimental_validation": false
+}

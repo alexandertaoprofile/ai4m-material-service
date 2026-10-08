@@ -1,0 +1,159 @@
+{
+  "model_version": "perovskite_transport_parameter_heads_v2.1",
+  "mode": "pure_zero_shot",
+  "composition": {
+    "cs_fraction": 0.2,
+    "fa_fraction": 0.4,
+    "ma_fraction": 0.4,
+    "iodide_fraction": 0.6,
+    "bromide_fraction": 0.4
+  },
+  "family_model": "Cs=0.2",
+  "parameters": {
+    "Ea_high_eV": 0.5093580270947649,
+    "Ea_low_eV": 0.015513391373669916,
+    "Ea_high_raw_eV": 0.5093580270947649,
+    "Ea_low_raw_eV": 0.015513391373669916,
+    "anchor_220K_ln_sigmaT": -28.109235219092835,
+    "ln_A_high": -1.2417149655550226,
+    "ln_A_low": -27.290937803990765,
+    "A_high_dataset_units": 0.28888835928490514,
+    "A_low_dataset_units": 1.4050646443457685e-12,
+    "transition_temperature_K": 220.0
+  },
+  "uncertainty": {
+    "calibration": "empirical nested-LOCO absolute-error quantiles",
+    "Ea_high_abs_error_q90_eV": 0.11528978508859057,
+    "Ea_low_abs_error_q90_eV": 0.13527202423697077,
+    "anchor_abs_error_q90": 2.2685361795706442
+  },
+  "domain": {
+    "inside_training_box": true,
+    "standardized_nearest_distance": 0.0,
+    "reference_95pct_distance": 0.5909090909090908
+  },
+  "curve": [
+    {
+      "temperature_K": 170.0,
+      "x_1_over_kBT": 68.26187130323719,
+      "predicted_ln_sigmaT": -28.794078987403825,
+      "predicted_sigma": 1.838406144575927e-15,
+      "ln_sigmaT_abs_error_q90": 1.770475897051192
+    },
+    {
+      "temperature_K": 180.0,
+      "x_1_over_kBT": 64.469545119724,
+      "predicted_ln_sigmaT": -28.77169134461173,
+      "predicted_sigma": 1.7755818986155517e-15,
+      "ln_sigmaT_abs_error_q90": 1.7190483518801678
+    },
+    {
+      "temperature_K": 190.0,
+      "x_1_over_kBT": 61.07641116605433,
+      "predicted_ln_sigmaT": -28.81035072454722,
+      "predicted_sigma": 1.6183410772836849e-15,
+      "ln_sigmaT_abs_error_q90": 1.9548233077405206
+    },
+    {
+      "temperature_K": 200.0,
+      "x_1_over_kBT": 58.02259060775161,
+      "predicted_ln_sigmaT": -28.886865446511482,
+      "predicted_sigma": 1.424176257765995e-15,
+      "ln_sigmaT_abs_error_q90": 2.0872370238843034
+    },
+    {
+      "temperature_K": 210.0,
+      "x_1_over_kBT": 55.259610102620584,
+      "predicted_ln_sigmaT": -28.96980284681078,
+      "predicted_sigma": 1.2484041022091286e-15,
+      "ln_sigmaT_abs_error_q90": 2.165710170390697
+    },
+    {
+      "temperature_K": 220.0,
+      "x_1_over_kBT": 52.747809643410555,
+      "predicted_ln_sigmaT": -28.109235219092835,
+      "predicted_sigma": 2.817679374898355e-15,
+      "ln_sigmaT_abs_error_q90": 2.2685361795706442
+    },
+    {
+      "temperature_K": 230.0,
+      "x_1_over_kBT": 50.454426615436184,
+      "predicted_ln_sigmaT": -26.551022740588458,
+      "predicted_sigma": 1.2802933769419987e-14,
+      "ln_sigmaT_abs_error_q90": 2.6407069074326146
+    },
+    {
+      "temperature_K": 240.0,
+      "x_1_over_kBT": 48.352158839793006,
+      "predicted_ln_sigmaT": -25.851866527809793,
+      "predicted_sigma": 2.4686855691753915e-14,
+      "ln_sigmaT_abs_error_q90": 2.8957663672134184
+    },
+    {
+      "temperature_K": 250.0,
+      "x_1_over_kBT": 46.41807248620129,
+      "predicted_ln_sigmaT": -25.10858536973639,
+      "predicted_sigma": 4.983562587634439e-14,
+      "ln_sigmaT_abs_error_q90": 2.702085740161761
+    },
+    {
+      "temperature_K": 260.0,
+      "x_1_over_kBT": 44.63276200596278,
+      "predicted_ln_sigmaT": -24.316561450939528,
+      "predicted_sigma": 1.05798179571287e-13,
+      "ln_sigmaT_abs_error_q90": 2.668530300921278
+    },
+    {
+      "temperature_K": 270.0,
+      "x_1_over_kBT": 42.979696746482674,
+      "predicted_ln_sigmaT": -23.48279075157738,
+      "predicted_sigma": 2.345253499872931e-13,
+      "ln_sigmaT_abs_error_q90": 2.6452778955144427
+    },
+    {
+      "temperature_K": 280.0,
+      "x_1_over_kBT": 41.444707576965435,
+      "predicted_ln_sigmaT": -22.626963073064186,
+      "predicted_sigma": 5.322023204681932e-13,
+      "ln_sigmaT_abs_error_q90": 2.664675032086793
+    },
+    {
+      "temperature_K": 290.0,
+      "x_1_over_kBT": 40.01557972948387,
+      "predicted_ln_sigmaT": -21.778651608613327,
+      "predicted_sigma": 1.200200449788748e-12,
+      "ln_sigmaT_abs_error_q90": 2.4769614336646555
+    },
+    {
+      "temperature_K": 300.0,
+      "x_1_over_kBT": 38.6817270718344,
+      "predicted_ln_sigmaT": -20.973206687583588,
+      "predicted_sigma": 2.596156166679638e-12,
+      "ln_sigmaT_abs_error_q90": 2.531461469066262
+    },
+    {
+      "temperature_K": 310.0,
+      "x_1_over_kBT": 37.433929424355874,
+      "predicted_ln_sigmaT": -20.246902960845006,
+      "predicted_sigma": 5.1942168247511194e-12,
+      "ln_sigmaT_abs_error_q90": 2.557968452709754
+    },
+    {
+      "temperature_K": 320.0,
+      "x_1_over_kBT": 36.26411912984475,
+      "predicted_ln_sigmaT": -19.631964343561812,
+      "predicted_sigma": 9.306711221015151e-12,
+      "ln_sigmaT_abs_error_q90": 2.443196094931695
+    },
+    {
+      "temperature_K": 330.0,
+      "x_1_over_kBT": 35.165206428940365,
+      "predicted_ln_sigmaT": -19.1521126003244,
+      "predicted_sigma": 1.458240786073518e-11,
+      "ln_sigmaT_abs_error_q90": 2.3686341775679582
+    }
+  ],
+  "warnings": [
+    "sigma values assume the supplied response really is ln[sigma(T)*T]; sigma units are not yet documented"
+  ]
+}

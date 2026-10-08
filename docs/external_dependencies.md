@@ -1,55 +1,50 @@
-# 仓库外的计算程序、模型与环境
+# 运行资源、来源和取得方式
 
-主要版本记录日期：2026-10-04；2026-10-05 补充 1105 专项数据库和 1116 证据归档说明。仓库负责服务源码、测试和说明；下表资源在 75 服务器其他目录中管理。每个服务的准备顺序和启动方式见[运行与复现说明](service_setup.md)。
+2026-10-08 已把四个服务日常运行需要的外部源码、模型、数据及参考证据整理成版本化交付。新机器的安装命令见[复现指南](reproduction.md)，实际检查见[验证记录](REPRODUCTION_VERIFICATION_20261008.md)。
 
-按无密钥配置样例及服务 README 中的路径记录软件版本、源码和模型文件校验值。完整记录见[资源版本 JSON](external_resources_20261004.json)。这些记录用于核对资源版本；运行能力按服务 README 执行预检及真实请求检查。
+## 1. 到哪里取得资源
 
-## 1. 资源分别做什么
-
-| 资源 | 服务用途 | 75 服务器位置 | 已记录的内容 |
-| --- | --- | --- | --- |
-| 主 Web 环境 | 接收请求、组织计算和返回报告。 | `/home/ubuntu/miniconda3/envs/ai4m-service-py310` | Python 3.10.19 和主要软件包的安装版本。 |
-| 1105 导电润滑剂数据库 | 读取专项材料性质和来源证据。 | `/data/se42/alpha_project/material_service_hub/material_database/data/processed/fluid_lubricant/2026-08-04_v1/fluid_property_evidence.sqlite` | 2026-10-05 核对为 381,964,288 字节，约 364 MiB；当前 Git 提交不含该文件，需单独交接。 |
-| 1105 原始材料资料 | 重建通用目录、核验和导入新增数据。 | `PROPERTY_DATA_ROOT`，样例为 `/data/se42/backend/property datasets` | 通用整理 CSV 已随 Git 提供；原始工作簿和 PDF 从资料维护者取得。 |
-| OMatG 源码 | 固定组成生成结构（CSP），或探索组成与结构（DNG）。 | `/data/third_party/OMatG` | 已核对选定的 83 个源码及配置文件；目录没有 Git 提交信息，当前版本按文件校验值识别。 |
-| OMatG 环境 | 运行结构生成。 | `/data/mamba/envs/omatg-py312` | Python 3.12.14、OMatG 2.0.0、PyTorch 2.8.0+cu126；162 条软件包安装版本记录。 |
-| OMatG 模型文件 | 分别支持 DNG 和 CSP。 | `/data/se42/omatg_local/checkpoints` 下的 `MP-20-DNG/Linear-SDE-Gamma`、`Alex-MP-20-CSP/Trig-SDE-Gamma` | 两个 `checkpoint.ckpt` 和各自 `train.yaml` 的大小及 SHA256。配置文件说明模型训练时的设置。 |
-| MatterSim 环境与模型 | 调整晶胞和原子位置，计算结构能量与原子受力。 | `/data/mamba/envs/mattergen-py310`；模型在 `/data/se42/omatg_local/checkpoints/mattersim-v1.0.0-1M.pth` | Python 3.10.20、MatterSim 软件包 1.1.2、PyTorch 2.2.1+cu118，以及模型文件 SHA256。环境名和模型名保留原有名称。 |
-| 稳定性参考库 | 比较候选结构与已有参考相的能量。 | `/data/mattersim_reference_cache/reference_MP2020correction` | 3,848,802,304 字节的参考文件 SHA256。迁移时保留同一版参考库，避免改变比较依据。 |
-| ALIGNN 环境与模型 | 快速预测带隙、模量和电子/空穴有效质量。 | 解释器为 `/home/ubuntu/miniconda3/envs/dsc2/bin/python`，另加载 `/data/mamba/envs/alignn-gpu-test/lib/python3.10/site-packages` | 两处软件包记录及五个性质模型 ZIP 的大小和 SHA256；需保留既有加载顺序。 |
-| 1111 专项计算代码 | 调用各材料的预测与计算程序。 | `/data/se42/hea_surrogate` | Git 提交号及所选 `src/`、`tools/` 共 105 个文件的实际校验值；实际文件版本以校验值为准。 |
-| 1111 优化程序 | 运行已验收的配比优化。 | `/data/se42/experiments/material_rsi_prelaunch_20260928/package/runtime` | 顶层 44 个 Python 文件、两份模型文件和四份版本/依赖清单的校验值。 |
-| 1111 优化环境 | 运行上述优化程序。 | `/data/se42/experiments/patent_optimization_v0_20260922/.venv` | Python 3.13.11 和主要软件包安装版本。 |
-| 1111 报告程序 | 生成当前请求的配比报告与图像。 | `/data/se42/experiments/material_shadow_frontend_v2_20260928` | 六个运行入口或 `recipe_*` 模块的实际校验值；这些文件虽在实验目录，仍是运行依赖。 |
-| 1116 训练、模型与 MD 归档 | 读取纯钨 W-14 标杆计算证据。 | `/data/se42/cache/DeepMD-W-14-commercial-level`、`/data/se42/cache/DeepMD_W-14_commercial-level` | 2026-10-05 确认主要训练和 MD 文件存在；75 服务的 `.env` 仍记录两处旧路径，联调前核对。文件说明和历史副本位置见运行说明。 |
-
-SHA256 是由文件内容计算出的校验值。转移文件后值相同，可以确认内容一致。JSON 保存 2026-10-04 记录的具体文件、大小、校验值和检查范围；新增的 1105/1116 说明不是该 JSON 的追加哈希记录，后续交接时单独记录对应资源校验值。
-
-## 2. 软件包记录怎样使用
-
-[OMatG 软件包版本表](../env/omatg-py312.packages-20261004.txt)按安装信息导出，仅含名称和版本。PyTorch 中的 `cu126` 表示这一软件包对应 CUDA 12.6 构建，重建环境时还需匹配 GPU 驱动和相应扩展包来源。
-
-OMatG 源码安装、操作系统库、软件包下载来源和 GPU 环境要一并准备，之后在新环境运行检查，才能形成完整安装指南。其他环境的 JSON 只记录选定的主要软件包；部分环境存在同名包安装记录或额外搜索路径，实际加载版本要按服务预检确认。
-
-## 3. 新机器接手时怎么准备
-
-1. 确定要运行哪些服务，先阅读服务 README 和本页对应行。
-2. 请服务维护者从 75 导出所需计算源码、模型、参考库和数据，在团队指定且有访问权限的存储位置交接。导出时保留目录结构、版本清单和校验值。
-3. 请算法维护者补充 OMatG 上游提交号或原始下载包版本、安装来源及本地修改说明。现有目录没有 Git 信息，迁移时先保留已核对的源码文件，避免直接以另一版官方代码替换。
-4. 请环境维护者在新机器准备独立 Python 环境，记录完整安装命令、CUDA/GPU 依赖及所需软件包来源。新增文件放在数据盘或指定模型盘。
-5. 从各服务无密钥样例配置路径、端口和结果目录，凭据由管理者另外提供，保存在服务自身的本机 `.env`。
-6. 按 README 完成环境预检、程序测试和真实请求检查；确认模型结果与报告可用后，再安排部署。
-
-新机器下载资源前先确定所需版本；当前运行使用的模型和源码由维护者按清单提供。交接存储位置和具体负责人需要在实际迁移前登记，不在此填写未经确认的人名或下载地址。
-
-## 4. 尚需补齐的内容
-
-| 内容 | 对接手的影响 | 下一步 |
+| 内容 | 取得位置 | 如何使用 |
 | --- | --- | --- |
-| OMatG 上游代码版本及下载包来源 | 当前能比较文件内容，尚不能仅凭提交号从上游重新取得相同源码。 | 算法维护者确认下载包或提交版本，保存本地修改和源码包校验值。 |
-| 经验证的新机器安装流程 | 版本记录方便核对，但尚未在全新环境逐步重建并验收。 | 环境维护者在独立环境验证安装、模型导入与最小真实任务，记录成功命令。 |
-| 1111 全部专项权重和数据 | 本次检查了指定优化程序的模型与依赖清单；其他专项数据和模型仍需完整交接。 | 专项维护者逐类别核对现有 `PACKAGE_MANIFEST.json`、`FROZEN_INPUT_INVENTORY.json`、`EXTERNAL_DEPENDENCIES.json` 及模型/数据来源记录，补齐实际依赖。 |
-| 1105 原始数据与 1116 外部证据 | 原始工作簿、完整训练或模拟输出需要另行交接。 | 按各服务的数据与证据导入说明准备文件及来源；1116 再单独确认在线运行。 |
-| 资源存储位置及维护人 | 新同事需要知道向谁取得文件、从哪里下载。 | 实际交接前登记团队存储位置、访问方式和负责人员。 |
+| 四个服务及开发副本 | 本仓库根目录和 `development/`。 | 根目录保存核对过的部署源码，开发更新单独说明。 |
+| 1111 专项计算、固定优化和报告程序 | [packages/](../packages/README.md)。 | 恢复工具按原相对目录组合源码与模型。 |
+| OMatG 2.0.0 源码、推理配置、许可证 | [third_party/OMatG/](../third_party/README.md)。 | 安装到独立 OMatG 环境，并配置源码路径。 |
+| 权重、推理数据、参考库及 W-14 证据 | [私有运行资源 Release](https://github.com/AI4SciFoundation/Material-Computation/releases/tag/runtime-20261008)。 | 有仓库权限的账户登录 GitHub CLI，再用资源工具下载。 |
+| 环境依赖及兼容性调整 | [env/](../env/README.md)、`tools/install_environment.py`。 | 分别创建 Web、数值、优化、OMatG、ALIGNN 环境。 |
+| 训练和研究追加资料 | [研究资源说明](research_resources.md)。 | 重新训练、重建目录或复核完整研究时按表取得。 |
 
-目录核对和模型版本记录见本页；实际部署日期和运行检查结果见[部署记录](deployment_status.md)。
+资源清单 [runtime-manifest.json](../resources/runtime-manifest.json)逐项记录原位置、恢复位置、大小、SHA256、分组和是否随 Git 提供。文件恢复后用 `tools/runtime_resources.py verify` 核对。SHA256 相同表示文件内容一致。
+
+## 2. 分服务运行资源与 75 来源
+
+下表保留原服务器路径，方便核验来源。新机器可以换目录，`tools/prepare_runtime.py` 会生成本机配置。
+
+| 服务或环节 | 75 原位置 | 本次交付内容 |
+| --- | --- | --- |
+| 1105 导电润滑剂查询 | `/data/se42/alpha_project/material_service_hub/material_database/data/processed/fluid_lubricant/2026-08-04_v1/fluid_property_evidence.sqlite` | 事务一致的 SQLite 快照，381,964,288 字节；通用材料 CSV 已在 Git 中。 |
+| 1105 增量材料目录 | 同一服务的 `data/processed/`，包括 `material_core/` 与 `high_temperature/`。 | 130 个 CSV/JSON；独立资源包恢复到 `data/1105/catalog/`，配置指定此目录。 |
+| 1111 专项计算 | `/data/se42/hea_surrogate` | `src/`、`tools/`、模型元信息及八类专项使用的模型和推理数据。 |
+| 1111 固定优化包 | `/data/se42/experiments/material_rsi_prelaunch_20260928/package/runtime` | 固定优化源码、合金和玻璃 Transformer 权重、依赖和冻结清单。 |
+| 1111 冻结专项 | 上述包内 `specialists/` | 优化所需的固定专项模型、数据及相应版本程序；与当前专项目录分开保留。 |
+| 1111 报告 | `/data/se42/experiments/material_shadow_frontend_v2_20260928` | 报告、组分图和配比比较所需的顶层 Python 模块。 |
+| 1115 OMatG | `/data/third_party/OMatG`、`/data/se42/omatg_local/checkpoints` | 固定源码；CSP/DNG 各自的 checkpoint 与训练配置。 |
+| 1115 结构松弛 | `/data/se42/omatg_local/checkpoints/mattersim-v1.0.0-1M.pth` | MatterSim 模型；MatterSim + ASE 调整晶胞和原子位置。 |
+| 1115 稳定性比较 | `/data/mattersim_reference_cache/reference_MP2020correction` | 3,848,802,304 字节参考库；分为八个资源文件，恢复工具自动拼接校验。 |
+| 1115 性质预测 | 原位置逐项见资源清单。 | 五个 ALIGNN 性质模型：带隙、体积模量、剪切模量、电子及空穴有效质量。 |
+| 1116 W-14 参考证据 | `/data/se42/cache/DeepMD-W-14-commercial-level`、`/data/se42/cache/DeepMD_W-14_commercial-level` | 模型与训练摘要、MD 输出及测试证据；服务读取它们生成参考案例报告。 |
+
+OMatG 原目录没有 `.git` 信息，采用逐文件校验固定这份实际使用的源码，并保留上游许可证。安装另一版官方源码会形成不同版本，应重新验证生成与模型加载。
+
+## 3. 环境和访问配置
+
+原部署 Web Python 3.10、专项/MatterSim Python 3.10、固定优化 Python 3.13、OMatG Python 3.12、ALIGNN Python 3.10。原解释器路径见[环境说明](../env/README.md)；新环境依赖及适配记录按复现指南创建。
+
+语言模型接口、对象存储、公开文件地址及凭据由部署方配置。结构化数值检查可直接调用本地执行器；完整用户对话与前端图片交付还需要相应连接。资源 Release 沿用公司私有仓库的访问权限。
+
+## 4. 推理与重新训练的区别
+
+服务运行主要需要模型、模型类定义、预处理规则、推理参考数据及兼容环境。某些流程还读取参考相数据库或来源表，这些已按实际依赖打包。
+
+重新训练需要原始训练标签、数据划分、筛选过程、训练参数和研究记录；这部分另列在[研究资源说明](research_resources.md)。1116 当前交付参考案例的证据读取流程，完整 DFT 研究数据和真实 DeepMD/LAMMPS 执行接入分别准备。
+
+2026-10-04 的初次核对保留在[历史资源记录](external_resources_20261004.json)，2026-10-08 交付以新的资源清单及验证记录为准。

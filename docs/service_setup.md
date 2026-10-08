@@ -1,19 +1,19 @@
 # 服务运行与复现说明
 
-本文按“取得代码 → 准备环境和资源 → 配置 → 启动 → 检查任务”的顺序说明四个服务。源码对应 `main` 的 2026-10-04 快照；2026-10-05 进一步核对了入口、配置样例、随 Git 提供的数据、1105 专项数据库及 1116 证据归档位置。
+本文说明四个服务的接口、资源来源及 75 原部署。新机器按[安装与复现指南](reproduction.md)执行；2026-10-08 已将专项计算源码、OMatG 源码及资源恢复工具纳入仓库，权重和运行数据通过私有 Release 交付。根目录服务源码仍对应 2026-10-04 核对的版本。
 
 ## 1. 拉取仓库后具备哪些条件
 
 | 服务 | 随 Git 提供的部分 | 还需取得的部分 | 复现检查的重点 |
 | --- | --- | --- | --- |
 | 1105 | 查询与报告代码、通用材料 CSV、测试、配置样例。 | 导电润滑剂专项 SQLite；重建通用目录时还需原始工作簿及来源文件。 | 通用查询使用已有 CSV；专项查询在取得 SQLite 后检查。 |
-| 1111 | 接口、解析与适配、正式路线配置、报告和测试。 | 专项计算源码、固定优化包、报告辅助模块、模型及数据。 | 先检查选定类别的全部资源，再运行该类任务。 |
-| 1115 | 生成适配、模型执行脚本、评价与报告、测试。 | OMatG 源码、独立环境、生成及性质权重、MatterSim 模型和参考相数据库。 | 环境预检通过后分别检查 CSP、DNG。 |
+| 1111 | 接口、适配、配置、测试及 `packages/` 中的专项计算、固定优化和报告程序。 | Release 中的模型和推理数据；独立计算环境。 | 先检查选定类别的全部资源，再运行该类任务。 |
+| 1115 | 生成适配、执行脚本、评价、报告、测试及 `third_party/OMatG/` 源码。 | 独立环境；Release 中的生成、性质、MatterSim 权重与参考库。 | 环境预检通过后分别检查 CSP、DNG。 |
 | 1116 | 四阶段证据流程、W-14 清单、内部对标记录和测试。 | 完整训练、模型与 MD 归档，以及正式实验/文献来源。 | 先检查纯钨归档证据；真实计算执行器需要单独开发和验收。 |
 
-在 75 上复用已有资源，和在全新机器安装，是两种不同的复现方式。本文记录现有路径与启动检查；全新环境的完整安装流程还需独立验证。交接资源时同时提供版本清单和 SHA256 文件校验值，见[外部依赖说明](external_dependencies.md)。
+75 可复用已有资源；新副本使用安装、下载、恢复和启动工具。逐文件 SHA256、源路径和资源分组见[资源清单](../resources/runtime-manifest.json)，实际验证范围见[复现记录](REPRODUCTION_VERIFICATION_20261008.md)。
 
-资源统一发布方式后续确定。当前文档先列出 GitHub 已包含的文件，以及 75 上的模型、数据、计算程序和证据位置；维护者据此提供相应资源。资源公开或团队内发布后，在同一清单追加下载地址和权限说明。
+运行资源从[私有 Release](https://github.com/AI4SciFoundation/Material-Computation/releases/tag/runtime-20261008)下载，需要本仓库访问权限。下文中的 `/data/se42/...` 表示原部署来源；新机器配置由 `tools/prepare_runtime.py` 按本地目录生成。
 
 ## 2. 四个服务共用的准备步骤
 
@@ -36,8 +36,8 @@
 | Web 环境 | `/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python` | 75 已有环境；服务依赖清单为 [requirements.minimal.txt](../material_database/requirements.minimal.txt)。 |
 | 通用材料目录 | 服务 `data/processed/` 中的 `materials.csv`、`material_aliases.csv`、`property_points.csv`、`curve_data.csv`、`composition_long.csv` | 随 Git 提供，保存材料身份、别名、性质点、曲线及组成。 |
 | 目录清洗记录 | `data/processed/catalog_cleaning_summary.json` | 随 Git 提供，记录来源处理与目录统计。 |
-| 导电润滑剂证据库 | 服务 `data/processed/fluid_lubricant/2026-08-04_v1/fluid_property_evidence.sqlite` | 当前仅在 75 运行目录，约 364 MiB；从维护者取得同版本数据库。 |
-| 原始数据 | `PROPERTY_DATA_ROOT`，75 样例为 `/data/se42/backend/property datasets` | 原始工作簿与 PDF 等在仓库外；重建和增加数据时使用。 |
+| 导电润滑剂证据库 | 服务 `data/processed/fluid_lubricant/2026-08-04_v1/fluid_property_evidence.sqlite` | 从 Release 的 `1105` 资源组恢复，约 364 MiB。 |
+| 原始数据 | `PROPERTY_DATA_ROOT`；资料在 `/data/se42/docs/property datasets/` | 原始工作簿与 PDF 等在仓库外；重建和增加数据时使用。 |
 | 查询目录配置 | `MATURE_MATERIAL_CATALOG_ROOT`，默认 `data/processed` | 通用聊天查询读取该位置；独立流体 HTTP 路由另读取服务目录内的专项 SQLite，迁移时一并核对。 |
 | 任务结果 | `MATURE_MATERIAL_RESULTS_ROOT`，默认 `results/mature_material` | 保存输入、核验结果、报告和图像。 |
 

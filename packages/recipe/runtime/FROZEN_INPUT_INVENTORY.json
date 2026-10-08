@@ -1,0 +1,1732 @@
+{
+  "alloy_columns": [
+    "record_id",
+    "source",
+    "domain",
+    "task",
+    "formula",
+    "composition_key",
+    "composition_json",
+    "target",
+    "test_temperature_C",
+    "temperature_missing",
+    "process_label",
+    "desc_Number_mean",
+    "desc_Number_std",
+    "desc_Number_span",
+    "desc_MendeleevNumber_mean",
+    "desc_MendeleevNumber_std",
+    "desc_MendeleevNumber_span",
+    "desc_AtomicWeight_mean",
+    "desc_AtomicWeight_std",
+    "desc_AtomicWeight_span",
+    "desc_MeltingT_mean",
+    "desc_MeltingT_std",
+    "desc_MeltingT_span",
+    "desc_CovalentRadius_mean",
+    "desc_CovalentRadius_std",
+    "desc_CovalentRadius_span",
+    "desc_Electronegativity_mean",
+    "desc_Electronegativity_std",
+    "desc_Electronegativity_span",
+    "desc_NValence_mean",
+    "desc_NValence_std",
+    "desc_NValence_span",
+    "desc_GSvolume_pa_mean",
+    "desc_GSvolume_pa_std",
+    "desc_GSvolume_pa_span",
+    "desc_GSmagmom_mean",
+    "desc_GSmagmom_std",
+    "desc_GSmagmom_span",
+    "desc_component_count",
+    "desc_mixing_entropy_R",
+    "desc_max_atomic_fraction",
+    "source_dataset",
+    "source_reference",
+    "data_quality_flag",
+    "desc_phys_atomic_size_delta_pct",
+    "desc_phys_electronegativity_cv",
+    "desc_phys_melting_temperature_cv",
+    "desc_phys_atomic_weight_cv",
+    "desc_phys_valence_electron_cv",
+    "desc_phys_atomic_volume_cv",
+    "desc_phys_entropy_to_component_count",
+    "desc_phys_dilute_fraction",
+    "desc_v2_flag_cast",
+    "desc_v2_flag_wrought",
+    "desc_v2_flag_additive",
+    "desc_v2_flag_powder",
+    "desc_v2_flag_solution",
+    "desc_v2_flag_age",
+    "desc_v2_flag_anneal",
+    "desc_v2_flag_homogenize",
+    "desc_v2_flag_coldwork",
+    "desc_v2_flag_quench",
+    "desc_v2_flag_aircool",
+    "desc_v2_flag_temper",
+    "desc_v2_flag_single_crystal",
+    "desc_v2_flag_directional",
+    "desc_v2_solution_temp_C",
+    "desc_v2_solution_temp_C_missing",
+    "desc_v2_solution_time_h",
+    "desc_v2_solution_time_h_missing",
+    "desc_v2_aging_temp_C",
+    "desc_v2_aging_temp_C_missing",
+    "desc_v2_aging_time_h",
+    "desc_v2_aging_time_h_missing",
+    "desc_v2_annealing_temp_C",
+    "desc_v2_annealing_temp_C_missing",
+    "desc_v2_annealing_time_h",
+    "desc_v2_annealing_time_h_missing",
+    "desc_v2_homogenization_temp_C",
+    "desc_v2_homogenization_temp_C_missing",
+    "desc_v2_homogenization_time_h",
+    "desc_v2_homogenization_time_h_missing",
+    "desc_v2_tempering_temp_C",
+    "desc_v2_tempering_temp_C_missing",
+    "desc_v2_tempering_time_h",
+    "desc_v2_tempering_time_h_missing",
+    "desc_v2_cold_reduction_pct",
+    "desc_v2_cold_reduction_pct_missing",
+    "desc_v2_text_conflict",
+    "desc_v2_homologous_temperature_proxy",
+    "desc_v2_test_temperature_known",
+    "process_original",
+    "audit_source",
+    "role",
+    "desc_v6_solution_stage_1_temp_C",
+    "desc_v6_solution_stage_1_temp_C_missing",
+    "desc_v6_solution_stage_1_time_h",
+    "desc_v6_solution_stage_1_time_h_missing",
+    "desc_v6_precipitation_stage_1_temp_C",
+    "desc_v6_precipitation_stage_1_temp_C_missing",
+    "desc_v6_precipitation_stage_1_time_h",
+    "desc_v6_precipitation_stage_1_time_h_missing",
+    "desc_v6_precipitation_stage_2_temp_C",
+    "desc_v6_precipitation_stage_2_temp_C_missing",
+    "desc_v6_precipitation_stage_2_time_h",
+    "desc_v6_precipitation_stage_2_time_h_missing",
+    "desc_v6_precipitation_stage_2_heating_C_per_h",
+    "desc_v6_precipitation_stage_2_heating_C_per_h_missing",
+    "desc_v6_precipitation_stage_3_temp_C",
+    "desc_v6_precipitation_stage_3_temp_C_missing",
+    "desc_v6_precipitation_stage_3_time_h",
+    "desc_v6_precipitation_stage_3_time_h_missing",
+    "desc_v6_test_strain_rate_per_s",
+    "desc_v6_test_strain_rate_per_s_missing",
+    "desc_v6_grain_size_um",
+    "desc_v6_grain_size_um_missing",
+    "desc_v6_grain_areal_density_per_mm2",
+    "desc_v6_grain_areal_density_per_mm2_missing",
+    "desc_v6_phase_FCC",
+    "desc_v6_phase_FCC_missing",
+    "desc_v6_phase_BCC",
+    "desc_v6_phase_BCC_missing",
+    "desc_v6_phase_HCP",
+    "desc_v6_phase_HCP_missing",
+    "desc_v6_phase_B2",
+    "desc_v6_phase_B2_missing",
+    "desc_v6_phase_L12",
+    "desc_v6_phase_L12_missing",
+    "repair_source_row",
+    "repair_process_raw",
+    "repair_phase_raw",
+    "repair_state_id",
+    "desc_v8_homologous_temperature_proxy_missing",
+    "desc_v8_evidence_flag_cast",
+    "desc_v8_evidence_flag_wrought",
+    "desc_v8_evidence_flag_additive",
+    "desc_v8_evidence_flag_powder",
+    "desc_v8_evidence_flag_solution",
+    "desc_v8_evidence_flag_age",
+    "desc_v8_evidence_flag_anneal",
+    "desc_v8_evidence_flag_homogenize",
+    "desc_v8_evidence_flag_coldwork",
+    "desc_v8_evidence_flag_quench",
+    "desc_v8_evidence_flag_aircool",
+    "desc_v8_evidence_flag_temper",
+    "desc_v8_evidence_flag_single_crystal",
+    "desc_v8_evidence_flag_directional",
+    "desc_v8_cu_evidence_lpbf",
+    "desc_v8_cu_evidence_ded",
+    "desc_v8_cu_evidence_lded",
+    "desc_v8_cu_evidence_slm",
+    "desc_v8_cu_evidence_sps",
+    "desc_v8_cu_evidence_ecap",
+    "desc_v8_cu_evidence_laham",
+    "desc_v8_cu_evidence_sputtered",
+    "desc_v8_cu_evidence_forged",
+    "desc_v8_cu_evidence_cast",
+    "desc_v8_cu_evidence_extruded",
+    "desc_v8_cu_evidence_hot_rolled",
+    "desc_v8_cu_evidence_cold_rolled",
+    "desc_v8_cu_evidence_electron_beam",
+    "desc_v8_cu_evidence_braze",
+    "desc_v8_cu_evidence_hip",
+    "desc_v8_cu_evidence_remelting",
+    "desc_v8_cu_evidence_longitudinal",
+    "desc_v8_cu_evidence_lateral",
+    "desc_v8_cu_evidence_long_transverse",
+    "desc_v8_cu_evidence_with_fines",
+    "desc_v8_cu_evidence_without_fines",
+    "desc_v8_cu_evidence_mesh_270",
+    "desc_v8_cu_evidence_mesh_325",
+    "desc_v8_cu_laser_power_W",
+    "desc_v8_cu_laser_power_W_missing",
+    "desc_v8_cu_scan_speed_mm_per_s",
+    "desc_v8_cu_scan_speed_mm_per_s_missing",
+    "desc_v8_cu_layer_thickness_um",
+    "desc_v8_cu_layer_thickness_um_missing",
+    "desc_v8_cu_hatch_spacing_mm",
+    "desc_v8_cu_hatch_spacing_mm_missing",
+    "desc_v8_cu_energy_density_J_per_mm3",
+    "desc_v8_cu_energy_density_J_per_mm3_missing",
+    "desc_v8_cu_line_energy_J_per_mm",
+    "desc_v8_cu_line_energy_J_per_mm_missing",
+    "desc_v8_cu_preheat_temp_C",
+    "desc_v8_cu_preheat_temp_C_missing",
+    "desc_v8_cu_ecap_pass_count",
+    "desc_v8_cu_ecap_pass_count_missing"
+  ],
+  "alloy_rows": 13460,
+  "alloy_counts": {
+    "aluminum/calibration/UTS": 52,
+    "aluminum/calibration/YS": 52,
+    "aluminum/test/UTS": 153,
+    "aluminum/test/YS": 147,
+    "aluminum/train/UTS": 616,
+    "aluminum/train/YS": 564,
+    "aluminum/validation/UTS": 88,
+    "aluminum/validation/YS": 88,
+    "copper/calibration/UTS": 26,
+    "copper/calibration/YS": 21,
+    "copper/test/UTS": 54,
+    "copper/test/YS": 41,
+    "copper/train/UTS": 90,
+    "copper/train/YS": 84,
+    "copper/validation/UTS": 19,
+    "copper/validation/YS": 19,
+    "hea_mpea/calibration/UTS": 64,
+    "hea_mpea/calibration/YS": 70,
+    "hea_mpea/test/UTS": 56,
+    "hea_mpea/test/YS": 59,
+    "hea_mpea/train/UTS": 684,
+    "hea_mpea/train/YS": 710,
+    "hea_mpea/validation/UTS": 107,
+    "hea_mpea/validation/YS": 108,
+    "nickel_superalloy/calibration/UTS": 36,
+    "nickel_superalloy/calibration/YS": 36,
+    "nickel_superalloy/test/UTS": 54,
+    "nickel_superalloy/test/YS": 43,
+    "nickel_superalloy/train/UTS": 177,
+    "nickel_superalloy/train/YS": 178,
+    "nickel_superalloy/validation/UTS": 12,
+    "nickel_superalloy/validation/YS": 7,
+    "stainless/calibration/UTS": 225,
+    "stainless/calibration/YS": 226,
+    "stainless/test/UTS": 308,
+    "stainless/test/YS": 308,
+    "stainless/train/UTS": 1380,
+    "stainless/train/YS": 1382,
+    "stainless/validation/UTS": 255,
+    "stainless/validation/YS": 256,
+    "steel/calibration/UTS": 160,
+    "steel/calibration/YS": 161,
+    "steel/source_challenge/UTS": 8,
+    "steel/source_challenge/YS": 8,
+    "steel/test/UTS": 156,
+    "steel/test/YS": 154,
+    "steel/train/UTS": 1212,
+    "steel/train/YS": 1225,
+    "steel/validation/UTS": 224,
+    "steel/validation/YS": 223,
+    "titanium/calibration/UTS": 27,
+    "titanium/calibration/YS": 32,
+    "titanium/source_challenge/UTS": 177,
+    "titanium/source_challenge/YS": 178,
+    "titanium/test/UTS": 44,
+    "titanium/test/YS": 46,
+    "titanium/train/UTS": 244,
+    "titanium/train/YS": 262,
+    "titanium/validation/UTS": 30,
+    "titanium/validation/YS": 34
+  },
+  "roles": [
+    "train",
+    "test",
+    "validation",
+    "calibration",
+    "source_challenge"
+  ],
+  "glass_columns": [
+    "source_kod",
+    "glass_no",
+    "canonical_composition",
+    "composition_json",
+    "n_components",
+    "analysis_code",
+    "glass_class",
+    "source_evidence_tier",
+    "source_year",
+    "reference_ids",
+    "dois",
+    "task",
+    "source_field",
+    "condition_temperature_C",
+    "target",
+    "unit",
+    "replicate_count_collapsed",
+    "glass_nos_collapsed"
+  ],
+  "glass_rows": 159461,
+  "alloy_v6_nonmissing": {
+    "aluminum": {
+      "desc_v6_solution_stage_1_temp_C": 0,
+      "desc_v6_solution_stage_1_time_h": 0,
+      "desc_v6_precipitation_stage_1_temp_C": 0,
+      "desc_v6_precipitation_stage_1_time_h": 0,
+      "desc_v6_precipitation_stage_2_temp_C": 0,
+      "desc_v6_precipitation_stage_2_time_h": 0,
+      "desc_v6_precipitation_stage_2_heating_C_per_h": 0,
+      "desc_v6_precipitation_stage_3_temp_C": 0,
+      "desc_v6_precipitation_stage_3_time_h": 0,
+      "desc_v6_test_strain_rate_per_s": 0,
+      "desc_v6_grain_size_um": 0,
+      "desc_v6_grain_areal_density_per_mm2": 0,
+      "desc_v6_phase_FCC": 0,
+      "desc_v6_phase_BCC": 0,
+      "desc_v6_phase_HCP": 0,
+      "desc_v6_phase_B2": 0,
+      "desc_v6_phase_L12": 0
+    },
+    "copper": {
+      "desc_v6_solution_stage_1_temp_C": 0,
+      "desc_v6_solution_stage_1_time_h": 0,
+      "desc_v6_precipitation_stage_1_temp_C": 0,
+      "desc_v6_precipitation_stage_1_time_h": 0,
+      "desc_v6_precipitation_stage_2_temp_C": 0,
+      "desc_v6_precipitation_stage_2_time_h": 0,
+      "desc_v6_precipitation_stage_2_heating_C_per_h": 0,
+      "desc_v6_precipitation_stage_3_temp_C": 0,
+      "desc_v6_precipitation_stage_3_time_h": 0,
+      "desc_v6_test_strain_rate_per_s": 193,
+      "desc_v6_grain_size_um": 0,
+      "desc_v6_grain_areal_density_per_mm2": 0,
+      "desc_v6_phase_FCC": 0,
+      "desc_v6_phase_BCC": 0,
+      "desc_v6_phase_HCP": 0,
+      "desc_v6_phase_B2": 0,
+      "desc_v6_phase_L12": 0
+    },
+    "hea_mpea": {
+      "desc_v6_solution_stage_1_temp_C": 0,
+      "desc_v6_solution_stage_1_time_h": 0,
+      "desc_v6_precipitation_stage_1_temp_C": 0,
+      "desc_v6_precipitation_stage_1_time_h": 0,
+      "desc_v6_precipitation_stage_2_temp_C": 0,
+      "desc_v6_precipitation_stage_2_time_h": 0,
+      "desc_v6_precipitation_stage_2_heating_C_per_h": 0,
+      "desc_v6_precipitation_stage_3_temp_C": 0,
+      "desc_v6_precipitation_stage_3_time_h": 0,
+      "desc_v6_test_strain_rate_per_s": 0,
+      "desc_v6_grain_size_um": 291,
+      "desc_v6_grain_areal_density_per_mm2": 0,
+      "desc_v6_phase_FCC": 523,
+      "desc_v6_phase_BCC": 523,
+      "desc_v6_phase_HCP": 523,
+      "desc_v6_phase_B2": 523,
+      "desc_v6_phase_L12": 523
+    },
+    "nickel_superalloy": {
+      "desc_v6_solution_stage_1_temp_C": 188,
+      "desc_v6_solution_stage_1_time_h": 188,
+      "desc_v6_precipitation_stage_1_temp_C": 212,
+      "desc_v6_precipitation_stage_1_time_h": 212,
+      "desc_v6_precipitation_stage_2_temp_C": 77,
+      "desc_v6_precipitation_stage_2_time_h": 77,
+      "desc_v6_precipitation_stage_2_heating_C_per_h": 2,
+      "desc_v6_precipitation_stage_3_temp_C": 4,
+      "desc_v6_precipitation_stage_3_time_h": 4,
+      "desc_v6_test_strain_rate_per_s": 0,
+      "desc_v6_grain_size_um": 0,
+      "desc_v6_grain_areal_density_per_mm2": 0,
+      "desc_v6_phase_FCC": 0,
+      "desc_v6_phase_BCC": 0,
+      "desc_v6_phase_HCP": 0,
+      "desc_v6_phase_B2": 0,
+      "desc_v6_phase_L12": 0
+    },
+    "stainless": {
+      "desc_v6_solution_stage_1_temp_C": 0,
+      "desc_v6_solution_stage_1_time_h": 0,
+      "desc_v6_precipitation_stage_1_temp_C": 0,
+      "desc_v6_precipitation_stage_1_time_h": 0,
+      "desc_v6_precipitation_stage_2_temp_C": 0,
+      "desc_v6_precipitation_stage_2_time_h": 0,
+      "desc_v6_precipitation_stage_2_heating_C_per_h": 0,
+      "desc_v6_precipitation_stage_3_temp_C": 0,
+      "desc_v6_precipitation_stage_3_time_h": 0,
+      "desc_v6_test_strain_rate_per_s": 0,
+      "desc_v6_grain_size_um": 0,
+      "desc_v6_grain_areal_density_per_mm2": 1326,
+      "desc_v6_phase_FCC": 0,
+      "desc_v6_phase_BCC": 0,
+      "desc_v6_phase_HCP": 0,
+      "desc_v6_phase_B2": 0,
+      "desc_v6_phase_L12": 0
+    },
+    "steel": {
+      "desc_v6_solution_stage_1_temp_C": 0,
+      "desc_v6_solution_stage_1_time_h": 0,
+      "desc_v6_precipitation_stage_1_temp_C": 0,
+      "desc_v6_precipitation_stage_1_time_h": 0,
+      "desc_v6_precipitation_stage_2_temp_C": 0,
+      "desc_v6_precipitation_stage_2_time_h": 0,
+      "desc_v6_precipitation_stage_2_heating_C_per_h": 0,
+      "desc_v6_precipitation_stage_3_temp_C": 0,
+      "desc_v6_precipitation_stage_3_time_h": 0,
+      "desc_v6_test_strain_rate_per_s": 0,
+      "desc_v6_grain_size_um": 0,
+      "desc_v6_grain_areal_density_per_mm2": 0,
+      "desc_v6_phase_FCC": 0,
+      "desc_v6_phase_BCC": 0,
+      "desc_v6_phase_HCP": 0,
+      "desc_v6_phase_B2": 0,
+      "desc_v6_phase_L12": 0
+    },
+    "titanium": {
+      "desc_v6_solution_stage_1_temp_C": 0,
+      "desc_v6_solution_stage_1_time_h": 0,
+      "desc_v6_precipitation_stage_1_temp_C": 0,
+      "desc_v6_precipitation_stage_1_time_h": 0,
+      "desc_v6_precipitation_stage_2_temp_C": 0,
+      "desc_v6_precipitation_stage_2_time_h": 0,
+      "desc_v6_precipitation_stage_2_heating_C_per_h": 0,
+      "desc_v6_precipitation_stage_3_temp_C": 0,
+      "desc_v6_precipitation_stage_3_time_h": 0,
+      "desc_v6_test_strain_rate_per_s": 0,
+      "desc_v6_grain_size_um": 0,
+      "desc_v6_grain_areal_density_per_mm2": 0,
+      "desc_v6_phase_FCC": 0,
+      "desc_v6_phase_BCC": 0,
+      "desc_v6_phase_HCP": 0,
+      "desc_v6_phase_B2": 0,
+      "desc_v6_phase_L12": 0
+    }
+  },
+  "alloy_source_columns": {
+    "source": [
+      "/data/se42/material-composition-data/high-strength-steels/data/processed/v1/admitted_steel.csv",
+      "/data/se42/material-composition-data/high-strength-steels/data/processed/v1/admitted_steel.csv"
+    ],
+    "source_dataset": [
+      "/data/se42/material-composition-data/high-strength-steels/data/processed/v1/admitted_steel.csv",
+      "/data/se42/material-composition-data/high-strength-steels/data/processed/v1/admitted_steel.csv"
+    ],
+    "source_reference": [
+      "/data/se42/material-composition-data/high-strength-steels/data/processed/v1/admitted_steel.csv",
+      "/data/se42/material-composition-data/high-strength-steels/data/processed/v1/admitted_steel.csv"
+    ],
+    "audit_source": [
+      "/data/se42/material-composition-data/high-strength-steels/data/processed/v1/admitted_steel.csv",
+      "/data/se42/material-composition-data/high-strength-steels/data/processed/v1/admitted_steel.csv"
+    ],
+    "repair_source_row": [
+      "<missing>",
+      "<missing>"
+    ],
+    "repair_process_raw": [
+      "<missing>",
+      "<missing>"
+    ]
+  },
+  "glass_sample": [
+    {
+      "source_kod": 10037,
+      "glass_no": 97540,
+      "canonical_composition": "Al2O3:0.0130000|CaO:0.0860000|K2O:0.0040000|MgO:0.0340000|Na2O:0.1360000|SiO2:0.7270000",
+      "composition_json": "[[\"Al2O3\",0.013000000000000001],[\"CaO\",0.086],[\"K2O\",0.004],[\"MgO\",0.034],[\"Na2O\",0.136],[\"SiO2\",0.727]]",
+      "n_components": 6,
+      "analysis_code": "b",
+      "glass_class": "SiO2 R2O RO R2O3",
+      "source_evidence_tier": "database_observation_unmarked",
+      "source_year": 1987,
+      "reference_ids": "[\"8361\"]",
+      "dois": "[]",
+      "task": "CTE_BELOW_TG",
+      "source_field": "ANY_TEC",
+      "condition_temperature_C": NaN,
+      "target": 89.06749725341797,
+      "unit": "1e-7_K-1",
+      "replicate_count_collapsed": 1,
+      "glass_nos_collapsed": "[\"97540\"]"
+    },
+    {
+      "source_kod": 10037,
+      "glass_no": 97539,
+      "canonical_composition": "CaO:0.1000000|Na2O:0.1500000|SiO2:0.7500000",
+      "composition_json": "[[\"CaO\",0.1],[\"Na2O\",0.15],[\"SiO2\",0.75]]",
+      "n_components": 3,
+      "analysis_code": "b",
+      "glass_class": "SiO2 R2O RO",
+      "source_evidence_tier": "database_observation_unmarked",
+      "source_year": 1987,
+      "reference_ids": "[\"8361\"]",
+      "dois": "[]",
+      "task": "CTE_BELOW_TG",
+      "source_field": "ANY_TEC",
+      "condition_temperature_C": NaN,
+      "target": 85.22879791259766,
+      "unit": "1e-7_K-1",
+      "replicate_count_collapsed": 1,
+      "glass_nos_collapsed": "[\"97539\"]"
+    }
+  ],
+  "transformer_composition_5fold": {
+    "regime": "composition",
+    "rows": 159461,
+    "data_sha256": "98810be535a0300273f78fbd360e0a1623cc383748a5e2bd2e9842e413bf1a4d",
+    "seed": null,
+    "median_best_epoch": 34,
+    "oof_metrics": {
+      "overall": {
+        "n": 159461,
+        "MAE": 5.784629118331351,
+        "RMSE": 17.55614939572031,
+        "R2": 0.9934667365249409
+      },
+      "by_task": {
+        "CTE_BELOW_TG": {
+          "n": 42966,
+          "MAE": 4.871041870441579,
+          "RMSE": 14.593803130918143,
+          "R2": 0.7923471415633982
+        },
+        "CTE_FIXED_T": {
+          "n": 29032,
+          "MAE": 4.036601611523928,
+          "RMSE": 15.78252274556181,
+          "R2": 0.7713782453937904
+        },
+        "DENSITY_20C": {
+          "n": 42105,
+          "MAE": 0.05549044311816432,
+          "RMSE": 0.12845633101385726,
+          "R2": 0.978178483603934
+        },
+        "POISSON_RATIO": {
+          "n": 3691,
+          "MAE": 0.009188938890881392,
+          "RMSE": 0.01574879816531015,
+          "R2": 0.726581274321926
+        },
+        "TG": {
+          "n": 29839,
+          "MAE": 18.797470869802027,
+          "RMSE": 32.89711425396739,
+          "R2": 0.9326017155906573
+        },
+        "THERMAL_CONDUCTIVITY": {
+          "n": 647,
+          "MAE": 0.12144560477888719,
+          "RMSE": 0.5089265814446603,
+          "R2": 0.21420734946524456
+        },
+        "YOUNG_MODULUS": {
+          "n": 11181,
+          "MAE": 2.9153287519746685,
+          "RMSE": 6.50551107969674,
+          "R2": 0.8655616725634545
+        }
+      },
+      "by_task_evidence": {
+        "CTE_BELOW_TG/database_observation_unmarked": {
+          "n": 42553,
+          "MAE": 4.887778451437,
+          "RMSE": 14.654294623656495,
+          "R2": 0.7914193171475992
+        },
+        "CTE_BELOW_TG/explicit_measurement_marker": {
+          "n": 413,
+          "MAE": 3.146606686184539,
+          "RMSE": 5.539424365378246,
+          "R2": 0.9469751476252939
+        },
+        "CTE_FIXED_T/database_observation_unmarked": {
+          "n": 28666,
+          "MAE": 4.059898317697369,
+          "RMSE": 15.878314579326055,
+          "R2": 0.7699129597670368
+        },
+        "CTE_FIXED_T/explicit_measurement_marker": {
+          "n": 366,
+          "MAE": 2.211947570081617,
+          "RMSE": 3.398226932721106,
+          "R2": 0.9796846717269744
+        },
+        "DENSITY_20C/database_observation_unmarked": {
+          "n": 41480,
+          "MAE": 0.055831127264006,
+          "RMSE": 0.12898289588968237,
+          "R2": 0.9780464196533389
+        },
+        "DENSITY_20C/explicit_measurement_marker": {
+          "n": 625,
+          "MAE": 0.03287991772694285,
+          "RMSE": 0.0866272789955207,
+          "R2": 0.9873015494253539
+        },
+        "POISSON_RATIO/database_observation_unmarked": {
+          "n": 3653,
+          "MAE": 0.009169372466963675,
+          "RMSE": 0.015758490085141356,
+          "R2": 0.7260211445245306
+        },
+        "POISSON_RATIO/explicit_measurement_marker": {
+          "n": 38,
+          "MAE": 0.011069890116445158,
+          "RMSE": 0.01478747162855111,
+          "R2": 0.5615736460818299
+        },
+        "TG/database_observation_unmarked": {
+          "n": 29599,
+          "MAE": 18.80498742465933,
+          "RMSE": 32.92585253796375,
+          "R2": 0.9325820953505719
+        },
+        "TG/explicit_measurement_marker": {
+          "n": 240,
+          "MAE": 17.870460423046783,
+          "RMSE": 29.136332143558747,
+          "R2": 0.9335991464984142
+        },
+        "THERMAL_CONDUCTIVITY/database_observation_unmarked": {
+          "n": 586,
+          "MAE": 0.12968081690529473,
+          "RMSE": 0.5343908950431592,
+          "R2": 0.19802712752332352
+        },
+        "THERMAL_CONDUCTIVITY/explicit_measurement_marker": {
+          "n": 61,
+          "MAE": 0.04233356697438197,
+          "RMSE": 0.06152531513722461,
+          "R2": 0.8496270594349882
+        },
+        "YOUNG_MODULUS/database_observation_unmarked": {
+          "n": 10965,
+          "MAE": 2.919730592551993,
+          "RMSE": 6.514864592957998,
+          "R2": 0.8664838158999413
+        },
+        "YOUNG_MODULUS/explicit_measurement_marker": {
+          "n": 216,
+          "MAE": 2.6918742060007568,
+          "RMSE": 6.011599655153769,
+          "R2": 0.7459518543931932
+        }
+      }
+    },
+    "split_counts": [
+      {
+        "fold": 1,
+        "train_rows": 114766,
+        "validation_rows": 12802,
+        "test_rows": 31893,
+        "composition_overlap_train_test": 0,
+        "source_overlap_train_test": 4947
+      },
+      {
+        "fold": 2,
+        "train_rows": 114845,
+        "validation_rows": 12724,
+        "test_rows": 31892,
+        "composition_overlap_train_test": 0,
+        "source_overlap_train_test": 4960
+      },
+      {
+        "fold": 3,
+        "train_rows": 115036,
+        "validation_rows": 12533,
+        "test_rows": 31892,
+        "composition_overlap_train_test": 0,
+        "source_overlap_train_test": 4953
+      },
+      {
+        "fold": 4,
+        "train_rows": 114820,
+        "validation_rows": 12749,
+        "test_rows": 31892,
+        "composition_overlap_train_test": 0,
+        "source_overlap_train_test": 4950
+      },
+      {
+        "fold": 5,
+        "train_rows": 114952,
+        "validation_rows": 12617,
+        "test_rows": 31892,
+        "composition_overlap_train_test": 0,
+        "source_overlap_train_test": 4933
+      }
+    ]
+  },
+  "transformer_source_purged_3fold": {
+    "regime": "source",
+    "rows": 159461,
+    "data_sha256": "98810be535a0300273f78fbd360e0a1623cc383748a5e2bd2e9842e413bf1a4d",
+    "seed": null,
+    "median_best_epoch": 16,
+    "oof_metrics": {
+      "overall": {
+        "n": 159461,
+        "MAE": 7.716334397080033,
+        "RMSE": 21.51707597454769,
+        "R2": 0.9901861787419086
+      },
+      "by_task": {
+        "CTE_BELOW_TG": {
+          "n": 42966,
+          "MAE": 6.114788985084298,
+          "RMSE": 16.188676985832572,
+          "R2": 0.7444807275041725
+        },
+        "CTE_FIXED_T": {
+          "n": 29032,
+          "MAE": 5.328302551320628,
+          "RMSE": 17.48789059380648,
+          "R2": 0.7193018431371341
+        },
+        "DENSITY_20C": {
+          "n": 42105,
+          "MAE": 0.07768476238752473,
+          "RMSE": 0.16584281913333926,
+          "R2": 0.9636279949152123
+        },
+        "POISSON_RATIO": {
+          "n": 3691,
+          "MAE": 0.01247000417083476,
+          "RMSE": 0.020555737560663898,
+          "R2": 0.5341999303225029
+        },
+        "TG": {
+          "n": 29839,
+          "MAE": 25.672388138381006,
+          "RMSE": 42.16522109609436,
+          "R2": 0.8892759406523507
+        },
+        "THERMAL_CONDUCTIVITY": {
+          "n": 647,
+          "MAE": 0.18159864156419256,
+          "RMSE": 0.566283170702339,
+          "R2": 0.027107169379673723
+        },
+        "YOUNG_MODULUS": {
+          "n": 11181,
+          "MAE": 3.8960977016136717,
+          "RMSE": 7.546124998980336,
+          "R2": 0.8191126282041248
+        }
+      },
+      "by_task_evidence": {
+        "CTE_BELOW_TG/database_observation_unmarked": {
+          "n": 42553,
+          "MAE": 6.141324424514267,
+          "RMSE": 16.25802962366183,
+          "R2": 0.7432679619141384
+        },
+        "CTE_BELOW_TG/explicit_measurement_marker": {
+          "n": 413,
+          "MAE": 3.3807392173760165,
+          "RMSE": 5.497246500912918,
+          "R2": 0.9477795491264536
+        },
+        "CTE_FIXED_T/database_observation_unmarked": {
+          "n": 28666,
+          "MAE": 5.363416958217435,
+          "RMSE": 17.59410274347112,
+          "R2": 0.7175005534790948
+        },
+        "CTE_FIXED_T/explicit_measurement_marker": {
+          "n": 366,
+          "MAE": 2.57805777508053,
+          "RMSE": 3.739859523797022,
+          "R2": 0.9753946431223411
+        },
+        "DENSITY_20C/database_observation_unmarked": {
+          "n": 41480,
+          "MAE": 0.07825236964378406,
+          "RMSE": 0.16670934280387864,
+          "R2": 0.963325771179207
+        },
+        "DENSITY_20C/explicit_measurement_marker": {
+          "n": 625,
+          "MAE": 0.04001380400410529,
+          "RMSE": 0.09153661053275745,
+          "R2": 0.9858214754113694
+        },
+        "POISSON_RATIO/database_observation_unmarked": {
+          "n": 3653,
+          "MAE": 0.01243094711101614,
+          "RMSE": 0.02054863599861664,
+          "R2": 0.5341416977572047
+        },
+        "POISSON_RATIO/explicit_measurement_marker": {
+          "n": 38,
+          "MAE": 0.016224621000240615,
+          "RMSE": 0.02122733285500422,
+          "R2": 0.09655927666595499
+        },
+        "TG/database_observation_unmarked": {
+          "n": 29599,
+          "MAE": 25.672115535765954,
+          "RMSE": 42.14721478190591,
+          "R2": 0.8895313736629453
+        },
+        "TG/explicit_measurement_marker": {
+          "n": 240,
+          "MAE": 25.7060079917265,
+          "RMSE": 44.32988619861973,
+          "R2": 0.8462917648948538
+        },
+        "THERMAL_CONDUCTIVITY/database_observation_unmarked": {
+          "n": 586,
+          "MAE": 0.19015601111229985,
+          "RMSE": 0.5933370786331242,
+          "R2": 0.011345480504243222
+        },
+        "THERMAL_CONDUCTIVITY/explicit_measurement_marker": {
+          "n": 61,
+          "MAE": 0.09939178000368644,
+          "RMSE": 0.13891443002312326,
+          "R2": 0.23342134672451242
+        },
+        "YOUNG_MODULUS/database_observation_unmarked": {
+          "n": 10965,
+          "MAE": 3.9107004408513393,
+          "RMSE": 7.5692128130399805,
+          "R2": 0.8197710484983932
+        },
+        "YOUNG_MODULUS/explicit_measurement_marker": {
+          "n": 216,
+          "MAE": 3.1548058694792873,
+          "RMSE": 6.263259138021361,
+          "R2": 0.7242365594673603
+        }
+      }
+    },
+    "split_counts": [
+      {
+        "fold": 1,
+        "train_rows": 85377,
+        "validation_rows": 10221,
+        "test_rows": 53154,
+        "composition_overlap_train_test": 0,
+        "source_overlap_train_test": 0
+      },
+      {
+        "fold": 2,
+        "train_rows": 85158,
+        "validation_rows": 9382,
+        "test_rows": 53154,
+        "composition_overlap_train_test": 0,
+        "source_overlap_train_test": 0
+      },
+      {
+        "fold": 3,
+        "train_rows": 86288,
+        "validation_rows": 9098,
+        "test_rows": 53153,
+        "composition_overlap_train_test": 0,
+        "source_overlap_train_test": 0
+      }
+    ]
+  },
+  "extratrees_source_purged_3fold": {
+    "regime": "source",
+    "rows": 159461,
+    "data_sha256": null,
+    "seed": null,
+    "median_best_epoch": null,
+    "oof_metrics": {
+      "by_task": {
+        "CTE_BELOW_TG": {
+          "n": 42966,
+          "MAE": 6.394343281261665,
+          "RMSE": 16.719204051432385,
+          "R2": 0.7274588127735651
+        },
+        "CTE_FIXED_T": {
+          "n": 29032,
+          "MAE": 5.895223995580172,
+          "RMSE": 17.85617222381217,
+          "R2": 0.7073547779657157
+        },
+        "DENSITY_20C": {
+          "n": 42105,
+          "MAE": 0.09010346486728718,
+          "RMSE": 0.19709630449940108,
+          "R2": 0.9486274808451425
+        },
+        "POISSON_RATIO": {
+          "n": 3691,
+          "MAE": 0.013247422278534364,
+          "RMSE": 0.022057785770292607,
+          "R2": 0.46363892885072844
+        },
+        "TG": {
+          "n": 29839,
+          "MAE": 25.943552914229535,
+          "RMSE": 43.10074797338356,
+          "R2": 0.8843081276823971
+        },
+        "THERMAL_CONDUCTIVITY": {
+          "n": 647,
+          "MAE": 0.2111618957423229,
+          "RMSE": 0.6111945775423013,
+          "R2": -0.1333307646830466
+        },
+        "YOUNG_MODULUS": {
+          "n": 11181,
+          "MAE": 4.566448613208345,
+          "RMSE": 8.526146788404231,
+          "R2": 0.7690777025750517
+        }
+      },
+      "by_task_evidence": {
+        "CTE_BELOW_TG/database_observation_unmarked": {
+          "n": 42553,
+          "MAE": 6.422356007594459,
+          "RMSE": 16.790177915541808,
+          "R2": 0.7261865081726098
+        },
+        "CTE_BELOW_TG/explicit_measurement_marker": {
+          "n": 413,
+          "MAE": 3.5080828850401726,
+          "RMSE": 5.872585540006224,
+          "R2": 0.9404051272147768
+        },
+        "CTE_FIXED_T/database_observation_unmarked": {
+          "n": 28666,
+          "MAE": 5.934662646055138,
+          "RMSE": 17.962304260683453,
+          "R2": 0.7055527850577545
+        },
+        "CTE_FIXED_T/explicit_measurement_marker": {
+          "n": 366,
+          "MAE": 2.8062940652103934,
+          "RMSE": 4.593606051829542,
+          "R2": 0.9628784087890887
+        },
+        "DENSITY_20C/database_observation_unmarked": {
+          "n": 41480,
+          "MAE": 0.09067764648906428,
+          "RMSE": 0.19761168662397058,
+          "R2": 0.9484692621220483
+        },
+        "DENSITY_20C/explicit_measurement_marker": {
+          "n": 625,
+          "MAE": 0.051996178993185004,
+          "RMSE": 0.15920431351881345,
+          "R2": 0.9571104936744137
+        },
+        "POISSON_RATIO/database_observation_unmarked": {
+          "n": 3653,
+          "MAE": 0.013244766741830009,
+          "RMSE": 0.022099591006780057,
+          "R2": 0.46116435897863695
+        },
+        "POISSON_RATIO/explicit_measurement_marker": {
+          "n": 38,
+          "MAE": 0.013502703214876911,
+          "RMSE": 0.017580844619162154,
+          "R2": 0.38029032815115904
+        },
+        "TG/database_observation_unmarked": {
+          "n": 29599,
+          "MAE": 25.861681987278715,
+          "RMSE": 42.936435593809975,
+          "R2": 0.8853555145639975
+        },
+        "TG/explicit_measurement_marker": {
+          "n": 240,
+          "MAE": 36.0406261093015,
+          "RMSE": 60.00979706125154,
+          "R2": 0.71832505424726
+        },
+        "THERMAL_CONDUCTIVITY/database_observation_unmarked": {
+          "n": 586,
+          "MAE": 0.22411956561230068,
+          "RMSE": 0.6412964454927942,
+          "R2": -0.15493952317322668
+        },
+        "THERMAL_CONDUCTIVITY/explicit_measurement_marker": {
+          "n": 61,
+          "MAE": 0.0866832966635199,
+          "RMSE": 0.1066270003390766,
+          "R2": 0.5483558574857113
+        },
+        "YOUNG_MODULUS/database_observation_unmarked": {
+          "n": 10965,
+          "MAE": 4.576158674599195,
+          "RMSE": 8.550537398057704,
+          "R2": 0.7700094742095269
+        },
+        "YOUNG_MODULUS/explicit_measurement_marker": {
+          "n": 216,
+          "MAE": 4.073528135659031,
+          "RMSE": 7.179935530632913,
+          "R2": 0.6376093225872705
+        }
+      }
+    },
+    "split_counts": [
+      {
+        "fold": 1,
+        "train_rows": null,
+        "validation_rows": null,
+        "test_rows": 53154,
+        "composition_overlap_train_test": null,
+        "source_overlap_train_test": null
+      },
+      {
+        "fold": 2,
+        "train_rows": null,
+        "validation_rows": null,
+        "test_rows": 53154,
+        "composition_overlap_train_test": null,
+        "source_overlap_train_test": null
+      },
+      {
+        "fold": 3,
+        "train_rows": null,
+        "validation_rows": null,
+        "test_rows": 53153,
+        "composition_overlap_train_test": null,
+        "source_overlap_train_test": null
+      }
+    ]
+  },
+  "FINAL_RESULTS.json": {
+    "family_summary": [
+      {
+        "config_name": "correct_original_label",
+        "validation_macro_MAE_mean": 93.89762632224642,
+        "validation_macro_MAE_std": 2.3330379916026027,
+        "by_seed": {
+          "20260923": 96.69433559067643,
+          "20260924": 90.98322012020797,
+          "20260925": 94.01532325585487
+        }
+      },
+      {
+        "config_name": "correct_stable_dedup",
+        "validation_macro_MAE_mean": 103.1359590497671,
+        "validation_macro_MAE_std": 1.0260868175314979,
+        "by_seed": {
+          "20260923": 103.9074078782793,
+          "20260924": 101.68584219641333,
+          "20260925": 103.81462707460861
+        }
+      },
+      {
+        "config_name": "correct_stable_dedup_cov20",
+        "validation_macro_MAE_mean": 104.80840389481794,
+        "validation_macro_MAE_std": 2.620538720997655,
+        "by_seed": {
+          "20260923": 108.02205461749911,
+          "20260924": 104.80006893283236,
+          "20260925": 101.60308813412234
+        }
+      },
+      {
+        "config_name": "correct_stable_label",
+        "validation_macro_MAE_mean": 107.90382551599767,
+        "validation_macro_MAE_std": 0.21951681116820246,
+        "by_seed": {
+          "20260923": 107.94394634369515,
+          "20260924": 107.61716768099329,
+          "20260925": 108.15036252330457
+        }
+      }
+    ],
+    "selected_family": "correct_original_label",
+    "selected_single_seed": 20260924,
+    "selected_without_test_metrics": true,
+    "selected_single_validation_metrics": {
+      "by_task": {
+        "UTS": {
+          "n": 735,
+          "MAE": 73.95450658021365,
+          "RMSE": 125.50669616267733,
+          "R2": 0.8609143899940365
+        },
+        "YS": {
+          "n": 735,
+          "MAE": 79.36475898355322,
+          "RMSE": 140.77475924971472,
+          "R2": 0.8088296624000998
+        }
+      },
+      "by_task_domain": {
+        "UTS/aluminum": {
+          "n": 88,
+          "MAE": 52.172225341208716,
+          "RMSE": 63.716155377972555,
+          "R2": 0.7610994172040217
+        },
+        "UTS/copper": {
+          "n": 19,
+          "MAE": 54.60277918765419,
+          "RMSE": 87.47909162639378,
+          "R2": 0.4460218315000417
+        },
+        "UTS/hea_mpea": {
+          "n": 107,
+          "MAE": 143.50281680098203,
+          "RMSE": 202.575192472407,
+          "R2": 0.63297809482676
+        },
+        "UTS/nickel_superalloy": {
+          "n": 12,
+          "MAE": 223.71388498942056,
+          "RMSE": 340.5768278341939,
+          "R2": -0.40025408850188304
+        },
+        "UTS/stainless": {
+          "n": 255,
+          "MAE": 24.902304702665443,
+          "RMSE": 35.38821477399507,
+          "R2": 0.8764765075493985
+        },
+        "UTS/steel": {
+          "n": 224,
+          "MAE": 91.94876514652798,
+          "RMSE": 133.83913069636765,
+          "R2": 0.8196022027600576
+        },
+        "UTS/titanium": {
+          "n": 30,
+          "MAE": 124.7324864095052,
+          "RMSE": 178.91690231123272,
+          "R2": 0.49039430497667813
+        },
+        "YS/aluminum": {
+          "n": 88,
+          "MAE": 69.28039076925383,
+          "RMSE": 85.45682615377682,
+          "R2": 0.5179228999611958
+        },
+        "YS/copper": {
+          "n": 19,
+          "MAE": 71.05816618266859,
+          "RMSE": 117.54967332475408,
+          "R2": -0.06261318643696256
+        },
+        "YS/hea_mpea": {
+          "n": 108,
+          "MAE": 170.54818842852558,
+          "RMSE": 249.21421959644812,
+          "R2": 0.563112571184161
+        },
+        "YS/nickel_superalloy": {
+          "n": 7,
+          "MAE": 236.58697509765625,
+          "RMSE": 350.9633793567986,
+          "R2": -0.7998954429450582
+        },
+        "YS/stainless": {
+          "n": 256,
+          "MAE": 17.06583715227127,
+          "RMSE": 22.402522123868668,
+          "R2": 0.7089091373243144
+        },
+        "YS/steel": {
+          "n": 223,
+          "MAE": 90.97709870835378,
+          "RMSE": 138.6609213717108,
+          "R2": 0.7748806060353923
+        },
+        "YS/titanium": {
+          "n": 34,
+          "MAE": 181.00758261287913,
+          "RMSE": 221.94094881471418,
+          "R2": 0.4391486271908909
+        }
+      },
+      "macro_domain_task_R2": 0.5806610845063291,
+      "macro_domain_task_MAE": 90.98322012020797,
+      "predicted_order_violation_rate": 0.0,
+      "predicted_order_violation_mean_mpa": 0.0
+    },
+    "selected_single_metrics": {
+      "calibration": {
+        "by_task": {
+          "UTS": {
+            "n": 590,
+            "MAE": 71.52193062889465,
+            "RMSE": 116.416982515387,
+            "R2": 0.8829246311791371
+          },
+          "YS": {
+            "n": 598,
+            "MAE": 77.91609402199225,
+            "RMSE": 123.42131564906198,
+            "R2": 0.8681193240559921
+          }
+        },
+        "by_task_domain": {
+          "UTS/aluminum": {
+            "n": 52,
+            "MAE": 46.69691222483474,
+            "RMSE": 58.694498452047156,
+            "R2": 0.8125002751979732
+          },
+          "UTS/copper": {
+            "n": 26,
+            "MAE": 84.66816552969127,
+            "RMSE": 99.4687997120002,
+            "R2": 0.5691374995688263
+          },
+          "UTS/hea_mpea": {
+            "n": 64,
+            "MAE": 149.87656192779542,
+            "RMSE": 205.3040181635614,
+            "R2": 0.4767132705602928
+          },
+          "UTS/nickel_superalloy": {
+            "n": 36,
+            "MAE": 104.95055558946397,
+            "RMSE": 130.83607847293072,
+            "R2": 0.7468792896512138
+          },
+          "UTS/stainless": {
+            "n": 225,
+            "MAE": 17.418289466330297,
+            "RMSE": 23.40375461529095,
+            "R2": 0.9408646274081739
+          },
+          "UTS/steel": {
+            "n": 160,
+            "MAE": 95.64940590362548,
+            "RMSE": 127.89391564559753,
+            "R2": 0.8829834208366658
+          },
+          "UTS/titanium": {
+            "n": 27,
+            "MAE": 184.25878861038777,
+            "RMSE": 236.14656667411123,
+            "R2": 0.24495863592969636
+          },
+          "YS/aluminum": {
+            "n": 52,
+            "MAE": 67.68018860025259,
+            "RMSE": 84.26406187415428,
+            "R2": 0.6362613445346557
+          },
+          "YS/copper": {
+            "n": 21,
+            "MAE": 82.80533512660435,
+            "RMSE": 102.85113147749846,
+            "R2": 0.2367291898869217
+          },
+          "YS/hea_mpea": {
+            "n": 70,
+            "MAE": 158.72831595284597,
+            "RMSE": 212.94099417177412,
+            "R2": 0.5582612067412697
+          },
+          "YS/nickel_superalloy": {
+            "n": 36,
+            "MAE": 80.4225336710612,
+            "RMSE": 104.2311056658881,
+            "R2": 0.8291711981344172
+          },
+          "YS/stainless": {
+            "n": 226,
+            "MAE": 16.319579599701196,
+            "RMSE": 20.172931741233274,
+            "R2": 0.8172059097842487
+          },
+          "YS/steel": {
+            "n": 161,
+            "MAE": 112.61893334430198,
+            "RMSE": 145.86503727153925,
+            "R2": 0.8505414015780239
+          },
+          "YS/titanium": {
+            "n": 32,
+            "MAE": 172.17111854553224,
+            "RMSE": 211.7764049908354,
+            "R2": 0.5950363448687698
+          }
+        },
+        "macro_domain_task_R2": 0.656945972477225,
+        "macro_domain_task_MAE": 98.16176314945916,
+        "predicted_order_violation_rate": 0.0,
+        "predicted_order_violation_mean_mpa": 0.0
+      },
+      "test": {
+        "by_task": {
+          "UTS": {
+            "n": 825,
+            "MAE": 69.77104145450403,
+            "RMSE": 128.06218064394665,
+            "R2": 0.8410188450610064
+          },
+          "YS": {
+            "n": 798,
+            "MAE": 69.89588232721543,
+            "RMSE": 128.1209819694414,
+            "R2": 0.8319210072311443
+          }
+        },
+        "by_task_domain": {
+          "UTS/aluminum": {
+            "n": 153,
+            "MAE": 36.12851585829632,
+            "RMSE": 49.408743003791386,
+            "R2": 0.8939459874347346
+          },
+          "UTS/copper": {
+            "n": 54,
+            "MAE": 83.60388543721967,
+            "RMSE": 112.70732829123304,
+            "R2": 0.3153823227909136
+          },
+          "UTS/hea_mpea": {
+            "n": 56,
+            "MAE": 183.31424059186662,
+            "RMSE": 271.8457982062833,
+            "R2": 0.2857471883672036
+          },
+          "UTS/nickel_superalloy": {
+            "n": 54,
+            "MAE": 121.56057117603443,
+            "RMSE": 174.96069372229667,
+            "R2": 0.7678672486102398
+          },
+          "UTS/stainless": {
+            "n": 308,
+            "MAE": 22.8586570405321,
+            "RMSE": 37.68527015570801,
+            "R2": 0.8464163014906705
+          },
+          "UTS/steel": {
+            "n": 156,
+            "MAE": 115.12876336513422,
+            "RMSE": 171.42606750495435,
+            "R2": 0.7173564248721462
+          },
+          "UTS/titanium": {
+            "n": 44,
+            "MAE": 129.28215204412288,
+            "RMSE": 194.0761049800393,
+            "R2": 0.6058424099927673
+          },
+          "YS/aluminum": {
+            "n": 147,
+            "MAE": 52.48652293666627,
+            "RMSE": 63.69262757367991,
+            "R2": 0.7977411204359168
+          },
+          "YS/copper": {
+            "n": 41,
+            "MAE": 82.22048548815025,
+            "RMSE": 115.86632434533315,
+            "R2": 0.43366520700253486
+          },
+          "YS/hea_mpea": {
+            "n": 59,
+            "MAE": 190.37349196611825,
+            "RMSE": 287.7276938337795,
+            "R2": 0.16351891222628445
+          },
+          "YS/nickel_superalloy": {
+            "n": 43,
+            "MAE": 77.47702168309411,
+            "RMSE": 108.7436482211113,
+            "R2": 0.7933098574464243
+          },
+          "YS/stainless": {
+            "n": 308,
+            "MAE": 14.723683154546565,
+            "RMSE": 20.088921686611688,
+            "R2": 0.8038000984977508
+          },
+          "YS/steel": {
+            "n": 154,
+            "MAE": 122.00511296259891,
+            "RMSE": 169.9327036848473,
+            "R2": 0.7116166337400756
+          },
+          "YS/titanium": {
+            "n": 46,
+            "MAE": 147.89403378693953,
+            "RMSE": 207.89248615829453,
+            "R2": 0.651471847512634
+          }
+        },
+        "macro_domain_task_R2": 0.627691540030021,
+        "macro_domain_task_MAE": 98.50408124938001,
+        "predicted_order_violation_rate": 0.0,
+        "predicted_order_violation_mean_mpa": 0.0
+      },
+      "source_challenge": {
+        "by_task": {
+          "UTS": {
+            "n": 185,
+            "MAE": 261.3389235311972,
+            "RMSE": 374.3688148451792,
+            "R2": 0.013208482954368717
+          },
+          "YS": {
+            "n": 186,
+            "MAE": 219.22245023337746,
+            "RMSE": 288.5255104552144,
+            "R2": 0.32691729494047184
+          }
+        },
+        "by_task_domain": {
+          "UTS/steel": {
+            "n": 8,
+            "MAE": 199.7812042236328,
+            "RMSE": 235.78656920317002,
+            "R2": -1.4367624413939986
+          },
+          "UTS/titanium": {
+            "n": 177,
+            "MAE": 264.12119333040914,
+            "RMSE": 379.4387716479309,
+            "R2": 0.02333519507914905
+          },
+          "YS/steel": {
+            "n": 8,
+            "MAE": 191.14819717407227,
+            "RMSE": 245.3953679585247,
+            "R2": -0.07308121552260616
+          },
+          "YS/titanium": {
+            "n": 178,
+            "MAE": 220.48421441581814,
+            "RMSE": 290.3135205798025,
+            "R2": 0.32488367077157565
+          }
+        },
+        "macro_domain_task_R2": 0.17410943292536235,
+        "macro_domain_task_MAE": 242.30270387311364,
+        "predicted_order_violation_rate": 0.0,
+        "predicted_order_violation_mean_mpa": 0.0
+      }
+    },
+    "selected_family_ensemble_metrics": {
+      "calibration": {
+        "by_task": {
+          "UTS": {
+            "n": 590,
+            "MAE": 68.48236923728483,
+            "RMSE": 111.94789298009151,
+            "R2": 0.8917408268370172
+          },
+          "YS": {
+            "n": 598,
+            "MAE": 74.13742687527068,
+            "RMSE": 119.33902889135305,
+            "R2": 0.8766992210628424
+          }
+        },
+        "by_task_domain": {
+          "UTS/aluminum": {
+            "n": 52,
+            "MAE": 45.59615961440806,
+            "RMSE": 57.14858690458451,
+            "R2": 0.822247042553162
+          },
+          "UTS/copper": {
+            "n": 26,
+            "MAE": 74.18444037804237,
+            "RMSE": 94.66562166330644,
+            "R2": 0.6097440571881876
+          },
+          "UTS/hea_mpea": {
+            "n": 64,
+            "MAE": 148.6365821838379,
+            "RMSE": 204.6573152534152,
+            "R2": 0.480004760520395
+          },
+          "UTS/nickel_superalloy": {
+            "n": 36,
+            "MAE": 99.9507630666097,
+            "RMSE": 119.05034713218973,
+            "R2": 0.7904276537478931
+          },
+          "UTS/stainless": {
+            "n": 225,
+            "MAE": 17.532730719129773,
+            "RMSE": 24.06035680751171,
+            "R2": 0.9374999459969687
+          },
+          "UTS/steel": {
+            "n": 160,
+            "MAE": 90.94940571289062,
+            "RMSE": 121.53271640313743,
+            "R2": 0.8943342987054673
+          },
+          "UTS/titanium": {
+            "n": 27,
+            "MAE": 166.55792756257236,
+            "RMSE": 220.00978911518436,
+            "R2": 0.3446225676284863
+          },
+          "YS/aluminum": {
+            "n": 52,
+            "MAE": 66.15318789317439,
+            "RMSE": 81.05073931063136,
+            "R2": 0.6634739885050025
+          },
+          "YS/copper": {
+            "n": 21,
+            "MAE": 74.01774146670387,
+            "RMSE": 91.63614356100307,
+            "R2": 0.39410954024597533
+          },
+          "YS/hea_mpea": {
+            "n": 70,
+            "MAE": 151.04155687604631,
+            "RMSE": 212.18039936913883,
+            "R2": 0.561411226658756
+          },
+          "YS/nickel_superalloy": {
+            "n": 36,
+            "MAE": 71.04518191019694,
+            "RMSE": 85.84806239827488,
+            "R2": 0.8841149531895632
+          },
+          "YS/stainless": {
+            "n": 226,
+            "MAE": 16.32790470976433,
+            "RMSE": 20.4778411209716,
+            "R2": 0.8116383651915248
+          },
+          "YS/steel": {
+            "n": 161,
+            "MAE": 110.26813245690388,
+            "RMSE": 144.5677424298897,
+            "R2": 0.8531880899741527
+          },
+          "YS/titanium": {
+            "n": 32,
+            "MAE": 148.93848781585694,
+            "RMSE": 187.27164875721058,
+            "R2": 0.6833314215340074
+          }
+        },
+        "macro_domain_task_R2": 0.6950105651171101,
+        "macro_domain_task_MAE": 91.51430016900981,
+        "predicted_order_violation_rate": 0.0,
+        "predicted_order_violation_mean_mpa": 0.0
+      },
+      "test": {
+        "by_task": {
+          "UTS": {
+            "n": 825,
+            "MAE": 68.89115711022846,
+            "RMSE": 125.81789463435352,
+            "R2": 0.8465422983143001
+          },
+          "YS": {
+            "n": 798,
+            "MAE": 68.86737546184003,
+            "RMSE": 126.67037036714684,
+            "R2": 0.8357055093282977
+          }
+        },
+        "by_task_domain": {
+          "UTS/aluminum": {
+            "n": 153,
+            "MAE": 36.911979711543864,
+            "RMSE": 50.82564300341513,
+            "R2": 0.8877761257404367
+          },
+          "UTS/copper": {
+            "n": 54,
+            "MAE": 75.40431661103877,
+            "RMSE": 104.83647935748473,
+            "R2": 0.4076632822512144
+          },
+          "UTS/hea_mpea": {
+            "n": 56,
+            "MAE": 176.29084123883928,
+            "RMSE": 265.2656416370145,
+            "R2": 0.31990636068215295
+          },
+          "UTS/nickel_superalloy": {
+            "n": 54,
+            "MAE": 117.95606146918402,
+            "RMSE": 165.08424859841435,
+            "R2": 0.793335106021746
+          },
+          "UTS/stainless": {
+            "n": 308,
+            "MAE": 22.79793303263875,
+            "RMSE": 38.42301010121299,
+            "R2": 0.840344227375
+          },
+          "UTS/steel": {
+            "n": 156,
+            "MAE": 117.26870927077074,
+            "RMSE": 175.25494568351024,
+            "R2": 0.7045894795438596
+          },
+          "UTS/titanium": {
+            "n": 44,
+            "MAE": 126.32368577436968,
+            "RMSE": 179.19357878195683,
+            "R2": 0.663975730943663
+          },
+          "YS/aluminum": {
+            "n": 147,
+            "MAE": 53.601109577555334,
+            "RMSE": 65.25395534641001,
+            "R2": 0.7877034440802453
+          },
+          "YS/copper": {
+            "n": 41,
+            "MAE": 82.14760798570885,
+            "RMSE": 113.23618867796665,
+            "R2": 0.45908469433711496
+          },
+          "YS/hea_mpea": {
+            "n": 59,
+            "MAE": 186.02045970852092,
+            "RMSE": 284.4608557260254,
+            "R2": 0.18240576401635555
+          },
+          "YS/nickel_superalloy": {
+            "n": 43,
+            "MAE": 73.90204655846884,
+            "RMSE": 109.02972627560689,
+            "R2": 0.7922209241154422
+          },
+          "YS/stainless": {
+            "n": 308,
+            "MAE": 14.553615986355869,
+            "RMSE": 20.086695443983626,
+            "R2": 0.8038435816063846
+          },
+          "YS/steel": {
+            "n": 154,
+            "MAE": 120.93919915533685,
+            "RMSE": 171.21558488090338,
+            "R2": 0.707245984956312
+          },
+          "YS/titanium": {
+            "n": 46,
+            "MAE": 140.18706662385358,
+            "RMSE": 193.84494218985566,
+            "R2": 0.6969814428162036
+          }
+        },
+        "macro_domain_task_R2": 0.6462197248918666,
+        "macro_domain_task_MAE": 96.02175947887038,
+        "predicted_order_violation_rate": 0.0,
+        "predicted_order_violation_mean_mpa": 0.0
+      },
+      "source_challenge": {
+        "by_task": {
+          "UTS": {
+            "n": 185,
+            "MAE": 268.8468007779508,
+            "RMSE": 386.4773264298872,
+            "R2": -0.051657003929367784
+          },
+          "YS": {
+            "n": 186,
+            "MAE": 226.67283948016424,
+            "RMSE": 301.944091995361,
+            "R2": 0.26285475553714877
+          }
+        },
+        "by_task_domain": {
+          "UTS/steel": {
+            "n": 8,
+            "MAE": 200.18650817871094,
+            "RMSE": 244.92288125760587,
+            "R2": -1.6292615178767935
+          },
+          "UTS/titanium": {
+            "n": 177,
+            "MAE": 271.95009083893336,
+            "RMSE": 391.66871860819333,
+            "R2": -0.040638527343264785
+          },
+          "YS/steel": {
+            "n": 8,
+            "MAE": 208.30686950683594,
+            "RMSE": 258.34935672181507,
+            "R2": -0.1893635917758958
+          },
+          "YS/titanium": {
+            "n": 178,
+            "MAE": 227.49827633289812,
+            "RMSE": 303.7565233179341,
+            "R2": 0.26091342366537695
+          }
+        },
+        "macro_domain_task_R2": 0.11013744816105608,
+        "macro_domain_task_MAE": 249.72418358591574,
+        "predicted_order_violation_rate": 0.0,
+        "predicted_order_violation_mean_mpa": 0.0
+      }
+    },
+    "selected_single_checkpoint_sha256": "88109cd28ed056e07c893bc294c3000f5ac6dbb809de6a9046f233f478467f83",
+    "selected_single_preprocessor_sha256": "5d078f8239447c6996e7583fd2a03983029c483ffd58fe3dbfeb7edb4d5e1f35",
+    "test_has_been_seen_in_prior_experiments": true,
+    "production_release_authorized": false
+  },
+  "VALIDATION_SELECTION.json": {
+    "family_summary": [
+      {
+        "config_name": "correct_original_label",
+        "validation_macro_MAE_mean": 93.89762632224642,
+        "validation_macro_MAE_std": 2.3330379916026027,
+        "by_seed": {
+          "20260923": 96.69433559067643,
+          "20260924": 90.98322012020797,
+          "20260925": 94.01532325585487
+        }
+      },
+      {
+        "config_name": "correct_stable_dedup",
+        "validation_macro_MAE_mean": 103.1359590497671,
+        "validation_macro_MAE_std": 1.0260868175314979,
+        "by_seed": {
+          "20260923": 103.9074078782793,
+          "20260924": 101.68584219641333,
+          "20260925": 103.81462707460861
+        }
+      },
+      {
+        "config_name": "correct_stable_dedup_cov20",
+        "validation_macro_MAE_mean": 104.80840389481794,
+        "validation_macro_MAE_std": 2.620538720997655,
+        "by_seed": {
+          "20260923": 108.02205461749911,
+          "20260924": 104.80006893283236,
+          "20260925": 101.60308813412234
+        }
+      },
+      {
+        "config_name": "correct_stable_label",
+        "validation_macro_MAE_mean": 107.90382551599767,
+        "validation_macro_MAE_std": 0.21951681116820246,
+        "by_seed": {
+          "20260923": 107.94394634369515,
+          "20260924": 107.61716768099329,
+          "20260925": 108.15036252330457
+        }
+      }
+    ],
+    "selected_family": "correct_original_label",
+    "selected_single_seed": 20260924,
+    "selected_without_test_metrics": true
+  }
+}

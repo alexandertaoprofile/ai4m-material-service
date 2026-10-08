@@ -1,0 +1,180 @@
+{
+  "created_utc": "2026-09-28T03:54:01.224939+00:00",
+  "offline_preflight_passed": true,
+  "checks": {
+    "production_repositories_preserved": {
+      "/data/se42/hea_surrogate": true,
+      "/data/se42/alpha_project/material_service_hub": true
+    },
+    "artifact_sources_preserved": [
+      {
+        "source": "/data/se42/experiments/patent_optimization_v0_20260922/process_semantics_canonical_v10_20260923/selected_single_checkpoint/model_state.pt",
+        "passed": true
+      },
+      {
+        "source": "/data/se42/experiments/patent_optimization_v0_20260922/process_semantics_canonical_v10_20260923/selected_single_checkpoint/preprocessor.json",
+        "passed": true
+      },
+      {
+        "source": "/data/se42/experiments/oxide_glass_transformer_v0_20260922/transformer_composition_5fold/oxide_glass_multitask_transformer_v0.pt",
+        "passed": true
+      },
+      {
+        "source": "/data/se42/experiments/oxide_glass_transformer_v0_20260922/code/train_oxide_glass_transformer.py",
+        "passed": true
+      },
+      {
+        "source": "/data/se42/experiments/oxide_glass_transformer_v0_20260922/code/infer_oxide_glass_transformer.py",
+        "passed": true
+      },
+      {
+        "source": "/data/se42/experiments/patent_optimization_v0_20260922/process_semantics_canonical_v10_20260923/code_snapshot/train_v8_canonical.py",
+        "passed": true
+      },
+      {
+        "source": "/data/se42/experiments/patent_optimization_v0_20260922/repair_process_data_v6.py",
+        "passed": true
+      },
+      {
+        "source": "/data/se42/experiments/patent_optimization_v0_20260922/data_repair_v8_20260923/dataset_repaired.csv",
+        "passed": true
+      },
+      {
+        "source": "/data/se42/experiments/oxide_glass_transformer_v0_20260922/dataset/sciglass_v2_strict_database_observations.csv.gz",
+        "passed": true
+      },
+      {
+        "source": "/data/se42/hea_surrogate/models/unified_alloy_tensile_v2_20260921/runtime/frozen_descriptors.py",
+        "passed": true
+      },
+      {
+        "source": "/data/se42/hea_surrogate/models/unified_alloy_tensile_v2_20260921/runtime/frozen_process.py",
+        "passed": true
+      },
+      {
+        "source": "/data/se42/hea_surrogate/models/unified_alloy_tensile_v2_20260921/runtime/service_adapters.py",
+        "passed": true
+      },
+      {
+        "source": "/data/se42/hea_surrogate/models/unified_alloy_tensile_v2_20260921/runtime/assets/descriptor_properties.json",
+        "passed": true
+      },
+      {
+        "source": "/data/se42/experiments/alloy_foundation_v0_20260916/train_process_adapter_v2.py",
+        "passed": true
+      },
+      {
+        "source": "/data/se42/experiments/alloy_foundation_v0_20260916/run_physics_informed_cv.py",
+        "passed": true
+      },
+      {
+        "source": "/data/se42/experiments/alloy_foundation_v0_20260916/run_hard_constraint_transformer_cv.py",
+        "passed": true
+      },
+      {
+        "source": "/data/se42/experiments/alloy_foundation_v0_20260916/run_family_adapter_multitask.py",
+        "passed": true
+      }
+    ],
+    "external_dependencies": {
+      "passed": true,
+      "checked": 66,
+      "mismatches": []
+    },
+    "environments": [
+      {
+        "executable": "/data/se42/experiments/patent_optimization_v0_20260922/.venv/bin/python",
+        "returncode": 0,
+        "required_packages": [
+          "numpy",
+          "pandas",
+          "scikit-learn",
+          "torch",
+          "pymoo"
+        ],
+        "passed": true,
+        "inventory": {
+          "python": "3.13.11 | packaged by Anaconda, Inc. | (main, Dec 10 2025, 21:28:48) [GCC 14.3.0]",
+          "packages": {
+            "numpy": "2.4.1",
+            "pandas": "3.0.1",
+            "scikit-learn": "1.8.0",
+            "torch": "2.10.0",
+            "pymoo": "0.6.2"
+          }
+        }
+      },
+      {
+        "executable": "/data/mamba/envs/mattergen-py310/bin/python",
+        "returncode": 0,
+        "required_packages": [
+          "numpy",
+          "pandas",
+          "scikit-learn"
+        ],
+        "passed": true,
+        "inventory": {
+          "python": "3.10.20 | packaged by conda-forge | (main, Jun 11 2026, 03:31:56) [GCC 14.3.0]",
+          "packages": {
+            "numpy": "1.26.4",
+            "pandas": "2.3.3",
+            "scikit-learn": "1.7.2"
+          }
+        }
+      },
+      {
+        "executable": "/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python",
+        "returncode": 0,
+        "required_packages": [
+          "fastapi",
+          "pydantic",
+          "requests"
+        ],
+        "passed": true,
+        "inventory": {
+          "python": "3.10.19 (main, Oct 21 2025, 16:43:05) [GCC 11.2.0]",
+          "packages": {
+            "fastapi": "0.128.0",
+            "pydantic": "2.12.5",
+            "requests": "2.32.5"
+          }
+        }
+      }
+    ],
+    "real_raw_input_model_health": [
+      {
+        "name": "alloy",
+        "passed": true,
+        "returncode": 0,
+        "stdout": "{\"ok\": true, \"status_counts\": {\"predicted_diagnostic\": 1}, \"response\": \"/data/se42/experiments/material_release_validation_20260928/private_health/alloy.json\"}\n",
+        "stderr": "/data/se42/experiments/material_release_validation_20260928/models/alloy_v10/foundation/run_hard_constraint_transformer_cv.py:92: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True\n  self.transformer = nn.TransformerEncoder(layer, num_layers=3)\n"
+      },
+      {
+        "name": "glass",
+        "passed": true,
+        "returncode": 0,
+        "stdout": "{\"ok\": true, \"mode\": \"shadow\", \"predicted_diagnostic\": 2, \"skipped\": 1, \"errors\": 0, \"response\": \"/data/se42/experiments/material_release_validation_20260928/private_health/glass.json\"}\n",
+        "stderr": "/data/se42/experiments/material_release_validation_20260928/models/glass_v1/code/train_oxide_glass_transformer.py:202: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True\n  self.encoder = nn.TransformerEncoder(layer, num_layers=n_layers, norm=nn.LayerNorm(d_model))\n"
+      }
+    ],
+    "existing_live_service_health": {
+      "status": "ok",
+      "runner_ready": {
+        "hea_mpea": true,
+        "ni_superalloy_hot_end": true,
+        "copper_hot_end_local_composition_v1": true,
+        "reusable_rocket_stainless": true,
+        "aerospace_aluminum_composition_v1": true,
+        "chip_glass_thermomechanical_family_v1": true,
+        "short_cf_thermomechanical_rve_v1": true,
+        "perovskite_transport_stability_v2": true
+      },
+      "runner_prefix": "/data/mamba/envs/mattergen-py310",
+      "unified_tensile_shadow_ready": true
+    }
+  },
+  "shadow_activated": false,
+  "production_repositories_mutated": false,
+  "production_release_authorized": false,
+  "live_service_is_existing_legacy_not_new_candidate": true
+}

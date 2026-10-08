@@ -1,0 +1,41 @@
+{
+  "model": "HistGradientBoostingRegressor for log10 rupture life hours",
+  "research_status": "exploratory screening baseline; not approved for engineering life prediction",
+  "training_package": "/data/se42/hea_surrogate/data/processed/ni_superalloy_training/20260901_cambridge_creep_rupture_v1",
+  "target": "log10(rupture_life_h)",
+  "inputs": "test temperature, applied stress, source wt.% composition, cast/DS/SC route, casting gradient and recorded heat-treatment stages",
+  "split": "Tag-disjoint v1",
+  "metrics": {
+    "test": {
+      "n": 75,
+      "mae_log10_h": 0.25865681978518185,
+      "rmse_log10_h": 0.38721192739640375,
+      "r2_log10_h": 0.5289131103371042,
+      "typical_multiplicative_error_factor": 1.8140816059781704
+    },
+    "train": {
+      "n": 527,
+      "mae_log10_h": 0.09445724917979587,
+      "rmse_log10_h": 0.13720477258650507,
+      "r2_log10_h": 0.9340490888781241,
+      "typical_multiplicative_error_factor": 1.242960276042819
+    },
+    "validation": {
+      "n": 111,
+      "mae_log10_h": 0.22735193651116975,
+      "rmse_log10_h": 0.3133884323930417,
+      "r2_log10_h": 0.5384496173207833,
+      "typical_multiplicative_error_factor": 1.6879203007674748
+    },
+    "independent_tags": {
+      "train": 299,
+      "validation": 39,
+      "test": 47
+    }
+  },
+  "boundaries": [
+    "The prediction is conditional on temperature and applied stress; it is not a universal material life rating.",
+    "Predicted rupture life is a screening estimate. The multiplicative error factor is derived from held-out Tag MAE in log space.",
+    "No oxidation, thermo-mechanical fatigue, coating, geometry, environment or certification effect is represented."
+  ]
+}

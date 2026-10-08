@@ -1,0 +1,16 @@
+{
+  "package": "chip_glass_substrate_training_gate_v1",
+  "model_fit_started": false,
+  "input_records": 66,
+  "admitted_records": 66,
+  "review_required_records": 0,
+  "admitted_by_lane": {
+    "glass_thermal": 66
+  },
+  "thermal_independent_glass_compositions": 66,
+  "thermal_fit_ready": true,
+  "thermal_fit_requirement": "at least 50 independently composed glasses with a temperature-resolved thermal property",
+  "rf_fit_requirement": "compare and validate within frequency intervals and glass families; never extrapolate 1 MHz data to 10–100 GHz",
+  "tgv_reliability_policy": "if independent samples are insufficient, retain an evidence map and experimental design; do not fit a life extrapolator",
+  "lane_separation": "glass thermal, RF, TGV manufacturability and package reliability are emitted as separate files"
+}

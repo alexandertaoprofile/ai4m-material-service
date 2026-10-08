@@ -1,0 +1,176 @@
+{
+  "created_utc": "2026-09-28T02:10:52.830656+00:00",
+  "repositories": {
+    "/data/se42/hea_surrogate": {
+      "branch": "feat/copper-hot-wall-v1",
+      "commit": "c6def316a855b799c45c0bd9f87c4e61444f4d3c",
+      "status": [
+        "M reports/crabnet/hea_yield_raw_composition_benchmark.json",
+        " M reports/crabnet/hea_yield_raw_composition_test_predictions.csv"
+      ],
+      "changed_file_hashes": {
+        "reports/crabnet/hea_yield_raw_composition_test_predictions.csv": "f94671e8667b33cd98e089744a161181959876e5fcbb8f57e8b86aacecff9f31"
+      },
+      "diff_sha256": "8e9d36b3aeee394d28954d718894be0e7c8dae4672d49d8d62f19178570c7054"
+    },
+    "/data/se42/alpha_project/material_service_hub": {
+      "branch": "update/material-services-2026-08",
+      "commit": "9fea47fc7b510e753c147cb4c3103fbbb4554f4d",
+      "status": [
+        "M material_composition_optimization/main.py",
+        " M material_composition_optimization/src/alloy_workflow/contracts.py",
+        " M material_composition_optimization/src/alloy_workflow/fallback.py",
+        " M material_composition_optimization/src/alloy_workflow/identity.py",
+        " M material_composition_optimization/src/alloy_workflow/presentation.py",
+        " M material_composition_optimization/src/team_config.py",
+        " M material_composition_optimization/tests/test_generic_composition_fallback.py",
+        " M material_composition_optimization/tests/test_service_contract.py",
+        " M material_discovery/main.py",
+        " M material_discovery/src/material_workflow/constraints.py",
+        " M material_discovery/src/material_workflow/llm_constraint_inference.py",
+        " M material_discovery/src/material_workflow/upstream_api.py",
+        " M material_discovery/src/service_identity.py",
+        " M material_discovery/src/team_config.py",
+        "?? material_discovery/docs/REQUIREMENT_REVIEW.md",
+        "?? material_discovery/src/material_workflow/capability_fallback.py",
+        "?? material_discovery/src/material_workflow/requirement_review.py",
+        "?? material_discovery/tests/test_capability_fallback.py",
+        "?? material_discovery/tests/test_requirement_review.py"
+      ],
+      "changed_file_hashes": {
+        "material_composition_optimization/src/alloy_workflow/contracts.py": "e0ef1360a6f88d0fd18f12094105f39e705c5d4c729da84cf08c59daf41f823a",
+        "material_composition_optimization/src/alloy_workflow/fallback.py": "a2818741e769be2d6b35754102bf9c42db68308d2f4f53494a0284b15346d056",
+        "material_composition_optimization/src/alloy_workflow/identity.py": "c13553b2e8fc8af40ce88532fb57c1c81e9db3ba349a80a362753c2a14870220",
+        "material_composition_optimization/src/alloy_workflow/presentation.py": "23f483931bea9c67c4b5dedb0eeb62e844739b075f92f3a177d8e6e1324ee2eb",
+        "material_composition_optimization/src/team_config.py": "adc3c1781813763e66a75232a42a3212c3793f4c332c99586484ad46e6d82e62",
+        "material_composition_optimization/tests/test_generic_composition_fallback.py": "5271d7523008efed1620e9b51e2875060041938432cc3e0b35188fd86a32cebf",
+        "material_composition_optimization/tests/test_service_contract.py": "365d5b7887ddf2072ba2f1be33c01b5f1031a6bfdba857d456fee96ffa8f63b8",
+        "material_discovery/main.py": "4fa51ffc3c2510987b95704cce444f14bf97ef9e21a265034a1a24c4207d9b38",
+        "material_discovery/src/material_workflow/constraints.py": "bf21513a99d733b1c06e4fb0941dcdab4ebdfc2bf45ca187d0dcfe09faf59d7a",
+        "material_discovery/src/material_workflow/llm_constraint_inference.py": "85e0e63a7e5eadda411f260778ebbc551d71b3bc2c86c259a9a40d4889e127fc",
+        "material_discovery/src/material_workflow/upstream_api.py": "c5131260a0ff6102499944eaa686d5d9076d0361460cb1881513245501987cda",
+        "material_discovery/src/service_identity.py": "61b283e546bcc44230383d104dfad3594b8d28a9a660f2e509f0b61fc4cf7256",
+        "material_discovery/src/team_config.py": "5cbb5f54919b0d859f91800fc60551f9f6023197724a4a5dccdeb395e79a0217",
+        "material_discovery/docs/REQUIREMENT_REVIEW.md": "c1b74130e3915dd00e2d59f7a94fc3c86efc62653efe21b077bf563ec3f94ac3",
+        "material_discovery/src/material_workflow/capability_fallback.py": "be255d09bbcd46aa78429f5d316580943e8cd7ffb60a061eda7da647689a5b46",
+        "material_discovery/src/material_workflow/requirement_review.py": "a172eb995a8fbb998eba7e3a87a0022f48023536daef048a2822c2e96a3f8e9a",
+        "material_discovery/tests/test_capability_fallback.py": "8c6ed8c36c488e562d95784aef512f443d45f8c89335fd5df4d01a95f6fc700b",
+        "material_discovery/tests/test_requirement_review.py": "eb2455deb8025624d264ff3c582e5844cf8a00af263ed0e5c5f5224dafa1daed"
+      },
+      "diff_sha256": "b51f76caf4859e2f76752a43b6b2f590ead0fe934b96af997e561a7276b691cc"
+    }
+  },
+  "artifacts": [
+    {
+      "source": "/data/se42/experiments/patent_optimization_v0_20260922/process_semantics_canonical_v10_20260923/selected_single_checkpoint/model_state.pt",
+      "frozen": "/data/se42/experiments/material_release_validation_20260928/models/alloy_v10/model_state.pt",
+      "bytes": 2880014,
+      "sha256": "88109cd28ed056e07c893bc294c3000f5ac6dbb809de6a9046f233f478467f83"
+    },
+    {
+      "source": "/data/se42/experiments/patent_optimization_v0_20260922/process_semantics_canonical_v10_20260923/selected_single_checkpoint/preprocessor.json",
+      "frozen": "/data/se42/experiments/material_release_validation_20260928/models/alloy_v10/preprocessor.json",
+      "bytes": 135708,
+      "sha256": "5d078f8239447c6996e7583fd2a03983029c483ffd58fe3dbfeb7edb4d5e1f35"
+    },
+    {
+      "source": "/data/se42/experiments/oxide_glass_transformer_v0_20260922/transformer_composition_5fold/oxide_glass_multitask_transformer_v0.pt",
+      "frozen": "/data/se42/experiments/material_release_validation_20260928/models/glass_v0/model_state.pt",
+      "bytes": 2693953,
+      "sha256": "caf782002b02af8a844f2f6c2d48be10f68d051995efdd62987208c6c55c40e1"
+    },
+    {
+      "source": "/data/se42/experiments/oxide_glass_transformer_v0_20260922/code/train_oxide_glass_transformer.py",
+      "frozen": "/data/se42/experiments/material_release_validation_20260928/models/glass_v0/code/train_oxide_glass_transformer.py",
+      "bytes": 25280,
+      "sha256": "c1c5c555d80d9ed3ae82d7d42ad9816d811036f3b5c7c786ec42039e6b06b580"
+    },
+    {
+      "source": "/data/se42/experiments/oxide_glass_transformer_v0_20260922/code/infer_oxide_glass_transformer.py",
+      "frozen": "/data/se42/experiments/material_release_validation_20260928/models/glass_v0/code/infer_oxide_glass_transformer.py",
+      "bytes": 6403,
+      "sha256": "d5ddd559249e0282338bbc940f1240674a5044bbff4a2708a1ad27e194750bff"
+    },
+    {
+      "source": "/data/se42/experiments/patent_optimization_v0_20260922/process_semantics_canonical_v10_20260923/code_snapshot/train_v8_canonical.py",
+      "frozen": "/data/se42/experiments/material_release_validation_20260928/models/alloy_v10/code/train_v8_canonical.py",
+      "bytes": 20653,
+      "sha256": "454122c12166053a50616df7ef12326bce472c3ee68e94117b547835bb72ef86"
+    },
+    {
+      "source": "/data/se42/experiments/patent_optimization_v0_20260922/repair_process_data_v6.py",
+      "frozen": "/data/se42/experiments/material_release_validation_20260928/models/alloy_v10/code/repair_process_data_v6.py",
+      "bytes": 14474,
+      "sha256": "f6d113158a40890813888364a918055a4f5ffa6d7d971241a4a09e7f17bd7f56"
+    },
+    {
+      "source": "/data/se42/experiments/patent_optimization_v0_20260922/data_repair_v8_20260923/dataset_repaired.csv",
+      "frozen": "/data/se42/experiments/material_release_validation_20260928/frozen_data/alloy_v8.csv",
+      "bytes": 28458846,
+      "sha256": "8b6322b294b8d63e368b5606f9e18f7cfa05cc601ec8ecacea0e72ad671ba9b9"
+    },
+    {
+      "source": "/data/se42/experiments/oxide_glass_transformer_v0_20260922/dataset/sciglass_v2_strict_database_observations.csv.gz",
+      "frozen": "/data/se42/experiments/material_release_validation_20260928/frozen_data/glass_v0.csv.gz",
+      "bytes": 10178735,
+      "sha256": "98810be535a0300273f78fbd360e0a1623cc383748a5e2bd2e9842e413bf1a4d"
+    },
+    {
+      "source": "/data/se42/hea_surrogate/models/unified_alloy_tensile_v2_20260921/runtime/frozen_descriptors.py",
+      "frozen": "/data/se42/experiments/material_release_validation_20260928/models/alloy_v10/code/frozen_descriptors.py",
+      "bytes": 2522,
+      "sha256": "c5400e661b7c5c1415d397caa650c48489a634cf093441a784fbb0707b16da75"
+    },
+    {
+      "source": "/data/se42/hea_surrogate/models/unified_alloy_tensile_v2_20260921/runtime/frozen_process.py",
+      "frozen": "/data/se42/experiments/material_release_validation_20260928/models/alloy_v10/code/frozen_process.py",
+      "bytes": 4291,
+      "sha256": "9ac4a6d2cc1539a7fcdce182723a71dad7ae321f3742c111adec6aa32cba80ff"
+    },
+    {
+      "source": "/data/se42/hea_surrogate/models/unified_alloy_tensile_v2_20260921/runtime/service_adapters.py",
+      "frozen": "/data/se42/experiments/material_release_validation_20260928/models/alloy_v10/code/service_adapters.py",
+      "bytes": 8761,
+      "sha256": "017af2aa0158beea4c148563b624f74cb94f34ad30d92c1f03e6ae9a17e82b93"
+    },
+    {
+      "source": "/data/se42/hea_surrogate/models/unified_alloy_tensile_v2_20260921/runtime/assets/descriptor_properties.json",
+      "frozen": "/data/se42/experiments/material_release_validation_20260928/models/alloy_v10/code/descriptor_properties.json",
+      "bytes": 23834,
+      "sha256": "1a35f9b946a97fcc675ded63d0426f0ef84fdb9a28ab528fc98af32586bd9602"
+    },
+    {
+      "source": "/data/se42/experiments/alloy_foundation_v0_20260916/train_process_adapter_v2.py",
+      "frozen": "/data/se42/experiments/material_release_validation_20260928/models/alloy_v10/foundation/train_process_adapter_v2.py",
+      "bytes": 18688,
+      "sha256": "e0e120fede8acd258dc729fa8d1adf73305a47aff335e58e2855185e47d07e9c"
+    },
+    {
+      "source": "/data/se42/experiments/alloy_foundation_v0_20260916/run_physics_informed_cv.py",
+      "frozen": "/data/se42/experiments/material_release_validation_20260928/models/alloy_v10/foundation/run_physics_informed_cv.py",
+      "bytes": 23850,
+      "sha256": "b343af92ffe4be856964d7dfd7bfbec81574df35d47722e7aca4b7ae42b121e2"
+    },
+    {
+      "source": "/data/se42/experiments/alloy_foundation_v0_20260916/run_hard_constraint_transformer_cv.py",
+      "frozen": "/data/se42/experiments/material_release_validation_20260928/models/alloy_v10/foundation/run_hard_constraint_transformer_cv.py",
+      "bytes": 16305,
+      "sha256": "c88424e0092411012ad1e3a304ed60279ad188a475580b8bf4e0a1d21d6c266d"
+    },
+    {
+      "source": "/data/se42/experiments/alloy_foundation_v0_20260916/run_family_adapter_multitask.py",
+      "frozen": "/data/se42/experiments/material_release_validation_20260928/models/alloy_v10/foundation/run_family_adapter_multitask.py",
+      "bytes": 23793,
+      "sha256": "0e9b47a783ccae89d320090d674862c7c0852e1fcf3a3f512684a5bcd4801458"
+    }
+  ],
+  "service_snapshot": "/data/se42/experiments/material_release_validation_20260928/service_snapshot",
+  "excluded": [
+    "credentials",
+    "production results",
+    "logs",
+    "git internal directories"
+  ],
+  "production_repositories_mutated": false,
+  "production_release_authorized": false
+}

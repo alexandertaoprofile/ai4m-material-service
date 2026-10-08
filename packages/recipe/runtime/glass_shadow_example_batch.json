@@ -1,0 +1,36 @@
+{
+  "requests": [
+    {
+      "request_id": "parity-0",
+      "composition_mol_percent": {
+        "Al2O3": 0.5399460053994601,
+        "CaO": 8.489151084891512,
+        "MgO": 0.40995900409959,
+        "Na2O": 13.678632136786323,
+        "SiO2": 67.81321867813219,
+        "SnO2": 9.06909309069093
+      },
+      "task": "DENSITY_20C"
+    },
+    {
+      "request_id": "parity-64",
+      "composition_mol_percent": {
+        "SiO2": 90.0,
+        "TiO2": 10.0
+      },
+      "task": "YOUNG_MODULUS"
+    },
+    {
+      "request_id": "unsupported-thermal",
+      "composition_mol_percent": {
+        "Al2O3": 0.5399460053994601,
+        "CaO": 8.489151084891512,
+        "MgO": 0.40995900409959,
+        "Na2O": 13.678632136786323,
+        "SiO2": 67.81321867813219,
+        "SnO2": 9.06909309069093
+      },
+      "task": "THERMAL_CONDUCTIVITY"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "model": "HistGradientBoostingRegressor for tensile elongation percent",
+  "research_status": "exploratory screening baseline; not approved for engineering ductility release",
+  "training_package": "/data/se42/hea_surrogate/data/processed/ni_superalloy_training/20260831_cambridge_cast_ds_sc_full_v3",
+  "target": "tensile elongation percent",
+  "admitted_records": 238,
+  "review_only_records": 12,
+  "inputs": "test temperature, source wt.% composition, cast/DS/SC route, casting gradient and recorded heat-treatment stages",
+  "split": "Tag-disjoint v1",
+  "metrics": {
+    "test": {
+      "n": 25,
+      "mae_percent": 3.0567379244938775,
+      "rmse_percent": 4.094672749808413,
+      "r2": 0.6820717623939101
+    },
+    "train": {
+      "n": 159,
+      "mae_percent": 1.199536376430932,
+      "rmse_percent": 1.9134504577120433,
+      "r2": 0.9626952875882777
+    },
+    "validation": {
+      "n": 54,
+      "mae_percent": 8.640929495736161,
+      "rmse_percent": 11.544529283546819,
+      "r2": -0.11403465165304816
+    },
+    "independent_tags": {
+      "test": 6,
+      "train": 38,
+      "validation": 9
+    }
+  },
+  "boundaries": [
+    "Elongation is a tensile ductility measurement under its recorded test condition; it is not a fracture-toughness or creep-ductility prediction.",
+    "Hardness is not a label in this source database and is intentionally absent from this service model."
+  ]
+}

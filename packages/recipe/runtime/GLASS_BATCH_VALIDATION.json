@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "maximum_native_candidates": 500,
+  "properties_per_candidate": 2,
+  "maximum_native_batch_requests": 1000,
+  "elapsed_seconds": 0.5969935283064842,
+  "scalar_batch_maximum_difference": 1.0881587542144189e-06,
+  "oversized_payload_rejected": true,
+  "production_release_authorized": false
+}

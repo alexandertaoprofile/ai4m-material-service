@@ -1,0 +1,117 @@
+{
+  "model_version": "reusable_rocket_austenitic_design_v2_extratrees",
+  "temperature_K": {
+    "minimum": 293.0,
+    "maximum": 1273.0
+  },
+  "composition_nonzero_bounds_wt_pct": {
+    "Cr": {
+      "minimum_wt_pct": 15.9,
+      "maximum_wt_pct": 21.06,
+      "p01_wt_pct": 16.36,
+      "p99_wt_pct": 21.0105
+    },
+    "Ni": {
+      "minimum_wt_pct": 8.4,
+      "maximum_wt_pct": 34.45,
+      "p01_wt_pct": 9.0,
+      "p99_wt_pct": 32.60810000000002
+    },
+    "Mo": {
+      "minimum_wt_pct": 0.002,
+      "maximum_wt_pct": 2.91,
+      "p01_wt_pct": 0.005,
+      "p99_wt_pct": 2.83
+    },
+    "Mn": {
+      "minimum_wt_pct": 0.61,
+      "maximum_wt_pct": 1.82,
+      "p01_wt_pct": 0.79,
+      "p99_wt_pct": 1.7705000000000017
+    },
+    "Si": {
+      "minimum_wt_pct": 0.19,
+      "maximum_wt_pct": 1.15,
+      "p01_wt_pct": 0.26,
+      "p99_wt_pct": 0.84
+    },
+    "Nb": {
+      "minimum_wt_pct": 0.0001,
+      "maximum_wt_pct": 0.95,
+      "p01_wt_pct": 0.0001,
+      "p99_wt_pct": 0.92
+    },
+    "Ti": {
+      "minimum_wt_pct": 0.0006,
+      "maximum_wt_pct": 0.56,
+      "p01_wt_pct": 0.005675999999999997,
+      "p99_wt_pct": 0.56
+    },
+    "V": {
+      "minimum_wt_pct": 0.03,
+      "maximum_wt_pct": 0.057,
+      "p01_wt_pct": 0.03,
+      "p99_wt_pct": 0.057
+    },
+    "Cu": {
+      "minimum_wt_pct": 0.02,
+      "maximum_wt_pct": 0.35,
+      "p01_wt_pct": 0.02,
+      "p99_wt_pct": 0.35
+    },
+    "N": {
+      "minimum_wt_pct": 0.0074,
+      "maximum_wt_pct": 0.081,
+      "p01_wt_pct": 0.0074,
+      "p99_wt_pct": 0.081
+    },
+    "C": {
+      "minimum_wt_pct": 0.012,
+      "maximum_wt_pct": 0.12,
+      "p01_wt_pct": 0.02079,
+      "p99_wt_pct": 0.1
+    },
+    "B": {
+      "minimum_wt_pct": 0.0001,
+      "maximum_wt_pct": 0.015,
+      "p01_wt_pct": 0.0001,
+      "p99_wt_pct": 0.0085
+    },
+    "P": {
+      "minimum_wt_pct": 0.002,
+      "maximum_wt_pct": 0.04,
+      "p01_wt_pct": 0.00839,
+      "p99_wt_pct": 0.035
+    },
+    "S": {
+      "minimum_wt_pct": 0.0009,
+      "maximum_wt_pct": 0.05,
+      "p01_wt_pct": 0.004,
+      "p99_wt_pct": 0.031
+    },
+    "Co": {
+      "minimum_wt_pct": 0.025,
+      "maximum_wt_pct": 0.54,
+      "p01_wt_pct": 0.025,
+      "p99_wt_pct": 0.54
+    },
+    "Al": {
+      "minimum_wt_pct": 0.002,
+      "maximum_wt_pct": 0.52,
+      "p01_wt_pct": 0.002,
+      "p99_wt_pct": 0.52
+    }
+  },
+  "composition_nearest_neighbour_distance": {
+    "definition": "Euclidean distance after median imputation and z-score scaling over recorded elemental wt.% fields",
+    "unique_compositions": 238,
+    "review_threshold_p95": 2.7158140041486316,
+    "block_threshold_p99": 3.9671539149400585
+  },
+  "rules": [
+    "Block automated strength predictions outside 293–1273 K.",
+    "Require expert review above the p95 composition-neighbour distance; do not rank above the p99 threshold.",
+    "A passing composition-distance check does not compensate for missing or unspecified cold work, heat treatment, thickness, weld state, strain rate, fatigue, fracture toughness, or LOX compatibility.",
+    "Below 293 K use only the separately labelled 301/304L reference layer; never present it as a free-composition or 30X prediction."
+  ]
+}

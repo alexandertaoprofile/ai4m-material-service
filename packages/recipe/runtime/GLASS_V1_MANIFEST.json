@@ -1,0 +1,9 @@
+{
+  "version": "oxide_glass_multitask_transformer_v1_strict_20260928",
+  "checkpoint": "/data/se42/experiments/material_rsi_prelaunch_20260928/package/runtime/models/glass_v1/model_state.pt",
+  "model_code_dir": "/data/se42/experiments/material_rsi_prelaunch_20260928/package/runtime/models/glass_v1/code",
+  "checkpoint_sha256": "601fefce1d36aabb4e1de77f85baf96a7eec6cc8daebfedc8490d0535b6976a6",
+  "train_sha256": "b72f217c4ee7ed9f2aa83e46591f3a5966b427c196a4edc4eb46dc6bb9985e64",
+  "infer_sha256": "d5ddd559249e0282338bbc940f1240674a5044bbff4a2708a1ad27e194750bff",
+  "production_release_authorized": false
+}

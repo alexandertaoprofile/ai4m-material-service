@@ -1,0 +1,20 @@
+{
+  "requests": [
+    {
+      "request_id": "v10-frozen-health-aluminum",
+      "domain": "aluminum",
+      "composition": {
+        "Al": 0.9316356091026323,
+        "Cu": 0.008899237709110783,
+        "Fe": 0.0002812899590449527,
+        "Mg": 0.024912428836022977,
+        "Si": 0.0003457582828649957,
+        "Zn": 0.03354997024911876,
+        "Zr": 0.0003757058612055531
+      },
+      "composition_basis": "at_fraction",
+      "temperature": {"value": 25.0, "unit": "C"},
+      "process": {"text": "solutionised + artificially peak aged", "parameters": {}}
+    }
+  ]
+}

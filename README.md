@@ -33,18 +33,18 @@
 
 ## 2. 环境、数据和模型：运行前先准备什么
 
-拉取源码后，需要同时准备各服务使用的环境、计算程序、模型和数据。完整位置、配置字段和检查步骤集中在[服务运行与复现说明](docs/service_setup.md)。
+新机器按[安装与复现指南](docs/reproduction.md)准备环境、恢复资源、生成本机配置并启动。75 原部署的位置及接口说明见[服务运行说明](docs/service_setup.md)。
 
-当前先按实际存放位置交接资源：已随 Git 提供的文件在仓库中查看，模型、大型数据和部分计算程序按表中服务器路径取得。后续统一发布资源时，再在清单补充下载地址、版本和访问方式。
+2026-10-08 已补齐推理所需的专项计算源码与 OMatG 源码。模型、专项数据、稳定性参考库及 W-14 证据通过本私有仓库的[运行资源 Release](https://github.com/AI4SciFoundation/Material-Computation/releases/tag/runtime-20261008)交付；下载、恢复及 SHA256 校验由[资源工具](resources/README.md)完成。训练研究需要的追加资料见[研究资源说明](docs/research_resources.md)。
 
-| 服务 | GitHub 已提供 | 75 服务器上的额外运行资源 | 主要软件或模型 |
+| 服务 | Git 中的源码和小型数据 | Release 中的运行资源 | 主要软件或模型 |
 | --- | --- | --- | --- |
-| 1105 | 查询代码、测试、通用材料 CSV、清洗记录及配置样例。 | 导电润滑剂 SQLite 在服务的 `data/processed/fluid_lubricant/2026-08-04_v1/`；原始工作簿和 PDF 在外部数据目录。 | FastAPI/Uvicorn 提供接口，CSV/SQLite 和规则比较提供材料证据，Matplotlib 绘图。 |
-| 1111 | 接口、需求解析、专项适配、正式路线配置、报告和测试。 | `/data/se42/hea_surrogate` 的计算代码、数据与模型；固定优化包及正式报告模块仍在外部目录。 | PyTorch 性质模型、scikit-learn/joblib 专项模型、pymoo 的 NSGA-II 优化；组合按材料类别选择。 |
-| 1115 | 输入解析、OMatG 适配、独立执行脚本、报告、测试和配置样例。 | OMatG 源码 `/data/third_party/OMatG`，权重 `/data/se42/omatg_local/checkpoints`，参考库 `/data/mattersim_reference_cache`。 | OMatG 生成；MatterSim + ASE 优化结构；pymatgen 检查和比较结构；ALIGNN 预测性质。 |
-| 1116 | 证据流程、报告、测试、W-14 清单和内部对标记录。 | 训练归档在 `/data/se42/cache/DeepMD-W-14-commercial-level`，MD 输出在 `/data/se42/cache/DeepMD_W-14_commercial-level`；75 服务配置仍记录旧路径，联调前核对。 | NumPy 处理已有数值，Matplotlib 绘图；DeepMD/LAMMPS 是归档证据的来源软件。 |
+| 1105 | 查询代码、测试、通用材料 CSV、清洗记录及配置样例。 | 导电润滑剂 SQLite 快照及已核验增量材料目录。 | FastAPI/Uvicorn 提供接口，CSV/SQLite 和规则比较提供材料证据，Matplotlib 绘图。 |
+| 1111 | 服务代码及 `packages/` 中的八类专项计算、固定优化和报告程序。 | 对应模型、推理参考表及固定版本清单。 | PyTorch 性质模型、scikit-learn/joblib 专项模型、pymoo 的 NSGA-II 优化；组合按材料类别选择。 |
+| 1115 | 服务及执行脚本；`third_party/OMatG/` 中的生成源码与配置。 | CSP/DNG 权重、MatterSim 权重、五个 ALIGNN 性质模型及稳定性参考库。 | OMatG 生成；MatterSim + ASE 优化结构；pymatgen 检查和比较结构；ALIGNN 预测性质。 |
+| 1116 | 证据流程、报告、测试、W-14 清单和内部对标记录。 | W-14 模型、训练摘要及 MD 证据归档。 | NumPy 处理已有数值，Matplotlib 绘图；DeepMD/LAMMPS 是归档证据的来源软件。 |
 
-1105 专项 SQLite 在 2026-10-05 核对时为 381,964,288 字节，约 364 MiB，未随当前 Git 提交提供；交接时单独取得该文件并放到指定目录。
+1105 专项 SQLite 快照为 381,964,288 字节，约 364 MiB；恢复脚本将它放到服务读取的指定目录。模型和数据的原服务器位置保留在[外部资源说明](docs/external_dependencies.md)，用于追溯来源。
 
 | 环节 | 75 上已使用的解释器 | 环境说明 |
 | --- | --- | --- |
@@ -54,7 +54,7 @@
 | 1115 OMatG | `/data/mamba/envs/omatg-py312/bin/python` | Python 3.12.14、OMatG 2.0.0、PyTorch 2.8.0+cu126。 |
 | 1115 ALIGNN | `/home/ubuntu/miniconda3/envs/dsc2/bin/python` | 另加载 `/data/mamba/envs/alignn-gpu-test/lib/python3.10/site-packages`。 |
 
-75 的现成环境可以复用。新机器按[外部资源记录](docs/external_dependencies.md)准备软件、权重和数据，再验证安装与最小任务。1115 当前数值链使用 NVIDIA GPU；已有测试机器为 RTX 4090 24 GB，其他硬件单独检查运行和显存需求。
+75 的现成环境可以复用。新机器用 `tools/install_environment.py` 建立独立环境，按[安装与复现指南](docs/reproduction.md)检查资源和最小任务。1115 当前数值链使用 NVIDIA GPU；已有测试机器为 RTX 4090 24 GB，其他硬件单独检查运行和显存需求。实际验证结果见[复现记录](docs/REPRODUCTION_VERIFICATION_20261008.md)。
 
 完整前端联调还需要语言模型接口及对象存储配置，凭据由管理者提供并保存在各服务本机 .env。语言模型用于文字组织和流式交付，材料性质来自对应数据或数值模型。
 
@@ -84,12 +84,15 @@
 | 1115 | `material_discovery/` | `PORT=1115 NEW_MATERIAL_GENERATOR=omatg /home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python main.py` |
 | 1116 | `material_validation/` | `PORT=1116 /home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python main.py` |
 
-新机器替换为本机已验证的 Web 解释器。完整命令、配置和最小检查见[运行说明](docs/service_setup.md)。启动后先访问对应端口的 /roles，再按服务 README 发送最小任务；1105、1111、1116 另提供 /health。注册接口响应表示 Web 服务可访问，模型和数据的可用性通过资源预检和真实任务检查确认。
+新机器使用 `tools/launch_service.py` 读取本机配置并传入移植后的计算路径，完整命令见[复现指南](docs/reproduction.md)。启动后先访问对应端口的 /roles，再按服务 README 发送最小任务；1105、1111、1116 另提供 /health。注册接口响应表示 Web 服务可访问，模型和数据的可用性通过资源预检和真实任务检查确认。
 
 ## 4. 目录与职责
 
 ```text
 Material-Computation/
+├── packages/                           # 1111 专项计算、优化和报告程序
+├── third_party/OMatG/                  # 固定版本晶体生成源码
+├── resources/                         # 运行资源清单与恢复说明
 ├── material_database/                  # 1105：已有材料选型与性质核验
 ├── material_composition_optimization/   # 1111：配比优化
 ├── material_discovery/                  # 1115：晶体结构生成与评价
@@ -148,7 +151,9 @@ git clone --branch main git@github.com:AI4SciFoundation/Material-Computation.git
 | 内容 | 管理位置 |
 | --- | --- |
 | 服务源码、测试、无密钥配置、文档和小型数据清单 | Git 仓库。 |
-| 模型官方源码、训练数据、权重、科学计算参考库和 Python 环境 | 服务器外部目录，见各服务 README。 |
+| 已接入的模型源码、安装和资源校验工具 | `packages/`、`third_party/`、`tools/`，随 Git 提供。 |
+| 权重、推理数据、科学计算参考库和参考案例证据 | 本私有仓库的版本化 Release；来源位置保留在资源清单。 |
+| Python 环境与完整训练研究资料 | 按安装指南创建环境；研究资料见单独交接说明。 |
 | 生产密钥和机器差异配置 | 每个服务自身的 `.env`，不入 Git。 |
 | 任务结构、计算记录、日志、图片和三维文件 | 任务结果目录及对象存储，不作为源码提交。 |
 

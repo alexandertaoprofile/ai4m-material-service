@@ -1,0 +1,34 @@
+{
+  "ok": true,
+  "mode": "shadow",
+  "display_allowed": false,
+  "production_release_authorized": false,
+  "public_effect": false,
+  "method": "nsga2",
+  "seed": 43,
+  "status": "no_feasible_candidate",
+  "objectives": [
+    {
+      "property": "UTS_MPa",
+      "mode": "max",
+      "unit": "MPa",
+      "scale": 1.0
+    },
+    {
+      "property": "rupture_hours",
+      "mode": "max",
+      "unit": "h",
+      "scale": 1.0
+    }
+  ],
+  "stop_reason": "model_evaluation_budget",
+  "counters": {
+    "proposals": 288,
+    "model_evaluations": 256,
+    "feasible": 0,
+    "pareto_count": 0
+  },
+  "elapsed_seconds": 3.857907820492983,
+  "pareto_front": [],
+  "prediction_is_experimental_validation": false
+}

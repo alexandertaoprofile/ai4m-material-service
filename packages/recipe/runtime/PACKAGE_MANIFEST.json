@@ -1,0 +1,677 @@
+{
+  "files": {
+    "1111_patch/application.py": {
+      "bytes": 20608,
+      "sha256": "c3b142aaf4f90b4a9eedfe8e8c0f0881ee867af72911e60d4a000c50a58d63e9"
+    },
+    "1111_patch/glass_shadow_compare.py": {
+      "bytes": 3706,
+      "sha256": "2d5c2ed43269a5938c204a11eb4d25be99796fab590d5a314743a1aec8dba133"
+    },
+    "1111_patch/optimization_contract.py": {
+      "bytes": 1906,
+      "sha256": "a3cbdbba873b3928af55b4f6a30911a42621bd32d60a5473b96297a0bb035222"
+    },
+    "1111_patch/private_shadow_dispatcher.py": {
+      "bytes": 10286,
+      "sha256": "eac67ae8dea9f679dc1e481af9b6bac7a2ba6f97cc95fccaf8907e50568c5e11"
+    },
+    "1111_patch/runner.py": {
+      "bytes": 18485,
+      "sha256": "ef1b3faf3ca914769509089f35284045caa383b62e9c83be14d0887f8418cc1a"
+    },
+    "1111_patch/shadow_channel_configs.py": {
+      "bytes": 3879,
+      "sha256": "c295b2e71281ec1b73dbb39b459fa8a3765a5510ca5a564cc1631e2c525930b5"
+    },
+    "1111_shadow_candidate.patch": {
+      "bytes": 28611,
+      "sha256": "44000bc7854c43c6e01c0612df8f3d56e575f63647bec52a288c0adb960349d9"
+    },
+    "ALLOY_HELDOUT_PREDICTIONS.json": {
+      "bytes": 2704414,
+      "sha256": "abf28ad363cbd505fd9b8fdc167dd4a0251b8b2e78b63e57294689cccaff7ea9"
+    },
+    "ALLOY_MODEL_AUDIT.json": {
+      "bytes": 32281,
+      "sha256": "3d91cadcf2086c45d24ef5d3006158004669933aa730b5dbc675f48e83ae300b"
+    },
+    "E2E_PRIVATE_INTEGRATION.json": {
+      "bytes": 10078,
+      "sha256": "35f2ce667863eaf38462ff91de34ebfd3f2cb37ee1ad76d11a5cd358582f7f36"
+    },
+    "EXTERNAL_DEPENDENCIES.json": {
+      "bytes": 11906,
+      "sha256": "c488cddc442244a7dbad0d5cd66cc69f5efed212a8393c7df13a1c4a0c51df52"
+    },
+    "FINAL_PREFLIGHT.json": {
+      "bytes": 6956,
+      "sha256": "06b3311874252cb6d002efa2d431c62dae05e7f74a205f997d7f36fca5917cd5"
+    },
+    "FREEZE.json": {
+      "bytes": 11291,
+      "sha256": "2f2bd98f81c33111a53527b29990364adf666f65d1d8898a7fb93d95c5872472"
+    },
+    "FROZEN_INPUT_INVENTORY.json": {
+      "bytes": 53858,
+      "sha256": "973ba4964c94ad39bc719b7485b607225a0a6ae81b22a2d45a9b194e4dfd0ebb"
+    },
+    "GLASS_BATCH_VALIDATION.json": {
+      "bytes": 312,
+      "sha256": "2616046f419648aaccf925b5a28c80996e0e3bfa7c6561999b6168b77a93e5ad"
+    },
+    "GLASS_MODEL_AUDIT.json": {
+      "bytes": 1365,
+      "sha256": "15c7a34910b756f6f9bbada1d78bcd4f35ccb3642b09aedcff6e13a7e560e69d"
+    },
+    "GLASS_V1_MANIFEST.json": {
+      "bytes": 591,
+      "sha256": "ec21340a9fd8d6611e082c219b126b185c21780eddd9ac6eb972d18f21d7fbf0"
+    },
+    "LABEL_SOURCE_VERIFICATION.json": {
+      "bytes": 6727,
+      "sha256": "86f3b355f88a5e195fa80b51d21659245c5d37d71059f307b7c45bdcfbe7e072"
+    },
+    "MERGE_PLAN.json": {
+      "bytes": 2575,
+      "sha256": "38cd75276113763d9b510f4bf96f3379e6149f576b09ae6e44d3f25ef9b31d05"
+    },
+    "MODEL_AND_OPTIMIZER_TESTS.xml": {
+      "bytes": 8586,
+      "sha256": "f5d4158c440becc307bbed9a3a1e0a93fe2bee6a6fb553ce09370517eb663499"
+    },
+    "NSGA_EXAMPLE_aluminum_17.json": {
+      "bytes": 29376,
+      "sha256": "b90c7dddc69bee9ecbc9913612978c0553c8f60d33eb9921ac8577f32dfaa308"
+    },
+    "NSGA_EXAMPLE_aluminum_29.json": {
+      "bytes": 29378,
+      "sha256": "188642e9cb2e02f9d3260fa819f415c58ef0d87f2da4454bc2989f9bc9f6f876"
+    },
+    "NSGA_EXAMPLE_aluminum_43.json": {
+      "bytes": 27096,
+      "sha256": "a49e42e0760cd29ac37e3138ca8cd68bfcc2a4e64647ac1a668f3d52bc0772ad"
+    },
+    "NSGA_EXAMPLE_aluminum_73.json": {
+      "bytes": 31633,
+      "sha256": "c61690d350ca6191940ff551257eaaf7b20d8f21b572a7369000e12f9ccb2379"
+    },
+    "NSGA_EXAMPLE_aluminum_97.json": {
+      "bytes": 29385,
+      "sha256": "dccfd37ea5a637a6990240e7b9fb0a50cfffb0a16c303d9cb3d1ed1cf19ad1e7"
+    },
+    "NSGA_EXAMPLE_cf_17.json": {
+      "bytes": 35312,
+      "sha256": "8d4af07c11e635b097e5c68921574e44916bf2fb30087e5d1dfeafee40305c8e"
+    },
+    "NSGA_EXAMPLE_cf_29.json": {
+      "bytes": 49936,
+      "sha256": "5d0ae98c4761c056141fc912dbaada4693b84d5d56630e46b698d10fb5433e34"
+    },
+    "NSGA_EXAMPLE_cf_43.json": {
+      "bytes": 57934,
+      "sha256": "57a3f057b34019da85850aee7ff1f71e47c85b668d2802da60dcfda7f675aa21"
+    },
+    "NSGA_EXAMPLE_cf_73.json": {
+      "bytes": 36641,
+      "sha256": "a4e51f01f5366becf4c041ca283d10443ef64e33e28529b701e76510ed8603eb"
+    },
+    "NSGA_EXAMPLE_cf_97.json": {
+      "bytes": 68603,
+      "sha256": "199dd75c6e66ea35b2fc9b563e78608662e23fefd067db0173bb627d3cd7f551"
+    },
+    "NSGA_EXAMPLE_copper_17.json": {
+      "bytes": 2170,
+      "sha256": "52317096432d26c7385f232ef2cd0f805bc06ae699d86aa398b590e2e7c665d4"
+    },
+    "NSGA_EXAMPLE_copper_29.json": {
+      "bytes": 1436,
+      "sha256": "17fadfb4cda27860bf5c0a8e9d2a4bda87ce1a35b796d326ef12a694c0daf9e3"
+    },
+    "NSGA_EXAMPLE_copper_43.json": {
+      "bytes": 2188,
+      "sha256": "8f35d1156f243cce871d25bfb9e962ad550b7d0b564590f1984f802ba3c0ee38"
+    },
+    "NSGA_EXAMPLE_copper_73.json": {
+      "bytes": 1440,
+      "sha256": "77c934780d5a77fe8deb4e36729fb06ef9a38182b12c220ac0739af469490bc1"
+    },
+    "NSGA_EXAMPLE_copper_97.json": {
+      "bytes": 1431,
+      "sha256": "62e9e6bae1cc4a2ba51fbeb6d68ed81e2521c4d709b48a06e6a97ff1633d5519"
+    },
+    "NSGA_EXAMPLE_glass_17.json": {
+      "bytes": 83558,
+      "sha256": "f2ce2df673a31da12c44364a8b78e583ba558622c491bac626b30c825cc7fc43"
+    },
+    "NSGA_EXAMPLE_glass_29.json": {
+      "bytes": 111258,
+      "sha256": "f52767bc9218b0a10875628e3e382b1821510ebf5a1d84ae770dd80be9095826"
+    },
+    "NSGA_EXAMPLE_glass_43.json": {
+      "bytes": 125769,
+      "sha256": "30801ea3f4026fe7dc248f03961ad42bc44bcc1c04059603077bb44abd2baba9"
+    },
+    "NSGA_EXAMPLE_glass_73.json": {
+      "bytes": 112605,
+      "sha256": "57634ceb9f4bd33902613a059e430464ede5034548912c1e84bcc6ff3e962a7d"
+    },
+    "NSGA_EXAMPLE_glass_97.json": {
+      "bytes": 87933,
+      "sha256": "252cd481ffbf5f6458d4e13c13c229cdeab41f19e9f677d0f75bac15a9f6b9c4"
+    },
+    "NSGA_EXAMPLE_hea_mpea_17.json": {
+      "bytes": 15876,
+      "sha256": "901d63ec23035312badb05c923de3016d993eae46507c009a961394ac07d6d60"
+    },
+    "NSGA_EXAMPLE_hea_mpea_29.json": {
+      "bytes": 15867,
+      "sha256": "900cc894d89c492b1357cff93f2943e3ad87936bdb04be008876378b558870e9"
+    },
+    "NSGA_EXAMPLE_hea_mpea_43.json": {
+      "bytes": 15829,
+      "sha256": "90ee2fb4e41ff8433b4fa67cf3001477841a581a8487755e955ea526ef3c7086"
+    },
+    "NSGA_EXAMPLE_hea_mpea_73.json": {
+      "bytes": 12075,
+      "sha256": "685661bfb6eea25e896fc6ce5c6daf1bce8075b0f865980093556e8ff5f70ae7"
+    },
+    "NSGA_EXAMPLE_hea_mpea_97.json": {
+      "bytes": 15880,
+      "sha256": "b994818dfa03207097b50adf6c81ff1366fc4aa2bb482c18da6d098b29fbbd22"
+    },
+    "NSGA_EXAMPLE_nickel_superalloy_17.json": {
+      "bytes": 706,
+      "sha256": "ee358ce67315cd21b2911c9af97b70c7ba9fcdc6d95ed25562e74214c5a443a5"
+    },
+    "NSGA_EXAMPLE_nickel_superalloy_29.json": {
+      "bytes": 707,
+      "sha256": "289b740b78155999a6f3678d6aa577b5d33d3ed0cbd935d32c8e7c955d6386c7"
+    },
+    "NSGA_EXAMPLE_nickel_superalloy_43.json": {
+      "bytes": 706,
+      "sha256": "ea6008c64ed5233452b2eed8309c3d1eecd5c0cbcedc44d79172efa551f19198"
+    },
+    "NSGA_EXAMPLE_nickel_superalloy_73.json": {
+      "bytes": 706,
+      "sha256": "6f1cf0a2c88e0020e6af844951ef14579ccb7e0575eacf7c48e48cd97b408433"
+    },
+    "NSGA_EXAMPLE_nickel_superalloy_97.json": {
+      "bytes": 706,
+      "sha256": "4f4bfeb112894b9c43f4c9daeb18ae7fed8112c4e873bd777e4a0cf2f30c8a93"
+    },
+    "NSGA_EXAMPLE_stainless_17.json": {
+      "bytes": 7422,
+      "sha256": "371209af2aa134043b8bdf996861f6da09726dcb0a9ecc453721cf601428a6fe"
+    },
+    "NSGA_EXAMPLE_stainless_29.json": {
+      "bytes": 13274,
+      "sha256": "ece80852f9f9b9df25571820dbe0e669209c4acdcf36b85623725711e525ec26"
+    },
+    "NSGA_EXAMPLE_stainless_43.json": {
+      "bytes": 19138,
+      "sha256": "470fbf38480c7f5cc9f0ababba2a31473aa0f0388b9612336c914e4427b88a54"
+    },
+    "NSGA_EXAMPLE_stainless_73.json": {
+      "bytes": 13285,
+      "sha256": "701fba24722878e6640a367e91fcb315c5101766486e48c8a3c58ecb79d0fe70"
+    },
+    "NSGA_EXAMPLE_stainless_97.json": {
+      "bytes": 9069,
+      "sha256": "c9f0b44e39837a9cde5af6667669d3767bb733d26e793da658894538688e2754"
+    },
+    "NSGA_FAIR_BENCHMARK.json": {
+      "bytes": 46469,
+      "sha256": "495d3d4b7252ce6cd55e12b65ac3aa4d779b6bea95237e8d5accaaf31dcad89e"
+    },
+    "PHYSICAL_LABEL_REVIEW.csv": {
+      "bytes": 7306,
+      "sha256": "0d414c77e4b93efc16ea4131dbdc03fa19cb97c61d98034919ccaaf368d30b99"
+    },
+    "PHYSICAL_LABEL_REVIEW_ROWS.json": {
+      "bytes": 10097,
+      "sha256": "c6dd07409c412ed67a144643c96a057662ec7333458b613e29b5760b895531cf"
+    },
+    "PRESENTATION_STREAM_VALIDATION.json": {
+      "bytes": 5205,
+      "sha256": "d67aa8852babf21eaf44f08af5852f20a89d72fbcf9960b55e2d639f4be9664e"
+    },
+    "PRODUCTION_STOPPING_REPLAY_FINAL.json": {
+      "bytes": 6413,
+      "sha256": "576bf1955f3a739850072878c1696713583cfd97c22a17ff7c78447b13ed3ceb"
+    },
+    "RELEASE_DECISION.json": {
+      "bytes": 708,
+      "sha256": "a67283d3a1f8e9ee622cb04b99a1340e3d891756070cfd624488320acbd60c9b"
+    },
+    "RELEASE_REVIEW.md": {
+      "bytes": 11595,
+      "sha256": "5a341972fa2d2c7567d621505aa7d2c53cd61cc05c55d87ac4584c1d8ebb7528"
+    },
+    "SERVICE_HANDOFF.md": {
+      "bytes": 9226,
+      "sha256": "ee963bbcba37baad29b440273a179b4425235e13dfb93c558b8302897d46e2bf"
+    },
+    "SERVICE_SNAPSHOT_TESTS.xml": {
+      "bytes": 10256,
+      "sha256": "7321bb509313bff555be4c9cbe216e007d11362efa0a2cd35e984006bc686d03"
+    },
+    "SOURCE_NOTICES.md": {
+      "bytes": 1970,
+      "sha256": "71493195a6c320cb4fb4e07ce9ec4731257f0027b52b1b44c2a38a2ffe3adb41"
+    },
+    "SUPPORT_AND_LABEL_AUDIT.json": {
+      "bytes": 37550,
+      "sha256": "199018010091b8e85ebf13d25b83d4e53ead18fc57ba7eac9c92f4c800d15920"
+    },
+    "VALIDATION_PROTOCOL.json": {
+      "bytes": 1922,
+      "sha256": "a248f61fb2f226f8a913fc7f39343e7ed9e2642a3d23900623207ce37538d179"
+    },
+    "alloy_v10_health_expected.json": {
+      "bytes": 104,
+      "sha256": "8dee0ea07dced97406ee84ec799e87788be9cfd8f307fa324af7083ab7d63f83"
+    },
+    "alloy_v10_health_request.json": {
+      "bytes": 575,
+      "sha256": "f414cc0bf437a8cce64f5275c7b4576628eb0a2cf7cb9f2fa8048f9d4325013f"
+    },
+    "alloy_v10_shadow.py": {
+      "bytes": 28898,
+      "sha256": "a5a11fa0634c4d94e10d4cd4f100d69e26514279033c309c0e0d59c9226e6ca3"
+    },
+    "apply_shadow_candidate.py": {
+      "bytes": 2265,
+      "sha256": "8e8e4f04863d4fe3138ab4bb7d8ec137c1858289b2cc4499db2d661d0110bf0b"
+    },
+    "audit_alloy.py": {
+      "bytes": 11877,
+      "sha256": "536e52c948e15b3cca6c34ffb28cef751e82823eff9dce07d3ab8ee11041b04f"
+    },
+    "audit_glass.py": {
+      "bytes": 4636,
+      "sha256": "abdc5fe6b6f4637af5e64d58ee41a630640878cff0fd02e804c96ac85c6ad507"
+    },
+    "audit_support_and_labels.py": {
+      "bytes": 4745,
+      "sha256": "9a233aa99ab801608daa74d3b1a097df5468ab65290e421a81151254d3946300"
+    },
+    "benchmark_nsga.py": {
+      "bytes": 4607,
+      "sha256": "18fae6d706fe51df5a27d9717f54d661a152651a388d4f7d1b8d33dc15912099"
+    },
+    "bounded_nsga.py": {
+      "bytes": 7844,
+      "sha256": "128aa5c7d8b1295cca74b906c20a5a35bd5948c8b349d92f0e039495b2de5482"
+    },
+    "build_release_report.py": {
+      "bytes": 19415,
+      "sha256": "e1cee88758684569423753c6750b3ddc74a1d76a9c13e6324531f3e098e1c696"
+    },
+    "candidate_model_stack.py": {
+      "bytes": 20376,
+      "sha256": "e49cf6d418d52ab06e3393ce37c77c119fcf8e9d31441bfd3a7b102ae79d3f2c"
+    },
+    "freeze_release.py": {
+      "bytes": 5018,
+      "sha256": "401424bcd655c28130224e10e6efcb7211851b02cf005861479ab933c1fdc8fe"
+    },
+    "glass_shadow_compare.py": {
+      "bytes": 3706,
+      "sha256": "2d5c2ed43269a5938c204a11eb4d25be99796fab590d5a314743a1aec8dba133"
+    },
+    "glass_shadow_example_batch.json": {
+      "bytes": 855,
+      "sha256": "df7d1e16b2f85a1e3fb39f42c18bdb4ea742b57a46aaf272a0f9a3a6f4bfccb0"
+    },
+    "glass_shadow_health_expected.json": {
+      "bytes": 260,
+      "sha256": "bf0ef450a47ad1f4c5dbecf88401538c51207e62d7f9a12870a50d040de3d166"
+    },
+    "glass_v1_source_purged/training_report.json": {
+      "bytes": 35210,
+      "sha256": "4f240f9e04e6ec3efc1c36c1e4fd1badaaa61435214998c7bdcd3d2831af067a"
+    },
+    "models/alloy_v10/code/descriptor_properties.json": {
+      "bytes": 23834,
+      "sha256": "1a35f9b946a97fcc675ded63d0426f0ef84fdb9a28ab528fc98af32586bd9602"
+    },
+    "models/alloy_v10/code/frozen_descriptors.py": {
+      "bytes": 2522,
+      "sha256": "c5400e661b7c5c1415d397caa650c48489a634cf093441a784fbb0707b16da75"
+    },
+    "models/alloy_v10/code/frozen_process.py": {
+      "bytes": 4291,
+      "sha256": "9ac4a6d2cc1539a7fcdce182723a71dad7ae321f3742c111adec6aa32cba80ff"
+    },
+    "models/alloy_v10/code/repair_process_data_v6.py": {
+      "bytes": 14474,
+      "sha256": "f6d113158a40890813888364a918055a4f5ffa6d7d971241a4a09e7f17bd7f56"
+    },
+    "models/alloy_v10/code/service_adapters.py": {
+      "bytes": 8772,
+      "sha256": "af67b72bd652feb3efc085d5b0d42a35b785fc67a4310a54bbda047373d4e7d9"
+    },
+    "models/alloy_v10/code/train_v8_canonical.py": {
+      "bytes": 20653,
+      "sha256": "454122c12166053a50616df7ef12326bce472c3ee68e94117b547835bb72ef86"
+    },
+    "models/alloy_v10/foundation/run_family_adapter_multitask.py": {
+      "bytes": 23793,
+      "sha256": "0e9b47a783ccae89d320090d674862c7c0852e1fcf3a3f512684a5bcd4801458"
+    },
+    "models/alloy_v10/foundation/run_hard_constraint_transformer_cv.py": {
+      "bytes": 16305,
+      "sha256": "c88424e0092411012ad1e3a304ed60279ad188a475580b8bf4e0a1d21d6c266d"
+    },
+    "models/alloy_v10/foundation/run_physics_informed_cv.py": {
+      "bytes": 23850,
+      "sha256": "b343af92ffe4be856964d7dfd7bfbec81574df35d47722e7aca4b7ae42b121e2"
+    },
+    "models/alloy_v10/foundation/train_process_adapter_v2.py": {
+      "bytes": 18688,
+      "sha256": "e0e120fede8acd258dc729fa8d1adf73305a47aff335e58e2855185e47d07e9c"
+    },
+    "models/alloy_v10/model_state.pt": {
+      "bytes": 2880014,
+      "sha256": "88109cd28ed056e07c893bc294c3000f5ac6dbb809de6a9046f233f478467f83"
+    },
+    "models/alloy_v10/preprocessor.json": {
+      "bytes": 135708,
+      "sha256": "5d078f8239447c6996e7583fd2a03983029c483ffd58fe3dbfeb7edb4d5e1f35"
+    },
+    "models/glass_v1/code/infer_oxide_glass_transformer.py": {
+      "bytes": 6403,
+      "sha256": "d5ddd559249e0282338bbc940f1240674a5044bbff4a2708a1ad27e194750bff"
+    },
+    "models/glass_v1/code/train_oxide_glass_transformer.py": {
+      "bytes": 26853,
+      "sha256": "b72f217c4ee7ed9f2aa83e46591f3a5966b427c196a4edc4eb46dc6bb9985e64"
+    },
+    "models/glass_v1/model_state.pt": {
+      "bytes": 2694643,
+      "sha256": "601fefce1d36aabb4e1de77f85baf96a7eec6cc8daebfedc8490d0535b6976a6"
+    },
+    "optimization_contract.py": {
+      "bytes": 1906,
+      "sha256": "a3cbdbba873b3928af55b4f6a30911a42621bd32d60a5473b96297a0bb035222"
+    },
+    "optimization_runner.py": {
+      "bytes": 3153,
+      "sha256": "f28ec93541cf9d35076503d2a26e6c8ac6eb4bbb836779dabf8f0f4984f49f69"
+    },
+    "oxide_glass_shadow_contract.py": {
+      "bytes": 5556,
+      "sha256": "4deef50e95d52e4a7ea84829c866403273b45b91534f709d4ce4d4484d4375b1"
+    },
+    "oxide_glass_shadow_runner.py": {
+      "bytes": 12186,
+      "sha256": "2e9235dc928220c6cf2e576e93fe7a319fac5c275741d698f7dc6049f3d5c375"
+    },
+    "preflight_release.py": {
+      "bytes": 5095,
+      "sha256": "2c071360808447587a40873e08d45cf2694a40756f4340629dbed8284f652004"
+    },
+    "prepare_handoff.py": {
+      "bytes": 2756,
+      "sha256": "c8524a11848ccec9273b3fff7174a395ddb496cb5e276ff44d7035ba098ea335"
+    },
+    "private_rendered_results/react_conv_1789022636_6348_7caca832-e3c5-4b07-9402-f6a127eed16e_s2-2822c68494435af6/presentation/perovskite_response_curve.png": {
+      "bytes": 171025,
+      "sha256": "0ef7f5900cea5b9cbbd1236131e7baf5563fbb76e0fe990a07dc974823ac6888"
+    },
+    "private_rendered_results/react_conv_1789022636_6348_7caca832-e3c5-4b07-9402-f6a127eed16e_s2-2822c68494435af6/presentation/perovskite_screening_funnel.png": {
+      "bytes": 187815,
+      "sha256": "2d6cd1eabe572a3aa36a85ad0db1c682fcfb792ecfb719b57918a7ba097eaf23"
+    },
+    "private_rendered_results/react_conv_1789022636_6348_7caca832-e3c5-4b07-9402-f6a127eed16e_s2-2822c68494435af6/presentation/perovskite_transport_tradeoff.png": {
+      "bytes": 113497,
+      "sha256": "678cb4c8e7efb7bcee75116db07cba32ef12f3ceab5021e6b7b9a86f5a0f1137"
+    },
+    "private_rendered_results/react_conv_1789022636_6348_7caca832-e3c5-4b07-9402-f6a127eed16e_s2-2822c68494435af6/presentation/summary.md": {
+      "bytes": 2330,
+      "sha256": "c695cc1d05c4aa202b0b406c8fbc7117aa19692fce784be00c8f7cad2bedfbf6"
+    },
+    "private_rendered_results/react_conv_1789896994_8348_126ee13f-b1c9-46b2-b0ca-765c3ac38124_s11-30b0447ba555ec2e/presentation/short_cf_constitutive_card.png": {
+      "bytes": 59814,
+      "sha256": "3b03e264a07b2b5e6625d18231382189a67625b0adeff3685d9839a39cab4e4d"
+    },
+    "private_rendered_results/react_conv_1789896994_8348_126ee13f-b1c9-46b2-b0ca-765c3ac38124_s11-30b0447ba555ec2e/presentation/short_cf_screening_funnel.png": {
+      "bytes": 222362,
+      "sha256": "a95660e6edbacf345d0c4aad5adc6e5df6a8500731cf9e3b6548d6f6f79e693d"
+    },
+    "private_rendered_results/react_conv_1789896994_8348_126ee13f-b1c9-46b2-b0ca-765c3ac38124_s11-30b0447ba555ec2e/presentation/short_cf_stiffness_anisotropy.png": {
+      "bytes": 100032,
+      "sha256": "09518aea02317478f196a230b60ad2c018ffca049a17a15e5d8a44c91eb0cff4"
+    },
+    "private_rendered_results/react_conv_1789896994_8348_126ee13f-b1c9-46b2-b0ca-765c3ac38124_s11-30b0447ba555ec2e/presentation/summary.md": {
+      "bytes": 3490,
+      "sha256": "38c8e856e10f94dbe5665ccc3fc5e1dcedb57f2931a4390557c5bab7b59805f2"
+    },
+    "private_rendered_results/react_conv_1790150692_9958_5d13f3e3-3087-41ac-b60d-5e12d425f0be_s1-eb4272e6286a9ec1/presentation/composition_percentiles.png": {
+      "bytes": 103434,
+      "sha256": "d837b5da9a55d25fd5bb6f6c7a132ef8610034e07908e89c24d8933822fa3300"
+    },
+    "private_rendered_results/react_conv_1790150692_9958_5d13f3e3-3087-41ac-b60d-5e12d425f0be_s1-eb4272e6286a9ec1/presentation/microstructure_tendency.png": {
+      "bytes": 285473,
+      "sha256": "966294963db8193131b85736a187b983110ece7444948f23f412c6c0da830106"
+    },
+    "private_rendered_results/react_conv_1790150692_9958_5d13f3e3-3087-41ac-b60d-5e12d425f0be_s1-eb4272e6286a9ec1/presentation/screening_funnel.png": {
+      "bytes": 166762,
+      "sha256": "e094f7ef70e85dcafda16b504e2b9db2614c3febb79fd6e4a69f3a91db86e39b"
+    },
+    "private_rendered_results/react_conv_1790150692_9958_5d13f3e3-3087-41ac-b60d-5e12d425f0be_s1-eb4272e6286a9ec1/presentation/strength_hardness_tradeoff.png": {
+      "bytes": 132811,
+      "sha256": "75f3d4312c6af4c713e251b286da5230c7cf973cda5d8c15eb6eadcd9bd4ddae"
+    },
+    "private_rendered_results/react_conv_1790150692_9958_5d13f3e3-3087-41ac-b60d-5e12d425f0be_s1-eb4272e6286a9ec1/presentation/summary.md": {
+      "bytes": 7755,
+      "sha256": "7f29c3e335f986cf2979b3b90b84d18c9d6f2d9ec99bd82eaa93da26915c04e5"
+    },
+    "private_rendered_results/react_conv_1790153188_6407_aac7e15f-285c-45d2-82ec-6cd3aa3bb8aa_s1-eb276e94d6ec261a/presentation/glass_composition_traceability.png": {
+      "bytes": 107036,
+      "sha256": "1346a7da2b390585e7eca8097bc472921ec34775ad15a43a8b810fde771181be"
+    },
+    "private_rendered_results/react_conv_1790153188_6407_aac7e15f-285c-45d2-82ec-6cd3aa3bb8aa_s1-eb276e94d6ec261a/presentation/glass_cte_modulus_tradeoff.png": {
+      "bytes": 144732,
+      "sha256": "ec9459659c79cf409dcc7c6471941a8f593632180faea6087227a82c742be64e"
+    },
+    "private_rendered_results/react_conv_1790153188_6407_aac7e15f-285c-45d2-82ec-6cd3aa3bb8aa_s1-eb276e94d6ec261a/presentation/glass_screening_funnel.png": {
+      "bytes": 189670,
+      "sha256": "36525cab6d329f165a6e7ca931a93eb15beba4fdd88b4b93a160922ed84eb6cc"
+    },
+    "private_rendered_results/react_conv_1790153188_6407_aac7e15f-285c-45d2-82ec-6cd3aa3bb8aa_s1-eb276e94d6ec261a/presentation/summary.md": {
+      "bytes": 3115,
+      "sha256": "c643fe98c86ceb6dbeb008604bc01085a1b2e7fc57d17c376cfc29ab1ccaffc9"
+    },
+    "private_rendered_results/react_conv_1790153188_6407_c656a129-3af4-4271-b36c-3fa140da78d0_s1-bf819a585c3c7270/presentation/copper_local_composition_traceability.png": {
+      "bytes": 60164,
+      "sha256": "6daa9779e6c42c8d4a5dbffe7a1bcbc4bf8f4956229bfea49affb65c8ddac63d"
+    },
+    "private_rendered_results/react_conv_1790153188_6407_c656a129-3af4-4271-b36c-3fa140da78d0_s1-bf819a585c3c7270/presentation/copper_local_screening_funnel.png": {
+      "bytes": 170235,
+      "sha256": "8159aba0ac9e8a619442b23ed4863da575dd6f8380bc5b04bd604b917181613c"
+    },
+    "private_rendered_results/react_conv_1790153188_6407_c656a129-3af4-4271-b36c-3fa140da78d0_s1-bf819a585c3c7270/presentation/copper_local_strength_tradeoff.png": {
+      "bytes": 85404,
+      "sha256": "52f15c9fa34f18c7c62821796f6091b867eefdcae0f3a61341fa60b9795e2899"
+    },
+    "private_rendered_results/react_conv_1790153188_6407_c656a129-3af4-4271-b36c-3fa140da78d0_s1-bf819a585c3c7270/presentation/summary.md": {
+      "bytes": 6765,
+      "sha256": "d4b5b879bda5a1509a0e3148615b4eb54ab14ad5034df0d84cbb485a1daf6d68"
+    },
+    "private_rendered_results/react_conv_1790153188_6407_e109b21f-39d4-4ca5-9330-10973ebbc1ed_s1-29bca5c7204db7be/presentation/aluminum_composition_card.png": {
+      "bytes": 39646,
+      "sha256": "a96663912842163177a46b56c6090caa7f6ca404ce1ceec2d50c15e468cea2a5"
+    },
+    "private_rendered_results/react_conv_1790153188_6407_e109b21f-39d4-4ca5-9330-10973ebbc1ed_s1-29bca5c7204db7be/presentation/aluminum_screening_funnel.png": {
+      "bytes": 46346,
+      "sha256": "e5a42d9201eafe180ab27d918fc0d3673885d654d1e7e4661a05b4355b8d1aab"
+    },
+    "private_rendered_results/react_conv_1790153188_6407_e109b21f-39d4-4ca5-9330-10973ebbc1ed_s1-29bca5c7204db7be/presentation/aluminum_strength_ductility_tradeoff.png": {
+      "bytes": 64745,
+      "sha256": "30bf8cda3ba3e52363dd1941a19ee2b1d3b8844736dc1ec66962948338046e60"
+    },
+    "private_rendered_results/react_conv_1790153188_6407_e109b21f-39d4-4ca5-9330-10973ebbc1ed_s1-29bca5c7204db7be/presentation/summary.md": {
+      "bytes": 2470,
+      "sha256": "8a80edce255be7e4c2d9639dd1c4ac7a475a616b1f0adc4dcfe4c3aabe21f1f1"
+    },
+    "private_rendered_results/react_conv_1790561014_2360_ac09a02d-53f2-4e2b-bfb9-691ba5fdd761_s7-1d1336474ddd1473/presentation/rocket_composition_comparison.png": {
+      "bytes": 54643,
+      "sha256": "5d003228c556d671ebc38314d9c2a342d0b55d3373e0e16f8e2c8e5e9b86a591"
+    },
+    "private_rendered_results/react_conv_1790561014_2360_ac09a02d-53f2-4e2b-bfb9-691ba5fdd761_s7-1d1336474ddd1473/presentation/rocket_screening_funnel.png": {
+      "bytes": 193914,
+      "sha256": "8d69a32751265ba89e671042e031ec319b465dbc4fde3dcabe0442474476e064"
+    },
+    "private_rendered_results/react_conv_1790561014_2360_ac09a02d-53f2-4e2b-bfb9-691ba5fdd761_s7-1d1336474ddd1473/presentation/rocket_strength_ductility_tradeoff.png": {
+      "bytes": 86137,
+      "sha256": "764e00f581713b23b84283162e77da8596cda04d6c8f8ba7d2d4a45fa324ac21"
+    },
+    "private_rendered_results/react_conv_1790561014_2360_ac09a02d-53f2-4e2b-bfb9-691ba5fdd761_s7-1d1336474ddd1473/presentation/summary.md": {
+      "bytes": 3397,
+      "sha256": "0976d06e44de10d573fc20d509ac8f69e7a34d8f8432b15f0d8e696c19403cdd"
+    },
+    "private_rendered_results/shadow-live-nickel-r2-20260921/presentation/hot_end_composition_traceability.png": {
+      "bytes": 77812,
+      "sha256": "0e2adddbc23d31ced127bd5db9da64181093b70ad1155a64ceb279aab0801d6c"
+    },
+    "private_rendered_results/shadow-live-nickel-r2-20260921/presentation/hot_end_screening_funnel.png": {
+      "bytes": 184877,
+      "sha256": "e7eafb10a24866d662adec6ab87c6b226553f960255bbc9203c716eac7133a28"
+    },
+    "private_rendered_results/shadow-live-nickel-r2-20260921/presentation/hot_end_strength_life_tradeoff.png": {
+      "bytes": 105161,
+      "sha256": "818cb16b4e48b94cd6beac9f13badf5507685ae0141580e57f4a69e43b9a4cd1"
+    },
+    "private_rendered_results/shadow-live-nickel-r2-20260921/presentation/summary.md": {
+      "bytes": 2452,
+      "sha256": "92814b444893cee48400072fb21893ec344792b50deb0b96ddf50dba3ea9a4d3"
+    },
+    "private_shadow_dispatcher.py": {
+      "bytes": 10286,
+      "sha256": "eac67ae8dea9f679dc1e481af9b6bac7a2ba6f97cc95fccaf8907e50568c5e11"
+    },
+    "replay_production_stopping.py": {
+      "bytes": 6742,
+      "sha256": "09bc07c587124170023d858f004af88285c475e524aa15775a0b3bdc4b81a7bd"
+    },
+    "runner.py": {
+      "bytes": 569,
+      "sha256": "84d935ffa5f5b21e2579e6baba099f0541ff79724b690f58415239e06f39bc5d"
+    },
+    "shadow_channel_configs.py": {
+      "bytes": 3879,
+      "sha256": "c295b2e71281ec1b73dbb39b459fa8a3765a5510ca5a564cc1631e2c525930b5"
+    },
+    "specialist_bridge.py": {
+      "bytes": 2166,
+      "sha256": "2976cd85f6956b2e0bcad327f5886fd5cef371316b413f9f7ded9616a40028d4"
+    },
+    "specialist_worker.py": {
+      "bytes": 1102,
+      "sha256": "4cc239d92d571cc57fdc8938258c5405c91c5b9895b38454c20ac0e3896551ae"
+    },
+    "streamed_markdown/aerospace_aluminum_composition_v1.md": {
+      "bytes": 3059,
+      "sha256": "92e06691e5a8bc8ecba1b077fe7dcf149c16360fd1f3dbcc3a24a74b15163b58"
+    },
+    "streamed_markdown/chip_glass_thermomechanical_family_v1.md": {
+      "bytes": 3694,
+      "sha256": "8b4bdce0b19d30a22091546d0b7ffa6daf54009c9b497283e846e1bcfd84ef4d"
+    },
+    "streamed_markdown/copper_hot_end_local_composition_v1.md": {
+      "bytes": 7380,
+      "sha256": "9bad7ed6768f3771c7e39acdeaff7d34c76f119c930676ee319f0cb8cf2c75d6"
+    },
+    "streamed_markdown/hea_mpea.md": {
+      "bytes": 9362,
+      "sha256": "f738e1b290bbeade1d68ba5a78103d389aca1be50e6dba3173d201908fcfb083"
+    },
+    "streamed_markdown/ni_superalloy_hot_end.md": {
+      "bytes": 2788,
+      "sha256": "f3874fd73be39dc7a629c230e6b73135df2f76a9f6cbfbbc829cf9fad5ee53a4"
+    },
+    "streamed_markdown/perovskite_transport_stability_v2.md": {
+      "bytes": 2915,
+      "sha256": "2628ee786c59737abc0727db7f420b2698f7a1fe608bc468890857d862b344f1"
+    },
+    "streamed_markdown/reusable_rocket_stainless.md": {
+      "bytes": 3992,
+      "sha256": "c6f958123e837d9e6d93cde4edfc2786e605930155a76854ce4cf21f5c708925"
+    },
+    "streamed_markdown/short_cf_thermomechanical_rve_v1.md": {
+      "bytes": 4076,
+      "sha256": "f22fd86852e7130117adf5d1030309f8f8cda37b533991b809166491d0c6513e"
+    },
+    "test_alloy_v10_shadow.py": {
+      "bytes": 4305,
+      "sha256": "f07f7390adf4001c5095753f8d7e2f8880486e9043744a3c58b4368b92408638"
+    },
+    "test_bounded_nsga.py": {
+      "bytes": 2907,
+      "sha256": "4d60b9c54799452e240b2e3cdeb91761b1f533776ce05aa6a749fcdbb18ec88b"
+    },
+    "test_glass_shadow_compare.py": {
+      "bytes": 2857,
+      "sha256": "828450f1da443750480bbf52945f9cf346322e1f55d30bcc1697ac77d6cbeeb6"
+    },
+    "test_new_shadow_channels.py": {
+      "bytes": 3477,
+      "sha256": "212cd64248f86e160209cae20def02a627b385e45bc17c4361f86fda090be964"
+    },
+    "test_optimization_contract.py": {
+      "bytes": 1161,
+      "sha256": "e529e0206027600e05167713ca5e289f22dd7011d8d4931c74b5f46ffee4f96c"
+    },
+    "test_oxide_glass_shadow_contract.py": {
+      "bytes": 6814,
+      "sha256": "ccbd145a4bb03567e1b6745a4eb519a54b8bcae40219734c4b1c4d0b9de409ad"
+    },
+    "test_private_shadow_dispatcher.py": {
+      "bytes": 5999,
+      "sha256": "eb6b8ff60afca9322e346279f183199dadbdb5a9dc4f6685e4a5b33170255b09"
+    },
+    "test_release_safety.py": {
+      "bytes": 4099,
+      "sha256": "2359d6827557895d729dc27e13218a3ea62f0028b7436a9e5503bb5c526e7913"
+    },
+    "trace_label_reviews.py": {
+      "bytes": 854,
+      "sha256": "a0f23aec58c1375a2ecfa67f2f54ef64630c288a14aaeaf0aab07e3782820638"
+    },
+    "train_strict_glass.py": {
+      "bytes": 26853,
+      "sha256": "b72f217c4ee7ed9f2aa83e46591f3a5966b427c196a4edc4eb46dc6bb9985e64"
+    },
+    "validate_e2e.py": {
+      "bytes": 3238,
+      "sha256": "088c577a21b8ea192414d8ac0d39127c90f4623b9ad29f20b64ff113ea00dbd8"
+    },
+    "validate_glass_batch.py": {
+      "bytes": 2241,
+      "sha256": "12cffb85adc0b99e7d0091c65cdb1cbcc51802dbaaf34b268d4e2fc8e0b917c7"
+    },
+    "validate_presentation_stream.py": {
+      "bytes": 4531,
+      "sha256": "6b09cbb1c15f8ed3859b410dfa60e4dd29af13bc85eb8392371717ffb196e0be"
+    },
+    "validate_service_snapshot.py": {
+      "bytes": 981,
+      "sha256": "2765e3191b4b12bea1d48fac25c29722d10277ff19a2693b87e8514d1fa5e08b"
+    },
+    "verify_label_sources.py": {
+      "bytes": 2021,
+      "sha256": "ee461eda1f7bbd086d713468c721cdd828c9d26e28017cc733f765f70f21dc58"
+    }
+  },
+  "excludes": [
+    "raw databases",
+    "credentials",
+    "full service snapshot",
+    "other team changes",
+    "Python environments"
+  ],
+  "deployment_target": "existing versioned directory on server 75",
+  "production_release_authorized": false
+}

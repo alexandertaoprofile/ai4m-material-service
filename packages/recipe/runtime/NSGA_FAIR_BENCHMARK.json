@@ -1,0 +1,1554 @@
+{
+  "production_release_authorized": false,
+  "scope": "private frozen-model diagnostics; not measured materials",
+  "valid_evaluation_budget": 256,
+  "population": 32,
+  "soft_wall_seconds": 30,
+  "seeds": [
+    17,
+    29,
+    43,
+    73,
+    97
+  ],
+  "domains": {
+    "aerospace_aluminum_composition_v1": {
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1790153188_6407_e109b21f-39d4-4ca5-9330-10973ebbc1ed_s1-29bca5c7204db7be/manifest.json",
+      "predictor_stack": "transformer plus specialist except CF",
+      "variables": [
+        "Cu",
+        "Mg",
+        "Zn",
+        "Si",
+        "Mn",
+        "Li",
+        "Zr",
+        "Sc",
+        "Cr"
+      ],
+      "anchors": 149,
+      "search_space_policy": "full native generator domain; fixed process; no reduced four-element surrogate box",
+      "benchmark_objectives_are_not_user_defaults": true,
+      "objectives": [
+        {
+          "property": "YS_MPa",
+          "mode": "max",
+          "unit": "MPa",
+          "scale": 1.0
+        },
+        {
+          "property": "elongation_pct",
+          "mode": "max",
+          "unit": "%",
+          "scale": 1.0
+        }
+      ],
+      "runs": [
+        {
+          "seed": 17,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 246,
+              "pareto_count": 12
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 4.170389007776976,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 288,
+              "model_evaluations": 256,
+              "feasible": 245,
+              "pareto_count": 25
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 4.670710064470768,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.10648785769705549,
+          "nsga_hypervolume": 0.09101631485000773,
+          "relative_hv_change_percent": -14.528926754318173
+        },
+        {
+          "seed": 29,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 246,
+              "pareto_count": 17
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 4.262210972607136,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 288,
+              "model_evaluations": 256,
+              "feasible": 247,
+              "pareto_count": 25
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 4.807496935129166,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.10320279671413385,
+          "nsga_hypervolume": 0.09207824603181072,
+          "relative_hv_change_percent": -10.779311255621815
+        },
+        {
+          "seed": 43,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 244,
+              "pareto_count": 13
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 4.617706973105669,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 288,
+              "model_evaluations": 256,
+              "feasible": 246,
+              "pareto_count": 23
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 4.8445217423141,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.10476762547167706,
+          "nsga_hypervolume": 0.09305904075820665,
+          "relative_hv_change_percent": -11.175766044860602
+        },
+        {
+          "seed": 73,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 242,
+              "pareto_count": 13
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 4.331946637481451,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 288,
+              "model_evaluations": 256,
+              "feasible": 242,
+              "pareto_count": 27
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 4.564005501568317,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.10579685935437903,
+          "nsga_hypervolume": 0.09200751240545739,
+          "relative_hv_change_percent": -13.033796119346608
+        },
+        {
+          "seed": 97,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 239,
+              "pareto_count": 13
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 4.283978685736656,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 288,
+              "model_evaluations": 256,
+              "feasible": 242,
+              "pareto_count": 25
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 5.184042502194643,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.10621575416294766,
+          "nsga_hypervolume": 0.09174521413477058,
+          "relative_hv_change_percent": -13.623722904586778
+        }
+      ],
+      "hypervolume_reference_ranges": {
+        "YS_MPa": [
+          -3000,
+          0
+        ],
+        "UTS_MPa": [
+          -3500,
+          0
+        ],
+        "elongation_pct": [
+          -100,
+          0
+        ],
+        "rupture_hours": [
+          -10000,
+          0
+        ],
+        "phase_risk": [
+          0,
+          1
+        ],
+        "density_g_cm3": [
+          1,
+          10
+        ],
+        "young_modulus_GPa": [
+          -250,
+          0
+        ],
+        "E11_MPa": [
+          -60000,
+          0
+        ],
+        "fiber_volume_fraction": [
+          0,
+          1
+        ]
+      },
+      "median_hv_gain_percent": -13.033796119346608,
+      "nsga_wins": 0,
+      "equal_budget_trials": 5,
+      "superiority_proven_for_all_requests": false,
+      "comparable_hypervolume_trials": 5
+    },
+    "ni_superalloy_hot_end": {
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/shadow-live-nickel-r2-20260921/manifest.json",
+      "predictor_stack": "transformer plus specialist except CF",
+      "variables": [
+        "Cr",
+        "Co",
+        "Re",
+        "Al",
+        "Ta",
+        "W",
+        "Ti",
+        "Mo",
+        "V",
+        "C",
+        "B",
+        "Nb",
+        "Hf"
+      ],
+      "anchors": 7,
+      "search_space_policy": "full native generator domain; fixed process; no reduced four-element surrogate box",
+      "benchmark_objectives_are_not_user_defaults": true,
+      "objectives": [
+        {
+          "property": "UTS_MPa",
+          "mode": "max",
+          "unit": "MPa",
+          "scale": 1.0
+        },
+        {
+          "property": "rupture_hours",
+          "mode": "max",
+          "unit": "h",
+          "scale": 1.0
+        }
+      ],
+      "runs": [
+        {
+          "seed": 17,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 0,
+              "pareto_count": 0
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 5.781267546117306,
+            "status": "no_feasible_candidate"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 288,
+              "model_evaluations": 256,
+              "feasible": 0,
+              "pareto_count": 0
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 4.956732623279095,
+            "status": "no_feasible_candidate"
+          },
+          "random_hypervolume": 0.0,
+          "nsga_hypervolume": 0.0,
+          "relative_hv_change_percent": null
+        },
+        {
+          "seed": 29,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 0,
+              "pareto_count": 0
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 4.987986002117395,
+            "status": "no_feasible_candidate"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 288,
+              "model_evaluations": 256,
+              "feasible": 0,
+              "pareto_count": 0
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 4.4296708926558495,
+            "status": "no_feasible_candidate"
+          },
+          "random_hypervolume": 0.0,
+          "nsga_hypervolume": 0.0,
+          "relative_hv_change_percent": null
+        },
+        {
+          "seed": 43,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 0,
+              "pareto_count": 0
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 4.088844109326601,
+            "status": "no_feasible_candidate"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 288,
+              "model_evaluations": 256,
+              "feasible": 0,
+              "pareto_count": 0
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 3.857907820492983,
+            "status": "no_feasible_candidate"
+          },
+          "random_hypervolume": 0.0,
+          "nsga_hypervolume": 0.0,
+          "relative_hv_change_percent": null
+        },
+        {
+          "seed": 73,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 0,
+              "pareto_count": 0
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 3.9048729315400124,
+            "status": "no_feasible_candidate"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 288,
+              "model_evaluations": 256,
+              "feasible": 0,
+              "pareto_count": 0
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 4.326646126806736,
+            "status": "no_feasible_candidate"
+          },
+          "random_hypervolume": 0.0,
+          "nsga_hypervolume": 0.0,
+          "relative_hv_change_percent": null
+        },
+        {
+          "seed": 97,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 0,
+              "pareto_count": 0
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 4.091915056109428,
+            "status": "no_feasible_candidate"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 288,
+              "model_evaluations": 256,
+              "feasible": 0,
+              "pareto_count": 0
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 4.950324401259422,
+            "status": "no_feasible_candidate"
+          },
+          "random_hypervolume": 0.0,
+          "nsga_hypervolume": 0.0,
+          "relative_hv_change_percent": null
+        }
+      ],
+      "hypervolume_reference_ranges": {
+        "YS_MPa": [
+          -3000,
+          0
+        ],
+        "UTS_MPa": [
+          -3500,
+          0
+        ],
+        "elongation_pct": [
+          -100,
+          0
+        ],
+        "rupture_hours": [
+          -10000,
+          0
+        ],
+        "phase_risk": [
+          0,
+          1
+        ],
+        "density_g_cm3": [
+          1,
+          10
+        ],
+        "young_modulus_GPa": [
+          -250,
+          0
+        ],
+        "E11_MPa": [
+          -60000,
+          0
+        ],
+        "fiber_volume_fraction": [
+          0,
+          1
+        ]
+      },
+      "median_hv_gain_percent": null,
+      "nsga_wins": 0,
+      "equal_budget_trials": 5,
+      "superiority_proven_for_all_requests": false,
+      "comparable_hypervolume_trials": 0
+    },
+    "reusable_rocket_stainless": {
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1790561014_2360_ac09a02d-53f2-4e2b-bfb9-691ba5fdd761_s7-1d1336474ddd1473/manifest.json",
+      "predictor_stack": "transformer plus specialist except CF",
+      "variables": [
+        "Cr",
+        "Ni",
+        "Mn",
+        "Si",
+        "C",
+        "N"
+      ],
+      "anchors": 1,
+      "search_space_policy": "full native generator domain; fixed process; no reduced four-element surrogate box",
+      "benchmark_objectives_are_not_user_defaults": true,
+      "objectives": [
+        {
+          "property": "YS_MPa",
+          "mode": "max",
+          "unit": "MPa",
+          "scale": 1.0
+        },
+        {
+          "property": "elongation_pct",
+          "mode": "max",
+          "unit": "%",
+          "scale": 1.0
+        }
+      ],
+      "runs": [
+        {
+          "seed": 17,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 93,
+              "pareto_count": 6
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 6.434683728963137,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 288,
+              "model_evaluations": 256,
+              "feasible": 216,
+              "pareto_count": 8
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 4.763171903789043,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.1297478806513637,
+          "nsga_hypervolume": 0.13147939525456756,
+          "relative_hv_change_percent": 1.3345224557898439
+        },
+        {
+          "seed": 29,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 82,
+              "pareto_count": 6
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 3.803323168307543,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 288,
+              "model_evaluations": 256,
+              "feasible": 210,
+              "pareto_count": 15
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 4.033498603850603,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.13075755769591937,
+          "nsga_hypervolume": 0.13232511039603412,
+          "relative_hv_change_percent": 1.1988237832952997
+        },
+        {
+          "seed": 43,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 92,
+              "pareto_count": 8
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 3.3699422255158424,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 288,
+              "model_evaluations": 256,
+              "feasible": 214,
+              "pareto_count": 22
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 3.998105064034462,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.13094447595774014,
+          "nsga_hypervolume": 0.13289618959696617,
+          "relative_hv_change_percent": 1.4904894803320357
+        },
+        {
+          "seed": 73,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 76,
+              "pareto_count": 10
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 3.947078499943018,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 288,
+              "model_evaluations": 256,
+              "feasible": 208,
+              "pareto_count": 15
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 3.872689224779606,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.1297445119670226,
+          "nsga_hypervolume": 0.1303596328246961,
+          "relative_hv_change_percent": 0.47410163894241464
+        },
+        {
+          "seed": 97,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 80,
+              "pareto_count": 8
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 4.3468062505126,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 288,
+              "model_evaluations": 256,
+              "feasible": 206,
+              "pareto_count": 10
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 3.9922637604177,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.1312492076106563,
+          "nsga_hypervolume": 0.13033619488383813,
+          "relative_hv_change_percent": -0.6956329439539055
+        }
+      ],
+      "hypervolume_reference_ranges": {
+        "YS_MPa": [
+          -3000,
+          0
+        ],
+        "UTS_MPa": [
+          -3500,
+          0
+        ],
+        "elongation_pct": [
+          -100,
+          0
+        ],
+        "rupture_hours": [
+          -10000,
+          0
+        ],
+        "phase_risk": [
+          0,
+          1
+        ],
+        "density_g_cm3": [
+          1,
+          10
+        ],
+        "young_modulus_GPa": [
+          -250,
+          0
+        ],
+        "E11_MPa": [
+          -60000,
+          0
+        ],
+        "fiber_volume_fraction": [
+          0,
+          1
+        ]
+      },
+      "median_hv_gain_percent": 1.1988237832952997,
+      "nsga_wins": 4,
+      "equal_budget_trials": 5,
+      "superiority_proven_for_all_requests": false,
+      "comparable_hypervolume_trials": 5
+    },
+    "copper_hot_end_local_composition_v1": {
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1790153188_6407_c656a129-3af4-4271-b36c-3fa140da78d0_s1-bf819a585c3c7270/manifest.json",
+      "predictor_stack": "transformer plus specialist except CF",
+      "variables": [
+        "Cr",
+        "Nb",
+        "Zr",
+        "Ag",
+        "Al",
+        "O",
+        "Ni",
+        "Fe",
+        "Ti"
+      ],
+      "anchors": 1,
+      "search_space_policy": "full native generator domain; fixed process; no reduced four-element surrogate box",
+      "benchmark_objectives_are_not_user_defaults": true,
+      "objectives": [
+        {
+          "property": "YS_MPa",
+          "mode": "max",
+          "unit": "MPa",
+          "scale": 1.0
+        },
+        {
+          "property": "UTS_MPa",
+          "mode": "max",
+          "unit": "MPa",
+          "scale": 1.0
+        }
+      ],
+      "runs": [
+        {
+          "seed": 17,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 253,
+              "pareto_count": 1
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 17.304183159023523,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 288,
+              "model_evaluations": 256,
+              "feasible": 252,
+              "pareto_count": 2
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 15.468646172434092,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.061789835511618124,
+          "nsga_hypervolume": 0.061904659979039774,
+          "relative_hv_change_percent": 0.1858306733962145
+        },
+        {
+          "seed": 29,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 249,
+              "pareto_count": 1
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 21.508466109633446,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 288,
+              "model_evaluations": 256,
+              "feasible": 245,
+              "pareto_count": 1
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 21.319845531135798,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.06140409512441292,
+          "nsga_hypervolume": 0.062450520947128565,
+          "relative_hv_change_percent": 1.7041629236542732
+        },
+        {
+          "seed": 43,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 250,
+              "pareto_count": 1
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 20.720535032451153,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 288,
+              "model_evaluations": 256,
+              "feasible": 255,
+              "pareto_count": 2
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 21.269064463675022,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.060999065096753034,
+          "nsga_hypervolume": 0.061923050215839305,
+          "relative_hv_change_percent": 1.514752918951623
+        },
+        {
+          "seed": 73,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 248,
+              "pareto_count": 1
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 21.336070265620947,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 288,
+              "model_evaluations": 256,
+              "feasible": 245,
+              "pareto_count": 1
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 21.469135891646147,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.06107626156283067,
+          "nsga_hypervolume": 0.06225763210228941,
+          "relative_hv_change_percent": 1.9342548303213247
+        },
+        {
+          "seed": 97,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 253,
+              "pareto_count": 1
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 21.3758639767766,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 288,
+              "model_evaluations": 256,
+              "feasible": 249,
+              "pareto_count": 1
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 15.436061039566994,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.0609284088261357,
+          "nsga_hypervolume": 0.06263682117632463,
+          "relative_hv_change_percent": 2.803966791688306
+        }
+      ],
+      "hypervolume_reference_ranges": {
+        "YS_MPa": [
+          -3000,
+          0
+        ],
+        "UTS_MPa": [
+          -3500,
+          0
+        ],
+        "elongation_pct": [
+          -100,
+          0
+        ],
+        "rupture_hours": [
+          -10000,
+          0
+        ],
+        "phase_risk": [
+          0,
+          1
+        ],
+        "density_g_cm3": [
+          1,
+          10
+        ],
+        "young_modulus_GPa": [
+          -250,
+          0
+        ],
+        "E11_MPa": [
+          -60000,
+          0
+        ],
+        "fiber_volume_fraction": [
+          0,
+          1
+        ]
+      },
+      "median_hv_gain_percent": 1.7041629236542732,
+      "nsga_wins": 5,
+      "equal_budget_trials": 5,
+      "superiority_proven_for_all_requests": false,
+      "comparable_hypervolume_trials": 5
+    },
+    "hea_mpea": {
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1790150692_9958_5d13f3e3-3087-41ac-b60d-5e12d425f0be_s1-eb4272e6286a9ec1/manifest.json",
+      "predictor_stack": "transformer plus specialist except CF",
+      "variables": [
+        "Ni",
+        "Co",
+        "Cr",
+        "Al"
+      ],
+      "anchors": 1,
+      "search_space_policy": "full native generator domain; fixed process; no reduced four-element surrogate box",
+      "benchmark_objectives_are_not_user_defaults": true,
+      "objectives": [
+        {
+          "property": "YS_MPa",
+          "mode": "max",
+          "unit": "MPa",
+          "scale": 1.0
+        },
+        {
+          "property": "phase_risk",
+          "mode": "min",
+          "unit": "1",
+          "scale": 1.0
+        }
+      ],
+      "runs": [
+        {
+          "seed": 17,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 8
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 9.907258920371532,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 352,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 20
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 11.565348222851753,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.24269535713804974,
+          "nsga_hypervolume": 0.24299967227391972,
+          "relative_hv_change_percent": 0.1253897641300572
+        },
+        {
+          "seed": 29,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 5
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 8.500144619494677,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 352,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 20
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 10.821137387305498,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.23079061482776914,
+          "nsga_hypervolume": 0.2466871606372409,
+          "relative_hv_change_percent": 6.887864925241782
+        },
+        {
+          "seed": 43,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 8
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 9.29721249639988,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 352,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 20
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 10.482180036604404,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.24608449660130538,
+          "nsga_hypervolume": 0.24387589519084335,
+          "relative_hv_change_percent": -0.8974971771749995
+        },
+        {
+          "seed": 73,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 8
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 8.966788321733475,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 352,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 15
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 10.906342841684818,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.24575360067759275,
+          "nsga_hypervolume": 0.24272590672817207,
+          "relative_hv_change_percent": -1.2320039019052875
+        },
+        {
+          "seed": 97,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 8
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 8.984998397529125,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 320,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 20
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 9.99275504052639,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.24251808270200598,
+          "nsga_hypervolume": 0.2504927728114592,
+          "relative_hv_change_percent": 3.2882868034430857
+        }
+      ],
+      "hypervolume_reference_ranges": {
+        "YS_MPa": [
+          -3000,
+          0
+        ],
+        "UTS_MPa": [
+          -3500,
+          0
+        ],
+        "elongation_pct": [
+          -100,
+          0
+        ],
+        "rupture_hours": [
+          -10000,
+          0
+        ],
+        "phase_risk": [
+          0,
+          1
+        ],
+        "density_g_cm3": [
+          1,
+          10
+        ],
+        "young_modulus_GPa": [
+          -250,
+          0
+        ],
+        "E11_MPa": [
+          -60000,
+          0
+        ],
+        "fiber_volume_fraction": [
+          0,
+          1
+        ]
+      },
+      "median_hv_gain_percent": 0.1253897641300572,
+      "nsga_wins": 3,
+      "equal_budget_trials": 5,
+      "superiority_proven_for_all_requests": false,
+      "comparable_hypervolume_trials": 5
+    },
+    "chip_glass_thermomechanical_family_v1": {
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1790153188_6407_aac7e15f-285c-45d2-82ec-6cd3aa3bb8aa_s1-eb276e94d6ec261a/manifest.json",
+      "predictor_stack": "transformer plus specialist except CF",
+      "variables": [
+        "pair",
+        "delta_1",
+        "delta_2"
+      ],
+      "anchors": 66,
+      "search_space_policy": "full native generator domain; fixed process; no reduced four-element surrogate box",
+      "benchmark_objectives_are_not_user_defaults": true,
+      "objectives": [
+        {
+          "property": "density_g_cm3",
+          "mode": "min",
+          "unit": "g/cm3",
+          "scale": 1.0
+        },
+        {
+          "property": "young_modulus_GPa",
+          "mode": "max",
+          "unit": "GPa",
+          "scale": 1.0
+        }
+      ],
+      "runs": [
+        {
+          "seed": 17,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 608,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 39
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 6.176437932997942,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 416,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 57
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 4.418651215732098,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.4068455981261564,
+          "nsga_hypervolume": 0.40680241189197613,
+          "relative_hv_change_percent": -0.010614895277016867
+        },
+        {
+          "seed": 29,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 640,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 36
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 6.295011509209871,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 384,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 76
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 4.198158863931894,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.40692932499948903,
+          "nsga_hypervolume": 0.40442303483859826,
+          "relative_hv_change_percent": -0.615903059061651
+        },
+        {
+          "seed": 43,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 640,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 34
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 6.361217774450779,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 384,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 86
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 4.149715472012758,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.406871931795649,
+          "nsga_hypervolume": 0.40466652248678914,
+          "relative_hv_change_percent": -0.5420401695262478
+        },
+        {
+          "seed": 73,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 640,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 34
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 6.515993732959032,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 416,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 77
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 4.5395986549556255,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.4069809493073106,
+          "nsga_hypervolume": 0.407025687957752,
+          "relative_hv_change_percent": 0.010992811952892367
+        },
+        {
+          "seed": 97,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 640,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 31
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 6.2907382026314735,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 448,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 60
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 4.71224469691515,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.40693882269689063,
+          "nsga_hypervolume": 0.40723865283201593,
+          "relative_hv_change_percent": 0.07367941282629964
+        }
+      ],
+      "hypervolume_reference_ranges": {
+        "YS_MPa": [
+          -3000,
+          0
+        ],
+        "UTS_MPa": [
+          -3500,
+          0
+        ],
+        "elongation_pct": [
+          -100,
+          0
+        ],
+        "rupture_hours": [
+          -10000,
+          0
+        ],
+        "phase_risk": [
+          0,
+          1
+        ],
+        "density_g_cm3": [
+          1,
+          10
+        ],
+        "young_modulus_GPa": [
+          -250,
+          0
+        ],
+        "E11_MPa": [
+          -60000,
+          0
+        ],
+        "fiber_volume_fraction": [
+          0,
+          1
+        ]
+      },
+      "median_hv_gain_percent": -0.010614895277016867,
+      "nsga_wins": 2,
+      "equal_budget_trials": 5,
+      "superiority_proven_for_all_requests": false,
+      "comparable_hypervolume_trials": 5
+    },
+    "short_cf_thermomechanical_rve_v1": {
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1789896994_8348_126ee13f-b1c9-46b2-b0ca-765c3ac38124_s11-30b0447ba555ec2e/manifest.json",
+      "predictor_stack": "transformer plus specialist except CF",
+      "variables": [
+        "target_vf",
+        "fiber_length_mm",
+        "target_a11"
+      ],
+      "anchors": 1,
+      "search_space_policy": "full native generator domain; fixed process; no reduced four-element surrogate box",
+      "benchmark_objectives_are_not_user_defaults": true,
+      "objectives": [
+        {
+          "property": "E11_MPa",
+          "mode": "max",
+          "unit": "MPa",
+          "scale": 1.0
+        },
+        {
+          "property": "fiber_volume_fraction",
+          "mode": "min",
+          "unit": "1",
+          "scale": 1.0
+        }
+      ],
+      "runs": [
+        {
+          "seed": 17,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 18
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 2.2271314673125744,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 288,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 26
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 2.27538139000535,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.2096932381047647,
+          "nsga_hypervolume": 0.21365105907696344,
+          "relative_hv_change_percent": 1.8874337617989179
+        },
+        {
+          "seed": 29,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 13
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 2.2358622401952744,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 288,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 37
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 2.3129904977977276,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.2072161395225664,
+          "nsga_hypervolume": 0.21548960728239583,
+          "relative_hv_change_percent": 3.9926753673202198
+        },
+        {
+          "seed": 43,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 14
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 2.206245429813862,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 320,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 43
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 2.2659139670431614,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.20630345894313395,
+          "nsga_hypervolume": 0.2163554645644701,
+          "relative_hv_change_percent": 4.872436784546075
+        },
+        {
+          "seed": 73,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 15
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 3.154470194131136,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 288,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 27
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 2.6606994345784187,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.21093359250108382,
+          "nsga_hypervolume": 0.21365295584411895,
+          "relative_hv_change_percent": 1.2892035406931068
+        },
+        {
+          "seed": 97,
+          "equal_model_evaluation_budget_reached": true,
+          "random": {
+            "counters": {
+              "proposals": 256,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 16
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 2.2689862102270126,
+            "status": "completed"
+          },
+          "nsga2": {
+            "counters": {
+              "proposals": 288,
+              "model_evaluations": 256,
+              "feasible": 256,
+              "pareto_count": 51
+            },
+            "stop_reason": "model_evaluation_budget",
+            "elapsed_seconds": 2.3224827274680138,
+            "status": "completed"
+          },
+          "random_hypervolume": 0.2100264518207781,
+          "nsga_hypervolume": 0.21462702267111294,
+          "relative_hv_change_percent": 2.190472109799124
+        }
+      ],
+      "hypervolume_reference_ranges": {
+        "YS_MPa": [
+          -3000,
+          0
+        ],
+        "UTS_MPa": [
+          -3500,
+          0
+        ],
+        "elongation_pct": [
+          -100,
+          0
+        ],
+        "rupture_hours": [
+          -10000,
+          0
+        ],
+        "phase_risk": [
+          0,
+          1
+        ],
+        "density_g_cm3": [
+          1,
+          10
+        ],
+        "young_modulus_GPa": [
+          -250,
+          0
+        ],
+        "E11_MPa": [
+          -60000,
+          0
+        ],
+        "fiber_volume_fraction": [
+          0,
+          1
+        ]
+      },
+      "median_hv_gain_percent": 2.190472109799124,
+      "nsga_wins": 5,
+      "equal_budget_trials": 5,
+      "superiority_proven_for_all_requests": false,
+      "comparable_hypervolume_trials": 5
+    }
+  }
+}

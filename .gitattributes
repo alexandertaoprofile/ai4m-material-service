@@ -1,0 +1,9 @@
+# Preserve imported runtime snapshots byte-for-byte for SHA256 verification.
+/packages/** -text
+/third_party/OMatG/** -text
+/resources/runtime-manifest.json text eol=lf
+/env/current/*.json text eol=lf
+/env/validated/* text eol=lf
+/env/compat/*.py text eol=lf
+/tools/*.py text eol=lf
+/tools/tests/*.py text eol=lf

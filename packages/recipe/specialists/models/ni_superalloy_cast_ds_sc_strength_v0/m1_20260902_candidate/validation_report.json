@@ -1,0 +1,89 @@
+{
+  "model_status": "M1 candidate only; not selected by the service runtime",
+  "data": {
+    "package": "/data/se42/hea_surrogate/data/processed/ni_superalloy_training/20260831_cambridge_cast_ds_sc_v2",
+    "split": "frozen Cambridge Tag-disjoint v1"
+  },
+  "features": {
+    "M0": "current serving compact 31-feature schema",
+    "M1": "M0 plus 14 deterministic composition descriptors; no CALPHAD or fitted external feature"
+  },
+  "targets": {
+    "ultimate_tensile_strength": {
+      "fixed_split": {
+        "M0": {
+          "records": {
+            "train": 247,
+            "validation": 6,
+            "test": 26
+          },
+          "tags": {
+            "train": 53,
+            "validation": 3,
+            "test": 5
+          },
+          "test": {
+            "MAE": 113.22119331321355,
+            "RMSE": 139.99896418301628,
+            "R2": 0.6936603582997127
+          }
+        },
+        "M1": {
+          "records": {
+            "train": 247,
+            "validation": 6,
+            "test": 26
+          },
+          "tags": {
+            "train": 53,
+            "validation": 3,
+            "test": 5
+          },
+          "test": {
+            "MAE": 91.9301864881645,
+            "RMSE": 111.31163830924213,
+            "R2": 0.8063423288777481
+          }
+        }
+      }
+    },
+    "proof_strength_0p2": {
+      "fixed_split": {
+        "M0": {
+          "records": {
+            "train": 219,
+            "validation": 7,
+            "test": 15
+          },
+          "tags": {
+            "train": 49,
+            "validation": 4,
+            "test": 4
+          },
+          "test": {
+            "MAE": 84.00678862452877,
+            "RMSE": 103.2111485473407,
+            "R2": 0.6394211404129926
+          }
+        },
+        "M1": {
+          "records": {
+            "train": 219,
+            "validation": 7,
+            "test": 15
+          },
+          "tags": {
+            "train": 49,
+            "validation": 4,
+            "test": 4
+          },
+          "test": {
+            "MAE": 50.77275581375563,
+            "RMSE": 62.28246626138796,
+            "R2": 0.8686957928119255
+          }
+        }
+      }
+    }
+  }
+}

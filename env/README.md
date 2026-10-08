@@ -1,6 +1,6 @@
 # 服务环境与外部计算资源
 
-本目录保存环境定义、软件包版本及历史依赖记录。每个服务的环境、数据与模型位置、启动及最小检查集中在[运行与复现说明](../docs/service_setup.md)。以下说明对应 75 服务器当前分工；其他机器按硬件、CUDA 和模型版本核对路径及依赖。
+本目录保存环境定义、软件包版本及兼容性调整。新机器安装使用[安装与复现指南](../docs/reproduction.md)和 `tools/install_environment.py`；[实际检查结果](../docs/REPRODUCTION_VERIFICATION_20261008.md)说明哪些环节已验证。以下表格保留 75 原部署路径，方便核对来源。
 
 ## 1. 为什么使用多个环境
 
@@ -20,6 +20,9 @@ Web 服务负责连接、需求解析和报告交付；OMatG、MatterSim、ALIGN
 
 | 文件 | 用途与状态 |
 | --- | --- |
+| `current/installed-20261008.json` | 2026-10-08 导出的五个运行环境及 ALIGNN 补充目录的安装记录；安装脚本从这里选择固定依赖。 |
+| `validated/installed-20261008.json`、`validated/*.txt` | 独立新环境的完整安装记录及依赖版本约束；安装脚本自动使用对应约束文件，ALIGNN 采用已测试的 CPU 组合。 |
+| `compat/semantic_kernel_sk_pydantic.py` | 旧 Alpha 所用 Semantic Kernel 0.4.3 的 Pydantic 适配，保留 75 已使用的实现；安装工具先核对原文件 SHA256，再应用调整。 |
 | `ai4m-service-py310.yml` | 历史 Web 环境快照，文件内环境名为 `ai4pdeMyh`、Python 为 3.10.15；当前部署 Python 为 3.10.19，主要版本见资源 JSON。迁移时据此比较并验证安装。 |
 | `hea-surrogate-py310.yml` | HEA 专项计算独立环境的定义，供需要单独重建时参考。HEA 指高熵/多主元合金。 |
 | `mattergen-py310.yml`、`mattergen-py310.requirements.txt` | 原 MatterGen/结构计算依赖记录；当前同名数值环境也承载 MatterSim 等任务。 |
@@ -30,7 +33,7 @@ Web 服务负责连接、需求解析和报告交付；OMatG、MatterSim、ALIGN
 
 OMatG 当前环境为 Python 3.12.14、PyTorch 2.8.0+cu126、OMatG 2.0.0。新增版本表记录 162 条安装信息，模型文件和参考库的 SHA256、其他环境主要版本见[外部依赖说明](../docs/external_dependencies.md)及[资源版本 JSON](../docs/external_resources_20261004.json)。
 
-新机器安装还需配套源码、软件包来源、CUDA/GPU 依赖并验证安装步骤。目前保存的是实际版本记录，完整的新机器安装流程尚需单独验证。模型路径和解释器设置见[1115配置样例](../material_discovery/.env.omatg.example)。
+安装工具明确指定 Python、PyTorch/CUDA、PyG 扩展和软件包来源。Web、数值、优化、OMatG、ALIGNN 五个环境分别创建；原始记录、适配后依赖及验证结果分别说明。模型路径由 `tools/prepare_runtime.py` 生成，完整步骤见复现指南。
 
 ## 3. 新机器接手与当前机器检查
 

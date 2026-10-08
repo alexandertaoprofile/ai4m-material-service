@@ -1,0 +1,2330 @@
+{
+  "ok": true,
+  "mode": "shadow",
+  "display_allowed": false,
+  "production_release_authorized": false,
+  "public_effect": false,
+  "method": "nsga2",
+  "seed": 97,
+  "status": "completed",
+  "objectives": [
+    {
+      "property": "E11_MPa",
+      "mode": "max",
+      "unit": "MPa",
+      "scale": 1.0
+    },
+    {
+      "property": "fiber_volume_fraction",
+      "mode": "min",
+      "unit": "1",
+      "scale": 1.0
+    }
+  ],
+  "stop_reason": "model_evaluation_budget",
+  "counters": {
+    "proposals": 288,
+    "model_evaluations": 256,
+    "feasible": 256,
+    "pareto_count": 51
+  },
+  "elapsed_seconds": 2.3224827274680138,
+  "pareto_front": [
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.12237806245281106,
+          "fiber_length_mm": 0.04222221929154367,
+          "target_a11": 0.8236929949999319
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 6161.322259463717,
+        "E22_MPa": 3446.4795975178376,
+        "E33_MPa": 3466.330765576016,
+        "G12_MPa": 1356.3865318114656,
+        "G13_MPa": 1335.1966857822163,
+        "G23_MPa": 1189.8579775346827,
+        "V12": 0.3585736312359699,
+        "V13": 0.35026849252467107,
+        "V23": 0.40471201996952477,
+        "fiber_volume_fraction": 0.12237806245281106,
+        "anisotropy_ratio_E11_E22": 1.787714705724971
+      },
+      "F": [
+        -6161.322259463717,
+        0.12237806245281106
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.06707596903883725,
+          "fiber_length_mm": 0.042573144456736725,
+          "target_a11": 0.8240543310672114
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 4445.841449899329,
+        "E22_MPa": 3041.8040236273946,
+        "E33_MPa": 3051.1140358949015,
+        "G12_MPa": 1157.4649508588238,
+        "G13_MPa": 1145.0759921914134,
+        "G23_MPa": 1065.4369135087218,
+        "V12": 0.3614049179605563,
+        "V13": 0.35630259957983523,
+        "V23": 0.3974519754365406,
+        "fiber_volume_fraction": 0.06707596903883725,
+        "anisotropy_ratio_E11_E22": 1.461580501362346
+      },
+      "F": [
+        -4445.841449899329,
+        0.06707596903883725
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.06600708809555682,
+          "fiber_length_mm": 0.04291199176891323,
+          "target_a11": 0.8240543310672114
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 4425.823735669654,
+        "E22_MPa": 3035.4403094309205,
+        "E33_MPa": 3044.2778123118164,
+        "G12_MPa": 1154.5324875806164,
+        "G13_MPa": 1142.3909260234368,
+        "G23_MPa": 1063.3072125959334,
+        "V12": 0.36149383239662225,
+        "V13": 0.3564906100086586,
+        "V23": 0.39749888125114596,
+        "fiber_volume_fraction": 0.06600708809555682,
+        "anisotropy_ratio_E11_E22": 1.4580499975304737
+      },
+      "F": [
+        -4425.823735669654,
+        0.06600708809555682
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.12478907156820841,
+          "fiber_length_mm": 0.04139430604786655,
+          "target_a11": 0.8292885472810635
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 6221.216900399985,
+        "E22_MPa": 3455.6801290534013,
+        "E33_MPa": 3474.873612106783,
+        "G12_MPa": 1360.8107541680745,
+        "G13_MPa": 1340.0621675806221,
+        "G23_MPa": 1192.958506271608,
+        "V12": 0.3582160755938557,
+        "V13": 0.35025714334114566,
+        "V23": 0.405360452978452,
+        "fiber_volume_fraction": 0.12478907156820841,
+        "anisotropy_ratio_E11_E22": 1.8002872569412651
+      },
+      "F": [
+        -6221.216900399985,
+        0.12478907156820841
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.09696797478385624,
+          "fiber_length_mm": 0.042774252153072394,
+          "target_a11": 0.8236929949999319
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 5369.936995809336,
+        "E22_MPa": 3255.2869456300423,
+        "E33_MPa": 3276.0334492924453,
+        "G12_MPa": 1263.0405892111523,
+        "G13_MPa": 1242.3459497441318,
+        "G23_MPa": 1129.5294915293896,
+        "V12": 0.36084024669167275,
+        "V13": 0.35220647924229653,
+        "V23": 0.40200239252974224,
+        "fiber_volume_fraction": 0.09696797478385624,
+        "anisotropy_ratio_E11_E22": 1.6496048076554477
+      },
+      "F": [
+        -5369.936995809336,
+        0.09696797478385624
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.09702328248788916,
+          "fiber_length_mm": 0.042760348531366815,
+          "target_a11": 0.8280373539698037
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 5391.698710001563,
+        "E22_MPa": 3252.736981843281,
+        "E33_MPa": 3274.19678324077,
+        "G12_MPa": 1262.027393405021,
+        "G13_MPa": 1240.823052820723,
+        "G23_MPa": 1128.2641000794501,
+        "V12": 0.3610146205648507,
+        "V13": 0.3521218933308643,
+        "V23": 0.40265032164954423,
+        "fiber_volume_fraction": 0.09702328248788916,
+        "anisotropy_ratio_E11_E22": 1.6575882833742563
+      },
+      "F": [
+        -5391.698710001563,
+        0.09702328248788916
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.12366091335488358,
+          "fiber_length_mm": 0.04246890165370038,
+          "target_a11": 0.8223306849180233
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 6211.299349092689,
+        "E22_MPa": 3459.2070210768725,
+        "E33_MPa": 3478.9895327390673,
+        "G12_MPa": 1362.7037812017556,
+        "G13_MPa": 1341.4608836535729,
+        "G23_MPa": 1193.8404720451056,
+        "V12": 0.3584862125044756,
+        "V13": 0.3501543051199771,
+        "V23": 0.40477790671247055,
+        "fiber_volume_fraction": 0.12366091335488358,
+        "anisotropy_ratio_E11_E22": 1.7955847427596494
+      },
+      "F": [
+        -6211.299349092689,
+        0.12366091335488358
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.12022164516094964,
+          "fiber_length_mm": 0.0429205046046139,
+          "target_a11": 0.8236929949999319
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 6132.98972348448,
+        "E22_MPa": 3433.3384567586513,
+        "E33_MPa": 3454.8169757260766,
+        "G12_MPa": 1350.6713466418794,
+        "G13_MPa": 1328.441634444853,
+        "G23_MPa": 1185.0270062801224,
+        "V12": 0.35914306885672903,
+        "V13": 0.35020244464586625,
+        "V23": 0.4049290408042629,
+        "fiber_volume_fraction": 0.12022164516094964,
+        "anisotropy_ratio_E11_E22": 1.7863050208206148
+      },
+      "F": [
+        -6132.98972348448,
+        0.12022164516094964
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.11538376282999216,
+          "fiber_length_mm": 0.042760348531366815,
+          "target_a11": 0.8230076062374929
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 5959.590778709189,
+        "E22_MPa": 3395.317941958221,
+        "E33_MPa": 3416.8300647080387,
+        "G12_MPa": 1331.7616422337271,
+        "G13_MPa": 1309.7692726654896,
+        "G23_MPa": 1173.220185594145,
+        "V12": 0.35948432327292595,
+        "V13": 0.3505835215188301,
+        "V23": 0.4041698445216179,
+        "fiber_volume_fraction": 0.11538376282999216,
+        "anisotropy_ratio_E11_E22": 1.7552379130868803
+      },
+      "F": [
+        -5959.590778709189,
+        0.11538376282999216
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.06616702386969747,
+          "fiber_length_mm": 0.042745395077425745,
+          "target_a11": 0.8265908307873784
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 4433.523587985467,
+        "E22_MPa": 3035.0868268960385,
+        "E33_MPa": 3044.181263094791,
+        "G12_MPa": 1154.2048864773672,
+        "G13_MPa": 1141.8871080087142,
+        "G23_MPa": 1063.058584633947,
+        "V12": 0.3615145048598581,
+        "V13": 0.35641995149147593,
+        "V23": 0.3977236201523108,
+        "fiber_volume_fraction": 0.06616702386969747,
+        "anisotropy_ratio_E11_E22": 1.460756756181371
+      },
+      "F": [
+        -4433.523587985467,
+        0.06616702386969747
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.08091058570275907,
+          "fiber_length_mm": 0.04207595238035984,
+          "target_a11": 0.8245028292299819
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 4843.576115249575,
+        "E22_MPa": 3136.116031334055,
+        "E33_MPa": 3151.7147435536212,
+        "G12_MPa": 1203.7431074699136,
+        "G13_MPa": 1187.0466141203665,
+        "G23_MPa": 1093.8332174521397,
+        "V12": 0.3611755673341023,
+        "V13": 0.35422522991165156,
+        "V23": 0.39937835879210426,
+        "fiber_volume_fraction": 0.08091058570275907,
+        "anisotropy_ratio_E11_E22": 1.544450545469516
+      },
+      "F": [
+        -4843.576115249575,
+        0.08091058570275907
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.07679487099619009,
+          "fiber_length_mm": 0.04141008936704087,
+          "target_a11": 0.8238939670746952
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 4690.269142500491,
+        "E22_MPa": 3105.3358066894934,
+        "E33_MPa": 3118.6544778895163,
+        "G12_MPa": 1188.0629881275495,
+        "G13_MPa": 1173.1155129538083,
+        "G23_MPa": 1085.2340762059082,
+        "V12": 0.360994145164679,
+        "V13": 0.35483928276467697,
+        "V23": 0.39822379984148,
+        "fiber_volume_fraction": 0.07679487099619009,
+        "anisotropy_ratio_E11_E22": 1.51039031991218
+      },
+      "F": [
+        -4690.269142500491,
+        0.07679487099619009
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.10601340728664746,
+          "fiber_length_mm": 0.042488854706431774,
+          "target_a11": 0.8235239945626831
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 5642.717090937507,
+        "E22_MPa": 3321.8149855951033,
+        "E33_MPa": 3343.0670060564544,
+        "G12_MPa": 1295.4498478596443,
+        "G13_MPa": 1274.0912776892646,
+        "G23_MPa": 1150.3750666526373,
+        "V12": 0.36013794199458804,
+        "V13": 0.35138503808988625,
+        "V23": 0.4029625737396059,
+        "fiber_volume_fraction": 0.10601340728664746,
+        "anisotropy_ratio_E11_E22": 1.6986849404337352
+      },
+      "F": [
+        -5642.717090937507,
+        0.10601340728664746
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.12116150042379505,
+          "fiber_length_mm": 0.04275484916775821,
+          "target_a11": 0.8236929949999319
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 6154.059936154863,
+        "E22_MPa": 3439.833752063206,
+        "E33_MPa": 3460.8693218301228,
+        "G12_MPa": 1353.682176509283,
+        "G13_MPa": 1331.7125001379404,
+        "G23_MPa": 1187.244159841408,
+        "V12": 0.3589651706724144,
+        "V13": 0.35019109949541677,
+        "V23": 0.40492603962597923,
+        "fiber_volume_fraction": 0.12116150042379505,
+        "anisotropy_ratio_E11_E22": 1.7890573730383539
+      },
+      "F": [
+        -6154.059936154863,
+        0.12116150042379505
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.06506655662078974,
+          "fiber_length_mm": 0.04207824238958711,
+          "target_a11": 0.8234902100884144
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 4367.542628945132,
+        "E22_MPa": 3026.9820506613464,
+        "E33_MPa": 3034.8266126196304,
+        "G12_MPa": 1149.812070160256,
+        "G13_MPa": 1138.5345914312704,
+        "G23_MPa": 1061.5197411265854,
+        "V12": 0.36121953487585934,
+        "V13": 0.3566338617628845,
+        "V23": 0.39671795129733084,
+        "fiber_volume_fraction": 0.06506655662078974,
+        "anisotropy_ratio_E11_E22": 1.4428703427530714
+      },
+      "F": [
+        -4367.542628945132,
+        0.06506655662078974
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.10604539072317343,
+          "fiber_length_mm": 0.042760348531366815,
+          "target_a11": 0.8280373539698037
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 5681.788579589396,
+        "E22_MPa": 3319.9142242183743,
+        "E33_MPa": 3342.4736311849188,
+        "G12_MPa": 1295.1651333496786,
+        "G13_MPa": 1272.8837440363006,
+        "G23_MPa": 1149.0211912677896,
+        "V12": 0.36047511410087557,
+        "V13": 0.35123544448600913,
+        "V23": 0.403847601750237,
+        "fiber_volume_fraction": 0.10604539072317343,
+        "anisotropy_ratio_E11_E22": 1.7114263188312013
+      },
+      "F": [
+        -5681.788579589396,
+        0.10604539072317343
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.09120949548831023,
+          "fiber_length_mm": 0.041670484309639766,
+          "target_a11": 0.8254863199268935
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 5144.570569574182,
+        "E22_MPa": 3207.611788529051,
+        "E33_MPa": 3225.963843323507,
+        "G12_MPa": 1238.6589151362873,
+        "G13_MPa": 1219.8986511036487,
+        "G23_MPa": 1115.7102564687075,
+        "V12": 0.3607146477061059,
+        "V13": 0.35297865205040213,
+        "V23": 0.40076008300512594,
+        "fiber_volume_fraction": 0.09120949548831023,
+        "anisotropy_ratio_E11_E22": 1.6038632193496778
+      },
+      "F": [
+        -5144.570569574182,
+        0.09120949548831023
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.0687570896988563,
+          "fiber_length_mm": 0.04299142880284118,
+          "target_a11": 0.8235239945626831
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 4508.962857139057,
+        "E22_MPa": 3054.717238300129,
+        "E33_MPa": 3065.187514123746,
+        "G12_MPa": 1164.1664049288481,
+        "G13_MPa": 1150.9146174144591,
+        "G23_MPa": 1068.9772992344492,
+        "V12": 0.36153831807696984,
+        "V13": 0.35603475815892494,
+        "V23": 0.39793778543196767,
+        "fiber_volume_fraction": 0.0687570896988563,
+        "anisotropy_ratio_E11_E22": 1.4760655423701927
+      },
+      "F": [
+        -4508.962857139057,
+        0.0687570896988563
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.07715494710768386,
+          "fiber_length_mm": 0.04188151731336028,
+          "target_a11": 0.8236868071485569
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 4719.15175795997,
+        "E22_MPa": 3109.4952394347497,
+        "E33_MPa": 3123.330051296833,
+        "G12_MPa": 1190.453113431211,
+        "G13_MPa": 1175.0593542754855,
+        "G23_MPa": 1086.1068395533057,
+        "V12": 0.3611460445820558,
+        "V13": 0.35476974353118423,
+        "V23": 0.3985662726219536,
+        "fiber_volume_fraction": 0.07715494710768386,
+        "anisotropy_ratio_E11_E22": 1.5176584604830679
+      },
+      "F": [
+        -4719.15175795997,
+        0.07715494710768386
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.08398637530612213,
+          "fiber_length_mm": 0.041318077072835635,
+          "target_a11": 0.8235207880892979
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 4900.095425151761,
+        "E22_MPa": 3155.7137464130824,
+        "E33_MPa": 3171.4576560785963,
+        "G12_MPa": 1212.7786959170985,
+        "G13_MPa": 1196.058309487529,
+        "G23_MPa": 1100.4866183839072,
+        "V12": 0.3607762274193004,
+        "V13": 0.3539068407299288,
+        "V23": 0.39920849370890876,
+        "fiber_volume_fraction": 0.08398637530612213,
+        "anisotropy_ratio_E11_E22": 1.5527693000423175
+      },
+      "F": [
+        -4900.095425151761,
+        0.08398637530612213
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.1258503620256522,
+          "fiber_length_mm": 0.04139430604786655,
+          "target_a11": 0.8294940996404735
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 6257.560313724087,
+        "E22_MPa": 3463.7854892974547,
+        "E33_MPa": 3482.8256223377666,
+        "G12_MPa": 1364.8329087235302,
+        "G13_MPa": 1344.1322346561046,
+        "G23_MPa": 1195.5244382741698,
+        "V12": 0.3581132445114905,
+        "V13": 0.35020098295050095,
+        "V23": 0.40550922918756765,
+        "fiber_volume_fraction": 0.1258503620256522,
+        "anisotropy_ratio_E11_E22": 1.8065669288871817
+      },
+      "F": [
+        -6257.560313724087,
+        0.1258503620256522
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.10802051152694135,
+          "fiber_length_mm": 0.042347770485208706,
+          "target_a11": 0.8268492960197628
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 5716.810233169462,
+        "E22_MPa": 3333.8159737696315,
+        "E33_MPa": 3355.535341546698,
+        "G12_MPa": 1301.493631467203,
+        "G13_MPa": 1279.7387255340343,
+        "G23_MPa": 1153.8637903991962,
+        "V12": 0.3600801704514863,
+        "V13": 0.3511805483553789,
+        "V23": 0.4036442879526043,
+        "fiber_volume_fraction": 0.10802051152694135,
+        "anisotropy_ratio_E11_E22": 1.7147947811604363
+      },
+      "F": [
+        -5716.810233169462,
+        0.10802051152694135
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.09463158564583268,
+          "fiber_length_mm": 0.042968048975217984,
+          "target_a11": 0.8240543310672114
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 5307.222550391953,
+        "E22_MPa": 3238.592471538699,
+        "E33_MPa": 3259.238036162444,
+        "G12_MPa": 1255.0301737420643,
+        "G13_MPa": 1234.4595407048082,
+        "G23_MPa": 1124.200840417544,
+        "V12": 0.3610578246896747,
+        "V13": 0.35242309511521525,
+        "V23": 0.401862557820688,
+        "fiber_volume_fraction": 0.09463158564583268,
+        "anisotropy_ratio_E11_E22": 1.6387435582070686
+      },
+      "F": [
+        -5307.222550391953,
+        0.09463158564583268
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.08099155087697175,
+          "fiber_length_mm": 0.04207595238035984,
+          "target_a11": 0.8245028292299819
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 4846.032488993906,
+        "E22_MPa": 3136.6875440322838,
+        "E33_MPa": 3152.3164379530303,
+        "G12_MPa": 1204.0250128918076,
+        "G13_MPa": 1187.3065365523858,
+        "G23_MPa": 1094.0048871126296,
+        "V12": 0.3611738316518666,
+        "V13": 0.35421430907760026,
+        "V23": 0.3993906449160456,
+        "fiber_volume_fraction": 0.08099155087697175,
+        "anisotropy_ratio_E11_E22": 1.5449522532818871
+      },
+      "F": [
+        -4846.032488993906,
+        0.08099155087697175
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.07557137966323398,
+          "fiber_length_mm": 0.04171968950388136,
+          "target_a11": 0.8236636944996268
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 4665.312471507205,
+        "E22_MPa": 3097.943636974928,
+        "E33_MPa": 3110.970534362044,
+        "G12_MPa": 1184.6385215158457,
+        "G13_MPa": 1169.847561858923,
+        "G23_MPa": 1082.7938469903108,
+        "V12": 0.3611105809094026,
+        "V13": 0.35500251592934917,
+        "V23": 0.39820867062983956,
+        "fiber_volume_fraction": 0.07557137966323398,
+        "anisotropy_ratio_E11_E22": 1.5059384605404822
+      },
+      "F": [
+        -4665.312471507205,
+        0.07557137966323398
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.07890197714400551,
+          "fiber_length_mm": 0.041961815351127286,
+          "target_a11": 0.8236930108645572
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 4774.920863573347,
+        "E22_MPa": 3121.996490893378,
+        "E33_MPa": 3136.612347028498,
+        "G12_MPa": 1196.678322552083,
+        "G13_MPa": 1180.7118307355197,
+        "G23_MPa": 1089.7804552547393,
+        "V12": 0.3611462267335669,
+        "V13": 0.35452110285791477,
+        "V23": 0.39888957013002924,
+        "fiber_volume_fraction": 0.07890197714400551,
+        "anisotropy_ratio_E11_E22": 1.5294446606527012
+      },
+      "F": [
+        -4774.920863573347,
+        0.07890197714400551
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.09420243748709267,
+          "fiber_length_mm": 0.04299710985877213,
+          "target_a11": 0.8235195701006421
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 5292.5703328497475,
+        "E22_MPa": 3235.895585585773,
+        "E33_MPa": 3256.406016348774,
+        "G12_MPa": 1253.7011757400014,
+        "G13_MPa": 1233.2363009075823,
+        "G23_MPa": 1123.4117109918902,
+        "V12": 0.3610685152021165,
+        "V13": 0.35247658939794707,
+        "V23": 0.40174336094229857,
+        "fiber_volume_fraction": 0.09420243748709267,
+        "anisotropy_ratio_E11_E22": 1.6355813075135637
+      },
+      "F": [
+        -5292.5703328497475,
+        0.09420243748709267
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.06917650043983291,
+          "fiber_length_mm": 0.04287925966660447,
+          "target_a11": 0.8291862866161831
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 4537.712620101761,
+        "E22_MPa": 3054.919135613244,
+        "E33_MPa": 3066.136461522185,
+        "G12_MPa": 1164.1314174920294,
+        "G13_MPa": 1150.3130328959155,
+        "G23_MPa": 1068.510642248511,
+        "V12": 0.3616678204364672,
+        "V13": 0.3558743628887639,
+        "V23": 0.3986387200256178,
+        "fiber_volume_fraction": 0.06917650043983291,
+        "anisotropy_ratio_E11_E22": 1.4853789637842119
+      },
+      "F": [
+        -4537.712620101761,
+        0.06917650043983291
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.12667568704621704,
+          "fiber_length_mm": 0.04291199176891323,
+          "target_a11": 0.8101191151302947
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 6266.1754373717085,
+        "E22_MPa": 3497.3570215983195,
+        "E33_MPa": 3514.473013749855,
+        "G12_MPa": 1380.0329585584693,
+        "G13_MPa": 1360.3083977200079,
+        "G23_MPa": 1207.077317704912,
+        "V12": 0.35767038211343444,
+        "V13": 0.35009244023853797,
+        "V23": 0.4032595140227001,
+        "fiber_volume_fraction": 0.12667568704621704,
+        "anisotropy_ratio_E11_E22": 1.7916888091991299
+      },
+      "F": [
+        -6266.1754373717085,
+        0.12667568704621704
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.11200665774441752,
+          "fiber_length_mm": 0.04229288492475936,
+          "target_a11": 0.8280014049793971
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 5849.201958646724,
+        "E22_MPa": 3362.908957696291,
+        "E33_MPa": 3384.767957691732,
+        "G12_MPa": 1315.8686866997975,
+        "G13_MPa": 1293.8446182427074,
+        "G23_MPa": 1162.8837927104719,
+        "V12": 0.3597971889940486,
+        "V13": 0.3508524145681662,
+        "V23": 0.4042832706753777,
+        "fiber_volume_fraction": 0.11200665774441752,
+        "anisotropy_ratio_E11_E22": 1.7393280734705436
+      },
+      "F": [
+        -5849.201958646724,
+        0.11200665774441752
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.08042228275859561,
+          "fiber_length_mm": 0.042045169400616214,
+          "target_a11": 0.8245618769673959
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 4827.717848835856,
+        "E22_MPa": 3132.537094693587,
+        "E33_MPa": 3147.929279585918,
+        "G12_MPa": 1201.9543804684852,
+        "G13_MPa": 1185.4116149790586,
+        "G23_MPa": 1092.7780178956007,
+        "V12": 0.36117630433742376,
+        "V13": 0.3542926426477432,
+        "V23": 0.3992918174764677,
+        "fiber_volume_fraction": 0.08042228275859561,
+        "anisotropy_ratio_E11_E22": 1.5411526513169944
+      },
+      "F": [
+        -4827.717848835856,
+        0.08042228275859561
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.10657633500788355,
+          "fiber_length_mm": 0.04285393593374317,
+          "target_a11": 0.8268884296137449
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 5698.190900639995,
+        "E22_MPa": 3325.2137238711266,
+        "E33_MPa": 3347.746743655235,
+        "G12_MPa": 1297.7766322174361,
+        "G13_MPa": 1275.4872868755956,
+        "G23_MPa": 1150.7175076497904,
+        "V12": 0.3604293068350317,
+        "V13": 0.351189561185777,
+        "V23": 0.4037940805873877,
+        "fiber_volume_fraction": 0.10657633500788355,
+        "anisotropy_ratio_E11_E22": 1.713631475695436
+      },
+      "F": [
+        -5698.190900639995,
+        0.10657633500788355
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.06528320481734488,
+          "fiber_length_mm": 0.04207824238958711,
+          "target_a11": 0.8234079336374962
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 4373.617745695073,
+        "E22_MPa": 3028.481618439685,
+        "E33_MPa": 3036.4467521760052,
+        "G12_MPa": 1150.5562137698676,
+        "G13_MPa": 1139.1981225121642,
+        "G23_MPa": 1061.968894534681,
+        "V12": 0.36121998137107836,
+        "V13": 0.35659892319083053,
+        "V23": 0.396744521053707,
+        "fiber_volume_fraction": 0.06528320481734488,
+        "anisotropy_ratio_E11_E22": 1.4441618925686002
+      },
+      "F": [
+        -4373.617745695073,
+        0.06528320481734488
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.07562267276582828,
+          "fiber_length_mm": 0.04166980926929151,
+          "target_a11": 0.8254863199268935
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 4671.693154122274,
+        "E22_MPa": 3097.2959290062327,
+        "E33_MPa": 3110.5164517104176,
+        "G12_MPa": 1184.2917764621677,
+        "G13_MPa": 1169.359970681192,
+        "G23_MPa": 1082.44932124638,
+        "V12": 0.3611492690575723,
+        "V13": 0.3549672818328059,
+        "V23": 0.39841724710687826,
+        "fiber_volume_fraction": 0.07562267276582828,
+        "anisotropy_ratio_E11_E22": 1.5083134647780287
+      },
+      "F": [
+        -4671.693154122274,
+        0.07562267276582828
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.09477170560961506,
+          "fiber_length_mm": 0.042976140162961446,
+          "target_a11": 0.823464946825269
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 5309.292583593687,
+        "E22_MPa": 3240.039820876438,
+        "E33_MPa": 3260.631162237505,
+        "G12_MPa": 1255.7185929249592,
+        "G13_MPa": 1235.1835390227882,
+        "G23_MPa": 1124.7045023448795,
+        "V12": 0.36103039801798825,
+        "V13": 0.3524167019336004,
+        "V23": 0.40179959375062085,
+        "fiber_volume_fraction": 0.09477170560961506,
+        "anisotropy_ratio_E11_E22": 1.6386504108327629
+      },
+      "F": [
+        -5309.292583593687,
+        0.09477170560961506
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.0792043692879977,
+          "fiber_length_mm": 0.042573144456736725,
+          "target_a11": 0.8240621435914344
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 4810.6263852221955,
+        "E22_MPa": 3125.9746424211576,
+        "E33_MPa": 3141.336154610094,
+        "G12_MPa": 1199.1275607026264,
+        "G13_MPa": 1182.5442956687182,
+        "G23_MPa": 1090.4276825966015,
+        "V12": 0.36137750265636864,
+        "V13": 0.3544321669888634,
+        "V23": 0.3993831084779567,
+        "fiber_volume_fraction": 0.0792043692879977,
+        "anisotropy_ratio_E11_E22": 1.538920476173865
+      },
+      "F": [
+        -4810.6263852221955,
+        0.0792043692879977
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.10561581656480878,
+          "fiber_length_mm": 0.04291199176891323,
+          "target_a11": 0.8101191151302947
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 5584.157870155013,
+        "E22_MPa": 3330.8279372415786,
+        "E33_MPa": 3350.2532693021635,
+        "G12_MPa": 1299.1171533802506,
+        "G13_MPa": 1279.0004109219292,
+        "G23_MPa": 1154.3650039188626,
+        "V12": 0.35973174462952556,
+        "V13": 0.35156635944991665,
+        "V23": 0.40108171720598235,
+        "fiber_volume_fraction": 0.10561581656480878,
+        "anisotropy_ratio_E11_E22": 1.6765074556146324
+      },
+      "F": [
+        -5584.157870155013,
+        0.10561581656480878
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.11673748189262736,
+          "fiber_length_mm": 0.04292560337997031,
+          "target_a11": 0.8292883709731935
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 6049.469159984788,
+        "E22_MPa": 3401.318456408799,
+        "E33_MPa": 3424.3815776280258,
+        "G12_MPa": 1335.593174700389,
+        "G13_MPa": 1312.4758044765797,
+        "G23_MPa": 1174.2321307793636,
+        "V12": 0.3597716094485417,
+        "V13": 0.3503191926291092,
+        "V23": 0.405472027545096,
+        "fiber_volume_fraction": 0.11673748189262736,
+        "anisotropy_ratio_E11_E22": 1.778565940682889
+      },
+      "F": [
+        -6049.469159984788,
+        0.11673748189262736
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.10052992917464423,
+          "fiber_length_mm": 0.04249078504965232,
+          "target_a11": 0.8230687250906258
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 5465.492305173161,
+        "E22_MPa": 3280.97533864273,
+        "E33_MPa": 3301.6985053108674,
+        "G12_MPa": 1275.3551169120312,
+        "G13_MPa": 1254.578019743625,
+        "G23_MPa": 1137.7625228537804,
+        "V12": 0.36048290580686315,
+        "V13": 0.35190444090389594,
+        "V23": 0.4021979060711615,
+        "fiber_volume_fraction": 0.10052992917464423,
+        "anisotropy_ratio_E11_E22": 1.6658132844833022
+      },
+      "F": [
+        -5465.492305173161,
+        0.10052992917464423
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.11510927869259609,
+          "fiber_length_mm": 0.042760348531366815,
+          "target_a11": 0.8230076062374929
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 5950.580520448411,
+        "E22_MPa": 3393.1886878936134,
+        "E33_MPa": 3414.719756538036,
+        "G12_MPa": 1330.716879429622,
+        "G13_MPa": 1308.7254452218046,
+        "G23_MPa": 1172.5486739122937,
+        "V12": 0.35950900390987417,
+        "V13": 0.3506031600618042,
+        "V23": 0.4041384187085607,
+        "fiber_volume_fraction": 0.11510927869259609,
+        "anisotropy_ratio_E11_E22": 1.7536839438605896
+      },
+      "F": [
+        -5950.580520448411,
+        0.11510927869259609
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.08839016115790145,
+          "fiber_length_mm": 0.04271817045691949,
+          "target_a11": 0.8235220592732373
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 5097.313780277792,
+        "E22_MPa": 3192.4032106719387,
+        "E33_MPa": 3211.0708301189948,
+        "G12_MPa": 1232.0140067584152,
+        "G13_MPa": 1212.989480189835,
+        "G23_MPa": 1110.394975601638,
+        "V12": 0.36118394453803027,
+        "V13": 0.3532079267121477,
+        "V23": 0.4007573984781493,
+        "fiber_volume_fraction": 0.08839016115790145,
+        "anisotropy_ratio_E11_E22": 1.596701119469463
+      },
+      "F": [
+        -5097.313780277792,
+        0.08839016115790145
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.11050039878847884,
+          "fiber_length_mm": 0.04285903522770408,
+          "target_a11": 0.8293018853616372
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 5839.412385587215,
+        "E22_MPa": 3353.124379809823,
+        "E33_MPa": 3376.260181543426,
+        "G12_MPa": 1311.7565432679826,
+        "G13_MPa": 1288.884339067462,
+        "G23_MPa": 1159.1450498138001,
+        "V12": 0.3602581182825004,
+        "V13": 0.3508067896367333,
+        "V23": 0.40467470821903384,
+        "fiber_volume_fraction": 0.11050039878847884,
+        "anisotropy_ratio_E11_E22": 1.7414839785687892
+      },
+      "F": [
+        -5839.412385587215,
+        0.11050039878847884
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.07298717542606135,
+          "fiber_length_mm": 0.04228956428378003,
+          "target_a11": 0.8291862866161831
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 4630.602986141191,
+        "E22_MPa": 3079.338756411726,
+        "E33_MPa": 3092.2167432264287,
+        "G12_MPa": 1175.8494072263397,
+        "G13_MPa": 1161.0100641417243,
+        "G23_MPa": 1076.2048738048964,
+        "V12": 0.3614899199322211,
+        "V13": 0.35527550455371776,
+        "V23": 0.39887832506585347,
+        "fiber_volume_fraction": 0.07298717542606135,
+        "anisotropy_ratio_E11_E22": 1.5037653705684244
+      },
+      "F": [
+        -4630.602986141191,
+        0.07298717542606135
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.08504965811301189,
+          "fiber_length_mm": 0.04298652496628201,
+          "target_a11": 0.8235206652005612
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 5005.587609408782,
+        "E22_MPa": 3169.2907169379105,
+        "E33_MPa": 3187.2359695265613,
+        "G12_MPa": 1220.856096130366,
+        "G13_MPa": 1202.3657923359024,
+        "G23_MPa": 1103.174327372544,
+        "V12": 0.3613963272489894,
+        "V13": 0.35360342801605704,
+        "V23": 0.40044586851678476,
+        "fiber_volume_fraction": 0.08504965811301189,
+        "anisotropy_ratio_E11_E22": 1.5794031082907583
+      },
+      "F": [
+        -5005.587609408782,
+        0.08504965811301189
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.06500993104446456,
+          "fiber_length_mm": 0.04126019879590116,
+          "target_a11": 0.8234902100884144
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 4337.933895921698,
+        "E22_MPa": 3024.319901445155,
+        "E33_MPa": 3031.82019595688,
+        "G12_MPa": 1148.0196578634075,
+        "G13_MPa": 1137.177737546757,
+        "G23_MPa": 1061.3759201643563,
+        "V12": 0.3609881302187907,
+        "V13": 0.3566125593266769,
+        "V23": 0.396152224440793,
+        "fiber_volume_fraction": 0.06500993104446456,
+        "anisotropy_ratio_E11_E22": 1.434350213364942
+      },
+      "F": [
+        -4337.933895921698,
+        0.06500993104446456
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.1297887265496847,
+          "fiber_length_mm": 0.04292315967434893,
+          "target_a11": 0.8290250301371224
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 6487.766846906994,
+        "E22_MPa": 3504.1772427482438,
+        "E33_MPa": 3525.176142213795,
+        "G12_MPa": 1386.251755997392,
+        "G13_MPa": 1363.8356205555026,
+        "G23_MPa": 1207.041128421653,
+        "V12": 0.3584223437512078,
+        "V13": 0.3495770454283919,
+        "V23": 0.406878878621976,
+        "fiber_volume_fraction": 0.1297887265496847,
+        "anisotropy_ratio_E11_E22": 1.8514379831480188
+      },
+      "F": [
+        -6487.766846906994,
+        0.1297887265496847
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.13060619247190874,
+          "fiber_length_mm": 0.04291199176891323,
+          "target_a11": 0.8290609972401316
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 6515.180123708493,
+        "E22_MPa": 3510.616487776886,
+        "E33_MPa": 3531.4060438805327,
+        "G12_MPa": 1389.4182831925127,
+        "G13_MPa": 1367.0976787680531,
+        "G23_MPa": 1209.1195477758088,
+        "V12": 0.3583241490896166,
+        "V13": 0.3495434851717432,
+        "V23": 0.40696305038483116,
+        "fiber_volume_fraction": 0.13060619247190874,
+        "anisotropy_ratio_E11_E22": 1.8558507163607212
+      },
+      "F": [
+        -6515.180123708493,
+        0.13060619247190874
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.09548634033048628,
+          "fiber_length_mm": 0.04285343946036699,
+          "target_a11": 0.8280373539698037
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 5347.4109741863085,
+        "E22_MPa": 3241.8198070128287,
+        "E33_MPa": 3263.1213185384536,
+        "G12_MPa": 1256.7274732050969,
+        "G13_MPa": 1235.6697492897713,
+        "G23_MPa": 1124.834519137273,
+        "V12": 0.3611315009024741,
+        "V13": 0.3522729640647532,
+        "V23": 0.40249747404723785,
+        "fiber_volume_fraction": 0.09548634033048628,
+        "anisotropy_ratio_E11_E22": 1.6495090080634909
+      },
+      "F": [
+        -5347.4109741863085,
+        0.09548634033048628
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.10278374463944236,
+          "fiber_length_mm": 0.04235093878192056,
+          "target_a11": 0.8267534630304592
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 5548.149984992225,
+        "E22_MPa": 3294.57311545824,
+        "E33_MPa": 3315.965763034367,
+        "G12_MPa": 1282.1690296122163,
+        "G13_MPa": 1260.851688331376,
+        "G23_MPa": 1141.6750745597044,
+        "V12": 0.3604407455306175,
+        "V13": 0.3516463532637153,
+        "V23": 0.4029635309629753,
+        "fiber_volume_fraction": 0.10278374463944236,
+        "anisotropy_ratio_E11_E22": 1.6840269711909357
+      },
+      "F": [
+        -5548.149984992225,
+        0.10278374463944236
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.12049612929834569,
+          "fiber_length_mm": 0.0429205046046139,
+          "target_a11": 0.8236929949999319
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 6142.122678484101,
+        "E22_MPa": 3435.49574049537,
+        "E33_MPa": 3456.9384527728234,
+        "G12_MPa": 1351.7301674701532,
+        "G13_MPa": 1329.509992678117,
+        "G23_MPa": 1185.7122232862594,
+        "V12": 0.3591157981870208,
+        "V13": 0.35018528118946624,
+        "V23": 0.4049592403602564,
+        "fiber_volume_fraction": 0.12049612929834569,
+        "anisotropy_ratio_E11_E22": 1.7878417388456602
+      },
+      "F": [
+        -6142.122678484101,
+        0.12049612929834569
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "target_vf": 0.06718725269336169,
+          "fiber_length_mm": 0.04274748653827967,
+          "target_a11": 0.8240605117992182
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "E11_MPa": 4455.286132905799,
+        "E22_MPa": 3043.0469781685574,
+        "E33_MPa": 3052.514012602047,
+        "G12_MPa": 1158.198709883782,
+        "G13_MPa": 1145.6668632351327,
+        "G23_MPa": 1065.6681563468887,
+        "V12": 0.36145989124766364,
+        "V13": 0.35628675542767446,
+        "V23": 0.3975865320422117,
+        "fiber_volume_fraction": 0.06718725269336169,
+        "anisotropy_ratio_E11_E22": 1.4640872010418946
+      },
+      "F": [
+        -4455.286132905799,
+        0.06718725269336169
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "E11_MPa": "specialist",
+        "E22_MPa": "specialist",
+        "E33_MPa": "specialist",
+        "G12_MPa": "specialist",
+        "G13_MPa": "specialist",
+        "G23_MPa": "specialist",
+        "V12": "specialist",
+        "V13": "specialist",
+        "V23": "specialist",
+        "fiber_volume_fraction": "specialist",
+        "anisotropy_ratio_E11_E22": "specialist"
+      }
+    }
+  ],
+  "prediction_is_experimental_validation": false
+}

@@ -1,0 +1,115 @@
+{
+  "model_version": "chip_glass_cte_family_v1_20260902",
+  "status": "service_pilot_narrow_family",
+  "model": "ExtraTreesRegressor",
+  "task": "oxide mol% to linear CTE at 0-300 C",
+  "unit": "ppm/K",
+  "training_rows": 66,
+  "independent_compositions": 66,
+  "source_tables": [
+    "10",
+    "11",
+    "12",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9"
+  ],
+  "validation": "leave-one-patent-table-out GroupKFold",
+  "metrics": {
+    "mae_ppm_per_K": 0.0479187301587274,
+    "rmse_ppm_per_K": 0.07133093653580282,
+    "r2": 0.7894858238591096,
+    "max_absolute_error_ppm_per_K": 0.2236233333333293
+  },
+  "features_mol_percent": [
+    "Al2O3",
+    "B2O3",
+    "BaO",
+    "CaO",
+    "Fe2O3",
+    "K2O",
+    "Li2O",
+    "MgO",
+    "Na2O",
+    "P2O5",
+    "SiO2",
+    "SnO2",
+    "SrO",
+    "TiO2",
+    "ZnO",
+    "ZrO2"
+  ],
+  "training_min_max_mol_percent": {
+    "Al2O3": [
+      10.55,
+      13.06
+    ],
+    "B2O3": [
+      0.0,
+      4.03
+    ],
+    "BaO": [
+      0.85,
+      4.64
+    ],
+    "CaO": [
+      5.31,
+      7.35
+    ],
+    "Fe2O3": [
+      0.0,
+      0.01
+    ],
+    "K2O": [
+      0.0,
+      0.02
+    ],
+    "Li2O": [
+      0.0,
+      0.0
+    ],
+    "MgO": [
+      4.82,
+      6.4
+    ],
+    "Na2O": [
+      0.0,
+      0.1
+    ],
+    "P2O5": [
+      0.0,
+      0.0
+    ],
+    "SiO2": [
+      68.73,
+      70.87
+    ],
+    "SnO2": [
+      0.08,
+      0.13
+    ],
+    "SrO": [
+      0.3,
+      3.68
+    ],
+    "TiO2": [
+      0.0,
+      0.04
+    ],
+    "ZnO": [
+      0.0,
+      0.0
+    ],
+    "ZrO2": [
+      0.0,
+      0.1
+    ]
+  },
+  "scope": "Only the disclosed alkali-free alumino-borosilicate family and the same 0-300 C ASTM-E228 CTE definition. It is not a residual-stress, TGV, RF, Tg, modulus, or package-reliability model.",
+  "evidence": "US20250026678A1 Tables 2-12; CTE definition and method stated in the publication; retained PDF and HTML table snapshot."
+}

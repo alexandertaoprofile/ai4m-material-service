@@ -1,0 +1,44 @@
+{
+  "all_rows": 159461,
+  "independent_compositions": 67679,
+  "source_groups": 8088,
+  "folds": [
+    {
+      "fold": 1,
+      "training_statistics_parity": true,
+      "train_test_source_overlap": 0,
+      "train_test_composition_overlap": 0,
+      "train_validation_composition_overlap": 0,
+      "descriptor_training_compositions": 39196
+    },
+    {
+      "fold": 2,
+      "training_statistics_parity": true,
+      "train_test_source_overlap": 0,
+      "train_test_composition_overlap": 0,
+      "train_validation_composition_overlap": 0,
+      "descriptor_training_compositions": 38515
+    },
+    {
+      "fold": 3,
+      "training_statistics_parity": true,
+      "train_test_source_overlap": 0,
+      "train_test_composition_overlap": 0,
+      "train_validation_composition_overlap": 0,
+      "descriptor_training_compositions": 39152
+    }
+  ],
+  "all_oof_rows_present_once": true,
+  "all_oof_outputs_finite": true,
+  "wrapper_prediction_parity_rows": 128,
+  "maximum_wrapper_difference": 3.480283380952187e-05,
+  "health_expected_origin": "cross-checked raw inference against independent training encoder",
+  "properties_admitted_to_shadow": [
+    "DENSITY_20C",
+    "YOUNG_MODULUS"
+  ],
+  "cte_interval_semantics_match": false,
+  "thermal_conductivity_primary_admitted": false,
+  "license_review_required": true,
+  "production_release_authorized": false
+}

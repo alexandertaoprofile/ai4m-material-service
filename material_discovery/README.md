@@ -14,6 +14,8 @@
 
 ## 2. 运行环境、模型数据与启动
 
+新机器按[复现指南](../docs/reproduction.md)安装 `web`、`numeric`、`omatg`、`alignn` 环境。[OMatG 源码](../third_party/README.md)已随 Git 提供，生成/性质权重和稳定性参考库从 `1115` 资源组恢复。配置生成工具按本机目录填写执行器路径，再检查 CSP 与 DNG；实际结果见[复现记录](../docs/REPRODUCTION_VERIFICATION_20261008.md)。
+
 | 环节 | 当前 75 服务器解释器或目录 |
 | --- | --- |
 | Web 服务 | `/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python` |
@@ -26,7 +28,7 @@
 
 `.env.example` 提供服务与外部接口变量；[.env.omatg.example](.env.omatg.example) 提供模型专项配置。获批部署时按需合并到本机 `.env`，保留密钥、端口、对象存储及弹窗设置。运行时显式设置 `NEW_MATERIAL_GENERATOR=omatg` 和 `PORT=1115`。缺少后端配置时可能选择历史后端；缺少端口配置时 `main.py` 默认 1107。
 
-GitHub 提供服务和独立执行脚本；表中的官方源码、环境、权重与参考库需单独取得。DNG 权重为 checkpoints/MP-20-DNG/Linear-SDE-Gamma/，CSP 权重为 checkpoints/Alex-MP-20-CSP/Trig-SDE-Gamma/，各需 checkpoint.ckpt 和 train.yaml。MatterSim 权重为 checkpoints/mattersim-v1.0.0-1M.pth；ALIGNN 模型在 checkpoints/alignn/。环境版本、用途和最小检查见[运行说明](../docs/service_setup.md)。
+Git 提供服务、独立执行脚本及 OMatG 源码；Release 提供权重与参考库。DNG 权重为 MP-20-DNG/Linear-SDE-Gamma/，CSP 权重为 Alex-MP-20-CSP/Trig-SDE-Gamma/，各有 checkpoint.ckpt 和 train.yaml。MatterSim 使用 mattersim-v1.0.0-1M.pth；ALIGNN 使用五个性质模型。恢复后的相对路径及校验值见资源清单，本机绝对路径由配置生成工具填写。
 
 科学软件分工为 OMatG 生成结构，MatterSim 提供能量与力，ASE 调整晶胞和原子位置，pymatgen 检查组成、几何、相图及相似结构，ALIGNN 预测性质。已有 GPU 测试硬件为 RTX 4090 24 GB，目标机器需匹配 PyTorch/CUDA 和图计算依赖。
 

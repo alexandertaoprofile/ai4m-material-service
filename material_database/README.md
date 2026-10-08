@@ -14,7 +14,9 @@
 
 ## 2. 运行环境、数据与启动
 
-随 Git 提供的通用数据包括 materials.csv、material_aliases.csv、property_points.csv、curve_data.csv、composition_long.csv 及清洗记录。导电润滑剂专项 SQLite 仅在 75 运行目录，2026-10-05 核对为 381,964,288 字节，约 364 MiB，迁移时需单独取得。原始工作簿与 PDF 用于重建和导入，存放在外部数据目录。
+新机器先看[安装与复现指南](../docs/reproduction.md)：创建 `web` 环境，下载 `1105` 资源组并恢复 SQLite，再用统一启动器启动。本页的服务器路径用于追溯原部署；[资源清单](../resources/README.md)提供下载与校验方式。
+
+随 Git 提供基础通用目录及清洗记录；Release 的 `1105` 资源组补齐线上读取的 `material_core/`、`high_temperature/` 已核验目录，以及 381,964,288 字节的导电润滑剂 SQLite。恢复工具将它们放到查询程序读取的位置。原始工作簿与 PDF 用于重建和导入，位置见研究资源说明。
 
 软件分工为 FastAPI/Uvicorn 接收请求，CSV/SQLite 查询和规则比较提供材料证据，Matplotlib 生成图像。环境定义见[环境说明](../env/README.md)，完整资源交接和最小检查见[运行说明](../docs/service_setup.md)。
 

@@ -1,0 +1,103 @@
+{
+  "ok": true,
+  "mode": "shadow",
+  "display_allowed": false,
+  "production_release_authorized": false,
+  "public_effect": false,
+  "method": "nsga2",
+  "seed": 17,
+  "status": "completed",
+  "objectives": [
+    {
+      "property": "YS_MPa",
+      "mode": "max",
+      "unit": "MPa",
+      "scale": 1.0
+    },
+    {
+      "property": "UTS_MPa",
+      "mode": "max",
+      "unit": "MPa",
+      "scale": 1.0
+    }
+  ],
+  "stop_reason": "model_evaluation_budget",
+  "counters": {
+    "proposals": 288,
+    "model_evaluations": 256,
+    "feasible": 252,
+    "pareto_count": 2
+  },
+  "elapsed_seconds": 15.468646172434092,
+  "pareto_front": [
+    {
+      "composition": {
+        "values": {
+          "Cu": 89.33645,
+          "Cr": 5.03332,
+          "Nb": 5.42158,
+          "Zr": 0.0,
+          "Ag": 0.08895,
+          "Al": 0.00054,
+          "O": 0.04738,
+          "Ni": 0.00401,
+          "Fe": 0.06551,
+          "Ti": 0.00226
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "YS_MPa": 434.25048828125,
+        "UTS_MPa": 533.6893920898438
+      },
+      "F": [
+        -434.25048828125,
+        -533.6893920898438
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "local",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Cu": 88.96874,
+          "Cr": 5.06163,
+          "Nb": 5.71805,
+          "Zr": 0.0,
+          "Ag": 0.195,
+          "Al": 0.00031,
+          "O": 1e-05,
+          "Ni": 0.00355,
+          "Fe": 0.05271,
+          "Ti": 0.0
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "YS_MPa": 435.554443359375,
+        "UTS_MPa": 531.596435546875
+      },
+      "F": [
+        -435.554443359375,
+        -531.596435546875
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "local",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10"
+      }
+    }
+  ],
+  "prediction_is_experimental_validation": false
+}

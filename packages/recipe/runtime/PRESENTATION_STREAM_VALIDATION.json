@@ -1,0 +1,102 @@
+{
+  "records": [
+    {
+      "domain": "hea_mpea",
+      "passed": true,
+      "source_summary_read": true,
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1790150692_9958_5d13f3e3-3087-41ac-b60d-5e12d425f0be_s1-eb4272e6286a9ec1/manifest.json",
+      "local_png_count": 4,
+      "stream_chunks": 76,
+      "unresolved_image_tokens": 0,
+      "real_asset_upload_performed": false,
+      "real_external_llm_called": false,
+      "tests_cover": "local renderer -> public HTTPS placeholders -> final emitter -> token stream capture"
+    },
+    {
+      "domain": "ni_superalloy_hot_end",
+      "passed": true,
+      "source_summary_read": true,
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/shadow-live-nickel-r2-20260921/manifest.json",
+      "local_png_count": 3,
+      "stream_chunks": 30,
+      "unresolved_image_tokens": 0,
+      "real_asset_upload_performed": false,
+      "real_external_llm_called": false,
+      "tests_cover": "local renderer -> public HTTPS placeholders -> final emitter -> token stream capture"
+    },
+    {
+      "domain": "reusable_rocket_stainless",
+      "passed": true,
+      "source_summary_read": true,
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1790561014_2360_ac09a02d-53f2-4e2b-bfb9-691ba5fdd761_s7-1d1336474ddd1473/manifest.json",
+      "local_png_count": 3,
+      "stream_chunks": 39,
+      "unresolved_image_tokens": 0,
+      "real_asset_upload_performed": false,
+      "real_external_llm_called": false,
+      "tests_cover": "local renderer -> public HTTPS placeholders -> final emitter -> token stream capture"
+    },
+    {
+      "domain": "aerospace_aluminum_composition_v1",
+      "passed": true,
+      "source_summary_read": true,
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1790153188_6407_e109b21f-39d4-4ca5-9330-10973ebbc1ed_s1-29bca5c7204db7be/manifest.json",
+      "local_png_count": 3,
+      "stream_chunks": 36,
+      "unresolved_image_tokens": 0,
+      "real_asset_upload_performed": false,
+      "real_external_llm_called": false,
+      "tests_cover": "local renderer -> public HTTPS placeholders -> final emitter -> token stream capture"
+    },
+    {
+      "domain": "copper_hot_end_local_composition_v1",
+      "passed": true,
+      "source_summary_read": true,
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1790153188_6407_c656a129-3af4-4271-b36c-3fa140da78d0_s1-bf819a585c3c7270/manifest.json",
+      "local_png_count": 3,
+      "stream_chunks": 76,
+      "unresolved_image_tokens": 0,
+      "real_asset_upload_performed": false,
+      "real_external_llm_called": false,
+      "tests_cover": "local renderer -> public HTTPS placeholders -> final emitter -> token stream capture"
+    },
+    {
+      "domain": "chip_glass_thermomechanical_family_v1",
+      "passed": true,
+      "source_summary_read": true,
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1790153188_6407_aac7e15f-285c-45d2-82ec-6cd3aa3bb8aa_s1-eb276e94d6ec261a/manifest.json",
+      "local_png_count": 3,
+      "stream_chunks": 44,
+      "unresolved_image_tokens": 0,
+      "real_asset_upload_performed": false,
+      "real_external_llm_called": false,
+      "tests_cover": "local renderer -> public HTTPS placeholders -> final emitter -> token stream capture"
+    },
+    {
+      "domain": "short_cf_thermomechanical_rve_v1",
+      "passed": true,
+      "source_summary_read": true,
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1789896994_8348_126ee13f-b1c9-46b2-b0ca-765c3ac38124_s11-30b0447ba555ec2e/manifest.json",
+      "local_png_count": 3,
+      "stream_chunks": 43,
+      "unresolved_image_tokens": 0,
+      "real_asset_upload_performed": false,
+      "real_external_llm_called": false,
+      "tests_cover": "local renderer -> public HTTPS placeholders -> final emitter -> token stream capture"
+    },
+    {
+      "domain": "perovskite_transport_stability_v2",
+      "passed": true,
+      "source_summary_read": true,
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1789022636_6348_7caca832-e3c5-4b07-9402-f6a127eed16e_s2-2822c68494435af6/manifest.json",
+      "local_png_count": 3,
+      "stream_chunks": 34,
+      "unresolved_image_tokens": 0,
+      "real_asset_upload_performed": false,
+      "real_external_llm_called": false,
+      "tests_cover": "local renderer -> public HTTPS placeholders -> final emitter -> token stream capture"
+    }
+  ],
+  "passed": true,
+  "production_release_authorized": false
+}

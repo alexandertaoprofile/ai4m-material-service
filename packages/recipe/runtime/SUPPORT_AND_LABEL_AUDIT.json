@@ -1,0 +1,1136 @@
+{
+  "label_audit": {
+    "aluminum": {
+      "task_rows": 1760,
+      "max_atomic_fraction_closure_error": 4.440892098500626e-16,
+      "nonpositive_labels": 0,
+      "paired_strength_records": 803,
+      "observed_ys_above_uts": 1,
+      "ys_above_uts_examples": [
+        {
+          "stem": "al-1067",
+          "role": "train",
+          "UTS": 581.0,
+          "YS": 637.0
+        }
+      ],
+      "paired_label_audit_complete": true,
+      "limitation": null
+    },
+    "copper": {
+      "task_rows": 354,
+      "max_atomic_fraction_closure_error": 2.220446049250313e-16,
+      "nonpositive_labels": 0,
+      "paired_strength_records": 165,
+      "observed_ys_above_uts": 0,
+      "ys_above_uts_examples": [],
+      "paired_label_audit_complete": true,
+      "limitation": null
+    },
+    "hea_mpea": {
+      "task_rows": 1858,
+      "max_atomic_fraction_closure_error": 2.220446049250313e-16,
+      "nonpositive_labels": 0,
+      "paired_strength_records": 892,
+      "observed_ys_above_uts": 0,
+      "ys_above_uts_examples": [],
+      "paired_label_audit_complete": true,
+      "limitation": null
+    },
+    "nickel_superalloy": {
+      "task_rows": 543,
+      "max_atomic_fraction_closure_error": 4.440892098500626e-16,
+      "nonpositive_labels": 0,
+      "paired_strength_records": 0,
+      "observed_ys_above_uts": 0,
+      "ys_above_uts_examples": [],
+      "paired_label_audit_complete": false,
+      "limitation": "Ni YS/UTS record IDs differ; zero matched pairs is NOT evidence of zero violations"
+    },
+    "stainless": {
+      "task_rows": 4340,
+      "max_atomic_fraction_closure_error": 2.220446049250313e-16,
+      "nonpositive_labels": 0,
+      "paired_strength_records": 2167,
+      "observed_ys_above_uts": 1,
+      "ys_above_uts_examples": [
+        {
+          "stem": "ss-383",
+          "role": "test",
+          "UTS": 47.0,
+          "YS": 148.0
+        }
+      ],
+      "paired_label_audit_complete": true,
+      "limitation": null
+    },
+    "steel": {
+      "task_rows": 3531,
+      "max_atomic_fraction_closure_error": 2.220446049250313e-16,
+      "nonpositive_labels": 0,
+      "paired_strength_records": 1687,
+      "observed_ys_above_uts": 0,
+      "ys_above_uts_examples": [],
+      "paired_label_audit_complete": true,
+      "limitation": null
+    },
+    "titanium": {
+      "task_rows": 1074,
+      "max_atomic_fraction_closure_error": 4.440892098500626e-16,
+      "nonpositive_labels": 0,
+      "paired_strength_records": 520,
+      "observed_ys_above_uts": 1,
+      "ys_above_uts_examples": [
+        {
+          "stem": "ti-97",
+          "role": "train",
+          "UTS": 1665.0,
+          "YS": 1710.0
+        }
+      ],
+      "paired_label_audit_complete": true,
+      "limitation": null
+    }
+  },
+  "support_diagnostics": {
+    "aluminum": {
+      "training_compositions": 274,
+      "elements": [
+        "Ag",
+        "Al",
+        "B",
+        "Be",
+        "Bi",
+        "Cd",
+        "Co",
+        "Cr",
+        "Cu",
+        "Er",
+        "Eu",
+        "Fe",
+        "Ga",
+        "Li",
+        "Mg",
+        "Mn",
+        "Ni",
+        "Pb",
+        "Sc",
+        "Si",
+        "Sn",
+        "Ti",
+        "V",
+        "Zn",
+        "Zr"
+      ],
+      "full_hellinger_training_loo_95_percentile": 0.04323352400174766,
+      "major_diagnostic_training_loo_95_percentile": 0.04323352400174766,
+      "major_diagnostic_exclusions": [],
+      "major_distance_does_not_approve_trace_elements": true,
+      "test_temperature_C_training_range": [
+        25.0,
+        25.0
+      ],
+      "service_comparisons": [
+        {
+          "candidate_id": null,
+          "full_distance": 0.011418497470063857,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.011418497470063857,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.022782391715725187,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.022782391715725187,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.013319682084235984,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.013319682084235984,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.01733366854560542,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.01733366854560542,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.01710351632554246,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.01710351632554246,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.033129800709537756,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.033129800709537756,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.022669475117883704,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.022669475117883704,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.03937885523707091,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.039378855237070916,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.033407385031837135,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.033407385031837135,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.02161901956884191,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.021619019568841897,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.025829722261940184,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.025829722261940184,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.00918508852644,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.00918508852644,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        }
+      ]
+    },
+    "copper": {
+      "training_compositions": 17,
+      "elements": [
+        "Ag",
+        "Al",
+        "B",
+        "Be",
+        "C",
+        "Co",
+        "Cr",
+        "Cu",
+        "Fe",
+        "Hf",
+        "N",
+        "Nb",
+        "Ni",
+        "O",
+        "S",
+        "Ti",
+        "V",
+        "Zr"
+      ],
+      "full_hellinger_training_loo_95_percentile": 0.11349985562840403,
+      "major_diagnostic_training_loo_95_percentile": 0.11349985562840403,
+      "major_diagnostic_exclusions": [],
+      "major_distance_does_not_approve_trace_elements": true,
+      "test_temperature_C_training_range": [
+        23.88888888888889,
+        705.0
+      ],
+      "service_comparisons": []
+    },
+    "hea_mpea": {
+      "training_compositions": 226,
+      "elements": [
+        "Al",
+        "C",
+        "Co",
+        "Cr",
+        "Cu",
+        "Fe",
+        "Hf",
+        "Mn",
+        "Mo",
+        "Nb",
+        "Ni",
+        "Si",
+        "Sn",
+        "Ta",
+        "Ti",
+        "V",
+        "Zr"
+      ],
+      "full_hellinger_training_loo_95_percentile": 0.24691404862901117,
+      "major_diagnostic_training_loo_95_percentile": 0.24691404862901117,
+      "major_diagnostic_exclusions": [],
+      "major_distance_does_not_approve_trace_elements": true,
+      "test_temperature_C_training_range": [
+        -196.0,
+        700.0
+      ],
+      "service_comparisons": []
+    },
+    "nickel_superalloy": {
+      "training_compositions": 45,
+      "elements": [
+        "Al",
+        "B",
+        "C",
+        "Co",
+        "Cr",
+        "Fe",
+        "Hf",
+        "Mn",
+        "Mo",
+        "Nb",
+        "Ni",
+        "Re",
+        "Si",
+        "Ta",
+        "Ti",
+        "V",
+        "W",
+        "Zr"
+      ],
+      "full_hellinger_training_loo_95_percentile": 0.21311868280499205,
+      "major_diagnostic_training_loo_95_percentile": 0.21311868280499205,
+      "major_diagnostic_exclusions": [],
+      "major_distance_does_not_approve_trace_elements": true,
+      "test_temperature_C_training_range": [
+        20.0,
+        925.0
+      ],
+      "service_comparisons": [
+        {
+          "candidate_id": null,
+          "full_distance": 0.11313082387658889,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.11313082387658889,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.09641624485295645,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.09641624485295645,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.1068754953075441,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.1068754953075441,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.09530235956413663,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.09530235956413663,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.007419855829174735,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.007419855829174735,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.1115341351566591,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.1115341351566591,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.014507392196125577,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.014507392196125572,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.09486400456460897,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.09486400456460897,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.08622641422918985,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.08622641422918985,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.020570609201631958,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.020570609201631968,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.07428595925653934,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.07428595925653934,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.020635938640819532,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.020635938640819532,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.07907791370074822,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.07907791370074822,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.02178026052108666,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.02178026052108666,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.019021196723799295,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.019021196723799295,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.04026024486533738,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.04026024486533738,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.04278643848795819,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.04278643848795818,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.008100166042990164,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.008100166042990164,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.00947660378853528,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.00947660378853528,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.007915539623669773,
+          "full_distance_pass": true,
+          "major_diagnostic_distance": 0.007915539623669749,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        }
+      ]
+    },
+    "stainless": {
+      "training_compositions": 150,
+      "elements": [
+        "Al",
+        "B",
+        "C",
+        "Co",
+        "Cr",
+        "Cu",
+        "Fe",
+        "Mn",
+        "Mo",
+        "N",
+        "Nb",
+        "Ni",
+        "P",
+        "S",
+        "Si",
+        "Ti",
+        "V"
+      ],
+      "full_hellinger_training_loo_95_percentile": 0.02140771862061755,
+      "major_diagnostic_training_loo_95_percentile": 0.02129592386418163,
+      "major_diagnostic_exclusions": [
+        "N",
+        "P",
+        "S"
+      ],
+      "major_distance_does_not_approve_trace_elements": true,
+      "test_temperature_C_training_range": [
+        19.850000000000023,
+        24.850000000000023
+      ],
+      "service_comparisons": [
+        {
+          "candidate_id": null,
+          "full_distance": 0.03378487396351579,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.023945158856970208,
+          "major_diagnostic_pass": false,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.03566129606576161,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.02754676516368206,
+          "major_diagnostic_pass": false,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.03154566672638366,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.0184086588609204,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.035233215066945475,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.025174401546220984,
+          "major_diagnostic_pass": false,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.03276954957438176,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.023579051767973074,
+          "major_diagnostic_pass": false,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.037617355334459306,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.027678296463448028,
+          "major_diagnostic_pass": false,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.03156285074592714,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.006405263124199505,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.03755710380284696,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.029362800086774773,
+          "major_diagnostic_pass": false,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.03832740777950276,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.0246017854733064,
+          "major_diagnostic_pass": false,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.038079967308021545,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.016392239983745567,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.02520421066961299,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.008549344884638288,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.029724989894418317,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.010979341510923538,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.03156828162714275,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.015989693868235757,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.03245328397934985,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.01597343239621606,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.036109296542032855,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.024079490923650818,
+          "major_diagnostic_pass": false,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.03377607092752242,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.01885238003370247,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.029190296127131206,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.017801178485827834,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.028661987869691617,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.009236399358223185,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.03524696103359477,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.024307806540936363,
+          "major_diagnostic_pass": false,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.033200413537946845,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.012706820556523729,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.03893763445326903,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.024817930062638237,
+          "major_diagnostic_pass": false,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.04170574889809944,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.024925101461102963,
+          "major_diagnostic_pass": false,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.041338495586943434,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.023049500074026626,
+          "major_diagnostic_pass": false,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.03826163158648503,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.025652658729412397,
+          "major_diagnostic_pass": false,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.03435142692972439,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.020258451381702066,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.03387761440726172,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.014394192802117378,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.029256045806208074,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.013437369587085937,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.03228470264325803,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.022566332383487864,
+          "major_diagnostic_pass": false,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.04054969493612805,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.023209254981778452,
+          "major_diagnostic_pass": false,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.03482853442648804,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.019356796810779845,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.04007824592847942,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.021643620821557318,
+          "major_diagnostic_pass": false,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.03616982216352943,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.022613307066350744,
+          "major_diagnostic_pass": false,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.03282103147916628,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.019700047112097566,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.026219272968607737,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.012816811381069071,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.03476845307696875,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.0232440196101526,
+          "major_diagnostic_pass": false,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.03692725189493319,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.026141945704589012,
+          "major_diagnostic_pass": false,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.03447110759002723,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.013295374562475067,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.03500302013900958,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.015114485366203806,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.03671409384839331,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.008773837154685767,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        },
+        {
+          "candidate_id": null,
+          "full_distance": 0.027249315537620524,
+          "full_distance_pass": false,
+          "major_diagnostic_distance": 0.007873405304902176,
+          "major_diagnostic_pass": true,
+          "process_oov": false,
+          "process_conflicts": [],
+          "known_temperature": true,
+          "transformer_empirical_support_not_approved": true
+        }
+      ]
+    },
+    "steel": {
+      "training_compositions": 270,
+      "elements": [
+        "Al",
+        "B",
+        "C",
+        "Ca",
+        "Co",
+        "Cr",
+        "Cu",
+        "Fe",
+        "Mn",
+        "Mo",
+        "N",
+        "Nb",
+        "Ni",
+        "O",
+        "P",
+        "S",
+        "Si",
+        "Ti",
+        "V",
+        "W",
+        "Zr"
+      ],
+      "full_hellinger_training_loo_95_percentile": 0.07286722409372731,
+      "major_diagnostic_training_loo_95_percentile": 0.07286722409372731,
+      "major_diagnostic_exclusions": [],
+      "major_distance_does_not_approve_trace_elements": true,
+      "test_temperature_C_training_range": [
+        19.85,
+        26.85
+      ],
+      "service_comparisons": []
+    },
+    "titanium": {
+      "training_compositions": 183,
+      "elements": [
+        "Al",
+        "B",
+        "C",
+        "Cr",
+        "Cu",
+        "Fe",
+        "H",
+        "Hf",
+        "Mn",
+        "Mo",
+        "N",
+        "Nb",
+        "Ni",
+        "O",
+        "Sc",
+        "Si",
+        "Sn",
+        "Ta",
+        "Ti",
+        "V",
+        "W",
+        "Y",
+        "Zr"
+      ],
+      "full_hellinger_training_loo_95_percentile": 0.1656639809148729,
+      "major_diagnostic_training_loo_95_percentile": 0.16566398091487286,
+      "major_diagnostic_exclusions": [],
+      "major_distance_does_not_approve_trace_elements": true,
+      "test_temperature_C_training_range": [
+        20.0,
+        25.0
+      ],
+      "service_comparisons": []
+    }
+  },
+  "production_release_authorized": false,
+  "policy": "do not substitute major-only distance for scientific admission; trace reporting and numeric process coverage remain independent gates",
+  "uncertainty_policy": "single checkpoint has no calibrated candidate uncertainty; never print ensemble std or +/-0"
+}

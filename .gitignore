@@ -18,6 +18,9 @@
 **/.venv/
 **/.idea/
 **/.vscode/
+/.runtime/
+/.runtime-downloads/
+**/.env.runtime.example
 
 # Generated / source material datasets (too large for regular Git)
 /

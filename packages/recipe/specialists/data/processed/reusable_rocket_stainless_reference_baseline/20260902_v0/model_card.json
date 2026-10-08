@@ -1,0 +1,29 @@
+{
+  "service_name": "可回收火箭不锈钢配方设计",
+  "internal_scope": "低温奥氏体不锈钢承压壳体",
+  "artifact": "reference_tensile_baseline_v0",
+  "trained_targets": {
+    "yield_0p2_MPa": 39,
+    "uts_MPa": 39,
+    "elongation_pct": 15
+  },
+  "independent_heats_or_material_lots": [
+    "304L/not reported",
+    "301-type/40226",
+    "301-type/58044",
+    "301/348524"
+  ],
+  "allowed_use": "只用于已收录牌号/炉号/工艺状态及其相邻测试温度的参考筛选与补数排序。",
+  "prohibited_use": [
+    "不得命名、宣称或输出为 30X 性能预测。",
+    "不得对未知化学成分、未知热处理或未知焊接状态进行配方优化外推。",
+    "不得以拉伸标签推导断裂韧性、疲劳、焊接性能或 LOX 相容性。"
+  ],
+  "validation_status": "未报告泛化精度：仅 3 个独立炉号/材料批次，任何随机切分分数都会发生同批次泄漏。",
+  "next_training_gate": "至少 30 个独立的不锈钢成分—状态组合，且每个组合保留成分、工艺、厚度、焊接状态、温度与可追溯拉伸标签。",
+  "sources": [
+    "Metals 2023, 13, 1774, Tables 1–2; DOI 10.3390/met13101774",
+    "NASA TN D-3445 (1966), Tables II–III",
+    "NASA TN D-5413 (1969), Tables I and III"
+  ]
+}

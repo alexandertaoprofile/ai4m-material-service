@@ -1,0 +1,69 @@
+{
+  "ok": true,
+  "mode": "shadow",
+  "display_allowed": false,
+  "production_release_authorized": false,
+  "public_effect": false,
+  "method": "nsga2",
+  "seed": 29,
+  "status": "completed",
+  "objectives": [
+    {
+      "property": "YS_MPa",
+      "mode": "max",
+      "unit": "MPa",
+      "scale": 1.0
+    },
+    {
+      "property": "UTS_MPa",
+      "mode": "max",
+      "unit": "MPa",
+      "scale": 1.0
+    }
+  ],
+  "stop_reason": "model_evaluation_budget",
+  "counters": {
+    "proposals": 288,
+    "model_evaluations": 256,
+    "feasible": 245,
+    "pareto_count": 1
+  },
+  "elapsed_seconds": 21.319845531135798,
+  "pareto_front": [
+    {
+      "composition": {
+        "values": {
+          "Cu": 89.39136,
+          "Cr": 5.22204,
+          "Nb": 5.29719,
+          "Zr": 2e-05,
+          "Ag": 0.00013,
+          "Al": 0.01353,
+          "O": 0.00023,
+          "Ni": 0.00529,
+          "Fe": 0.07021,
+          "Ti": 0.0
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "YS_MPa": 440.672607421875,
+        "UTS_MPa": 535.3175659179688
+      },
+      "F": [
+        -440.672607421875,
+        -535.3175659179688
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "local",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10"
+      }
+    }
+  ],
+  "prediction_is_experimental_validation": false
+}

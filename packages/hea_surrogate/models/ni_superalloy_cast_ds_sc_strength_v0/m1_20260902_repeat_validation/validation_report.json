@@ -1,0 +1,189 @@
+{
+  "model_status": "M1 candidate only; not selected by the service runtime",
+  "data": {
+    "package": "/data/se42/hea_surrogate/data/processed/ni_superalloy_training/20260831_cambridge_cast_ds_sc_v2",
+    "split": "frozen Cambridge Tag-disjoint v1"
+  },
+  "features": {
+    "M0": "current serving compact 31-feature schema",
+    "M1": "M0 plus 14 deterministic composition descriptors; no CALPHAD or fitted external feature"
+  },
+  "targets": {
+    "ultimate_tensile_strength": {
+      "fixed_split": {
+        "M0": {
+          "records": {
+            "train": 247,
+            "validation": 6,
+            "test": 26
+          },
+          "tags": {
+            "train": 53,
+            "validation": 3,
+            "test": 5
+          },
+          "test": {
+            "MAE": 113.22119331321355,
+            "RMSE": 139.99896418301628,
+            "R2": 0.6936603582997127
+          }
+        },
+        "M1": {
+          "records": {
+            "train": 247,
+            "validation": 6,
+            "test": 26
+          },
+          "tags": {
+            "train": 53,
+            "validation": 3,
+            "test": 5
+          },
+          "test": {
+            "MAE": 91.9301864881645,
+            "RMSE": 111.31163830924213,
+            "R2": 0.8063423288777481
+          }
+        }
+      },
+      "repeated_tag_splits": {
+        "M0": {
+          "folds": [
+            {
+              "fold": 1,
+              "test_records": 53,
+              "test_tags": 13,
+              "MAE": 107.4346566629361,
+              "RMSE": 155.84906876763472,
+              "R2": 0.7731620205525443
+            },
+            {
+              "fold": 2,
+              "test_records": 71,
+              "test_tags": 13,
+              "MAE": 119.029713093505,
+              "RMSE": 145.94626191026305,
+              "R2": 0.7592542993055434
+            }
+          ],
+          "mean_MAE": 113.23218487822055,
+          "mean_R2": 0.7662081599290439
+        },
+        "M1": {
+          "folds": [
+            {
+              "fold": 1,
+              "test_records": 53,
+              "test_tags": 13,
+              "MAE": 102.71460903468332,
+              "RMSE": 146.41600588270015,
+              "R2": 0.7997906028894782
+            },
+            {
+              "fold": 2,
+              "test_records": 71,
+              "test_tags": 13,
+              "MAE": 106.35110159841507,
+              "RMSE": 127.66854788608998,
+              "R2": 0.8157784527468421
+            }
+          ],
+          "mean_MAE": 104.53285531654919,
+          "mean_R2": 0.8077845278181601
+        },
+        "M1_minus_M0": {
+          "mean_MAE": -8.699329561671362,
+          "mean_R2": 0.04157636788911623
+        }
+      }
+    },
+    "proof_strength_0p2": {
+      "fixed_split": {
+        "M0": {
+          "records": {
+            "train": 219,
+            "validation": 7,
+            "test": 15
+          },
+          "tags": {
+            "train": 49,
+            "validation": 4,
+            "test": 4
+          },
+          "test": {
+            "MAE": 84.00678862452877,
+            "RMSE": 103.2111485473407,
+            "R2": 0.6394211404129926
+          }
+        },
+        "M1": {
+          "records": {
+            "train": 219,
+            "validation": 7,
+            "test": 15
+          },
+          "tags": {
+            "train": 49,
+            "validation": 4,
+            "test": 4
+          },
+          "test": {
+            "MAE": 50.77275581375563,
+            "RMSE": 62.28246626138796,
+            "R2": 0.8686957928119255
+          }
+        }
+      },
+      "repeated_tag_splits": {
+        "M0": {
+          "folds": [
+            {
+              "fold": 1,
+              "test_records": 48,
+              "test_tags": 12,
+              "MAE": 90.06472655232277,
+              "RMSE": 112.91536987960002,
+              "R2": 0.8343743486653511
+            },
+            {
+              "fold": 2,
+              "test_records": 60,
+              "test_tags": 12,
+              "MAE": 83.63183094487627,
+              "RMSE": 105.51820334538819,
+              "R2": 0.8098209525226494
+            }
+          ],
+          "mean_MAE": 86.84827874859951,
+          "mean_R2": 0.8220976505940003
+        },
+        "M1": {
+          "folds": [
+            {
+              "fold": 1,
+              "test_records": 48,
+              "test_tags": 12,
+              "MAE": 71.40315750934504,
+              "RMSE": 96.03720401711121,
+              "R2": 0.8801879520527216
+            },
+            {
+              "fold": 2,
+              "test_records": 60,
+              "test_tags": 12,
+              "MAE": 67.93032491194042,
+              "RMSE": 89.06899170200737,
+              "R2": 0.8644932391603525
+            }
+          ],
+          "mean_MAE": 69.66674121064273,
+          "mean_R2": 0.8723405956065371
+        },
+        "M1_minus_M0": {
+          "mean_MAE": -17.181537537956785,
+          "mean_R2": 0.05024294501253679
+        }
+      }
+    }
+  }
+}

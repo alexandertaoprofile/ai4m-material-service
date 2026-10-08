@@ -1,0 +1,70 @@
+{
+  "model": "HistGradientBoostingRegressor, separate UTS and 0.2% proof-stress models",
+  "research_status": "exploratory research baseline only; not approved for product/service prediction",
+  "training_package": "hea_surrogate/data/processed/ni_superalloy_training/20260831_cambridge_cast_ds_sc_full_v3",
+  "split": "Cambridge Tag-disjoint v1",
+  "features": "test temperature, source-record wt.% composition, casting route/gradient, and every recorded solution/precipitation heat-treatment stage",
+  "metrics_MPa": {
+    "proof_strength_0p2": {
+      "test": {
+        "n": 15,
+        "mae_MPa": 79.82976100888617,
+        "rmse_MPa": 97.03340327936795,
+        "r2": 0.6812944940019856
+      },
+      "train": {
+        "n": 219,
+        "mae_MPa": 15.857192226763395,
+        "rmse_MPa": 22.663360899093323,
+        "r2": 0.9930621905761379
+      },
+      "validation": {
+        "n": 7,
+        "mae_MPa": 33.00923171868504,
+        "rmse_MPa": 37.33813221187214,
+        "r2": -1.7859979501015895
+      },
+      "independent_tags": {
+        "validation": 4,
+        "train": 49,
+        "test": 4
+      }
+    },
+    "ultimate_tensile_strength": {
+      "test": {
+        "n": 26,
+        "mae_MPa": 114.57083725598774,
+        "rmse_MPa": 133.97850695252131,
+        "r2": 0.7194412469658683
+      },
+      "train": {
+        "n": 247,
+        "mae_MPa": 20.10602148946159,
+        "rmse_MPa": 28.79282037252208,
+        "r2": 0.9929291744895212
+      },
+      "validation": {
+        "n": 6,
+        "mae_MPa": 28.187917361037574,
+        "rmse_MPa": 31.603339718318487,
+        "r2": 0.7658581508123512
+      },
+      "independent_tags": {
+        "train": 53,
+        "validation": 3,
+        "test": 5
+      }
+    }
+  },
+  "not_fitted": {
+    "yield_strength": {
+      "observations": 24,
+      "reason": "24 observations is insufficient for a defensible independent benchmark"
+    }
+  },
+  "boundaries": [
+    "The training lane covers cast, DS, single-crystal and two additive records; it is not a wrought-alloy model.",
+    "A test Tag is excluded entirely from fit, but limited test-tag counts mean metrics remain exploratory.",
+    "Predictions do not establish creep life, oxidation resistance, phase stability, melting range, manufacturability or certification."
+  ]
+}

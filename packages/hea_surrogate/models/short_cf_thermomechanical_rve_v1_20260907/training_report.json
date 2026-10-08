@@ -1,0 +1,479 @@
+{
+  "model_version": "short_cf_thermomechanical_rve_v1_20260907",
+  "data_type": "FAST_RF RVE linear-elastic labels; dense, perfect-bonding, monodisperse T300-like short CF",
+  "features": [
+    "matrix_E_MPa",
+    "matrix_nu",
+    "matrix_density_kgm3",
+    "target_vf",
+    "fiber_length_mm",
+    "target_a11"
+  ],
+  "targets": [
+    "E11_MPa",
+    "E22_MPa",
+    "E33_MPa",
+    "G12_MPa",
+    "G13_MPa",
+    "G23_MPa",
+    "V12",
+    "V13",
+    "V23"
+  ],
+  "assessments": {
+    "E11_MPa": {
+      "unit": "MPa",
+      "rows": 945,
+      "validation": "leave-one-matrix-out; matrix_name is never an input",
+      "metrics": {
+        "MAE": 71.46071706915195,
+        "RMSE": 97.40587264813213,
+        "R2": 0.9938984141056482
+      },
+      "per_held_matrix": {
+        "Bambu_ABS": {
+          "n": 189,
+          "MAE": 66.27772907864805,
+          "RMSE": 90.37925423072842,
+          "R2": 0.9939396564342374
+        },
+        "Bambu_ASA": {
+          "n": 189,
+          "MAE": 58.18592377499587,
+          "RMSE": 87.024588234453,
+          "R2": 0.9951626226466922
+        },
+        "Bambu_PC": {
+          "n": 189,
+          "MAE": 54.27643265042769,
+          "RMSE": 76.35759511718716,
+          "R2": 0.9954121812755659
+        },
+        "Bambu_PETG_HF": {
+          "n": 189,
+          "MAE": 63.71474323060006,
+          "RMSE": 89.93485376408935,
+          "R2": 0.9920861322810886
+        },
+        "Bambu_PLA_Basic": {
+          "n": 189,
+          "MAE": 114.84875661108805,
+          "RMSE": 133.33818404865696,
+          "R2": 0.9894155774089146
+        }
+      },
+      "status": "service_candidate"
+    },
+    "E22_MPa": {
+      "unit": "MPa",
+      "rows": 945,
+      "validation": "leave-one-matrix-out; matrix_name is never an input",
+      "metrics": {
+        "MAE": 23.594854686327576,
+        "RMSE": 30.54132745395731,
+        "R2": 0.9965128668743143
+      },
+      "per_held_matrix": {
+        "Bambu_ABS": {
+          "n": 189,
+          "MAE": 32.17370604163476,
+          "RMSE": 35.61767347800686,
+          "R2": 0.99171366560653
+        },
+        "Bambu_ASA": {
+          "n": 189,
+          "MAE": 18.611778872744807,
+          "RMSE": 25.261730019235678,
+          "R2": 0.9963768295260215
+        },
+        "Bambu_PC": {
+          "n": 189,
+          "MAE": 14.088953915797507,
+          "RMSE": 19.49068827345541,
+          "R2": 0.9974756828278629
+        },
+        "Bambu_PETG_HF": {
+          "n": 189,
+          "MAE": 18.044150952179248,
+          "RMSE": 23.856159842375128,
+          "R2": 0.9954530456559021
+        },
+        "Bambu_PLA_Basic": {
+          "n": 189,
+          "MAE": 35.05568364928155,
+          "RMSE": 42.52159985114157,
+          "R2": 0.9905557001792138
+        }
+      },
+      "status": "service_candidate"
+    },
+    "E33_MPa": {
+      "unit": "MPa",
+      "rows": 945,
+      "validation": "leave-one-matrix-out; matrix_name is never an input",
+      "metrics": {
+        "MAE": 22.916731011776346,
+        "RMSE": 29.116367650929295,
+        "R2": 0.9965243395925936
+      },
+      "per_held_matrix": {
+        "Bambu_ABS": {
+          "n": 189,
+          "MAE": 32.06283114509404,
+          "RMSE": 35.05373641148057,
+          "R2": 0.9906457181782624
+        },
+        "Bambu_ASA": {
+          "n": 189,
+          "MAE": 17.68900295103147,
+          "RMSE": 22.33399708341793,
+          "R2": 0.996697528912323
+        },
+        "Bambu_PC": {
+          "n": 189,
+          "MAE": 12.448439250653443,
+          "RMSE": 16.53223458685017,
+          "R2": 0.9978917220899185
+        },
+        "Bambu_PETG_HF": {
+          "n": 189,
+          "MAE": 15.63271219065787,
+          "RMSE": 20.713300419942797,
+          "R2": 0.996030806147496
+        },
+        "Bambu_PLA_Basic": {
+          "n": 189,
+          "MAE": 36.750669521444905,
+          "RMSE": 42.53101067540345,
+          "R2": 0.98899853970151
+        }
+      },
+      "status": "service_candidate"
+    },
+    "G12_MPa": {
+      "unit": "MPa",
+      "rows": 945,
+      "validation": "leave-one-matrix-out; matrix_name is never an input",
+      "metrics": {
+        "MAE": 8.301757216871133,
+        "RMSE": 10.860995235537532,
+        "R2": 0.9972235193406268
+      },
+      "per_held_matrix": {
+        "Bambu_ABS": {
+          "n": 189,
+          "MAE": 11.688337210527015,
+          "RMSE": 13.622380766800191,
+          "R2": 0.9923603692516175
+        },
+        "Bambu_ASA": {
+          "n": 189,
+          "MAE": 8.49602225619165,
+          "RMSE": 11.115247794937545,
+          "R2": 0.9955865727391594
+        },
+        "Bambu_PC": {
+          "n": 189,
+          "MAE": 6.974952126966097,
+          "RMSE": 9.224859205484954,
+          "R2": 0.9962861864082613
+        },
+        "Bambu_PETG_HF": {
+          "n": 189,
+          "MAE": 6.375807628831056,
+          "RMSE": 8.623135097855924,
+          "R2": 0.9960019307119584
+        },
+        "Bambu_PLA_Basic": {
+          "n": 189,
+          "MAE": 7.973666861839843,
+          "RMSE": 11.01052269224299,
+          "R2": 0.9959432083706536
+        }
+      },
+      "status": "service_candidate"
+    },
+    "G13_MPa": {
+      "unit": "MPa",
+      "rows": 945,
+      "validation": "leave-one-matrix-out; matrix_name is never an input",
+      "metrics": {
+        "MAE": 9.853042984164976,
+        "RMSE": 12.79515185807695,
+        "R2": 0.9964222762792528
+      },
+      "per_held_matrix": {
+        "Bambu_ABS": {
+          "n": 189,
+          "MAE": 12.016578710112528,
+          "RMSE": 14.509853320798205,
+          "R2": 0.9923132478727222
+        },
+        "Bambu_ASA": {
+          "n": 189,
+          "MAE": 9.890140144284404,
+          "RMSE": 13.029820224068875,
+          "R2": 0.9946202774720444
+        },
+        "Bambu_PC": {
+          "n": 189,
+          "MAE": 8.608540825940572,
+          "RMSE": 11.081042257878135,
+          "R2": 0.9952528571317475
+        },
+        "Bambu_PETG_HF": {
+          "n": 189,
+          "MAE": 7.943992924171439,
+          "RMSE": 10.441350076750629,
+          "R2": 0.9948120418171865
+        },
+        "Bambu_PLA_Basic": {
+          "n": 189,
+          "MAE": 10.805962316315933,
+          "RMSE": 14.368584062024897,
+          "R2": 0.9938739662504295
+        }
+      },
+      "status": "service_candidate"
+    },
+    "G23_MPa": {
+      "unit": "MPa",
+      "rows": 945,
+      "validation": "leave-one-matrix-out; matrix_name is never an input",
+      "metrics": {
+        "MAE": 7.492092954859774,
+        "RMSE": 9.677578002700912,
+        "R2": 0.9973089576919093
+      },
+      "per_held_matrix": {
+        "Bambu_ABS": {
+          "n": 189,
+          "MAE": 12.041326552642229,
+          "RMSE": 13.509215653000206,
+          "R2": 0.990184073493356
+        },
+        "Bambu_ASA": {
+          "n": 189,
+          "MAE": 7.798799816300243,
+          "RMSE": 9.842820291209911,
+          "R2": 0.9954854421062255
+        },
+        "Bambu_PC": {
+          "n": 189,
+          "MAE": 5.2843341599469325,
+          "RMSE": 7.198533754963477,
+          "R2": 0.9970484037751435
+        },
+        "Bambu_PETG_HF": {
+          "n": 189,
+          "MAE": 6.013656065818564,
+          "RMSE": 7.7990701534994775,
+          "R2": 0.9957261786477949
+        },
+        "Bambu_PLA_Basic": {
+          "n": 189,
+          "MAE": 6.322348179590902,
+          "RMSE": 8.732306549069877,
+          "R2": 0.9966761729810364
+        }
+      },
+      "status": "service_candidate"
+    },
+    "V12": {
+      "unit": "1",
+      "rows": 945,
+      "validation": "leave-one-matrix-out; matrix_name is never an input",
+      "metrics": {
+        "MAE": 0.004754084786643381,
+        "RMSE": 0.006425763998093092,
+        "R2": 0.8742673100299636
+      },
+      "per_held_matrix": {
+        "Bambu_ABS": {
+          "n": 189,
+          "MAE": 0.0037448811299806684,
+          "RMSE": 0.004623503251843353,
+          "R2": 0.8928875009782798
+        },
+        "Bambu_ASA": {
+          "n": 189,
+          "MAE": 0.002771590602665768,
+          "RMSE": 0.0037469065996107265,
+          "R2": 0.928314608157148
+        },
+        "Bambu_PC": {
+          "n": 189,
+          "MAE": 0.002971706341026719,
+          "RMSE": 0.004010627218413945,
+          "R2": 0.9242132057677815
+        },
+        "Bambu_PETG_HF": {
+          "n": 189,
+          "MAE": 0.0031547918770210054,
+          "RMSE": 0.0042594949257631085,
+          "R2": 0.9182522102003522
+        },
+        "Bambu_PLA_Basic": {
+          "n": 189,
+          "MAE": 0.011127453982522743,
+          "RMSE": 0.0116964821934738,
+          "R2": 0.3165673003295125
+        }
+      },
+      "status": "service_candidate"
+    },
+    "V13": {
+      "unit": "1",
+      "rows": 945,
+      "validation": "leave-one-matrix-out; matrix_name is never an input",
+      "metrics": {
+        "MAE": 0.004310258284009834,
+        "RMSE": 0.0058266047667563485,
+        "R2": 0.8082158097004256
+      },
+      "per_held_matrix": {
+        "Bambu_ABS": {
+          "n": 189,
+          "MAE": 0.0032172573612075615,
+          "RMSE": 0.004128571300745689,
+          "R2": 0.6547613296844155
+        },
+        "Bambu_ASA": {
+          "n": 189,
+          "MAE": 0.0025769020298544785,
+          "RMSE": 0.003391945254670032,
+          "R2": 0.7642687520251956
+        },
+        "Bambu_PC": {
+          "n": 189,
+          "MAE": 0.0027406148777170663,
+          "RMSE": 0.003632598670199402,
+          "R2": 0.7438789561177945
+        },
+        "Bambu_PETG_HF": {
+          "n": 189,
+          "MAE": 0.002861307865094281,
+          "RMSE": 0.0038554927983136737,
+          "R2": 0.7191321273108344
+        },
+        "Bambu_PLA_Basic": {
+          "n": 189,
+          "MAE": 0.010155209286175781,
+          "RMSE": 0.010636523122117325,
+          "R2": -1.2718983706843527
+        }
+      },
+      "status": "service_candidate"
+    },
+    "V23": {
+      "unit": "1",
+      "rows": 945,
+      "validation": "leave-one-matrix-out; matrix_name is never an input",
+      "metrics": {
+        "MAE": 0.005985739831690558,
+        "RMSE": 0.008300192760125332,
+        "R2": 0.928373014143048
+      },
+      "per_held_matrix": {
+        "Bambu_ABS": {
+          "n": 189,
+          "MAE": 0.004892700897853175,
+          "RMSE": 0.005742779960935254,
+          "R2": 0.9482636575977667
+        },
+        "Bambu_ASA": {
+          "n": 189,
+          "MAE": 0.0030618808467002914,
+          "RMSE": 0.004022145753001436,
+          "R2": 0.9739757596390312
+        },
+        "Bambu_PC": {
+          "n": 189,
+          "MAE": 0.0028702943561254787,
+          "RMSE": 0.0038165025109909603,
+          "R2": 0.9824585842757618
+        },
+        "Bambu_PETG_HF": {
+          "n": 189,
+          "MAE": 0.003294318627963073,
+          "RMSE": 0.004204736119997963,
+          "R2": 0.9817914519982881
+        },
+        "Bambu_PLA_Basic": {
+          "n": 189,
+          "MAE": 0.015809504429810772,
+          "RMSE": 0.016219226981667837,
+          "R2": 0.6231661024114843
+        }
+      },
+      "status": "service_candidate"
+    }
+  },
+  "matrix_profiles": {
+    "Bambu_ABS": {
+      "matrix_E_MPa": 2200.0,
+      "matrix_nu": 0.35,
+      "matrix_density_kgm3": 1050.0
+    },
+    "Bambu_ASA": {
+      "matrix_E_MPa": 2450.0,
+      "matrix_nu": 0.35,
+      "matrix_density_kgm3": 1050.0
+    },
+    "Bambu_PC": {
+      "matrix_E_MPa": 2110.0,
+      "matrix_nu": 0.37,
+      "matrix_density_kgm3": 1200.0
+    },
+    "Bambu_PETG_HF": {
+      "matrix_E_MPa": 1810.0,
+      "matrix_nu": 0.38,
+      "matrix_density_kgm3": 1280.0
+    },
+    "Bambu_PLA_Basic": {
+      "matrix_E_MPa": 2580.0,
+      "matrix_nu": 0.36,
+      "matrix_density_kgm3": 1240.0
+    }
+  },
+  "domain": {
+    "matrix_E_MPa": [
+      1810.0,
+      2580.0
+    ],
+    "matrix_nu": [
+      0.35,
+      0.38
+    ],
+    "matrix_density_kgm3": [
+      1050.0,
+      1280.0
+    ],
+    "target_vf": [
+      0.05,
+      0.175
+    ],
+    "fiber_length_mm": [
+      0.02,
+      0.05
+    ],
+    "target_a11": [
+      0.333333333333,
+      0.9
+    ]
+  },
+  "admission": {
+    "rows": 945,
+    "raw_rows": 980,
+    "quality_gate": "quality_flag_precheck=PASS",
+    "excluded_rows": 35,
+    "matrix_systems": [
+      "Bambu_ABS",
+      "Bambu_ASA",
+      "Bambu_PC",
+      "Bambu_PETG_HF",
+      "Bambu_PLA_Basic"
+    ]
+  },
+  "physics_scope": "linear elastic; dense; no void; no plasticity/damage/debonding; monodisperse fibre length/diameter; X-axisymmetric A2"
+}

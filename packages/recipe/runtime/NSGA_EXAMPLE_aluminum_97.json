@@ -1,0 +1,1310 @@
+{
+  "ok": true,
+  "mode": "shadow",
+  "display_allowed": false,
+  "production_release_authorized": false,
+  "public_effect": false,
+  "method": "nsga2",
+  "seed": 97,
+  "status": "completed",
+  "objectives": [
+    {
+      "property": "YS_MPa",
+      "mode": "max",
+      "unit": "MPa",
+      "scale": 1.0
+    },
+    {
+      "property": "elongation_pct",
+      "mode": "max",
+      "unit": "%",
+      "scale": 1.0
+    }
+  ],
+  "stop_reason": "model_evaluation_budget",
+  "counters": {
+    "proposals": 288,
+    "model_evaluations": 256,
+    "feasible": 242,
+    "pareto_count": 25
+  },
+  "elapsed_seconds": 5.184042502194643,
+  "pareto_front": [
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 92.32645,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.4,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.12291,
+          "Cu": 5.09802,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.7,
+          "Ga": 0.0,
+          "Li": 0.02306,
+          "Mg": 0.0,
+          "Mn": 7e-05,
+          "Ni": 0.0,
+          "Pb": 0.4,
+          "Sc": 0.07598,
+          "Si": 0.56343,
+          "Sn": 0.0,
+          "Ti": 0.0,
+          "V": 0.0,
+          "Zn": 0.29008,
+          "Zr": 0.0
+        },
+        "anchor_index": 6
+      },
+      "values": {
+        "YS_MPa": 366.0093688964844,
+        "UTS_MPa": 445.4330749511719,
+        "elongation_pct": 16.250986666666666
+      },
+      "F": [
+        -366.0093688964844,
+        -16.250986666666666
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 97.06379,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.0,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.05289,
+          "Cu": 0.31574,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.16,
+          "Ga": 0.0,
+          "Li": 0.03933,
+          "Mg": 0.83,
+          "Mn": 0.42076,
+          "Ni": 0.004,
+          "Pb": 0.0,
+          "Sc": 0.03779,
+          "Si": 0.86018,
+          "Sn": 0.0,
+          "Ti": 0.023,
+          "V": 0.0,
+          "Zn": 0.19247,
+          "Zr": 5e-05
+        },
+        "anchor_index": 18
+      },
+      "values": {
+        "YS_MPa": 268.5263366699219,
+        "UTS_MPa": 322.59051513671875,
+        "elongation_pct": 16.67030999999993
+      },
+      "F": [
+        -268.5263366699219,
+        -16.67030999999993
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 91.68695,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.4,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.00078,
+          "Cu": 5.52431,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.7,
+          "Ga": 0.0,
+          "Li": 0.02306,
+          "Mg": 0.33078,
+          "Mn": 7e-05,
+          "Ni": 0.0,
+          "Pb": 0.4,
+          "Sc": 0.07598,
+          "Si": 0.56343,
+          "Sn": 0.0,
+          "Ti": 0.0,
+          "V": 0.0,
+          "Zn": 0.29444,
+          "Zr": 0.0002
+        },
+        "anchor_index": 6
+      },
+      "values": {
+        "YS_MPa": 410.3162841796875,
+        "UTS_MPa": 491.36126708984375,
+        "elongation_pct": 15.431420000000005
+      },
+      "F": [
+        -410.3162841796875,
+        -15.431420000000005
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 91.60286,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.4,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.00078,
+          "Cu": 5.52401,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.7,
+          "Ga": 0.0,
+          "Li": 0.02144,
+          "Mg": 0.33078,
+          "Mn": 7e-05,
+          "Ni": 0.0,
+          "Pb": 0.4,
+          "Sc": 0.07606,
+          "Si": 0.56343,
+          "Sn": 0.0,
+          "Ti": 0.0,
+          "V": 0.0,
+          "Zn": 0.38037,
+          "Zr": 0.0002
+        },
+        "anchor_index": 6
+      },
+      "values": {
+        "YS_MPa": 411.77734375,
+        "UTS_MPa": 492.570068359375,
+        "elongation_pct": 15.400120000000005
+      },
+      "F": [
+        -411.77734375,
+        -15.400120000000005
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 91.30105,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.4,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.00075,
+          "Cu": 5.52423,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.7,
+          "Ga": 0.0,
+          "Li": 0.02306,
+          "Mg": 0.33111,
+          "Mn": 7e-05,
+          "Ni": 0.0,
+          "Pb": 0.4,
+          "Sc": 0.23374,
+          "Si": 0.56343,
+          "Sn": 0.0,
+          "Ti": 0.0,
+          "V": 0.0,
+          "Zn": 0.29444,
+          "Zr": 0.22812
+        },
+        "anchor_index": 6
+      },
+      "values": {
+        "YS_MPa": 440.50439453125,
+        "UTS_MPa": 517.2230834960938,
+        "elongation_pct": 15.15054666666667
+      },
+      "F": [
+        -440.50439453125,
+        -15.15054666666667
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 96.93917,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.0,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.00039,
+          "Cu": 0.28068,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.16,
+          "Ga": 0.0,
+          "Li": 0.04223,
+          "Mg": 0.82576,
+          "Mn": 0.46698,
+          "Ni": 0.004,
+          "Pb": 0.0,
+          "Sc": 0.05824,
+          "Si": 0.86319,
+          "Sn": 0.0,
+          "Ti": 0.023,
+          "V": 0.0,
+          "Zn": 0.19247,
+          "Zr": 0.14389
+        },
+        "anchor_index": 18
+      },
+      "values": {
+        "YS_MPa": 274.8273010253906,
+        "UTS_MPa": 328.3032531738281,
+        "elongation_pct": 16.422999999999927
+      },
+      "F": [
+        -274.8273010253906,
+        -16.422999999999927
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 92.32472,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.4,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.12356,
+          "Cu": 5.09802,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.7,
+          "Ga": 0.0,
+          "Li": 0.02306,
+          "Mg": 0.0,
+          "Mn": 7e-05,
+          "Ni": 0.0,
+          "Pb": 0.4,
+          "Sc": 0.07598,
+          "Si": 0.5645,
+          "Sn": 0.0,
+          "Ti": 0.0,
+          "V": 0.0,
+          "Zn": 0.29008,
+          "Zr": 1e-05
+        },
+        "anchor_index": 6
+      },
+      "values": {
+        "YS_MPa": 366.05657958984375,
+        "UTS_MPa": 445.48529052734375,
+        "elongation_pct": 16.210046666666667
+      },
+      "F": [
+        -366.05657958984375,
+        -16.210046666666667
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 91.41155,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.4,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.00075,
+          "Cu": 5.52423,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.7,
+          "Ga": 0.0,
+          "Li": 0.00099,
+          "Mg": 0.33123,
+          "Mn": 8e-05,
+          "Ni": 0.0,
+          "Pb": 0.4,
+          "Sc": 0.23288,
+          "Si": 0.56343,
+          "Sn": 0.0,
+          "Ti": 0.0,
+          "V": 0.0,
+          "Zn": 0.29444,
+          "Zr": 0.14042
+        },
+        "anchor_index": 6
+      },
+      "values": {
+        "YS_MPa": 431.03228759765625,
+        "UTS_MPa": 509.1564025878906,
+        "elongation_pct": 15.38242666666667
+      },
+      "F": [
+        -431.03228759765625,
+        -15.38242666666667
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 91.34045,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.4,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.0004,
+          "Cu": 5.53707,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.7,
+          "Ga": 0.0,
+          "Li": 0.02306,
+          "Mg": 0.35175,
+          "Mn": 7e-05,
+          "Ni": 0.0,
+          "Pb": 0.4,
+          "Sc": 0.23374,
+          "Si": 0.57202,
+          "Sn": 0.0,
+          "Ti": 0.0,
+          "V": 0.0,
+          "Zn": 0.29444,
+          "Zr": 0.147
+        },
+        "anchor_index": 6
+      },
+      "values": {
+        "YS_MPa": 437.6876220703125,
+        "UTS_MPa": 514.7543334960938,
+        "elongation_pct": 15.15754666666667
+      },
+      "F": [
+        -437.6876220703125,
+        -15.15754666666667
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 89.48932,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.0,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.0,
+          "Cu": 0.27109,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.068,
+          "Ga": 0.0,
+          "Li": 0.00212,
+          "Mg": 1.74844,
+          "Mn": 0.0,
+          "Ni": 0.0,
+          "Pb": 0.0,
+          "Sc": 0.21009,
+          "Si": 0.32932,
+          "Sn": 0.0,
+          "Ti": 0.0,
+          "V": 0.0,
+          "Zn": 7.68833,
+          "Zr": 0.19329
+        },
+        "anchor_index": 5
+      },
+      "values": {
+        "YS_MPa": 507.357421875,
+        "UTS_MPa": 564.0452880859375,
+        "elongation_pct": 13.590999999999989
+      },
+      "F": [
+        -507.357421875,
+        -13.590999999999989
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 84.87134,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.0,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.31503,
+          "Cu": 1.21717,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.0,
+          "Ga": 0.0,
+          "Li": 0.00415,
+          "Mg": 3.06388,
+          "Mn": 0.00036,
+          "Ni": 0.0,
+          "Pb": 0.0,
+          "Sc": 0.34825,
+          "Si": 0.0249,
+          "Sn": 0.0,
+          "Ti": 0.0,
+          "V": 0.0,
+          "Zn": 9.8914,
+          "Zr": 0.26352
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "YS_MPa": 773.1204833984375,
+        "UTS_MPa": 814.82470703125,
+        "elongation_pct": 10.548966666666622
+      },
+      "F": [
+        -773.1204833984375,
+        -10.548966666666622
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 91.52312,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.4,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.00075,
+          "Cu": 5.52499,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.7,
+          "Ga": 0.0,
+          "Li": 0.02306,
+          "Mg": 0.33111,
+          "Mn": 0.01272,
+          "Ni": 0.0,
+          "Pb": 0.4,
+          "Sc": 0.23374,
+          "Si": 0.32849,
+          "Sn": 0.0,
+          "Ti": 0.0,
+          "V": 0.0,
+          "Zn": 0.2939,
+          "Zr": 0.22812
+        },
+        "anchor_index": 6
+      },
+      "values": {
+        "YS_MPa": 437.42889404296875,
+        "UTS_MPa": 515.35400390625,
+        "elongation_pct": 15.231100000000005
+      },
+      "F": [
+        -437.42889404296875,
+        -15.231100000000005
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 92.13653,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.4,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.00401,
+          "Cu": 5.09802,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.7,
+          "Ga": 0.0,
+          "Li": 0.01274,
+          "Mg": 0.0,
+          "Mn": 7e-05,
+          "Ni": 0.0,
+          "Pb": 0.4,
+          "Sc": 0.07598,
+          "Si": 0.55689,
+          "Sn": 0.0,
+          "Ti": 0.0,
+          "V": 0.0,
+          "Zn": 0.29037,
+          "Zr": 0.32539
+        },
+        "anchor_index": 6
+      },
+      "values": {
+        "YS_MPa": 390.6728820800781,
+        "UTS_MPa": 470.7332458496094,
+        "elongation_pct": 16.005173333333335
+      },
+      "F": [
+        -390.6728820800781,
+        -16.005173333333335
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 91.37753,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.4,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.00063,
+          "Cu": 5.53852,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.7,
+          "Ga": 0.0,
+          "Li": 0.00099,
+          "Mg": 0.33123,
+          "Mn": 0.00192,
+          "Ni": 0.0,
+          "Pb": 0.4,
+          "Sc": 0.23288,
+          "Si": 0.56638,
+          "Sn": 0.0,
+          "Ti": 0.0,
+          "V": 0.0,
+          "Zn": 0.30935,
+          "Zr": 0.14057
+        },
+        "anchor_index": 6
+      },
+      "values": {
+        "YS_MPa": 431.6513671875,
+        "UTS_MPa": 509.6529541015625,
+        "elongation_pct": 15.26998666666667
+      },
+      "F": [
+        -431.6513671875,
+        -15.26998666666667
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 85.71665,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.0,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.32557,
+          "Cu": 1.15993,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.0,
+          "Ga": 0.0,
+          "Li": 0.07721,
+          "Mg": 2.63291,
+          "Mn": 0.00753,
+          "Ni": 0.0,
+          "Pb": 0.0,
+          "Sc": 0.44476,
+          "Si": 0.02494,
+          "Sn": 0.0,
+          "Ti": 0.0,
+          "V": 0.0,
+          "Zn": 9.50351,
+          "Zr": 0.10699
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "YS_MPa": 759.71923828125,
+        "UTS_MPa": 800.5032348632812,
+        "elongation_pct": 10.8999133333333
+      },
+      "F": [
+        -759.71923828125,
+        -10.8999133333333
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 96.96241,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.0,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.05289,
+          "Cu": 0.27159,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.16,
+          "Ga": 0.0,
+          "Li": 0.03933,
+          "Mg": 0.83,
+          "Mn": 0.44963,
+          "Ni": 0.004,
+          "Pb": 0.0,
+          "Sc": 0.03779,
+          "Si": 0.97605,
+          "Sn": 0.0,
+          "Ti": 0.023,
+          "V": 0.0,
+          "Zn": 0.19247,
+          "Zr": 0.00084
+        },
+        "anchor_index": 18
+      },
+      "values": {
+        "YS_MPa": 269.4030456542969,
+        "UTS_MPa": 323.12347412109375,
+        "elongation_pct": 16.52609333333326
+      },
+      "F": [
+        -269.4030456542969,
+        -16.52609333333326
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 96.91845,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.0,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.03149,
+          "Cu": 0.04897,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.16,
+          "Ga": 0.0,
+          "Li": 1e-05,
+          "Mg": 0.95557,
+          "Mn": 0.40776,
+          "Ni": 0.004,
+          "Pb": 0.0,
+          "Sc": 0.02004,
+          "Si": 1.01418,
+          "Sn": 0.0,
+          "Ti": 0.023,
+          "V": 0.0,
+          "Zn": 0.18854,
+          "Zr": 0.22799
+        },
+        "anchor_index": 18
+      },
+      "values": {
+        "YS_MPa": 262.31683349609375,
+        "UTS_MPa": 310.00640869140625,
+        "elongation_pct": 16.729169999999932
+      },
+      "F": [
+        -262.31683349609375,
+        -16.729169999999932
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 89.27612,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.0,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.0,
+          "Cu": 0.27057,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.068,
+          "Ga": 0.0,
+          "Li": 0.00212,
+          "Mg": 1.74844,
+          "Mn": 0.0,
+          "Ni": 0.0,
+          "Pb": 0.0,
+          "Sc": 0.21009,
+          "Si": 0.33558,
+          "Sn": 0.0,
+          "Ti": 0.0,
+          "V": 0.0,
+          "Zn": 7.6946,
+          "Zr": 0.39448
+        },
+        "anchor_index": 5
+      },
+      "values": {
+        "YS_MPa": 515.2783203125,
+        "UTS_MPa": 570.4951171875,
+        "elongation_pct": 13.53223999999999
+      },
+      "F": [
+        -515.2783203125,
+        -13.53223999999999
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 92.42896,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.4,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.01407,
+          "Cu": 5.09802,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.7,
+          "Ga": 0.0,
+          "Li": 0.00423,
+          "Mg": 0.23347,
+          "Mn": 7e-05,
+          "Ni": 0.0,
+          "Pb": 0.4,
+          "Sc": 0.17496,
+          "Si": 0.10302,
+          "Sn": 0.0,
+          "Ti": 0.0,
+          "V": 0.0,
+          "Zn": 0.24603,
+          "Zr": 0.19717
+        },
+        "anchor_index": 6
+      },
+      "values": {
+        "YS_MPa": 401.7186279296875,
+        "UTS_MPa": 482.5487365722656,
+        "elongation_pct": 15.691753333333338
+      },
+      "F": [
+        -401.7186279296875,
+        -15.691753333333338
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 92.45163,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.4,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.00147,
+          "Cu": 5.09802,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.7,
+          "Ga": 0.0,
+          "Li": 0.02306,
+          "Mg": 0.0,
+          "Mn": 8e-05,
+          "Ni": 0.0,
+          "Pb": 0.4,
+          "Sc": 0.07598,
+          "Si": 0.55837,
+          "Sn": 0.0,
+          "Ti": 0.0,
+          "V": 0.0,
+          "Zn": 0.29019,
+          "Zr": 0.0012
+        },
+        "anchor_index": 6
+      },
+      "values": {
+        "YS_MPa": 360.40240478515625,
+        "UTS_MPa": 439.24517822265625,
+        "elongation_pct": 16.418993333333333
+      },
+      "F": [
+        -360.40240478515625,
+        -16.418993333333333
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 89.39422,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.0,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.00075,
+          "Cu": 0.26369,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.068,
+          "Ga": 0.0,
+          "Li": 0.02143,
+          "Mg": 1.73246,
+          "Mn": 8e-05,
+          "Ni": 0.0,
+          "Pb": 0.0,
+          "Sc": 0.21772,
+          "Si": 0.33242,
+          "Sn": 0.0,
+          "Ti": 0.0,
+          "V": 0.0,
+          "Zn": 7.7942,
+          "Zr": 0.17503
+        },
+        "anchor_index": 5
+      },
+      "values": {
+        "YS_MPa": 516.9150390625,
+        "UTS_MPa": 572.176513671875,
+        "elongation_pct": 13.48109999999998
+      },
+      "F": [
+        -516.9150390625,
+        -13.48109999999998
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 84.03248,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.0,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.12356,
+          "Cu": 0.79802,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.0,
+          "Ga": 0.0,
+          "Li": 0.02306,
+          "Mg": 3.46241,
+          "Mn": 1e-05,
+          "Ni": 0.0,
+          "Pb": 0.0,
+          "Sc": 0.07505,
+          "Si": 0.31361,
+          "Sn": 0.0,
+          "Ti": 0.0,
+          "V": 0.0,
+          "Zn": 10.86239,
+          "Zr": 0.30941
+        },
+        "anchor_index": 14
+      },
+      "values": {
+        "YS_MPa": 790.8045654296875,
+        "UTS_MPa": 833.7052612304688,
+        "elongation_pct": 9.60309999999999
+      },
+      "F": [
+        -790.8045654296875,
+        -9.60309999999999
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 92.05179,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.4,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.00391,
+          "Cu": 5.09802,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.7,
+          "Ga": 0.0,
+          "Li": 0.01274,
+          "Mg": 0.0035,
+          "Mn": 7e-05,
+          "Ni": 0.0,
+          "Pb": 0.4,
+          "Sc": 0.08166,
+          "Si": 0.62964,
+          "Sn": 0.0,
+          "Ti": 0.0,
+          "V": 0.0,
+          "Zn": 0.29037,
+          "Zr": 0.3283
+        },
+        "anchor_index": 6
+      },
+      "values": {
+        "YS_MPa": 393.47589111328125,
+        "UTS_MPa": 473.5437316894531,
+        "elongation_pct": 15.811173333333336
+      },
+      "F": [
+        -393.47589111328125,
+        -15.811173333333336
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 97.27904,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.0,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.00199,
+          "Cu": 0.3027,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.16,
+          "Ga": 0.0,
+          "Li": 0.00052,
+          "Mg": 0.92956,
+          "Mn": 0.44744,
+          "Ni": 0.004,
+          "Pb": 0.0,
+          "Sc": 0.00733,
+          "Si": 0.50431,
+          "Sn": 0.0,
+          "Ti": 0.023,
+          "V": 0.0,
+          "Zn": 0.18146,
+          "Zr": 0.15865
+        },
+        "anchor_index": 18
+      },
+      "values": {
+        "YS_MPa": 259.7620544433594,
+        "UTS_MPa": 311.0967712402344,
+        "elongation_pct": 17.34558333333327
+      },
+      "F": [
+        -259.7620544433594,
+        -17.34558333333327
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    },
+    {
+      "composition": {
+        "values": {
+          "Ag": 0.0,
+          "Al": 85.41427,
+          "B": 0.0,
+          "Be": 0.0,
+          "Bi": 0.0,
+          "Cd": 0.0,
+          "Co": 0.0,
+          "Cr": 0.32202,
+          "Cu": 1.12415,
+          "Er": 0.0,
+          "Eu": 0.0,
+          "Fe": 0.0,
+          "Ga": 0.0,
+          "Li": 0.07823,
+          "Mg": 2.63291,
+          "Mn": 0.00753,
+          "Ni": 0.0,
+          "Pb": 0.0,
+          "Sc": 0.44476,
+          "Si": 0.02494,
+          "Sn": 0.0,
+          "Ti": 0.0,
+          "V": 0.0,
+          "Zn": 9.84328,
+          "Zr": 0.10791
+        },
+        "anchor_index": 0
+      },
+      "values": {
+        "YS_MPa": 768.444091796875,
+        "UTS_MPa": 808.9461669921875,
+        "elongation_pct": 10.629713333333301
+      },
+      "F": [
+        -768.444091796875,
+        -10.629713333333301
+      ],
+      "feasible": true,
+      "support": {
+        "specialist": "inside",
+        "transformer": "not_calibrated"
+      },
+      "property_sources": {
+        "YS_MPa": "alloy_v10",
+        "UTS_MPa": "alloy_v10",
+        "elongation_pct": "specialist"
+      }
+    }
+  ],
+  "prediction_is_experimental_validation": false
+}

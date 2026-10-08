@@ -1,0 +1,249 @@
+{
+  "records": [
+    {
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1790153188_6407_e109b21f-39d4-4ca5-9330-10973ebbc1ed_s1-29bca5c7204db7be/manifest.json",
+      "formal_source_unchanged": true,
+      "channel": "alloy_v10",
+      "batch_id": "1790566965510592551-7d9b4037",
+      "model_domain": "aerospace_aluminum_composition_v1",
+      "mode": "shadow",
+      "status": "completed",
+      "public_effect": false,
+      "display_allowed": false,
+      "production_release_authorized": false,
+      "formal_result_mutated": false,
+      "request_count": 12,
+      "result_count": 12,
+      "status_counts": {
+        "predicted_diagnostic": 12
+      },
+      "model": {
+        "version": "unified_alloy_tensile_v10_20260923",
+        "source_checkpoint_sha256": "88109cd28ed056e07c893bc294c3000f5ac6dbb809de6a9046f233f478467f83",
+        "serving_weights_sha256": "88109cd28ed056e07c893bc294c3000f5ac6dbb809de6a9046f233f478467f83",
+        "single_checkpoint": true
+      },
+      "elapsed_seconds": 2.922
+    },
+    {
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1790561014_2360_ac09a02d-53f2-4e2b-bfb9-691ba5fdd761_s7-1d1336474ddd1473/manifest.json",
+      "formal_source_unchanged": true,
+      "channel": "alloy_v10_stainless",
+      "batch_id": "1790566968437175800-80c26ce2",
+      "model_domain": "reusable_rocket_stainless",
+      "mode": "shadow",
+      "status": "completed",
+      "public_effect": false,
+      "display_allowed": false,
+      "production_release_authorized": false,
+      "formal_result_mutated": false,
+      "request_count": 40,
+      "result_count": 40,
+      "status_counts": {
+        "predicted_diagnostic": 40
+      },
+      "model": {
+        "version": "unified_alloy_tensile_v10_20260923",
+        "source_checkpoint_sha256": "88109cd28ed056e07c893bc294c3000f5ac6dbb809de6a9046f233f478467f83",
+        "serving_weights_sha256": "88109cd28ed056e07c893bc294c3000f5ac6dbb809de6a9046f233f478467f83",
+        "single_checkpoint": true
+      },
+      "elapsed_seconds": 2.6728
+    },
+    {
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/shadow-live-nickel-r2-20260921/manifest.json",
+      "formal_source_unchanged": true,
+      "channel": "alloy_v10_nickel",
+      "batch_id": "1790566971114848657-a2c2dc5f",
+      "model_domain": "ni_superalloy_hot_end",
+      "mode": "shadow",
+      "status": "completed",
+      "public_effect": false,
+      "display_allowed": false,
+      "production_release_authorized": false,
+      "formal_result_mutated": false,
+      "request_count": 20,
+      "result_count": 20,
+      "status_counts": {
+        "predicted_diagnostic": 20
+      },
+      "model": {
+        "version": "unified_alloy_tensile_v10_20260923",
+        "source_checkpoint_sha256": "88109cd28ed056e07c893bc294c3000f5ac6dbb809de6a9046f233f478467f83",
+        "serving_weights_sha256": "88109cd28ed056e07c893bc294c3000f5ac6dbb809de6a9046f233f478467f83",
+        "single_checkpoint": true
+      },
+      "elapsed_seconds": 2.6715
+    },
+    {
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1790153188_6407_aac7e15f-285c-45d2-82ec-6cd3aa3bb8aa_s1-eb276e94d6ec261a/manifest.json",
+      "formal_source_unchanged": true,
+      "channel": "glass_v1",
+      "batch_id": "1790566973807182745-d2ccc886",
+      "model_domain": "chip_glass_thermomechanical_family_v1",
+      "mode": "shadow",
+      "status": "completed",
+      "public_effect": false,
+      "display_allowed": false,
+      "production_release_authorized": false,
+      "formal_result_mutated": false,
+      "request_count": 160,
+      "result_count": 160,
+      "status_counts": {
+        "predicted_diagnostic": 160
+      },
+      "model": {
+        "name": "oxide_glass_multitask_transformer_v1_strict_20260928",
+        "checkpoint_sha256": "601fefce1d36aabb4e1de77f85baf96a7eec6cc8daebfedc8490d0535b6976a6",
+        "training_data_sha256": "98810be535a0300273f78fbd360e0a1623cc383748a5e2bd2e9842e413bf1a4d",
+        "training_rows": 159461
+      },
+      "elapsed_seconds": 2.6803
+    },
+    {
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1790153188_6407_e109b21f-39d4-4ca5-9330-10973ebbc1ed_s1-29bca5c7204db7be/manifest.json",
+      "formal_source_unchanged": true,
+      "channel": "nsga_0",
+      "batch_id": "1790566976492085683-398da117",
+      "model_domain": "aerospace_aluminum_composition_v1",
+      "mode": "shadow",
+      "status": "completed",
+      "public_effect": false,
+      "display_allowed": false,
+      "production_release_authorized": false,
+      "formal_result_mutated": false,
+      "request_count": 1,
+      "result_count": 1,
+      "status_counts": {
+        "completed": 1
+      },
+      "model": null,
+      "elapsed_seconds": 7.1315
+    },
+    {
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1790561014_2360_ac09a02d-53f2-4e2b-bfb9-691ba5fdd761_s7-1d1336474ddd1473/manifest.json",
+      "formal_source_unchanged": true,
+      "channel": "nsga_1",
+      "batch_id": "1790566983627716808-0bac78c0",
+      "model_domain": "reusable_rocket_stainless",
+      "mode": "shadow",
+      "status": "completed",
+      "public_effect": false,
+      "display_allowed": false,
+      "production_release_authorized": false,
+      "formal_result_mutated": false,
+      "request_count": 1,
+      "result_count": 1,
+      "status_counts": {
+        "completed": 1
+      },
+      "model": null,
+      "elapsed_seconds": 6.2799
+    },
+    {
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/shadow-live-nickel-r2-20260921/manifest.json",
+      "formal_source_unchanged": true,
+      "channel": "nsga_2",
+      "batch_id": "1790566989912378889-578a71a2",
+      "model_domain": "ni_superalloy_hot_end",
+      "mode": "shadow",
+      "status": "completed",
+      "public_effect": false,
+      "display_allowed": false,
+      "production_release_authorized": false,
+      "formal_result_mutated": false,
+      "request_count": 1,
+      "result_count": 1,
+      "status_counts": {
+        "no_feasible_candidate": 1
+      },
+      "model": null,
+      "elapsed_seconds": 4.5372
+    },
+    {
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1790153188_6407_c656a129-3af4-4271-b36c-3fa140da78d0_s1-bf819a585c3c7270/manifest.json",
+      "formal_source_unchanged": true,
+      "channel": "nsga_3",
+      "batch_id": "1790566994454037779-3e874c2d",
+      "model_domain": "copper_hot_end_local_composition_v1",
+      "mode": "shadow",
+      "status": "completed",
+      "public_effect": false,
+      "display_allowed": false,
+      "production_release_authorized": false,
+      "formal_result_mutated": false,
+      "request_count": 1,
+      "result_count": 1,
+      "status_counts": {
+        "completed": 1
+      },
+      "model": null,
+      "elapsed_seconds": 6.0302
+    },
+    {
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1790150692_9958_5d13f3e3-3087-41ac-b60d-5e12d425f0be_s1-eb4272e6286a9ec1/manifest.json",
+      "formal_source_unchanged": true,
+      "channel": "nsga_4",
+      "batch_id": "1790567000493624126-7da71055",
+      "model_domain": "hea_mpea",
+      "mode": "shadow",
+      "status": "completed",
+      "public_effect": false,
+      "display_allowed": false,
+      "production_release_authorized": false,
+      "formal_result_mutated": false,
+      "request_count": 1,
+      "result_count": 1,
+      "status_counts": {
+        "completed": 1
+      },
+      "model": null,
+      "elapsed_seconds": 9.4375
+    },
+    {
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1790153188_6407_aac7e15f-285c-45d2-82ec-6cd3aa3bb8aa_s1-eb276e94d6ec261a/manifest.json",
+      "formal_source_unchanged": true,
+      "channel": "nsga_5",
+      "batch_id": "1790567009957688306-504f0cc6",
+      "model_domain": "chip_glass_thermomechanical_family_v1",
+      "mode": "shadow",
+      "status": "completed",
+      "public_effect": false,
+      "display_allowed": false,
+      "production_release_authorized": false,
+      "formal_result_mutated": false,
+      "request_count": 1,
+      "result_count": 1,
+      "status_counts": {
+        "completed": 1
+      },
+      "model": null,
+      "elapsed_seconds": 6.087
+    },
+    {
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1789896994_8348_126ee13f-b1c9-46b2-b0ca-765c3ac38124_s11-30b0447ba555ec2e/manifest.json",
+      "formal_source_unchanged": true,
+      "channel": "nsga_6",
+      "batch_id": "1790567016059684433-502a6511",
+      "model_domain": "short_cf_thermomechanical_rve_v1",
+      "mode": "shadow",
+      "status": "completed",
+      "public_effect": false,
+      "display_allowed": false,
+      "production_release_authorized": false,
+      "formal_result_mutated": false,
+      "request_count": 1,
+      "result_count": 1,
+      "status_counts": {
+        "completed": 1
+      },
+      "model": null,
+      "elapsed_seconds": 2.4244
+    }
+  ],
+  "passed": true,
+  "production_release_authorized": false,
+  "public_model_outputs_unchanged": true,
+  "external_http_service_started": false,
+  "public_asset_upload_performed": false
+}

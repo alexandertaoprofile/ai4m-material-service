@@ -1,0 +1,167 @@
+{
+  "scope": "read-only exact deployed proposer replay",
+  "production_release_authorized": false,
+  "records": [
+    {
+      "domain": "hea_mpea",
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1790150692_9958_5d13f3e3-3087-41ac-b60d-5e12d425f0be_s1-eb4272e6286a9ec1/manifest.json",
+      "taskid": "react_conv_1790150692_9958_5d13f3e3-3087-41ac-b60d-5e12d425f0be_s1-eb4272e6286a9ec1",
+      "seed": 17,
+      "requested": 1000,
+      "attempts": 1000,
+      "generated": 1000,
+      "feasible": 210,
+      "returned_rows": 40,
+      "stop_limit": "candidate_count bounded to [50,5000]; at most 40 Dirichlet batches",
+      "elapsed_seconds": 2.3657402135431767,
+      "inference_batches": 1,
+      "inference_rows": 1000,
+      "ad_batches": 0,
+      "ad_rows": 0,
+      "sampling": {
+        "generated": 1000,
+        "feasible": 210,
+        "attempts": null,
+        "property_threshold_passed": null
+      }
+    },
+    {
+      "domain": "ni_superalloy_hot_end",
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/shadow-live-nickel-r2-20260921/manifest.json",
+      "taskid": "shadow-live-nickel-r2-20260921",
+      "seed": 17,
+      "requested": 20,
+      "attempts": 20,
+      "generated": 20,
+      "feasible": null,
+      "returned_rows": 20,
+      "stop_limit": "accepted K or attempts=30K; K bounded to [20,300]",
+      "elapsed_seconds": 0.5129113979637623,
+      "inference_batches": 20,
+      "inference_rows": 20,
+      "ad_batches": 0,
+      "ad_rows": 0,
+      "sampling": {
+        "generated": 20,
+        "feasible": null,
+        "attempts": 20,
+        "property_threshold_passed": null
+      }
+    },
+    {
+      "domain": "copper_hot_end_local_composition_v1",
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1790153188_6407_c656a129-3af4-4271-b36c-3fa140da78d0_s1-bf819a585c3c7270/manifest.json",
+      "taskid": "react_conv_1790153188_6407_c656a129-3af4-4271-b36c-3fa140da78d0_s1-bf819a585c3c7270",
+      "seed": 17,
+      "requested": 12,
+      "attempts": 12,
+      "generated": 12,
+      "feasible": 12,
+      "returned_rows": 12,
+      "stop_limit": "accepted K or attempts=15K; K bounded to [3,40]",
+      "elapsed_seconds": 1.0644685439765453,
+      "inference_batches": 12,
+      "inference_rows": 12,
+      "ad_batches": 0,
+      "ad_rows": 0,
+      "sampling": {
+        "generated": 12,
+        "feasible": 12,
+        "attempts": null,
+        "property_threshold_passed": null
+      }
+    },
+    {
+      "domain": "reusable_rocket_stainless",
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1790561014_2360_ac09a02d-53f2-4e2b-bfb9-691ba5fdd761_s7-1d1336474ddd1473/manifest.json",
+      "taskid": "react_conv_1790561014_2360_ac09a02d-53f2-4e2b-bfb9-691ba5fdd761_s7-1d1336474ddd1473",
+      "seed": 17,
+      "requested": 40,
+      "attempts": 113,
+      "generated": 40,
+      "feasible": 40,
+      "returned_rows": 40,
+      "stop_limit": "first K non-outside after at most 30K raw proposals; K bounded to [20,80]",
+      "elapsed_seconds": 1.095451682806015,
+      "inference_batches": 1,
+      "inference_rows": 40,
+      "ad_batches": 1,
+      "ad_rows": 1200,
+      "sampling": {
+        "generated": 40,
+        "feasible": 40,
+        "attempts": 113,
+        "property_threshold_passed": null
+      }
+    },
+    {
+      "domain": "aerospace_aluminum_composition_v1",
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1790153188_6407_e109b21f-39d4-4ca5-9330-10973ebbc1ed_s1-29bca5c7204db7be/manifest.json",
+      "taskid": "react_conv_1790153188_6407_e109b21f-39d4-4ca5-9330-10973ebbc1ed_s1-29bca5c7204db7be",
+      "seed": 17,
+      "requested": 12,
+      "attempts": 12,
+      "generated": 12,
+      "feasible": 12,
+      "returned_rows": 12,
+      "stop_limit": "accepted K or attempts=20K; K bounded to [3,30]",
+      "elapsed_seconds": 5.4925632774829865,
+      "inference_batches": 12,
+      "inference_rows": 12,
+      "ad_batches": 0,
+      "ad_rows": 0,
+      "sampling": {
+        "generated": 12,
+        "feasible": 12,
+        "attempts": null,
+        "property_threshold_passed": null
+      }
+    },
+    {
+      "domain": "chip_glass_thermomechanical_family_v1",
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1790153188_6407_aac7e15f-285c-45d2-82ec-6cd3aa3bb8aa_s1-eb276e94d6ec261a/manifest.json",
+      "taskid": "react_conv_1790153188_6407_aac7e15f-285c-45d2-82ec-6cd3aa3bb8aa_s1-eb276e94d6ec261a",
+      "seed": 17,
+      "requested": 80,
+      "attempts": 82,
+      "generated": 80,
+      "feasible": null,
+      "returned_rows": 80,
+      "stop_limit": "accepted K or attempts=80K; K in [1,500]",
+      "elapsed_seconds": 0.5859027095139027,
+      "inference_batches": 1,
+      "inference_rows": 80,
+      "ad_batches": 0,
+      "ad_rows": 0,
+      "sampling": {
+        "generated": 80,
+        "feasible": null,
+        "attempts": 82,
+        "property_threshold_passed": 80
+      }
+    },
+    {
+      "domain": "short_cf_thermomechanical_rve_v1",
+      "source_manifest": "/data/se42/alpha_project/material_service_hub/material_composition_optimization/results/alloy_composition_optimization/react_conv_1789896994_8348_126ee13f-b1c9-46b2-b0ca-765c3ac38124_s11-30b0447ba555ec2e/manifest.json",
+      "taskid": "react_conv_1789896994_8348_126ee13f-b1c9-46b2-b0ca-765c3ac38124_s11-30b0447ba555ec2e",
+      "seed": 17,
+      "requested": 40,
+      "attempts": 40,
+      "generated": 40,
+      "feasible": 40,
+      "returned_rows": 40,
+      "stop_limit": "exactly K proposal attempts; K bounded to [1,200]",
+      "elapsed_seconds": 0.3937210254371166,
+      "inference_batches": 40,
+      "inference_rows": 40,
+      "ad_batches": 0,
+      "ad_rows": 0,
+      "sampling": {
+        "generated": 40,
+        "feasible": 40,
+        "attempts": null,
+        "property_threshold_passed": null
+      }
+    }
+  ]
+}

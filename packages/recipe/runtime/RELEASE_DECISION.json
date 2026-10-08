@@ -1,0 +1,22 @@
+{
+  "created_utc": "2026-09-28T03:54:01.372976+00:00",
+  "offline_verification_complete": true,
+  "offline_engineering_passed": true,
+  "candidate_ready_for_reviewed_private_shadow_merge": true,
+  "automated_tests_passed": 130,
+  "private_e2e_channels": 11,
+  "presentation_domains": 8,
+  "equal_budget_optimizer_pairs": 35,
+  "shadow_activated": false,
+  "all_domains_primary_ready": false,
+  "production_release_authorized": false,
+  "pending": [
+    "scientific_support_calibration",
+    "source_generalization",
+    "physical_label_review",
+    "license_review",
+    "approved_actual_shadow_canary",
+    "real_browser_and_asset_publication",
+    "domain_property_primary_implementation_and_signoff"
+  ]
+}

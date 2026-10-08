@@ -4,6 +4,8 @@
 
 ## 1. 当前能力与状态
 
+新机器安装和启动见[复现指南](../docs/reproduction.md)。专项计算、固定优化和报告源码已纳入 [packages/](../packages/README.md)，模型和推理数据从 `1111` 资源组恢复；使用 `web`、`numeric`、`recipe` 三个独立环境。统一启动器把本机路径传给原有计算接口。
+
 本目录保存 2026-10-04 核对的 75 线上源码快照，运行目录为 `/data/se42/alpha_project/material_service_hub/material_composition_optimization`。后续整合更新见[开发副本](../development/material_composition_optimization/README.md)，离线物理约束训练见[实验说明](../development/1111_physics/README.md)。这两类内容各自记录验证与部署状态。
 
 正式配置见 `config/recipe_release.json`。当前八类专项均设置为 `primary`，即采用已验收的专项优化结果作为正式输出；模型、数据和评价条件随材料类别选择。
@@ -34,7 +36,7 @@ Web 解释器为 `/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python`。
 
 PyTorch 运行已训练性质模型，scikit-learn/joblib 运行树模型等专项模型，pymoo 的 NSGA-II 搜索含量范围内的多目标配比；钙钛矿采用组成网格计算。固定包模型包括 models/alloy_v10/model_state.pt 和 models/glass_v1/model_state.pt；专项权重与支持数据分散在 hea_surrogate 的 models/、data/processed/ 中，按材料类别选择。
 
-GitHub 提供服务及适配代码；计算程序、模型和数据需另行取得。逐类资源位置、包清单和最小检查见[运行说明](../docs/service_setup.md)，版本与哈希见[外部依赖说明](../docs/external_dependencies.md)。
+Git 提供服务及 `packages/` 中的计算源码；模型和推理数据从 Release 恢复。原资源位置及专项说明见[运行说明](../docs/service_setup.md)，逐文件版本与校验值见[资源清单](../resources/runtime-manifest.json)。
 
 新联调副本仅在 `.env` 尚不存在时复制样例，再填入本机配置；已有生产配置保留。启动前先核对端口和数值资源，不执行历史训练命令。
 
@@ -85,7 +87,7 @@ cd /path/to/material_composition_optimization
 | `request_capabilities.py`、`fallback_design.py`、`specialist_outcome.py` | 支持范围、通用设计准备与专项结果解释。 |
 | `presentation.py`、`protocol.py` | 中文报告、图表和既有流式协议。 |
 
-75 服务器当前还依赖以下仓库外资源：
+75 原部署从以下目录读取资源；移植后的源码对应 `packages/`，大型文件对应 Release，详见复现指南：
 
 | 目录 | 用途 |
 | --- | --- |

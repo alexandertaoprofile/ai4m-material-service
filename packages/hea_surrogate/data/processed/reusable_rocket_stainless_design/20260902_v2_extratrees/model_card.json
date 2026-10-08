@@ -1,0 +1,57 @@
+{
+  "service_name": "可回收火箭不锈钢配方设计",
+  "artifact": "reusable_rocket_austenitic_design_v2_extratrees",
+  "training_rows": {
+    "yield_0p2_MPa": 2180,
+    "uts_MPa": 2180,
+    "elongation_pct": 2083
+  },
+  "independent_thermomechanical_groups": 259,
+  "validation": {
+    "method": "3-fold GroupKFold by full composition + thermomechanical state",
+    "yield_0p2_MPa": {
+      "n": 2180,
+      "group_kfold_splits": 3,
+      "MAE": 16.207576954124608,
+      "R2": 0.768563736434905
+    },
+    "uts_MPa": {
+      "n": 2180,
+      "group_kfold_splits": 3,
+      "MAE": 16.26333885083432,
+      "R2": 0.9216409163880264
+    },
+    "elongation_pct": {
+      "n": 2083,
+      "group_kfold_splits": 3,
+      "MAE": 3.2922136168614897,
+      "R2": 0.8332040324127894
+    }
+  },
+  "data_quality_action": {
+    "elongation_rows_held_for_source_review": [
+      {
+        "source_locator": "STMECH_AUS_SS tabular record 859",
+        "elongation_pct": 435.0,
+        "Temperature (K)": 673
+      },
+      {
+        "source_locator": "STMECH_AUS_SS tabular record 1981",
+        "elongation_pct": 505.0,
+        "Temperature (K)": 373
+      }
+    ],
+    "missing_process_fields": "模型以中位数填补并添加缺失指示符；后续补数优先覆盖固溶时间、晶粒度和铸锭尺寸。"
+  },
+  "formal_scope": "293–1273 K、公开数据适用域内的奥氏体不锈钢短时拉伸候选筛选。",
+  "cryo_scope": "20/77/90/111 K 使用独立 301/304L 参考层，作为试验优先级而非自由配方预测。",
+  "applicability_domain_file": "applicability_domain.json（组装服务时必须执行其中的温度和成分邻域门槛）",
+  "not_predicted": [
+    "30X 专属性能",
+    "疲劳",
+    "断裂韧性",
+    "焊接性能",
+    "LOX 相容性"
+  ],
+  "release_status": "conditional_ready_for_first_service"
+}

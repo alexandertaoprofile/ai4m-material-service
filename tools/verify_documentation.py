@@ -10,6 +10,7 @@ import shutil
 import subprocess
 
 EXTRA_DOCUMENTS = (
+    "docs/reproduction.md", "docs/research_resources.md", "docs/REPRODUCTION_VERIFICATION_20261008.md",
     "HANDOFF_2026-08-21.md", "docs/deployment_status.md", "docs/development_changes.md",
     "docs/review_guide.md", "docs/external_dependencies.md", "docs/code_synchronization.md",
     "docs/material_service_architecture_standard.md", "docs/MAIN_LAYOUT_VERIFICATION_20261004.md",
@@ -71,7 +72,10 @@ def check(root: Path) -> dict:
     tracked = subprocess.check_output(["git", "ls-files", "--cached", "--others",
                                        "--exclude-standard", "-z"], cwd=root)
     paths = {item.decode("utf-8") for item in tracked.split(b"\0") if item}
-    readmes = {name for name in paths if Path(name).name == "README.md"}
+    # Preserve imported upstream documentation unchanged; validate our maintained
+    # integration guides rather than their omitted training assets and datasets.
+    readmes = {name for name in paths if Path(name).name == "README.md"
+               and not name.startswith(("third_party/OMatG/", "packages/hea_surrogate/", "packages/recipe/", "packages/recipe_report/"))}
     documents = sorted(readmes | set(EXTRA_DOCUMENTS))
     counts = {"readmes": len(readmes), "documents": len(documents),
               "links": 0, "json_examples": 0, "shell_blocks": 0}

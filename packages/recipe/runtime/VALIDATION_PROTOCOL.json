@@ -1,0 +1,34 @@
+{
+  "schema": "material_release_validation_v1",
+  "created_date": "2026-09-28",
+  "scope": "offline release-candidate validation; no live deployment, push, restart or public upload",
+  "scientific_selection": "frozen v10 single checkpoint; glass v0 audit found preprocessing leakage, strict glass v1 rebuilt with fixed original hyperparameters and train-only scaling; no audit-driven checkpoint selection",
+  "phases": ["freeze", "data_and_inference_parity", "subgroup_and_source_metrics", "support_and_semantics", "optimizer_contract_and_same_budget_trials", "fault_injection", "1111_snapshot_regression_and_streaming", "release_decision"],
+  "optimization": {
+    "seeds": [17, 29, 43, 73, 97],
+    "population": 32,
+    "valid_model_evaluation_budget": 256,
+    "proposal_cap": 20480,
+    "soft_wall_seconds": 30,
+    "hard_subprocess_timeout_seconds": 60,
+    "comparison": "same frozen predictor, search space, objective definitions and counted model evaluations; also retain unchanged live-default baseline",
+    "no_universal_nsga_superiority_claim": true
+  },
+  "engineering": {
+    "default_mode": "legacy",
+    "new_shadow_default_enabled": false,
+    "primary_requires_domain_property_approval": true,
+    "public_result_mutation_in_shadow": false,
+    "finite_outputs_required": true,
+    "ordered_alloy_uts_ge_ys_required": true,
+    "privacy_flags_must_be_explicit_false": true,
+    "unknown_domains_and_objectives_fail_closed": true,
+    "hard_timeout_kills_process_group": true
+  },
+  "release_policy": {
+    "research": "may run diagnostics privately with limitations retained",
+    "shadow": "requires software parity, privacy, real health probes, bounded resource use and rollback",
+    "primary": "requires domain/property evidence, task-definition match, calibrated support, provenance/license approval and deployment approval",
+    "never_use_prediction_difference_as_experimental_error": true
+  }
+}
