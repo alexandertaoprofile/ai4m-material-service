@@ -76,7 +76,7 @@ python tools/prepare_runtime.py --resource-root /data/material-repro/resources -
 先检查 Web 应用能否导入、角色接口能否响应。`--check` 使用进程内测试客户端；角色构造需要 API key 时使用本地检查占位值，此检查不发送语言模型请求。
 
 ```bash
-/data/material-repro/envs/web/bin/python tools/launch_service.py 1105 --env-file material_database/.env --check
+/data/material-repro/envs/web/bin/python tools/launch_service.py 1105 --env-file material_selection/.env --check
 /data/material-repro/envs/web/bin/python tools/launch_service.py 1111 --env-file material_composition_optimization/.env --check
 /data/material-repro/envs/web/bin/python tools/launch_service.py 1115 --env-file material_discovery/.env --check
 /data/material-repro/envs/web/bin/python tools/launch_service.py 1116 --env-file material_validation/.env --check
@@ -109,7 +109,7 @@ python tools/prepare_runtime.py --resource-root /data/material-repro/resources -
 
 ```bash
 /data/material-repro/envs/web/bin/python -m unittest discover -s tools/tests
-cd material_database
+cd material_selection
 PYTHONPATH=. /data/material-repro/envs/web/bin/python -m pytest -q tests/test_mature_material_service.py
 ```
 
@@ -123,19 +123,19 @@ PYTHONPATH=. /data/material-repro/envs/web/bin/python -m pytest -q tests/test_ma
   --output-dir /data/material-repro/recipe-check
 ```
 
-测试命令从仓库根目录运行；上面的 `cd material_database` 检查结束后先返回根目录。输出目录使用新的路径，便于保留每次检查结果。全部服务测试由 `tools/check_service_tests.py --output /data/material-repro/service-tests.json` 分进程运行，使用 Web 环境执行。历史测试与当前 OMatG 路线的差异见验证记录。
+测试命令从仓库根目录运行；上面的 `cd material_selection` 检查结束后先返回根目录。输出目录使用新的路径，便于保留每次检查结果。全部服务测试由 `tools/check_service_tests.py --output /data/material-repro/service-tests.json` 分进程运行，使用 Web 环境执行。历史测试与当前 OMatG 路线的差异见验证记录。
 
 ## 6. 启动服务
 
 在仓库根目录，每个命令对应一个服务进程。首次联调先选空闲端口，在本机 `.env` 调整 `PORT`。
 
 ```bash
-/data/material-repro/envs/web/bin/python tools/launch_service.py 1105 --env-file material_database/.env
+/data/material-repro/envs/web/bin/python tools/launch_service.py 1105 --env-file material_selection/.env
 /data/material-repro/envs/web/bin/python tools/launch_service.py 1111 --env-file material_composition_optimization/.env
 /data/material-repro/envs/web/bin/python tools/launch_service.py 1115 --env-file material_discovery/.env
 /data/material-repro/envs/web/bin/python tools/launch_service.py 1116 --env-file material_validation/.env
 ```
 
-以上命令分别执行，不放在同一终端顺序等待。接口和用户请求示例见各服务 README：[1105](../material_database/README.md)、[1111](../material_composition_optimization/README.md)、[1115](../material_discovery/README.md)、[1116](../material_validation/README.md)。
+以上命令分别执行，不放在同一终端顺序等待。接口和用户请求示例见各服务 README：[1105](../material_selection/README.md)、[1111](../material_composition_optimization/README.md)、[1115](../material_discovery/README.md)、[1116](../material_validation/README.md)。
 
 1116 当前恢复的是 W-14 参考案例证据服务。完整训练研究的追加资料见[研究资源交接](research_resources.md)。

@@ -4638,7 +4638,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/fluid_lubricant/2026-08-04_v1/fluid_property_evidence.sqlite",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/fluid_lubricant/2026-08-04_v1/fluid_property_evidence.sqlite",
       "path": "data/1105/fluid_property_evidence.sqlite",
       "bytes": 381964288,
       "sha256": "db36cd0523c06722ba90edad6924b5ef0671e5005fa4f1c2d2e8540212fe72fd",
@@ -4665,7 +4665,7 @@
       ]
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/catalog_cleaning_summary.json",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/catalog_cleaning_summary.json",
       "path": "data/1105/catalog/catalog_cleaning_summary.json",
       "bytes": 264,
       "sha256": "4696728e9fcdc6ba44213d7fad5a7af59726322fdba09e658ef5234f5a45c6a2",
@@ -4673,7 +4673,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/composition_long.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/composition_long.csv",
       "path": "data/1105/catalog/composition_long.csv",
       "bytes": 16970,
       "sha256": "5891b77f918a1bf9cd2bc3aa7ccb7c593efff8f1f021dafc1955fd9fb7e1eaa1",
@@ -4681,7 +4681,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/curve_data.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/curve_data.csv",
       "path": "data/1105/catalog/curve_data.csv",
       "bytes": 163829,
       "sha256": "6cbea8e095f5a4e0854ed0a8e4d91845c1954fbc6c65a551decef1c912a9e393",
@@ -4689,7 +4689,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-06_document_mapped_v1/composition_long.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-06_document_mapped_v1/composition_long.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-06_document_mapped_v1/composition_long.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -4697,7 +4697,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-06_document_mapped_v1/curve_data.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-06_document_mapped_v1/curve_data.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-06_document_mapped_v1/curve_data.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -4705,7 +4705,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-06_document_mapped_v1/import_manifest.json",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-06_document_mapped_v1/import_manifest.json",
       "path": "data/1105/catalog/high_temperature/2026-08-06_document_mapped_v1/import_manifest.json",
       "bytes": 4253,
       "sha256": "df1a76223c6f1a6e55d88e6d0582dcb926160d5cf38f6d4508351c31150d3619",
@@ -4713,7 +4713,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-06_document_mapped_v1/material_aliases.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-06_document_mapped_v1/material_aliases.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-06_document_mapped_v1/material_aliases.csv",
       "bytes": 11021,
       "sha256": "c8e45d2c8b4cdc71f979a90ec4403a3c07fff329bff2c370b86da1eb45c1f6c3",
@@ -4721,7 +4721,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-06_document_mapped_v1/materials.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-06_document_mapped_v1/materials.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-06_document_mapped_v1/materials.csv",
       "bytes": 36943,
       "sha256": "159131907672ffde900909a5144a672544e13a4fece4e3743740d907e2b1764f",
@@ -4729,7 +4729,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-06_document_mapped_v1/property_points.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-06_document_mapped_v1/property_points.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-06_document_mapped_v1/property_points.csv",
       "bytes": 1000786,
       "sha256": "0f59eb0f5387fdfb59755f7df6e0bc13195448451dfe0c20dc9c5cdfef835cf0",
@@ -4737,7 +4737,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-06_explicit_identity_v1/composition_long.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-06_explicit_identity_v1/composition_long.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-06_explicit_identity_v1/composition_long.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -4745,7 +4745,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-06_explicit_identity_v1/curve_data.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-06_explicit_identity_v1/curve_data.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-06_explicit_identity_v1/curve_data.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -4753,7 +4753,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-06_explicit_identity_v1/import_manifest.json",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-06_explicit_identity_v1/import_manifest.json",
       "path": "data/1105/catalog/high_temperature/2026-08-06_explicit_identity_v1/import_manifest.json",
       "bytes": 549,
       "sha256": "df16242d910a3b17cdda75d7db1a69b13504c99d9303d4d8842e390f81bd1304",
@@ -4761,7 +4761,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-06_explicit_identity_v1/material_aliases.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-06_explicit_identity_v1/material_aliases.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-06_explicit_identity_v1/material_aliases.csv",
       "bytes": 217,
       "sha256": "718feecd3c0e5520e1166ee5030fd0b2a1b9f12f88c03f6b936956ff061c2e48",
@@ -4769,7 +4769,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-06_explicit_identity_v1/materials.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-06_explicit_identity_v1/materials.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-06_explicit_identity_v1/materials.csv",
       "bytes": 2632,
       "sha256": "fea1817bf8433d8b97fbb580973cd5a8aad49332afc2e57c2593041a32761754",
@@ -4777,7 +4777,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-06_explicit_identity_v1/property_points.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-06_explicit_identity_v1/property_points.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-06_explicit_identity_v1/property_points.csv",
       "bytes": 38054,
       "sha256": "f0da04409aa1e5a1ae2410ca22b2e2111197dee4e19e842ca9610900c36a1781",
@@ -4785,7 +4785,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-12_thermal_properties_v3/composition_long.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-12_thermal_properties_v3/composition_long.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-12_thermal_properties_v3/composition_long.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -4793,7 +4793,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-12_thermal_properties_v3/curve_data.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-12_thermal_properties_v3/curve_data.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-12_thermal_properties_v3/curve_data.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -4801,7 +4801,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-12_thermal_properties_v3/import_manifest.json",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-12_thermal_properties_v3/import_manifest.json",
       "path": "data/1105/catalog/high_temperature/2026-08-12_thermal_properties_v3/import_manifest.json",
       "bytes": 5603,
       "sha256": "46e051c5b348d3aa08a5934e1b70b4c5d7df7b23472ec85ec8f745de5f744d91",
@@ -4809,7 +4809,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-12_thermal_properties_v3/material_aliases.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-12_thermal_properties_v3/material_aliases.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-12_thermal_properties_v3/material_aliases.csv",
       "bytes": 12714,
       "sha256": "068fe98b2201f63ae387908f752fc17511c7eab60e74a30ce96c5cf8a6889fc5",
@@ -4817,7 +4817,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-12_thermal_properties_v3/materials.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-12_thermal_properties_v3/materials.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-12_thermal_properties_v3/materials.csv",
       "bytes": 42346,
       "sha256": "935bca5f8cfa95bba76828d318ea2b220c2022229c06a77a43bc22149aa6eda7",
@@ -4825,7 +4825,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-12_thermal_properties_v3/property_points.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-12_thermal_properties_v3/property_points.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-12_thermal_properties_v3/property_points.csv",
       "bytes": 1630582,
       "sha256": "bc3b638696f45cd3c87f981a288fc88f4c462a100fad4bb4f5d0cef43020dc36",
@@ -4833,7 +4833,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_316l_srm1155a_thermal_v1/composition_long.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_316l_srm1155a_thermal_v1/composition_long.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_316l_srm1155a_thermal_v1/composition_long.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -4841,7 +4841,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_316l_srm1155a_thermal_v1/curve_data.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_316l_srm1155a_thermal_v1/curve_data.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_316l_srm1155a_thermal_v1/curve_data.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -4849,7 +4849,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_316l_srm1155a_thermal_v1/import_manifest.json",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_316l_srm1155a_thermal_v1/import_manifest.json",
       "path": "data/1105/catalog/high_temperature/2026-08-14_316l_srm1155a_thermal_v1/import_manifest.json",
       "bytes": 509,
       "sha256": "3a058b21145966d3949704aed90c2b19bde24838e7e73c949c42a084703db468",
@@ -4857,7 +4857,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_316l_srm1155a_thermal_v1/material_aliases.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_316l_srm1155a_thermal_v1/material_aliases.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_316l_srm1155a_thermal_v1/material_aliases.csv",
       "bytes": 37,
       "sha256": "34dc101ae7d0ee7fe99c0d69c4962f90433843f59ed78e2e6aaccc2d6d8c109b",
@@ -4865,7 +4865,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_316l_srm1155a_thermal_v1/materials.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_316l_srm1155a_thermal_v1/materials.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_316l_srm1155a_thermal_v1/materials.csv",
       "bytes": 206,
       "sha256": "6129519de68ef5bc87ec3dca03f0bf2ae8599ee2fba980123628056677a73577",
@@ -4873,7 +4873,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_316l_srm1155a_thermal_v1/property_points.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_316l_srm1155a_thermal_v1/property_points.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_316l_srm1155a_thermal_v1/property_points.csv",
       "bytes": 120772,
       "sha256": "0200e9c60e152c7d652219b8aedc200dc3c12e1177d1907a7a42e974f171ab38",
@@ -4881,7 +4881,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_simulation_properties_v1/composition_long.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_simulation_properties_v1/composition_long.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_simulation_properties_v1/composition_long.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -4889,7 +4889,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_simulation_properties_v1/curve_data.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_simulation_properties_v1/curve_data.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_simulation_properties_v1/curve_data.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -4897,7 +4897,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_simulation_properties_v1/import_manifest.json",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_simulation_properties_v1/import_manifest.json",
       "path": "data/1105/catalog/high_temperature/2026-08-14_simulation_properties_v1/import_manifest.json",
       "bytes": 2405,
       "sha256": "f1848dc70a399fb190a82ace46cc69d2aefe8b19ab489352317f6e63c40d94fc",
@@ -4905,7 +4905,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_simulation_properties_v1/material_aliases.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_simulation_properties_v1/material_aliases.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_simulation_properties_v1/material_aliases.csv",
       "bytes": 4510,
       "sha256": "f6b8df4608bfd46d38deda3ccea02088641a9c7386858a85053e4e577f035b5d",
@@ -4913,7 +4913,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_simulation_properties_v1/materials.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_simulation_properties_v1/materials.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_simulation_properties_v1/materials.csv",
       "bytes": 13607,
       "sha256": "aab37cbb309b4345cda548ed3aa1d7b881840a395c3d4bc275abee946e7a827e",
@@ -4921,7 +4921,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_simulation_properties_v1/property_points.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_simulation_properties_v1/property_points.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_simulation_properties_v1/property_points.csv",
       "bytes": 1126285,
       "sha256": "786928b6e9f397276dfa5e80a6c5f7be2bb2239f77c3b32cf5b48573936f25e2",
@@ -4929,7 +4929,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_simulation_properties_v2/composition_long.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_simulation_properties_v2/composition_long.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_simulation_properties_v2/composition_long.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -4937,7 +4937,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_simulation_properties_v2/curve_data.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_simulation_properties_v2/curve_data.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_simulation_properties_v2/curve_data.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -4945,7 +4945,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_simulation_properties_v2/import_manifest.json",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_simulation_properties_v2/import_manifest.json",
       "path": "data/1105/catalog/high_temperature/2026-08-14_simulation_properties_v2/import_manifest.json",
       "bytes": 2596,
       "sha256": "03083f9133fd2045581cbde4a0b2284065aecaf8dead753d08ccc9619ee840c5",
@@ -4953,7 +4953,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_simulation_properties_v2/material_aliases.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_simulation_properties_v2/material_aliases.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_simulation_properties_v2/material_aliases.csv",
       "bytes": 4900,
       "sha256": "d82126592df95c2fb160d39760865e6c7e91478073855883542c957e0a3fa3de",
@@ -4961,7 +4961,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_simulation_properties_v2/materials.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_simulation_properties_v2/materials.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_simulation_properties_v2/materials.csv",
       "bytes": 14716,
       "sha256": "1bea21c9ada52233ea329140e0e06d923b94a99b67fc10be0b49ce5dd9451159",
@@ -4969,7 +4969,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_simulation_properties_v2/property_points.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_simulation_properties_v2/property_points.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_simulation_properties_v2/property_points.csv",
       "bytes": 1149594,
       "sha256": "cf38ba1f6c64ceafe535a94f3cf61397e99dde7f5635521e851f715ef4c7b2d0",
@@ -4977,7 +4977,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v1/composition_long.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v1/composition_long.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_toray_tc1225_directional_v1/composition_long.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -4985,7 +4985,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v1/curve_data.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v1/curve_data.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_toray_tc1225_directional_v1/curve_data.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -4993,7 +4993,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v1/import_manifest.json",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v1/import_manifest.json",
       "path": "data/1105/catalog/high_temperature/2026-08-14_toray_tc1225_directional_v1/import_manifest.json",
       "bytes": 246,
       "sha256": "0864c40deb79bbe523d080ef7c9f6ed5cd70c356bb5c4031ca8e819342e913df",
@@ -5001,7 +5001,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v1/material_aliases.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v1/material_aliases.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_toray_tc1225_directional_v1/material_aliases.csv",
       "bytes": 122,
       "sha256": "c7d5bae9925455b7731b521cb217329b509b638a72981d64e94818828f26454a",
@@ -5009,7 +5009,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v1/materials.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v1/materials.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_toray_tc1225_directional_v1/materials.csv",
       "bytes": 611,
       "sha256": "fd5c0c80209a7713b501030dfcc52c3112c288e58afdc43c8b0904c56934622c",
@@ -5017,7 +5017,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v1/property_points.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v1/property_points.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_toray_tc1225_directional_v1/property_points.csv",
       "bytes": 7802,
       "sha256": "fbfa56c4808f608025ececb635d942ccf550f46fab2b306118b87cbab9efbfab",
@@ -5025,7 +5025,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v2/composition_long.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v2/composition_long.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_toray_tc1225_directional_v2/composition_long.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -5033,7 +5033,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v2/curve_data.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v2/curve_data.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_toray_tc1225_directional_v2/curve_data.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -5041,7 +5041,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v2/import_manifest.json",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v2/import_manifest.json",
       "path": "data/1105/catalog/high_temperature/2026-08-14_toray_tc1225_directional_v2/import_manifest.json",
       "bytes": 401,
       "sha256": "d3085a39bc13152a258a364f51f4c83cbd94e58de985915482bc4613173000ec",
@@ -5049,7 +5049,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v2/material_aliases.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v2/material_aliases.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_toray_tc1225_directional_v2/material_aliases.csv",
       "bytes": 122,
       "sha256": "c7d5bae9925455b7731b521cb217329b509b638a72981d64e94818828f26454a",
@@ -5057,7 +5057,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v2/materials.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v2/materials.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_toray_tc1225_directional_v2/materials.csv",
       "bytes": 611,
       "sha256": "fd5c0c80209a7713b501030dfcc52c3112c288e58afdc43c8b0904c56934622c",
@@ -5065,7 +5065,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v2/property_points.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v2/property_points.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_toray_tc1225_directional_v2/property_points.csv",
       "bytes": 27710,
       "sha256": "fb2bc89d8b1eda0f245f6102c91210acc9770c138390e9a41e1514ac5bfb03ab",
@@ -5073,7 +5073,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v3/composition_long.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v3/composition_long.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_toray_tc1225_directional_v3/composition_long.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -5081,7 +5081,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v3/curve_data.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v3/curve_data.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_toray_tc1225_directional_v3/curve_data.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -5089,7 +5089,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v3/import_manifest.json",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v3/import_manifest.json",
       "path": "data/1105/catalog/high_temperature/2026-08-14_toray_tc1225_directional_v3/import_manifest.json",
       "bytes": 401,
       "sha256": "d3085a39bc13152a258a364f51f4c83cbd94e58de985915482bc4613173000ec",
@@ -5097,7 +5097,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v3/material_aliases.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v3/material_aliases.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_toray_tc1225_directional_v3/material_aliases.csv",
       "bytes": 122,
       "sha256": "c7d5bae9925455b7731b521cb217329b509b638a72981d64e94818828f26454a",
@@ -5105,7 +5105,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v3/materials.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v3/materials.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_toray_tc1225_directional_v3/materials.csv",
       "bytes": 611,
       "sha256": "fd5c0c80209a7713b501030dfcc52c3112c288e58afdc43c8b0904c56934622c",
@@ -5113,7 +5113,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v3/property_points.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v3/property_points.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_toray_tc1225_directional_v3/property_points.csv",
       "bytes": 45133,
       "sha256": "8c328accf2a5dcb22585d943340b1d2793e7ead5f0cf42be19f5539c3c747444",
@@ -5121,7 +5121,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v4/composition_long.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v4/composition_long.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_toray_tc1225_directional_v4/composition_long.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -5129,7 +5129,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v4/curve_data.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v4/curve_data.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_toray_tc1225_directional_v4/curve_data.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -5137,7 +5137,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v4/import_manifest.json",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v4/import_manifest.json",
       "path": "data/1105/catalog/high_temperature/2026-08-14_toray_tc1225_directional_v4/import_manifest.json",
       "bytes": 495,
       "sha256": "f53d2ec2cc42b209056f3299aa8a91d975aed46732e5d453a2c301b963464688",
@@ -5145,7 +5145,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v4/material_aliases.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v4/material_aliases.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_toray_tc1225_directional_v4/material_aliases.csv",
       "bytes": 122,
       "sha256": "c7d5bae9925455b7731b521cb217329b509b638a72981d64e94818828f26454a",
@@ -5153,7 +5153,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v4/materials.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v4/materials.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_toray_tc1225_directional_v4/materials.csv",
       "bytes": 611,
       "sha256": "fd5c0c80209a7713b501030dfcc52c3112c288e58afdc43c8b0904c56934622c",
@@ -5161,7 +5161,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v4/property_points.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-14_toray_tc1225_directional_v4/property_points.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-14_toray_tc1225_directional_v4/property_points.csv",
       "bytes": 45133,
       "sha256": "8c328accf2a5dcb22585d943340b1d2793e7ead5f0cf42be19f5539c3c747444",
@@ -5169,7 +5169,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-24_c276_n06230_physical_v2/composition_long.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-24_c276_n06230_physical_v2/composition_long.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-24_c276_n06230_physical_v2/composition_long.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -5177,7 +5177,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-24_c276_n06230_physical_v2/curve_data.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-24_c276_n06230_physical_v2/curve_data.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-24_c276_n06230_physical_v2/curve_data.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -5185,7 +5185,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-24_c276_n06230_physical_v2/import_manifest.json",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-24_c276_n06230_physical_v2/import_manifest.json",
       "path": "data/1105/catalog/high_temperature/2026-08-24_c276_n06230_physical_v2/import_manifest.json",
       "bytes": 423,
       "sha256": "aa81f94ccda785d5c3aca11933f8e052bf85adb1e5eae0772e64e232645fe73a",
@@ -5193,7 +5193,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-24_c276_n06230_physical_v2/material_aliases.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-24_c276_n06230_physical_v2/material_aliases.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-24_c276_n06230_physical_v2/material_aliases.csv",
       "bytes": 983,
       "sha256": "4737626e9a8fcc565105ad5d4d7e2539ecf2543ec4e7997e9cfbee4cba3c6ce2",
@@ -5201,7 +5201,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-24_c276_n06230_physical_v2/materials.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-24_c276_n06230_physical_v2/materials.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-24_c276_n06230_physical_v2/materials.csv",
       "bytes": 1366,
       "sha256": "e3e24ff3f5a83a7480d2719bdf1a806a633d3e1f488819ed095daf4c22aabe59",
@@ -5209,7 +5209,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/2026-08-24_c276_n06230_physical_v2/property_points.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/2026-08-24_c276_n06230_physical_v2/property_points.csv",
       "path": "data/1105/catalog/high_temperature/2026-08-24_c276_n06230_physical_v2/property_points.csv",
       "bytes": 115458,
       "sha256": "53a3e31f30fdcf54c037c5ebbfc8bcbd236cfda7a0c9a9d157d58c4d9c80c633",
@@ -5217,7 +5217,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/document_registry_2026-08-06.json",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/document_registry_2026-08-06.json",
       "path": "data/1105/catalog/high_temperature/document_registry_2026-08-06.json",
       "bytes": 31658,
       "sha256": "b29432df816ea9e10277adf5416105c8950161dd9dee16707ca8e97d32bfa40e",
@@ -5225,7 +5225,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/high_temperature/document_registry_2026-08-14_simulation.json",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/high_temperature/document_registry_2026-08-14_simulation.json",
       "path": "data/1105/catalog/high_temperature/document_registry_2026-08-14_simulation.json",
       "bytes": 7516,
       "sha256": "cee7cf93ce7c613b056ac2190db30221059a6a59e2c0503914c7b154c99f141b",
@@ -5233,7 +5233,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_aliases.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_aliases.csv",
       "path": "data/1105/catalog/material_aliases.csv",
       "bytes": 1335,
       "sha256": "de9bd19afbcd38150da2ea5f2531287bc137e4c2f06405315a0a1a13ef9dc45e",
@@ -5241,7 +5241,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-06_material_core_v1/composition_long.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-06_material_core_v1/composition_long.csv",
       "path": "data/1105/catalog/material_core/2026-08-06_material_core_v1/composition_long.csv",
       "bytes": 19903,
       "sha256": "d6500d8b104495635dec5696726ffa9b5fac57041ac319af90955518eb2a878f",
@@ -5249,7 +5249,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-06_material_core_v1/curve_data.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-06_material_core_v1/curve_data.csv",
       "path": "data/1105/catalog/material_core/2026-08-06_material_core_v1/curve_data.csv",
       "bytes": 322481,
       "sha256": "6905f4c20cb5d51c476f4448c9aca3234b38333f122091a20f022337c4860e67",
@@ -5257,7 +5257,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-06_material_core_v1/import_manifest.json",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-06_material_core_v1/import_manifest.json",
       "path": "data/1105/catalog/material_core/2026-08-06_material_core_v1/import_manifest.json",
       "bytes": 3053,
       "sha256": "bfe1a58edfebcccbb761987f7e21c15011c7663e095e1e39cfd4d0259d654235",
@@ -5265,7 +5265,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-06_material_core_v1/material_aliases.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-06_material_core_v1/material_aliases.csv",
       "path": "data/1105/catalog/material_core/2026-08-06_material_core_v1/material_aliases.csv",
       "bytes": 351242,
       "sha256": "a0f1814eec3b1e278d9e92e516413a34fb9040bd34d34e669a399f5297bab26e",
@@ -5273,7 +5273,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-06_material_core_v1/materials.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-06_material_core_v1/materials.csv",
       "path": "data/1105/catalog/material_core/2026-08-06_material_core_v1/materials.csv",
       "bytes": 2783987,
       "sha256": "530fcb98108f3281c4d4045ad66901589e5fb3a23ad6e3e7fa3b187b0519932b",
@@ -5281,7 +5281,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-06_material_core_v1/property_points.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-06_material_core_v1/property_points.csv",
       "path": "data/1105/catalog/material_core/2026-08-06_material_core_v1/property_points.csv",
       "bytes": 4671440,
       "sha256": "3632a2b6f378b7fe77830ada1a9a4704be64933200f8eab30c72883691afa196",
@@ -5289,7 +5289,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-06_material_core_v1/references.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-06_material_core_v1/references.csv",
       "path": "data/1105/catalog/material_core/2026-08-06_material_core_v1/references.csv",
       "bytes": 147904,
       "sha256": "94fa825fbbe01282bba85a9917517299061ac01ffc7470f02c019f14aa883074",
@@ -5297,7 +5297,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-14_3d4makers_peek_v1/composition_long.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-14_3d4makers_peek_v1/composition_long.csv",
       "path": "data/1105/catalog/material_core/2026-08-14_3d4makers_peek_v1/composition_long.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -5305,7 +5305,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-14_3d4makers_peek_v1/curve_data.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-14_3d4makers_peek_v1/curve_data.csv",
       "path": "data/1105/catalog/material_core/2026-08-14_3d4makers_peek_v1/curve_data.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -5313,7 +5313,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-14_3d4makers_peek_v1/import_manifest.json",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-14_3d4makers_peek_v1/import_manifest.json",
       "path": "data/1105/catalog/material_core/2026-08-14_3d4makers_peek_v1/import_manifest.json",
       "bytes": 737,
       "sha256": "aebf5c2829f9d7020f5733c70edb261a410ae5c486f3e1ea55f59c0d3db71391",
@@ -5321,7 +5321,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-14_3d4makers_peek_v1/material_aliases.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-14_3d4makers_peek_v1/material_aliases.csv",
       "path": "data/1105/catalog/material_core/2026-08-14_3d4makers_peek_v1/material_aliases.csv",
       "bytes": 361,
       "sha256": "5c2301ceb1c468635e358144996b7f355823d3f285e1d308d4967b843c8db14e",
@@ -5329,7 +5329,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-14_3d4makers_peek_v1/materials.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-14_3d4makers_peek_v1/materials.csv",
       "path": "data/1105/catalog/material_core/2026-08-14_3d4makers_peek_v1/materials.csv",
       "bytes": 1011,
       "sha256": "4a46d3edb5f358d04b674706add69f73c4fe98e4f47d9ef1dd98111753fadf2f",
@@ -5337,7 +5337,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-14_3d4makers_peek_v1/property_points.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-14_3d4makers_peek_v1/property_points.csv",
       "path": "data/1105/catalog/material_core/2026-08-14_3d4makers_peek_v1/property_points.csv",
       "bytes": 9133,
       "sha256": "75aadb6c90d4b18f754909052bdcbc7f29174c9d2b4f0b24d63fa42129df6b6f",
@@ -5345,7 +5345,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-14_fiberon_pa6_cf20_v1/composition_long.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-14_fiberon_pa6_cf20_v1/composition_long.csv",
       "path": "data/1105/catalog/material_core/2026-08-14_fiberon_pa6_cf20_v1/composition_long.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -5353,7 +5353,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-14_fiberon_pa6_cf20_v1/curve_data.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-14_fiberon_pa6_cf20_v1/curve_data.csv",
       "path": "data/1105/catalog/material_core/2026-08-14_fiberon_pa6_cf20_v1/curve_data.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -5361,7 +5361,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-14_fiberon_pa6_cf20_v1/import_manifest.json",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-14_fiberon_pa6_cf20_v1/import_manifest.json",
       "path": "data/1105/catalog/material_core/2026-08-14_fiberon_pa6_cf20_v1/import_manifest.json",
       "bytes": 722,
       "sha256": "a215dd2cbe7574cc0730d6cc48c63294902e9fbc92b7ca85ccdcb4d2109094a0",
@@ -5369,7 +5369,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-14_fiberon_pa6_cf20_v1/material_aliases.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-14_fiberon_pa6_cf20_v1/material_aliases.csv",
       "path": "data/1105/catalog/material_core/2026-08-14_fiberon_pa6_cf20_v1/material_aliases.csv",
       "bytes": 451,
       "sha256": "4578422cc3dc1c4e778271f5e874079afc0c67c2e20f9a8499e5acd2ee0fb02b",
@@ -5377,7 +5377,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-14_fiberon_pa6_cf20_v1/materials.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-14_fiberon_pa6_cf20_v1/materials.csv",
       "path": "data/1105/catalog/material_core/2026-08-14_fiberon_pa6_cf20_v1/materials.csv",
       "bytes": 912,
       "sha256": "39ffd847802ca4ac57c8a48c2cab1eb2937f48c84d6b76271847f8b94285be2a",
@@ -5385,7 +5385,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-14_fiberon_pa6_cf20_v1/property_points.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-14_fiberon_pa6_cf20_v1/property_points.csv",
       "path": "data/1105/catalog/material_core/2026-08-14_fiberon_pa6_cf20_v1/property_points.csv",
       "bytes": 15790,
       "sha256": "1da862512462195419d62298bf5cbd9ffd94975b7b5b997ea401f356f33445f3",
@@ -5393,7 +5393,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-14_luvocom_peek_cf9676_v1/composition_long.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-14_luvocom_peek_cf9676_v1/composition_long.csv",
       "path": "data/1105/catalog/material_core/2026-08-14_luvocom_peek_cf9676_v1/composition_long.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -5401,7 +5401,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-14_luvocom_peek_cf9676_v1/curve_data.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-14_luvocom_peek_cf9676_v1/curve_data.csv",
       "path": "data/1105/catalog/material_core/2026-08-14_luvocom_peek_cf9676_v1/curve_data.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -5409,7 +5409,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-14_luvocom_peek_cf9676_v1/import_manifest.json",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-14_luvocom_peek_cf9676_v1/import_manifest.json",
       "path": "data/1105/catalog/material_core/2026-08-14_luvocom_peek_cf9676_v1/import_manifest.json",
       "bytes": 766,
       "sha256": "edd1db7072b4d2054b1a681ea7f1c7cdab043efc6e73b8d5e12ffb58640b3ccf",
@@ -5417,7 +5417,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-14_luvocom_peek_cf9676_v1/material_aliases.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-14_luvocom_peek_cf9676_v1/material_aliases.csv",
       "path": "data/1105/catalog/material_core/2026-08-14_luvocom_peek_cf9676_v1/material_aliases.csv",
       "bytes": 443,
       "sha256": "f6ff91028a0a268c732790b7c81d1c34b04adaaa5b2c782dbe75191547ba24d6",
@@ -5425,7 +5425,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-14_luvocom_peek_cf9676_v1/materials.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-14_luvocom_peek_cf9676_v1/materials.csv",
       "path": "data/1105/catalog/material_core/2026-08-14_luvocom_peek_cf9676_v1/materials.csv",
       "bytes": 1103,
       "sha256": "fa792fd7bf8f65eb369fd4a00c84ef59e70353b923bdbc3edf891ce91f30a068",
@@ -5433,7 +5433,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-14_luvocom_peek_cf9676_v1/property_points.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-14_luvocom_peek_cf9676_v1/property_points.csv",
       "path": "data/1105/catalog/material_core/2026-08-14_luvocom_peek_cf9676_v1/property_points.csv",
       "bytes": 5391,
       "sha256": "d68d41435753c3ceade1590842380f20af6f64d2af8ab216ec6b2c61212d5dbc",
@@ -5441,7 +5441,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_markforged_composite_bases_v1/composition_long.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_markforged_composite_bases_v1/composition_long.csv",
       "path": "data/1105/catalog/material_core/2026-08-25_markforged_composite_bases_v1/composition_long.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -5449,7 +5449,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_markforged_composite_bases_v1/curve_data.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_markforged_composite_bases_v1/curve_data.csv",
       "path": "data/1105/catalog/material_core/2026-08-25_markforged_composite_bases_v1/curve_data.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -5457,7 +5457,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_markforged_composite_bases_v1/import_manifest.json",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_markforged_composite_bases_v1/import_manifest.json",
       "path": "data/1105/catalog/material_core/2026-08-25_markforged_composite_bases_v1/import_manifest.json",
       "bytes": 425,
       "sha256": "a74cc6262e3fe453c705a0b910ff0dacb425feb46c838cc5628631bab9e5fa5e",
@@ -5465,7 +5465,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_markforged_composite_bases_v1/material_aliases.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_markforged_composite_bases_v1/material_aliases.csv",
       "path": "data/1105/catalog/material_core/2026-08-25_markforged_composite_bases_v1/material_aliases.csv",
       "bytes": 830,
       "sha256": "61fc05f42f652418895aef4236b88f815fd8b540925a64c7997c66fdc7b800fa",
@@ -5473,7 +5473,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_markforged_composite_bases_v1/materials.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_markforged_composite_bases_v1/materials.csv",
       "path": "data/1105/catalog/material_core/2026-08-25_markforged_composite_bases_v1/materials.csv",
       "bytes": 2556,
       "sha256": "1acc076bedc5e6554ff2d490f6832b57bbaf36ba6597c0bfb8c348131f4a75ae",
@@ -5481,7 +5481,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_markforged_composite_bases_v1/property_points.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_markforged_composite_bases_v1/property_points.csv",
       "path": "data/1105/catalog/material_core/2026-08-25_markforged_composite_bases_v1/property_points.csv",
       "bytes": 17057,
       "sha256": "b0d8de72f81ddafb56471e878643c84370aacb9374020651b9752a34e0345cf5",
@@ -5489,7 +5489,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_robot_arm_groups_1_4_d_estimates_v2/composition_long.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_robot_arm_groups_1_4_d_estimates_v2/composition_long.csv",
       "path": "data/1105/catalog/material_core/2026-08-25_robot_arm_groups_1_4_d_estimates_v2/composition_long.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -5497,7 +5497,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_robot_arm_groups_1_4_d_estimates_v2/curve_data.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_robot_arm_groups_1_4_d_estimates_v2/curve_data.csv",
       "path": "data/1105/catalog/material_core/2026-08-25_robot_arm_groups_1_4_d_estimates_v2/curve_data.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -5505,7 +5505,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_robot_arm_groups_1_4_d_estimates_v2/engineering_estimates.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_robot_arm_groups_1_4_d_estimates_v2/engineering_estimates.csv",
       "path": "data/1105/catalog/material_core/2026-08-25_robot_arm_groups_1_4_d_estimates_v2/engineering_estimates.csv",
       "bytes": 48958,
       "sha256": "72ef63ce972b8ffa195fd4208e449d3000ad57a4ad5b91befdcfadd0bce21a6b",
@@ -5513,7 +5513,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_robot_arm_groups_1_4_d_estimates_v2/import_manifest.json",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_robot_arm_groups_1_4_d_estimates_v2/import_manifest.json",
       "path": "data/1105/catalog/material_core/2026-08-25_robot_arm_groups_1_4_d_estimates_v2/import_manifest.json",
       "bytes": 231,
       "sha256": "5dd836303435736768f76290b79b31f63577116ce0e94f21db783069a39bce15",
@@ -5521,7 +5521,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_robot_arm_groups_1_4_d_estimates_v2/material_aliases.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_robot_arm_groups_1_4_d_estimates_v2/material_aliases.csv",
       "path": "data/1105/catalog/material_core/2026-08-25_robot_arm_groups_1_4_d_estimates_v2/material_aliases.csv",
       "bytes": 4821,
       "sha256": "e173a47129b3c19b3d618a5d0da1fc78d27b0e26134d359bb0af83bc132bd3b5",
@@ -5529,7 +5529,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_robot_arm_groups_1_4_d_estimates_v2/materials.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_robot_arm_groups_1_4_d_estimates_v2/materials.csv",
       "path": "data/1105/catalog/material_core/2026-08-25_robot_arm_groups_1_4_d_estimates_v2/materials.csv",
       "bytes": 15115,
       "sha256": "685ff78a54a822bef99cfa7f42beb4878ceeae08434d0bb36a38d490cc5b3414",
@@ -5537,7 +5537,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_robot_arm_groups_1_4_d_estimates_v2/property_points.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_robot_arm_groups_1_4_d_estimates_v2/property_points.csv",
       "path": "data/1105/catalog/material_core/2026-08-25_robot_arm_groups_1_4_d_estimates_v2/property_points.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -5545,7 +5545,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_robot_arm_priority_sources_v9/composition_long.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_robot_arm_priority_sources_v9/composition_long.csv",
       "path": "data/1105/catalog/material_core/2026-08-25_robot_arm_priority_sources_v9/composition_long.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -5553,7 +5553,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_robot_arm_priority_sources_v9/curve_data.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_robot_arm_priority_sources_v9/curve_data.csv",
       "path": "data/1105/catalog/material_core/2026-08-25_robot_arm_priority_sources_v9/curve_data.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -5561,7 +5561,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_robot_arm_priority_sources_v9/import_manifest.json",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_robot_arm_priority_sources_v9/import_manifest.json",
       "path": "data/1105/catalog/material_core/2026-08-25_robot_arm_priority_sources_v9/import_manifest.json",
       "bytes": 1601,
       "sha256": "aad45ee9cc9782794b522248f5067b988c10b1752314d0ec77c5d4c4a6e455bb",
@@ -5569,7 +5569,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_robot_arm_priority_sources_v9/material_aliases.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_robot_arm_priority_sources_v9/material_aliases.csv",
       "path": "data/1105/catalog/material_core/2026-08-25_robot_arm_priority_sources_v9/material_aliases.csv",
       "bytes": 2945,
       "sha256": "36baa8b9154c413007f748d2ba6d440ff84d56435a67e7815da9876f29aabbce",
@@ -5577,7 +5577,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_robot_arm_priority_sources_v9/materials.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_robot_arm_priority_sources_v9/materials.csv",
       "path": "data/1105/catalog/material_core/2026-08-25_robot_arm_priority_sources_v9/materials.csv",
       "bytes": 7607,
       "sha256": "0380baf547c2f3c71d5c89d8060313d8d843ce008616c416f6004a8b606608e4",
@@ -5585,7 +5585,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_robot_arm_priority_sources_v9/property_points.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_robot_arm_priority_sources_v9/property_points.csv",
       "path": "data/1105/catalog/material_core/2026-08-25_robot_arm_priority_sources_v9/property_points.csv",
       "bytes": 29708,
       "sha256": "b2bcd5bc5cc4e5922f6a729fa1707586ce11bd7f7354134ee4ac825a25c541fa",
@@ -5593,7 +5593,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_stratasys_ultem_9085_v1/composition_long.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_stratasys_ultem_9085_v1/composition_long.csv",
       "path": "data/1105/catalog/material_core/2026-08-25_stratasys_ultem_9085_v1/composition_long.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -5601,7 +5601,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_stratasys_ultem_9085_v1/curve_data.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_stratasys_ultem_9085_v1/curve_data.csv",
       "path": "data/1105/catalog/material_core/2026-08-25_stratasys_ultem_9085_v1/curve_data.csv",
       "bytes": 2,
       "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
@@ -5609,7 +5609,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_stratasys_ultem_9085_v1/import_manifest.json",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_stratasys_ultem_9085_v1/import_manifest.json",
       "path": "data/1105/catalog/material_core/2026-08-25_stratasys_ultem_9085_v1/import_manifest.json",
       "bytes": 474,
       "sha256": "571a8764449049702b4bd2e1e979c46bc3a6468cd43ab595bc7a2118e6a33500",
@@ -5617,7 +5617,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_stratasys_ultem_9085_v1/material_aliases.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_stratasys_ultem_9085_v1/material_aliases.csv",
       "path": "data/1105/catalog/material_core/2026-08-25_stratasys_ultem_9085_v1/material_aliases.csv",
       "bytes": 311,
       "sha256": "d36d9d6e584cc445934e278e12758113eda6fe43ac3e282d1afe54902f0995cc",
@@ -5625,7 +5625,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_stratasys_ultem_9085_v1/materials.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_stratasys_ultem_9085_v1/materials.csv",
       "path": "data/1105/catalog/material_core/2026-08-25_stratasys_ultem_9085_v1/materials.csv",
       "bytes": 880,
       "sha256": "13bfba7e253d9949d17042160958f4a3bed6bc9a581807642c538e29a1a85286",
@@ -5633,7 +5633,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-08-25_stratasys_ultem_9085_v1/property_points.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-08-25_stratasys_ultem_9085_v1/property_points.csv",
       "path": "data/1105/catalog/material_core/2026-08-25_stratasys_ultem_9085_v1/property_points.csv",
       "bytes": 8360,
       "sha256": "6f65e609bcbadbe423c826b1d6a2356e986f45dc9550b74abf4cb6f9ffd1ee1c",
@@ -5641,7 +5641,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-09-11_copper_hot_end_grade_evidence_v1/composition_long.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-09-11_copper_hot_end_grade_evidence_v1/composition_long.csv",
       "path": "data/1105/catalog/material_core/2026-09-11_copper_hot_end_grade_evidence_v1/composition_long.csv",
       "bytes": 3347,
       "sha256": "cb233b1674c3ff755db4a15ab51bab77bc2e50a10e5a854852b5892c15a8c08e",
@@ -5649,7 +5649,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-09-11_copper_hot_end_grade_evidence_v1/curve_data.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-09-11_copper_hot_end_grade_evidence_v1/curve_data.csv",
       "path": "data/1105/catalog/material_core/2026-09-11_copper_hot_end_grade_evidence_v1/curve_data.csv",
       "bytes": 3421,
       "sha256": "504820db621a1af9694648cd6be78909068f803e6703b1b2b0858d06c8ebacdc",
@@ -5657,7 +5657,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-09-11_copper_hot_end_grade_evidence_v1/import_manifest.json",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-09-11_copper_hot_end_grade_evidence_v1/import_manifest.json",
       "path": "data/1105/catalog/material_core/2026-09-11_copper_hot_end_grade_evidence_v1/import_manifest.json",
       "bytes": 686,
       "sha256": "f8c5b061600f4741131c01659b49798c9fb01b59304b2236aad07c8f4657ee1d",
@@ -5665,7 +5665,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-09-11_copper_hot_end_grade_evidence_v1/material_aliases.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-09-11_copper_hot_end_grade_evidence_v1/material_aliases.csv",
       "path": "data/1105/catalog/material_core/2026-09-11_copper_hot_end_grade_evidence_v1/material_aliases.csv",
       "bytes": 489,
       "sha256": "fe342847ee7329c30dd77d3d168be38b3c01fc03dcfcdde9ac83263b9e179966",
@@ -5673,7 +5673,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-09-11_copper_hot_end_grade_evidence_v1/materials.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-09-11_copper_hot_end_grade_evidence_v1/materials.csv",
       "path": "data/1105/catalog/material_core/2026-09-11_copper_hot_end_grade_evidence_v1/materials.csv",
       "bytes": 2210,
       "sha256": "96a41c9c424a61657963fbcd6c70c637578d0feeb70e15b58a7f20f18e7ca707",
@@ -5681,7 +5681,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/material_core/2026-09-11_copper_hot_end_grade_evidence_v1/property_points.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/material_core/2026-09-11_copper_hot_end_grade_evidence_v1/property_points.csv",
       "path": "data/1105/catalog/material_core/2026-09-11_copper_hot_end_grade_evidence_v1/property_points.csv",
       "bytes": 8082,
       "sha256": "a7f1453e438b8f4fdd84b2bfbc07d40adb2bbc8e7de5b8d94f010e58296bd37f",
@@ -5689,7 +5689,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/materials.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/materials.csv",
       "path": "data/1105/catalog/materials.csv",
       "bytes": 6122,
       "sha256": "fa8303288b2df24a446bfa168ad3fae045d8f6fa6a09be2c33539012a8d9717c",
@@ -5697,7 +5697,7 @@
       "in_git": false
     },
     {
-      "source": "/data/se42/alpha_project/material_service_hub/material_database/data/processed/property_points.csv",
+      "source": "/data/se42/alpha_project/material_service_hub/material_selection/data/processed/property_points.csv",
       "path": "data/1105/catalog/property_points.csv",
       "bytes": 12370,
       "sha256": "ff3521b79e6f88ff932215915dbed67522e53e28acfd2c8aba81331ebc3b012f",

@@ -11,7 +11,7 @@ import subprocess
 import tarfile
 
 SERVICES = (
-    "material_database",
+    "material_selection",
     "material_composition_optimization",
     "material_discovery",
     "material_validation",
@@ -83,7 +83,18 @@ def inventory(root: Path) -> dict:
 def verify(root: Path, expected: dict, live_root: Path | None) -> dict:
     failures = []
     observed = inventory(root)
-    for key in ("services", "development_services", "physics"):
+    layout = json.loads((root / "docs/source_layout_20261014.json").read_text(encoding="utf-8"))
+    baseline_services = {}
+    for service in SERVICES:
+        records = source_records(root, service)
+        for relative, digest in layout["added_source_files"].get(service, {}).items():
+            if records.pop(relative, None) != digest:
+                failures.append(f"Directory migration file changed: {service}/{relative}")
+        baseline_name = layout["baseline_directory_names"].get(service, service)
+        baseline_services[baseline_name] = record_digest(records)
+    if baseline_services != expected["services"]:
+        failures.append("Snapshot inventory changed: services")
+    for key in ("development_services", "physics"):
         if observed[key] != expected[key]:
             failures.append(f"Snapshot inventory changed: {key}")
     for relative in (

@@ -10,7 +10,7 @@ import shutil
 
 from runtime_resources import ROOT, check_file, relative
 
-SERVICES = {"1105": "material_database", "1111": "material_composition_optimization",
+SERVICES = {"1105": "material_selection", "1111": "material_composition_optimization",
             "1115": "material_discovery", "1116": "material_validation"}
 
 
@@ -84,7 +84,7 @@ def main():
         record = next(row for row in manifest["files"] if row["path"] == "data/1105/fluid_property_evidence.sqlite")
         if check_file(source, record) != "ok":
             raise ValueError("Download/install the 1105 resource group first")
-        target = ROOT / "material_database/data/processed/fluid_lubricant/2026-08-04_v1/fluid_property_evidence.sqlite"
+        target = ROOT / "material_selection/data/processed/fluid_lubricant/2026-08-04_v1/fluid_property_evidence.sqlite"
         copy_checked(source, target)
         catalog = resources / "data/1105/catalog"
         for row in manifest["files"]:
@@ -97,7 +97,7 @@ def main():
                 # broad Git ignore rules. Restore them for existing test paths;
                 # root catalog files remain the dated source snapshot in Git.
                 if len(local.parts) > 1:
-                    copy_checked(original, ROOT / "material_database/data/processed" / local)
+                    copy_checked(original, ROOT / "material_selection/data/processed" / local)
     for service in args.services:
         target = ROOT / SERVICES[service] / ".env.runtime.example"
         values = settings(resources, env_root)[service]

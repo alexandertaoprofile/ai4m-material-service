@@ -21,7 +21,7 @@
 
 | 服务或环节 | 75 原位置 | 本次交付内容 |
 | --- | --- | --- |
-| 1105 导电润滑剂查询 | `/data/se42/alpha_project/material_service_hub/material_database/data/processed/fluid_lubricant/2026-08-04_v1/fluid_property_evidence.sqlite` | 事务一致的 SQLite 快照，381,964,288 字节；通用材料 CSV 已在 Git 中。 |
+| 1105 导电润滑剂查询 | `/data/se42/alpha_project/material_service_hub/material_selection/data/processed/fluid_lubricant/2026-08-04_v1/fluid_property_evidence.sqlite` | 事务一致的 SQLite 快照，381,964,288 字节；通用材料 CSV 已在 Git 中。 |
 | 1105 增量材料目录 | 同一服务的 `data/processed/`，包括 `material_core/` 与 `high_temperature/`。 | 130 个 CSV/JSON；独立资源包恢复到 `data/1105/catalog/`，配置指定此目录。 |
 | 1111 专项计算 | `/data/se42/hea_surrogate` | `src/`、`tools/`、模型元信息及八类专项使用的模型和推理数据。 |
 | 1111 固定优化包 | `/data/se42/experiments/material_rsi_prelaunch_20260928/package/runtime` | 固定优化源码、合金和玻璃 Transformer 权重、依赖和冻结清单。 |

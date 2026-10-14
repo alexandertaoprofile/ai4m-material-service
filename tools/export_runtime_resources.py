@@ -112,7 +112,7 @@ def main():
         for item in sorted((Path("/data/se42/cache") / directory).rglob("*")):
             if item.is_file() and "__pycache__" not in item.parts and item.suffix != ".log":
                 copy(item, Path("evidence") / directory / item.relative_to(Path("/data/se42/cache") / directory), "1116")
-    db = Path("/data/se42/alpha_project/material_service_hub/material_database/data/processed/fluid_lubricant/2026-08-04_v1/fluid_property_evidence.sqlite")
+    db = Path("/data/se42/alpha_project/material_service_hub/material_selection/data/processed/fluid_lubricant/2026-08-04_v1/fluid_property_evidence.sqlite")
     db_rel = Path("data/1105/fluid_property_evidence.sqlite")
     snapshot = payload / db_rel
     snapshot.parent.mkdir(parents=True)

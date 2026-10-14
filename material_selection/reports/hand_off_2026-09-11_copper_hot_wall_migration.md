@@ -19,7 +19,7 @@
 ## 重建与验证
 
 ```bash
-cd /data/se42/alpha_project/material_service_hub/material_database
+cd /data/se42/alpha_project/material_service_hub/material_selection
 PYTHONPATH=. python scripts/import_copper_hot_end_evidence_v1.py \
   --output data/processed/material_core/2026-09-11_copper_hot_end_grade_evidence_v1
 PYTHONPATH=. pytest -q tests/test_mature_material_service.py

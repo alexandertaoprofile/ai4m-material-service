@@ -33,7 +33,7 @@
 
 | 项目 | 位置或配置 | 获取与用途 |
 | --- | --- | --- |
-| Web 环境 | `/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python` | 75 已有环境；服务依赖清单为 [requirements.minimal.txt](../material_database/requirements.minimal.txt)。 |
+| Web 环境 | `/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python` | 75 已有环境；服务依赖清单为 [requirements.minimal.txt](../material_selection/requirements.minimal.txt)。 |
 | 通用材料目录 | 服务 `data/processed/` 中的 `materials.csv`、`material_aliases.csv`、`property_points.csv`、`curve_data.csv`、`composition_long.csv` | 随 Git 提供，保存材料身份、别名、性质点、曲线及组成。 |
 | 目录清洗记录 | `data/processed/catalog_cleaning_summary.json` | 随 Git 提供，记录来源处理与目录统计。 |
 | 导电润滑剂证据库 | 服务 `data/processed/fluid_lubricant/2026-08-04_v1/fluid_property_evidence.sqlite` | 从 Release 的 `1105` 资源组恢复，约 364 MiB。 |
@@ -41,7 +41,7 @@
 | 查询目录配置 | `MATURE_MATERIAL_CATALOG_ROOT`，默认 `data/processed` | 通用聊天查询读取该位置；独立流体 HTTP 路由另读取服务目录内的专项 SQLite，迁移时一并核对。 |
 | 任务结果 | `MATURE_MATERIAL_RESULTS_ROOT`，默认 `results/mature_material` | 保存输入、核验结果、报告和图像。 |
 
-完整 75 专项数据库位置为 `/data/se42/alpha_project/material_service_hub/material_database/data/processed/fluid_lubricant/2026-08-04_v1/fluid_property_evidence.sqlite`。2026-10-05 文件大小为 381,964,288 字节；后续数据更新时重新记录版本。
+完整 75 专项数据库位置为 `/data/se42/alpha_project/material_service_hub/material_selection/data/processed/fluid_lubricant/2026-08-04_v1/fluid_property_evidence.sqlite`。2026-10-05 文件大小为 381,964,288 字节；后续数据更新时重新记录版本。
 
 服务使用 CSV/SQLite 查询、名称与单位规范化、工况比较和温度曲线处理。这里的“材料数据库”是已整理的材料证据目录；外部资料需先核验和导入，再进入在线查询。
 
@@ -49,10 +49,12 @@
 
 `main.py` 的 HTTP 查询及 WebSocket 主流程 → `src/team_config.py:MaterialMature.contract()/run()` → 通用目录或导电润滑剂流程 → 报告与任务记录。
 
+75 当前已有 tmux 会话 `material-product-1105`，正式目录为 `/data/se42/alpha_project/material_service_hub/material_selection`。已有实例的停止、旧入口清理和重启命令见[1105 README](../material_selection/README.md#75-服务器的手动重启)；下面的联调启动命令用于空闲端口和独立副本。
+
 在已配置的联调副本执行：
 
 ```bash
-cd /path/to/Material-Computation/material_database
+cd /path/to/Material-Computation/material_selection
 PORT=1105 /home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python main.py
 ```
 
@@ -63,7 +65,7 @@ curl --fail http://127.0.0.1:1105/health
 curl --fail http://127.0.0.1:1105/roles
 ```
 
-先按[服务 README](../material_database/README.md)查询一条已收录材料，核对单位、材料状态和来源。导电润滑剂另检查 SQLite 文件及实际专项请求。`/health` 的 `catalog_ready` 检查通用目录文件存在，专项数据库可用性通过专项请求确认。
+先按[服务 README](../material_selection/README.md)查询一条已收录材料，核对单位、材料状态和来源。导电润滑剂另检查 SQLite 文件及实际专项请求。`/health` 的 `catalog_ready` 检查通用目录文件存在，专项数据库可用性通过专项请求确认。
 
 ## 4. 1111：材料配比优化
 

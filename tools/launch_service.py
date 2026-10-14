@@ -12,7 +12,7 @@ from pathlib import Path
 import runpy
 import sys
 
-SERVICES = {"1105": "material_database", "1111": "material_composition_optimization",
+SERVICES = {"1105": "material_selection", "1111": "material_composition_optimization",
             "1115": "material_discovery", "1116": "material_validation"}
 
 

@@ -20,7 +20,7 @@
 
 | 服务目录 | 部署端口 | 解决什么问题 | 输入与输出 | 当前实现状态 |
 | --- | --- | --- | --- | --- |
-| `material_database/` | 1105 | 根据应用条件核验、比较已有材料的性质与来源；包含导电润滑剂专项。 | 材料名称、牌号、工况及性质条件 → 目录匹配、性质证据和比较报告。 | 目录检索及流式报告已实现；数据覆盖以实际目录为准。 |
+| `material_selection/` | 1105 | 根据应用条件核验、比较已有材料的性质与来源；包含导电润滑剂专项。 | 材料名称、牌号、工况及性质条件 → 目录匹配、性质证据和比较报告。 | 目录检索及流式报告已实现；数据覆盖以实际目录为准。 |
 | `material_composition_optimization/` | 1111 | 在允许的组成范围内调整材料配比。 | 材料类别、组分范围、工况及目标 → 优选配比、模型预测性质和比较图。 | 八类专项计算已配置为正式路线；其他类别提供通用设计准备。 |
 | `material_discovery/` | 1115 | 生成新的周期晶体结构。 | 化学式、元素范围或经确认的开放探索需求 → 候选结构、稳定性估算、性质预测及三维文件。 | 本目录对应 75 当前源码；后续报告与异常原因改进单独位于 `development/material_discovery/`。 |
 | `material_validation/` | 1116 | 组织、检查已有计算与实验来源，判断验证证据是否齐全。 | 纯钨 W-14 标杆任务及已归档数据 → 四阶段证据报告和性质对标。 | 已实现标杆证据读取与报告；在线进程及 DeepMD/LAMMPS 执行器接入还需确认。 |
@@ -29,7 +29,7 @@
 
 表中为部署端口，以各服务 `.env` 和网关配置为准。1115 的 `main.py` 在缺少 `PORT` 时使用历史默认值 `1107`，启动时明确设置 `PORT=1115`。GitHub 保存源码，服务器保存部署文件，服务进程执行启动时加载的代码。修改或推送文件后，仍需单独部署、重启和检查运行结果。
 
-1105 的目录名沿用 `material_database`，实际面向已有材料选型和性质证据核验。在线读取已整理 CSV 和专项 SQLite；外部资料的收集、核验与导入另行进行。
+1105 的目录统一为 `material_selection`，面向已有材料选型和性质证据核验。在线读取已整理 CSV 和专项 SQLite；外部资料的收集、核验与导入另行进行。75 当前使用 tmux 会话 `material-product-1105`；重启前的旧入口清理和准确启动命令见[1105 README](material_selection/README.md#75-服务器的手动重启)。
 
 ## 2. 环境、数据和模型：运行前先准备什么
 
@@ -66,7 +66,7 @@
 
 | 服务 | 请求入口 | 编排或角色入口 | 实际业务调用 |
 | --- | --- | --- | --- |
-| 1105 | [main.py](material_database/main.py) | [src/team_config.py](material_database/src/team_config.py) 的 MaterialMature | HTTP 查询和 WebSocket 主流程经 contract()/run() 进入材料目录或导电润滑剂流程。 |
+| 1105 | [main.py](material_selection/main.py) | [src/team_config.py](material_selection/src/team_config.py) 的 MaterialMature | HTTP 查询和 WebSocket 主流程经 contract()/run() 进入材料目录或导电润滑剂流程。 |
 | 1111 | [main.py](material_composition_optimization/main.py) | [src/team_config.py](material_composition_optimization/src/team_config.py) 的 AlloyCompositionOptimizationRole / Coding | HTTP/WebSocket 直接调用 src/alloy_workflow/runtime.py 的 RUNTIME；Role 入口也调用同一运行模块。 |
 | 1115 | [main.py](material_discovery/main.py) | [src/team_config.py](material_discovery/src/team_config.py) 的 InorganicNewMaterialService / InorganicNewMaterialDiscoveryRole | WebSocket 经 Team/Role 调用 run_upstream_request()；HTTP 生成直接调用该函数，随后进入 pipeline.py 和 OMatG 流程。 |
 | 1116 | [main.py](material_validation/main.py) | [src/team_config.py](material_validation/src/team_config.py) 的 execute_refractory_validation() | HTTP/WebSocket 经该函数调用 src/application/validation_workflow.py。 |
@@ -79,7 +79,7 @@
 
 | 服务 | 工作目录 | 75 环境下的启动命令 |
 | --- | --- | --- |
-| 1105 | `material_database/` | `PORT=1105 /home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python main.py` |
+| 1105 | `material_selection/` | `PORT=1105 /home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python main.py` |
 | 1111 | `material_composition_optimization/` | `PORT=1111 /home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python main.py` |
 | 1115 | `material_discovery/` | `PORT=1115 NEW_MATERIAL_GENERATOR=omatg /home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python main.py` |
 | 1116 | `material_validation/` | `PORT=1116 /home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python main.py` |
@@ -93,7 +93,7 @@ Material-Computation/
 ├── packages/                           # 1111 专项计算、优化和报告程序
 ├── third_party/OMatG/                  # 固定版本晶体生成源码
 ├── resources/                         # 运行资源清单与恢复说明
-├── material_database/                  # 1105：已有材料选型与性质核验
+├── material_selection/                  # 1105：已有材料选型与性质核验
 ├── material_composition_optimization/   # 1111：配比优化
 ├── material_discovery/                  # 1115：晶体结构生成与评价
 ├── material_validation/                 # 1116：标杆证据核验
@@ -139,7 +139,7 @@ git clone --branch main git@github.com:AI4SciFoundation/Material-Computation.git
 
 1. 本页第 1–3 节及[运行说明](docs/service_setup.md)：服务分工、依赖、资源位置、入口与启动。
 2. [线上与开发状态](docs/deployment_status.md)：源码来源、开发任务、外部依赖与部署规则。
-3. 对应服务 README：[1105](material_database/README.md)、[1111](material_composition_optimization/README.md)、[1115](material_discovery/README.md)、[1116](material_validation/README.md)。
+3. 对应服务 README：[1105](material_selection/README.md)、[1111](material_composition_optimization/README.md)、[1115](material_discovery/README.md)、[1116](material_validation/README.md)。
 4. [环境说明](env/README.md)及[外部依赖说明](docs/external_dependencies.md)：服务与模型环境的分工、资源版本和迁移准备。
 5. [统一架构规范](docs/material_service_architecture_standard.md)：新增代码、前端协议与上线交接要求。
 6. [开发改动清单](docs/development_changes.md)与[开发目录](development/README.md)：下一版不同的代码、测试及物理约束实验。

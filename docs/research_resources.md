@@ -6,7 +6,7 @@
 
 | 服务 | 可取得的内容 | 原服务器来源 |
 | --- | --- | --- |
-| 1105 | 通用整理 CSV；专项 SQLite 快照；查询和报告代码。 | 服务目录 `material_database/data/processed`。 |
+| 1105 | 通用整理 CSV；专项 SQLite 快照；查询和报告代码。 | 服务目录 `material_selection/data/processed`。 |
 | 1111 | 八类专项的运行源码、权重和推理时使用的数据；固定优化包及报告模块。 | `/data/se42/hea_surrogate` 与两个版本化计算目录。 |
 | 1115 | 固定 OMatG 源码及 CSP/DNG 权重；MatterSim；五个 ALIGNN 权重；稳定性参考库。 | `/data/third_party/OMatG`、`/data/se42/omatg_local/checkpoints`、旧 ALIGNN 环境和 `/data/mattersim_reference_cache`。 |
 | 1116 | DeepMD 模型、训练日志和配置、整理的数据、W-14 MD 输出与分析脚本。 | `/data/se42/cache/DeepMD-W-14-commercial-level` 与 `/data/se42/cache/DeepMD_W-14_commercial-level`。 |

@@ -81,14 +81,15 @@ tests/                  业务、数据与前端协议回归测试
 复制 `.env.example` 为本机 `.env`，填写 MinIO 变量；`.env` 已被 Git 忽略，不能提交。默认服务端口为 `1105`。
 
 ```bash
-cd /path/to/material_database
-tmux new-session -s material-database-1105
+cd /path/to/material_selection
+tmux new-session -s material-product-1105
 python main.py
 python -m unittest discover -s tests -v
 ```
 
-调试与联调使用 tmux。稳定运行的实例由运维配置后通过
-`service material-database-1105` 管理；不得通过 `start.sh`、`nohup` 或 Docker 常驻。
+75 当前使用已有 tmux 会话 `material-product-1105`。手动重启时先停止旧进程，从正式 `material_selection` 目录执行 `scripts/finalize_directory_rename.py`，再启动 `main.py`。详细命令见服务 README。新建会话示例只适用于没有既有实例的环境。
+
+当前 75 尚未安装本服务的 systemd 单元。稳定运行的系统服务由运维完成配置后，按实际单元名管理。
 
 关键变量：
 
@@ -133,6 +134,6 @@ PDF 不能直接作为在线事实来源；完成可追溯抽取并入库后才�
 ## 运行方式边界
 
 Docker 与 `start_docker.sh` 不属于本服务的标准开服路径，也不得用于常驻运行。
-调试、联调使用 tmux；稳定实例由运维通过 `service material-database-1105` 管理。
+调试、联调使用 tmux；稳定实例由运维配置系统服务后，按实际单元名管理。
 任何容器化迁移都必须另行完成前端协议、数据挂载、`.env`、资产发布和端口的验收，不能用
 临时脚本替代现役服务管理。

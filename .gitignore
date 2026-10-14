@@ -23,8 +23,4 @@
 **/.env.runtime.example
 
 # Generated / source material datasets (too large for regular Git)
-/
-  material_database/data/
-
-# Generated / source material datasets (too large for regular Git)
-/material_database/data/
+/material_selection/data/

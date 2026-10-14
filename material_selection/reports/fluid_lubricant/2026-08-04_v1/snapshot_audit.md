@@ -1,6 +1,6 @@
 # 导电润滑介质原始快照审查
 
-- 快照目录：`/data/se42/alpha_project/material_service_hub/material_database/data/raw/incoming/material_platform/conductive_lubricant/2026-08-04_v1`
+- 快照目录：`/data/se42/alpha_project/material_service_hub/material_selection/data/raw/incoming/material_platform/conductive_lubricant/2026-08-04_v1`
 - 审查时间：2026-08-04T03:54:15.951137+00:00
 - 审查模式：只读；未修改、删除或归一化任何原始记录。
 

@@ -10,7 +10,7 @@ import time
 from dotenv import dotenv_values
 
 ROOT = Path(__file__).resolve().parents[1]
-SERVICES = ("material_database", "material_composition_optimization", "material_discovery", "material_validation")
+SERVICES = ("material_selection", "material_composition_optimization", "material_discovery", "material_validation")
 
 
 def main():

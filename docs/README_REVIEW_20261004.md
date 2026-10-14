@@ -20,7 +20,7 @@
 | [仓库入口](../README.md) | 四服务分工、目录职责、版本/部署区别及阅读导航。 |
 | [环境](../env/README.md) | 当前解释器与外部资源、历史快照含义和 OMatG 环境交接缺口。 |
 | [1111](../material_composition_optimization/README.md) | 八类专项、模型调用与优化分工、外部依赖、含量单位、请求和回归。 |
-| [1105](../material_database/README.md) | 目录来源、材料状态、温度证据、导电润滑专项、数据与接口。 |
+| [1105](../material_selection/README.md) | 目录来源、材料状态、温度证据、导电润滑专项、数据与接口。 |
 | [1115](../material_discovery/README.md) | CSP/DNG、元素约束、生成/松弛/预测、稳定性模式、版本和验收。 |
 | [1116](../material_validation/README.md) | 标杆证据读取、执行器未接入、方法含义与源文件核验。 |
 | [1115 业务模块](../material_discovery/src/material_workflow/README.md) | 当前 OMatG 调用关系、模块职责和旧 MatterGen 兼容路线。 |

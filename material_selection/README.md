@@ -35,7 +35,7 @@
 配置完成、端口空闲后，在单独联调 tmux 会话内启动：
 
 ```bash
-cd /path/to/material_database
+cd /path/to/material_selection
 /home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python main.py
 ```
 
@@ -46,7 +46,27 @@ python scripts/clean_catalog.py \
   --workbook "/data/se42/backend/property datasets/alloy_material_dataset_v0.1.xlsx"
 ```
 
-原始文件、任务结果、日志和凭据与源码分开管理。正式验收后可由运维登记 `material-database-1105` 系统服务；避免与 tmux 在同一端口重复运行。
+原始文件、任务结果、日志和凭据与源码分开管理。当前 75 使用 tmux 会话 `material-product-1105`，尚未安装本服务的 systemd 单元。后续由运维完成配置后按实际单元名管理，避免与 tmux 在同一端口重复运行。
+
+### 75 服务器的手动重启
+
+先进入已有会话：
+
+```bash
+tmux attach -t material-product-1105
+```
+
+在会话内按 `Ctrl+C`，等待旧进程退出，然后执行：
+
+```bash
+cd /data/se42/alpha_project/material_service_hub/material_selection
+/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python scripts/finalize_directory_rename.py && \
+/home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python main.py
+```
+
+清理工具只删除旧软链接，并检查 1105 和原服务进程已经停止。已清理时返回 `already_clean`，可重复执行。旧入口暂时保留，是为了兼容目录改名前启动的进程中已保存的数据库、字体等绝对路径。源码、SQLite、模型配置与任务结果仍在正式目录中。
+
+看到服务正常监听后，按 `Ctrl+B`，再按 `D` 脱离会话并保持运行。
 
 ## 3. 一次请求与代码分层
 

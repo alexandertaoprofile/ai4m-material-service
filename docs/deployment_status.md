@@ -2,6 +2,16 @@
 
 核对日期：2026-10-04。仓库：`AI4SciFoundation/Material-Computation`。
 
+## 2026-10-14 材料筛选目录名称与重启说明
+
+1105 服务目录统一为 `material_selection`。75 正式目录为 `/data/se42/alpha_project/material_service_hub/material_selection`，tmux 会话仍是 `material-product-1105`，端口仍为 1105。服务器目录迁移提交为 `c47bab2`；73 项测试及 4 个子测试通过，当前目录为 1,634 个材料身份、7,620 条性质点。
+
+本次 GitHub 更新记录目录改名、README、启动与资源恢复工具的路径，以及旧入口清理工具。其余服务源码继续保留对应快照和开发版本，服务器上的其他本机编辑单独处理。2026-10-04 原始源码清单保持原值；后续目录映射和新增文件记录在 `source_layout_20261014.json`，结构检查分别核验原始源码和新增清理工具。
+
+原 1105 进程早于目录改名启动，可能保存旧数据库或字体绝对路径，因此旧软链接暂供该进程继续使用。服务负责人在原会话内停止旧进程后，先执行清理工具，再从正式目录启动。详细步骤见[1105 README](../material_selection/README.md#75-服务器的手动重启)。源文件和数据保留，后台进程保持现状。
+
+GitHub 提交前在独立副本恢复清单中已校验的 1105 资源，完成以下检查：服务回归 73 项及 4 个子测试通过；运行工具 16 项及 4 个子测试通过；24 份 README、41 份文档、299 个链接、16 个 JSON 示例和 45 个 shell 代码块检查通过；启动工具成功加载 1105 应用，`/roles` 返回 HTTP 200。目录校验确认其余服务及开发副本源码与原始清单一致。
+
 ## 1. 分支与目录含义
 
 `main` 包含完整项目。根目录四个服务保存本页核对日期对应的 75 源码，`development/` 保存后续更新与独立实验；`backup` 固定保留旧 main 的 `34305b968445186d93cb37a96bcb1a338e845a86`，不滚动更新。更新 GitHub 文件与部署服务器分别记录。
@@ -12,7 +22,7 @@ GitHub 历史备份与生产回退备份用途不同：部署前仍需保存当�
 
 | 仓库目录 | 75 服务器来源 | 状态 |
 | --- | --- | --- |
-| `material_database/` | `/data/se42/alpha_project/material_service_hub/material_database` | 核对到当前活动服务进程；本次检查的源码与配置文件相符。 |
+| `material_selection/` | `/data/se42/alpha_project/material_service_hub/material_selection` | 核对到当前活动服务进程；本次检查的源码与配置文件相符。 |
 | `material_composition_optimization/` | `/data/se42/alpha_project/material_service_hub/material_composition_optimization` | 核对到当前活动 1111 进程；当前源码快照，保留逐材料正式路线。 |
 | `material_discovery/` | `/data/se42/alpha_project/material_service_hub/material_discovery` | 核对到当前活动 1115 进程；生成器已接入 OMatG，后续报告更新未部署。 |
 | `material_validation/` | `/data/se42/alpha_project/material_service_hub/material_validation` | 源码与配置文件相符；尚未确认对应在线进程，在线运行还需单独检查。 |

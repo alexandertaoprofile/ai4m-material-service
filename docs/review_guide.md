@@ -40,7 +40,7 @@
 
 | 服务 | 从哪里开始 | 接下来读什么 |
 | --- | --- | --- |
-| 1105 已有材料查询 | [服务 README](../material_database/README.md)、[请求入口](../material_database/main.py)、[执行流程](../material_database/src/team_config.py) | `src/catalog/` 的查询与条件比较，再看报告模块；导电润滑剂有独立的内部查询流程。 |
+| 1105 已有材料查询 | [服务 README](../material_selection/README.md)、[请求入口](../material_selection/main.py)、[执行流程](../material_selection/src/team_config.py) | `src/catalog/` 的查询与条件比较，再看报告模块；导电润滑剂有独立的内部查询流程。 |
 | 1111 配比优化 | [服务 README](../material_composition_optimization/README.md)、[请求入口](../material_composition_optimization/main.py)、[运行模块](../material_composition_optimization/src/alloy_workflow/runtime.py)；Role 调用再看[角色适配](../material_composition_optimization/src/team_config.py) | `src/alloy_workflow/` 的输入校验、类别选择、计算程序和报告；具体阅读路径见服务内代码审阅指南。 |
 | 1115 晶体结构生成 | [服务 README](../material_discovery/README.md)、[请求入口](../material_discovery/main.py)、[WebSocket 编排](../material_discovery/src/team_config.py)、[共用业务入口](../material_discovery/src/material_workflow/upstream_api.py) | `src/material_workflow/` 的输入、OMatG 执行流程、结构评价和报告，再看 `tools/` 中的独立模型调用。 |
 | 1116 计算证据核验 | [服务 README](../material_validation/README.md)、[请求入口](../material_validation/main.py)、[执行流程](../material_validation/src/team_config.py) | `src/application/` 的四阶段流程、`src/infrastructure/` 的数据读取及 `src/presentation/` 的报告。 |

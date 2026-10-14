@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "layout_date": "2026-10-14",
+  "baseline_snapshot_file": "docs/source_snapshot_20261004.json",
+  "baseline_directory_names": {
+    "material_selection": "material_database"
+  },
+  "added_source_files": {
+    "material_selection": {
+      "scripts/finalize_directory_rename.py": "62afd91a99ccaa7cea1addc4b3b6ffab81477da0b7a5453b55093dbf39b2f03e",
+      "tests/test_directory_rename.py": "bbc6932b37410e111581281493c85a54c4bcebc96eec49db401553d8b96e0a7a"
+    }
+  },
+  "note": "Keep the 2026-10-04 source snapshot unchanged; verify the directory mapping and the added cleanup files separately."
+}

@@ -152,7 +152,7 @@ registry 已登记但 `include_source_table_ids` 为空的主要材料包括：I
 ## 重建命令
 
 ```bash
-cd /data/se42/alpha_project/material_service_hub/material_database
+cd /data/se42/alpha_project/material_service_hub/material_selection
 rm -rf data/processed/high_temperature/2026-08-06_document_mapped_v1
 rm -f reports/high_temperature_material_2026-08-06_mapping_queue_v2.json
 PYTHONPATH=. python scripts/import_high_temperature_evidence.py \
