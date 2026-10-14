@@ -64,7 +64,7 @@ cd /data/se42/alpha_project/material_service_hub/material_selection
 /home/ubuntu/miniconda3/envs/ai4m-service-py310/bin/python main.py
 ```
 
-清理工具只删除旧软链接，并检查 1105 和原服务进程已经停止。已清理时返回 `already_clean`，可重复执行。旧入口暂时保留，是为了兼容目录改名前启动的进程中已保存的数据库、字体等绝对路径。源码、SQLite、模型配置与任务结果仍在正式目录中。
+2026-10-14 已确认 75 旧入口清理完成，1105 从 `material_selection` 运行，健康检查正常。清理工具只删除旧软链接；迁移尚未完成的副本须先停止旧服务。已清理时返回 `already_clean`，可重复执行。目录迁移期间保留旧入口，是为了兼容旧进程中已保存的数据库、字体等绝对路径。源码、SQLite、模型配置与任务结果仍在正式目录中。
 
 看到服务正常监听后，按 `Ctrl+B`，再按 `D` 脱离会话并保持运行。
 
